@@ -51,17 +51,18 @@ extension OrderStatusExtension on OrderStatusEnum {
   }
 
   /// Check if order can transition to a new status
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED/REJECTED → ON_THE_WAY → DELIVERED → COMPLETED
   bool canTransitionTo(OrderStatusEnum newStatus) {
     switch (this) {
       case OrderStatusEnum.pending:
         return newStatus == OrderStatusEnum.searchingForDriver ||
-            newStatus == OrderStatusEnum.accepted ||
-            newStatus == OrderStatusEnum.rejected;
+            newStatus == OrderStatusEnum.cancelled;
       case OrderStatusEnum.searchingForDriver:
         return newStatus == OrderStatusEnum.driverNotificationSent ||
             newStatus == OrderStatusEnum.cancelled;
       case OrderStatusEnum.driverNotificationSent:
         return newStatus == OrderStatusEnum.accepted ||
+            newStatus == OrderStatusEnum.rejected ||
             newStatus == OrderStatusEnum.cancelled;
       case OrderStatusEnum.accepted:
         return newStatus == OrderStatusEnum.onTheWay ||
@@ -78,10 +79,11 @@ extension OrderStatusExtension on OrderStatusEnum {
   }
 
   /// Get the next status in the flow
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED → COMPLETED
   OrderStatusEnum? get nextStatus {
     switch (this) {
       case OrderStatusEnum.pending:
-        return OrderStatusEnum.accepted;
+        return OrderStatusEnum.searchingForDriver;
       case OrderStatusEnum.searchingForDriver:
         return OrderStatusEnum.driverNotificationSent;
       case OrderStatusEnum.driverNotificationSent:

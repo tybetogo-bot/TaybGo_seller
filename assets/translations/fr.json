@@ -124,6 +124,7 @@
     "address": "Adresse",
     "phone": "Téléphone",
     "items": "articles",
+    "itemsLabel": "articles",
     "addItem": "Ajouter",
     "subtotal": "Sous-total",
     "deliveryFee": "Livraison",
@@ -177,10 +178,13 @@
     "waitingForDriverAssignment": "En attente d'attribution du chauffeur. Vous pouvez uniquement refuser cette commande.",
     "statusShort": {
       "pending": "Nouv.",
+      "searching": "Rech.",
+      "notified": "Notif.",
       "accepted": "Prép.",
       "ready": "Prêt",
       "onTheWay": "Livr.",
       "delivery": "Livr.",
+      "delivered": "Fait",
       "done": "Fait"
     },
     "statusDesc": {
@@ -240,6 +244,14 @@
     "deliverTo": "Livrer à",
     "driverInfo": "Livreur",
     "verified": "Vérifié",
+    "receipt": {
+      "title": "Reçu",
+      "printReceipt": "Imprimer le reçu",
+      "shareReceipt": "Partager le reçu",
+      "saveToDevice": "Enregistrer sur l'appareil",
+      "receiptSaved": "Reçu enregistré",
+      "thankYou": "Merci pour votre commande!"
+    },
     "scan": {
       "title": "Scanner le formulaire de commande",
       "subtitle": "Scanner le formulaire de commande imprimé",

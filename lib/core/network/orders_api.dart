@@ -41,11 +41,11 @@ class OrdersApi {
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Update order status (e.g., CANCELLED)
-  /// POST /api/orders/{id}/status/
+  /// Update order status
+  /// PATCH /api/orders/{id}/
   Future<OrderModel> updateOrderStatus(String id, String status) async {
-    final response = await _dio.post(
-      '/api/orders/$id/status/',
+    final response = await _dio.patch(
+      '/api/orders/$id/',
       data: {'status': status},
     );
     return OrderModel.fromJson(response.data as Map<String, dynamic>);

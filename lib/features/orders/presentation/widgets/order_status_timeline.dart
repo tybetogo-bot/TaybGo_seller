@@ -26,6 +26,7 @@ class OrderStatusTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Full order flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
     final steps = [
       _TimelineStep(
         status: OrderStatusEnum.pending,
@@ -33,6 +34,22 @@ class OrderStatusTimeline extends StatelessWidget {
         icon: Icons.hourglass_empty,
         isCompleted: _isCompleted(OrderStatusEnum.pending),
         isCurrent: currentStatus == OrderStatusEnum.pending,
+        timestamp: null,
+      ),
+      _TimelineStep(
+        status: OrderStatusEnum.searchingForDriver,
+        label: 'orders.status.searchingForDriver'.tr,
+        icon: Icons.search,
+        isCompleted: _isCompleted(OrderStatusEnum.searchingForDriver),
+        isCurrent: currentStatus == OrderStatusEnum.searchingForDriver,
+        timestamp: null,
+      ),
+      _TimelineStep(
+        status: OrderStatusEnum.driverNotificationSent,
+        label: 'orders.status.driverNotificationSent'.tr,
+        icon: Icons.notifications_active,
+        isCompleted: _isCompleted(OrderStatusEnum.driverNotificationSent),
+        isCurrent: currentStatus == OrderStatusEnum.driverNotificationSent,
         timestamp: null,
       ),
       _TimelineStep(
@@ -58,6 +75,14 @@ class OrderStatusTimeline extends StatelessWidget {
         isCompleted: _isCompleted(OrderStatusEnum.delivered),
         isCurrent: currentStatus == OrderStatusEnum.delivered,
         timestamp: deliveredAt,
+      ),
+      _TimelineStep(
+        status: OrderStatusEnum.completed,
+        label: 'orders.status.completed'.tr,
+        icon: Icons.verified,
+        isCompleted: _isCompleted(OrderStatusEnum.completed),
+        isCurrent: currentStatus == OrderStatusEnum.completed,
+        timestamp: null,
       ),
     ];
 
@@ -162,27 +187,34 @@ class OrderStatusTimeline extends StatelessWidget {
   }
 
   bool _isCompleted(OrderStatusEnum status) {
+    // Full flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
     final statusOrder = [
       OrderStatusEnum.pending,
+      OrderStatusEnum.searchingForDriver,
+      OrderStatusEnum.driverNotificationSent,
       OrderStatusEnum.accepted,
       OrderStatusEnum.onTheWay,
       OrderStatusEnum.delivered,
+      OrderStatusEnum.completed,
     ];
 
-    // Map current status to timeline index (handling intermediate/grouped statuses)
+    // Get timeline index for any status
     int getTimelineIndex(OrderStatusEnum s) {
       switch (s) {
         case OrderStatusEnum.pending:
-        case OrderStatusEnum.searchingForDriver:
           return 0;
-        case OrderStatusEnum.accepted:
-        case OrderStatusEnum.driverNotificationSent:
+        case OrderStatusEnum.searchingForDriver:
           return 1;
-        case OrderStatusEnum.onTheWay:
+        case OrderStatusEnum.driverNotificationSent:
           return 2;
-        case OrderStatusEnum.delivered:
-        case OrderStatusEnum.completed:
+        case OrderStatusEnum.accepted:
           return 3;
+        case OrderStatusEnum.onTheWay:
+          return 4;
+        case OrderStatusEnum.delivered:
+          return 5;
+        case OrderStatusEnum.completed:
+          return 6;
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           return -1;
@@ -360,77 +392,35 @@ class OrderActionButtons extends StatelessWidget {
   const OrderActionButtons({
     super.key,
     required this.currentStatus,
-    required this.onAccept,
-    required this.onReject,
     required this.onUpdateStatus,
     this.isLoading = false,
   });
 
   final OrderStatusEnum currentStatus;
-  final VoidCallback onAccept;
-  final VoidCallback onReject;
-  final ValueChanged<OrderStatusEnum> onUpdateStatus;
+  final VoidCallback onUpdateStatus;
   final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    switch (currentStatus) {
-      case OrderStatusEnum.pending:
-      case OrderStatusEnum.searchingForDriver:
-        return Row(
-          children: [
-            Expanded(
-              child: _ActionButton(
-                label: 'orders.reject'.tr,
-                icon: Icons.close,
-                color: AppColors.error,
-                onPressed: isLoading ? null : onReject,
-                isOutlined: true,
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              flex: 2,
-              child: _ActionButton(
-                label: 'orders.acceptOrder'.tr,
-                icon: Icons.check,
-                color: AppColors.primary,
-                onPressed: isLoading ? null : onAccept,
-                isLoading: isLoading,
-              ),
-            ),
-          ],
-        );
-
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        return _ActionButton(
-          label: 'orders.markOnTheWay'.tr,
-          icon: Icons.local_shipping_outlined,
-          color: AppColors.primary,
-          onPressed: isLoading
-              ? null
-              : () => onUpdateStatus(OrderStatusEnum.onTheWay),
-          isLoading: isLoading,
-        );
-
-      case OrderStatusEnum.onTheWay:
-        return _ActionButton(
-          label: 'orders.markDelivered'.tr,
-          icon: Icons.done_all,
-          color: AppColors.success,
-          onPressed: isLoading
-              ? null
-              : () => onUpdateStatus(OrderStatusEnum.delivered),
-          isLoading: isLoading,
-        );
-
-      case OrderStatusEnum.delivered:
-      case OrderStatusEnum.completed:
-      case OrderStatusEnum.rejected:
-      case OrderStatusEnum.cancelled:
-        return const SizedBox.shrink();
+    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Terminal statuses - no action buttons
+    if (currentStatus == OrderStatusEnum.completed ||
+        currentStatus == OrderStatusEnum.rejected ||
+        currentStatus == OrderStatusEnum.cancelled) {
+      return const SizedBox.shrink();
     }
+
+    // Active statuses - show Update Status button
+    final nextStatus = currentStatus.nextStatus;
+    if (nextStatus == null) return const SizedBox.shrink();
+
+    return _ActionButton(
+      label: 'orders.updateStatus'.tr,
+      icon: Icons.arrow_forward,
+      color: AppColors.primary,
+      onPressed: isLoading ? null : onUpdateStatus,
+      isLoading: isLoading,
+    );
   }
 }
 

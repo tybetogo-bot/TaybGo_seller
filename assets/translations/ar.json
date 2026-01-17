@@ -124,6 +124,7 @@
     "address": "العنوان",
     "phone": "الهاتف",
     "items": "عناصر",
+    "itemsLabel": "عناصر",
     "addItem": "إضافة عنصر",
     "subtotal": "المجموع الفرعي",
     "deliveryFee": "رسوم التوصيل",
@@ -177,10 +178,13 @@
     "waitingForDriverAssignment": "في انتظار تعيين السائق. يمكنك فقط رفض هذا الطلب.",
     "statusShort": {
       "pending": "جديد",
+      "searching": "بحث",
+      "notified": "إخطار",
       "accepted": "تحضير",
       "ready": "جاهز",
       "onTheWay": "توصيل",
       "delivery": "توصيل",
+      "delivered": "تم",
       "done": "تم"
     },
     "statusDesc": {
@@ -240,6 +244,14 @@
     "deliverTo": "التوصيل إلى",
     "driverInfo": "السائق",
     "verified": "موثق",
+    "receipt": {
+      "title": "الإيصال",
+      "printReceipt": "طباعة الإيصال",
+      "shareReceipt": "مشاركة الإيصال",
+      "saveToDevice": "حفظ على الجهاز",
+      "receiptSaved": "تم حفظ الإيصال",
+      "thankYou": "شكراً لطلبك!"
+    },
     "scan": {
       "title": "مسح ذكي بالذكاء الاصطناعي",
       "subtitle": "مسح الطلب بالذكاء الاصطناعي",

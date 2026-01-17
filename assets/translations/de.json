@@ -124,6 +124,7 @@
     "address": "Adresse",
     "phone": "Telefon",
     "items": "Artikel",
+    "itemsLabel": "Artikel",
     "addItem": "Artikel hinzufügen",
     "subtotal": "Zwischensumme",
     "deliveryFee": "Liefergebühr",
@@ -177,10 +178,13 @@
     "waitingForDriverAssignment": "Warte auf Fahrerzuweisung. Sie können diese Bestellung nur ablehnen.",
     "statusShort": {
       "pending": "Neu",
+      "searching": "Suche",
+      "notified": "Benach.",
       "accepted": "Zub.",
       "ready": "Bereit",
       "onTheWay": "Lief.",
       "delivery": "Lief.",
+      "delivered": "Fertig",
       "done": "Fertig"
     },
     "statusDesc": {
@@ -240,6 +244,14 @@
     "deliverTo": "Lieferung an",
     "driverInfo": "Fahrer",
     "verified": "Verifiziert",
+    "receipt": {
+      "title": "Quittung",
+      "printReceipt": "Quittung drucken",
+      "shareReceipt": "Quittung teilen",
+      "saveToDevice": "Auf Gerät speichern",
+      "receiptSaved": "Quittung gespeichert",
+      "thankYou": "Vielen Dank für Ihre Bestellung!"
+    },
     "scan": {
       "title": "Bestellformular scannen",
       "subtitle": "Gedrucktes Bestellformular scannen",

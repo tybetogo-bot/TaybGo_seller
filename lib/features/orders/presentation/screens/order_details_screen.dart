@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
@@ -10,6 +9,8 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
+// TODO: Re-enable when print button is enabled
+// import '../../data/services/pdf_receipt_service.dart';
 
 /// Order details screen
 class OrderDetailsScreen extends ConsumerStatefulWidget {
@@ -60,22 +61,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     setState(() => _isProcessing = true);
     HapticFeedback.mediumImpact();
 
-    bool success = false;
-    switch (order.status) {
-      case OrderStatusEnum.pending:
-      case OrderStatusEnum.searchingForDriver:
-        success = await ref.read(ordersProvider.notifier).acceptOrder(order.id);
-        break;
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        success = await ref.read(ordersProvider.notifier).markOnTheWay(order.id);
-        break;
-      case OrderStatusEnum.onTheWay:
-        success = await ref.read(ordersProvider.notifier).markDelivered(order.id);
-        break;
-      default:
-        break;
-    }
+    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Use moveToNextStatus to advance to the next status in sequence
+    final success = await ref.read(ordersProvider.notifier).moveToNextStatus(order.id);
 
     if (mounted) {
       if (success) {
@@ -89,15 +77,21 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   OrderStatusEnum? _getTargetStatus(OrderStatusEnum currentStatus) {
+    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Each status moves to the next one in sequence
     switch (currentStatus) {
       case OrderStatusEnum.pending:
+        return OrderStatusEnum.searchingForDriver;
       case OrderStatusEnum.searchingForDriver:
+        return OrderStatusEnum.driverNotificationSent;
+      case OrderStatusEnum.driverNotificationSent:
         return OrderStatusEnum.accepted;
       case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
         return OrderStatusEnum.onTheWay;
       case OrderStatusEnum.onTheWay:
         return OrderStatusEnum.delivered;
+      case OrderStatusEnum.delivered:
+        return OrderStatusEnum.completed;
       default:
         return null;
     }
@@ -259,48 +253,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
-  Future<void> _handleReject(OrderModel order) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${'orders.rejectOrder'.tr}?'),
-        content: Text('orders.rejectConfirmMessage'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('common.cancel'.tr),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('orders.reject'.tr),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() => _isProcessing = true);
-    HapticFeedback.mediumImpact();
-
-    final success = await ref.read(ordersProvider.notifier).cancelOrder(order.id);
-
-    if (mounted) {
-      if (success) {
-        _showSuccessSnackBar('orders.orderRejectedSuccess'.tr);
-        context.pop();
-      } else {
-        final error = ref.read(ordersProvider).error;
-        _showErrorSnackBar(error ?? 'orders.orderRejectFailed'.tr);
-      }
-      setState(() => _isProcessing = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
@@ -339,14 +291,21 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     return AppScaffold(
       appBar: AppAppBar(
         title: '${'orders.orderDetails'.tr} #${order.id}',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.print_outlined),
-            onPressed: () {
-              // TODO: Print order
-            },
-          ),
-        ],
+        // TODO: Re-enable print button when PDF generation is fully tested
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.print_outlined),
+        //     onPressed: () {
+        //       PdfReceiptService.showReceiptOptions(
+        //         context,
+        //         order,
+        //         restaurantName: order.restaurant?.name,
+        //         restaurantAddress: order.restaurant?.address,
+        //         restaurantPhone: order.restaurant?.phone,
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -418,117 +377,29 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   Widget _buildActionButtons(OrderModel order, bool isDark) {
     final status = order.status;
 
+    // Flow: Pending → Searching → Driver Notified → Accepted/Rejected → On the Way → Delivered → Completed
     // Completed or cancelled orders don't need action buttons
-    if (status == OrderStatusEnum.delivered ||
-        status == OrderStatusEnum.completed ||
+    if (status == OrderStatusEnum.completed ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled) {
       return const SizedBox.shrink();
     }
 
-    // Pending orders - show both Accept and Reject buttons
-    if (status == OrderStatusEnum.pending ||
-        status == OrderStatusEnum.searchingForDriver ||
-        status == OrderStatusEnum.driverNotificationSent) {
-      return Column(
-        children: [
-          // Info message explaining the status - show status-specific message
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  _getPendingStatusIcon(status),
-                  color: AppColors.info,
-                  size: 20.w,
-                ),
-                SizedBox(width: 8.w),
-                Expanded(
-                  child: Text(
-                    _getPendingStatusMessage(status),
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.info,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 12.h),
-          // Accept and Reject buttons
-          Row(
-            children: [
-              Expanded(
-                child: AppButton(
-                  label: 'orders.reject'.tr,
-                  icon: Icons.close,
-                  variant: AppButtonVariant.outline,
-                  size: AppButtonSize.small,
-                  isLoading: _isProcessing,
-                  onPressed: () => _handleReject(order),
-                  isFullWidth: true,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                flex: 2,
-                child: AppButton(
-                  label: 'orders.accept'.tr,
-                  icon: Icons.check,
-                  size: AppButtonSize.small,
-                  isLoading: _isProcessing,
-                  onPressed: () => _handleStatusAction(order),
-                  isFullWidth: true,
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
+    // Get the next status label for the button
+    final targetStatus = _getTargetStatus(status);
+    if (targetStatus == null) return const SizedBox.shrink();
 
-    // Active statuses (accepted, onTheWay) have action buttons to move to next status
+    // Show Update Status button for all active statuses
     return AppButton(
-      label: _getActionButtonLabel(status),
-      icon: _getActionButtonIcon(status),
+      label: '${'orders.updateStatus'.tr}: ${_getStatusDisplayName(targetStatus)}',
+      icon: _getStatusIcon(targetStatus),
       isLoading: _isProcessing,
       onPressed: () => _handleStatusAction(order),
       isFullWidth: true,
     );
   }
 
-  String _getActionButtonLabel(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        return 'orders.markOnTheWay'.tr;
-      case OrderStatusEnum.onTheWay:
-        return 'orders.markDelivered'.tr;
-      default:
-        return '';
-    }
-  }
-
-  IconData _getActionButtonIcon(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        return Icons.delivery_dining;
-      case OrderStatusEnum.onTheWay:
-        return Icons.check_circle_outline;
-      default:
-        return Icons.arrow_forward;
-    }
-  }
-
-  /// Get appropriate icon for pending-like statuses
-  IconData _getPendingStatusIcon(OrderStatusEnum status) {
+  IconData _getStatusIcon(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
         return Icons.hourglass_empty;
@@ -536,24 +407,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return Icons.search;
       case OrderStatusEnum.driverNotificationSent:
         return Icons.notifications_active;
-      default:
-        return Icons.info_outline;
+      case OrderStatusEnum.accepted:
+        return Icons.check_circle_outline;
+      case OrderStatusEnum.onTheWay:
+        return Icons.delivery_dining;
+      case OrderStatusEnum.delivered:
+        return Icons.done_all;
+      case OrderStatusEnum.completed:
+        return Icons.verified;
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return Icons.cancel;
     }
   }
 
-  /// Get appropriate message for pending-like statuses
-  String _getPendingStatusMessage(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.pending:
-        return 'orders.statusDesc.pending'.tr;
-      case OrderStatusEnum.searchingForDriver:
-        return 'orders.statusDesc.searchingForDriver'.tr;
-      case OrderStatusEnum.driverNotificationSent:
-        return 'orders.statusDesc.driverNotificationSent'.tr;
-      default:
-        return 'orders.waitingForDriverAssignment'.tr;
-    }
-  }
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -584,17 +451,8 @@ class _OrderStatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Simplified timeline statuses (4 main steps)
-    final statuses = [
-      OrderStatusEnum.pending,
-      OrderStatusEnum.accepted,
-      OrderStatusEnum.onTheWay,
-      OrderStatusEnum.delivered,
-    ];
-
-    // Map current status to timeline index
-    int currentIndex = _getTimelineIndex(order.status);
-    if (currentIndex < 0) currentIndex = 0;
+    // Calculate progress (0.0 to 1.0) based on current status
+    final progress = _getProgress(order.status);
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -712,48 +570,37 @@ class _OrderStatusTimeline extends StatelessWidget {
           ),
           SizedBox(height: 20.h),
 
-          // Timeline
+          // Simple progress timeline with 4 milestones
           if (order.status != OrderStatusEnum.rejected &&
               order.status != OrderStatusEnum.cancelled) ...[
-            Row(
-              children: List.generate(statuses.length * 2 - 1, (index) {
-                if (index.isEven) {
-                  final statusIndex = index ~/ 2;
-                  final isCompleted = statusIndex <= currentIndex;
-                  final isCurrent = statusIndex == currentIndex;
-                  return _TimelineNode(
-                    isCompleted: isCompleted,
-                    isCurrent: isCurrent,
-                    icon: _getStatusIcon(statuses[statusIndex]),
-                  );
-                } else {
-                  final lineIndex = index ~/ 2;
-                  final isCompleted = lineIndex < currentIndex;
-                  return _TimelineLine(isCompleted: isCompleted);
-                }
-              }),
-            ),
+            // Progress bar
+            _SimpleProgressBar(progress: progress, isDark: isDark),
             SizedBox(height: 8.h),
+            // 4 milestone labels
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: statuses.map((status) {
-                return SizedBox(
-                  width: 50.w,
-                  child: Text(
-                    _getShortStatusLabel(status),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 9.sp,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? DarkColors.textTertiary
-                          : LightColors.textTertiary,
-                    ),
-                  ),
-                );
-              }).toList(),
+              children: [
+                _MilestoneLabel(
+                  label: 'orders.statusShort.pending'.tr,
+                  isActive: progress >= 0,
+                  isDark: isDark,
+                ),
+                _MilestoneLabel(
+                  label: 'orders.statusShort.accepted'.tr,
+                  isActive: progress >= 0.5,
+                  isDark: isDark,
+                ),
+                _MilestoneLabel(
+                  label: 'orders.statusShort.onTheWay'.tr,
+                  isActive: progress >= 0.75,
+                  isDark: isDark,
+                ),
+                _MilestoneLabel(
+                  label: 'orders.statusShort.done'.tr,
+                  isActive: progress >= 1.0,
+                  isDark: isDark,
+                ),
+              ],
             ),
           ] else ...[
             Container(
@@ -785,17 +632,44 @@ class _OrderStatusTimeline extends StatelessWidget {
     );
   }
 
+  /// Calculate progress value (0.0 to 1.0) for the progress bar
+  /// Maps 7 statuses to 4 milestones: New (0), Prep (0.5), Delivery (0.75), Done (1.0)
+  double _getProgress(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 0.0;
+      case OrderStatusEnum.searchingForDriver:
+        return 0.15;
+      case OrderStatusEnum.driverNotificationSent:
+        return 0.35;
+      case OrderStatusEnum.accepted:
+        return 0.5;
+      case OrderStatusEnum.onTheWay:
+        return 0.75;
+      case OrderStatusEnum.delivered:
+        return 0.9;
+      case OrderStatusEnum.completed:
+        return 1.0;
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return 0.0;
+    }
+  }
+
   Color _getStatusColor(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
+        return AppColors.warning;
       case OrderStatusEnum.searchingForDriver:
         return AppColors.warning;
-      case OrderStatusEnum.accepted:
       case OrderStatusEnum.driverNotificationSent:
+        return Colors.orange;
+      case OrderStatusEnum.accepted:
         return AppColors.info;
       case OrderStatusEnum.onTheWay:
         return Colors.purple;
       case OrderStatusEnum.delivered:
+        return AppColors.success;
       case OrderStatusEnum.completed:
         return AppColors.success;
       case OrderStatusEnum.rejected:
@@ -848,25 +722,6 @@ class _OrderStatusTimeline extends StatelessWidget {
     }
   }
 
-  String _getShortStatusLabel(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.pending:
-      case OrderStatusEnum.searchingForDriver:
-        return 'orders.statusShort.pending'.tr;
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        return 'orders.statusShort.accepted'.tr;
-      case OrderStatusEnum.onTheWay:
-        return 'orders.statusShort.onTheWay'.tr;
-      case OrderStatusEnum.delivered:
-      case OrderStatusEnum.completed:
-        return 'orders.statusShort.done'.tr;
-      case OrderStatusEnum.rejected:
-      case OrderStatusEnum.cancelled:
-        return '';
-    }
-  }
-
   String _getStatusDescription(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
@@ -889,84 +744,129 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 'orders.statusDesc.cancelled'.tr;
     }
   }
+}
 
-  /// Map any status to a timeline index (0-3)
-  int _getTimelineIndex(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.pending:
-      case OrderStatusEnum.searchingForDriver:
-        return 0;
-      case OrderStatusEnum.accepted:
-      case OrderStatusEnum.driverNotificationSent:
-        return 1;
-      case OrderStatusEnum.onTheWay:
-        return 2;
-      case OrderStatusEnum.delivered:
-      case OrderStatusEnum.completed:
-        return 3;
-      case OrderStatusEnum.rejected:
-      case OrderStatusEnum.cancelled:
-        return -1; // Special case, timeline not shown
-    }
+class _SimpleProgressBar extends StatelessWidget {
+  const _SimpleProgressBar({
+    required this.progress,
+    required this.isDark,
+  });
+
+  final double progress;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Progress bar with milestone dots
+        SizedBox(
+          height: 24.h,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background track
+              Container(
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: isDark ? DarkColors.border : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              // Progress fill
+              Align(
+                alignment: Alignment.centerLeft,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  height: 4.h,
+                  width: MediaQuery.of(context).size.width * 0.85 * progress,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+              ),
+              // Milestone dots
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _MilestoneDot(isActive: progress >= 0, isDark: isDark),
+                  _MilestoneDot(isActive: progress >= 0.5, isDark: isDark),
+                  _MilestoneDot(isActive: progress >= 0.75, isDark: isDark),
+                  _MilestoneDot(isActive: progress >= 1.0, isDark: isDark),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
-class _TimelineNode extends StatelessWidget {
-  const _TimelineNode({
-    required this.isCompleted,
-    required this.isCurrent,
-    required this.icon,
+class _MilestoneDot extends StatelessWidget {
+  const _MilestoneDot({
+    required this.isActive,
+    required this.isDark,
   });
 
-  final bool isCompleted;
-  final bool isCurrent;
-  final IconData icon;
+  final bool isActive;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: isCurrent ? 36.w : 28.w,
-      height: isCurrent ? 36.w : 28.w,
+      width: isActive ? 16.w : 12.w,
+      height: isActive ? 16.w : 12.w,
       decoration: BoxDecoration(
-        color: isCompleted
-            ? AppColors.primary
-            : (isCurrent ? AppColors.primary.withValues(alpha: 0.2) : Colors.grey[300]),
+        color: isActive ? AppColors.primary : (isDark ? DarkColors.surface : Colors.white),
         shape: BoxShape.circle,
-        boxShadow: isCurrent
+        border: Border.all(
+          color: isActive ? AppColors.primary : (isDark ? DarkColors.border : Colors.grey[400]!),
+          width: 2,
+        ),
+        boxShadow: isActive
             ? [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  spreadRadius: 2,
+                  blurRadius: 4,
+                  spreadRadius: 1,
                 ),
               ]
             : null,
       ),
-      child: Icon(
-        icon,
-        size: isCurrent ? 18.w : 14.w,
-        color: isCompleted ? Colors.white : Colors.grey[600],
-      ),
+      child: isActive
+          ? Icon(Icons.check, size: 10.w, color: Colors.white)
+          : null,
     );
   }
 }
 
-class _TimelineLine extends StatelessWidget {
-  const _TimelineLine({required this.isCompleted});
+class _MilestoneLabel extends StatelessWidget {
+  const _MilestoneLabel({
+    required this.label,
+    required this.isActive,
+    required this.isDark,
+  });
 
-  final bool isCompleted;
+  final String label;
+  final bool isActive;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        height: 3.h,
-        decoration: BoxDecoration(
-          color: isCompleted ? AppColors.primary : Colors.grey[300],
-          borderRadius: BorderRadius.circular(2.r),
-        ),
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 11.sp,
+        fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+        color: isActive
+            ? AppColors.primary
+            : (isDark ? DarkColors.textTertiary : LightColors.textTertiary),
       ),
     );
   }

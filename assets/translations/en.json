@@ -124,6 +124,7 @@
     "address": "Address",
     "phone": "Phone",
     "items": "items",
+    "itemsLabel": "items",
     "addItem": "Add Item",
     "subtotal": "Subtotal",
     "deliveryFee": "Delivery Fee",
@@ -180,10 +181,13 @@
     "waitingForDriverAssignment": "Waiting for driver assignment. You can only reject this order.",
     "statusShort": {
       "pending": "New",
+      "searching": "Search",
+      "notified": "Notified",
       "accepted": "Prep",
       "ready": "Ready",
       "onTheWay": "Delivery",
       "delivery": "Delivery",
+      "delivered": "Done",
       "done": "Done"
     },
     "statusDesc": {
@@ -243,6 +247,14 @@
     "deliverTo": "Deliver to",
     "driverInfo": "Driver",
     "verified": "Verified",
+    "receipt": {
+      "title": "Receipt",
+      "printReceipt": "Print Receipt",
+      "shareReceipt": "Share Receipt",
+      "saveToDevice": "Save to Device",
+      "receiptSaved": "Receipt saved",
+      "thankYou": "Thank you for your order!"
+    },
     "scan": {
       "title": "AI Scan Order",
       "subtitle": "AI-Powered Order Scanning",

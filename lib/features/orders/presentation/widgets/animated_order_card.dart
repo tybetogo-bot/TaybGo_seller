@@ -8,7 +8,7 @@ import '../../../../core/theme/theme.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 
-/// Animated order card with status actions
+/// Minimal order card with clean design
 class AnimatedOrderCard extends ConsumerStatefulWidget {
   const AnimatedOrderCard({
     super.key,
@@ -29,21 +29,17 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
   bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.7).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
   }
 
@@ -53,33 +49,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     super.dispose();
   }
 
-  /// Cancel an order
-  Future<void> _handleCancel() async {
-    if (_isProcessing) return;
-
-    final confirmed = await _showCancelDialog();
-    if (!confirmed) return;
-
-    setState(() => _isProcessing = true);
-    HapticFeedback.mediumImpact();
-
-    await _controller.forward();
-    final success = await ref
-        .read(ordersProvider.notifier)
-        .cancelOrder(widget.order.id);
-
-    if (success && mounted) {
-      _showSuccessSnackBar('orders.status.cancelled'.tr);
-    }
-
-    if (mounted) {
-      await _controller.reverse();
-      setState(() => _isProcessing = false);
-    }
-  }
-
-  /// Accept an order
-  Future<void> _handleAccept() async {
+  Future<void> _handleMoveToNextStatus() async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
 
@@ -88,97 +58,13 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
     final success = await ref
         .read(ordersProvider.notifier)
-        .acceptOrder(widget.order.id);
+        .moveToNextStatus(widget.order.id);
 
     if (success && mounted) {
-      _showSuccessSnackBar('orders.status.accepted'.tr);
-    }
-
-    if (mounted) {
-      await _controller.reverse();
-      setState(() => _isProcessing = false);
-    }
-  }
-
-  Future<bool> _showCancelDialog() async {
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('orders.cancelOrder'.tr),
-            content: Text('orders.confirmCancel'.tr),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('common.no'.tr),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                  'common.yes'.tr,
-                  style: TextStyle(color: AppColors.error),
-                ),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-  }
-
-  Future<void> _handleMarkOnTheWay() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-
-    HapticFeedback.mediumImpact();
-    await _controller.forward();
-
-    final success = await ref
-        .read(ordersProvider.notifier)
-        .markOnTheWay(widget.order.id);
-
-    if (success && mounted) {
-      _showSuccessSnackBar('orders.status.onTheWay'.tr);
-    }
-
-    if (mounted) {
-      await _controller.reverse();
-      setState(() => _isProcessing = false);
-    }
-  }
-
-  Future<void> _handleMarkCompleted() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-
-    HapticFeedback.mediumImpact();
-    await _controller.forward();
-
-    final success = await ref
-        .read(ordersProvider.notifier)
-        .markCompleted(widget.order.id);
-
-    if (success && mounted) {
-      _showSuccessSnackBar('orders.status.completed'.tr);
-    }
-
-    if (mounted) {
-      await _controller.reverse();
-      setState(() => _isProcessing = false);
-    }
-  }
-
-  Future<void> _handleMarkDelivered() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-
-    HapticFeedback.mediumImpact();
-    await _controller.forward();
-
-    final success = await ref
-        .read(ordersProvider.notifier)
-        .markDelivered(widget.order.id);
-
-    if (success && mounted) {
-      _showSuccessSnackBar('orders.status.delivered'.tr);
+      final nextStatus = widget.order.status.nextStatus;
+      if (nextStatus != null) {
+        _showSuccessSnackBar('orders.statusUpdatedTo'.tr.replaceAll('{status}', _getStatusLabel(nextStatus)));
+      }
     }
 
     if (mounted) {
@@ -190,13 +76,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20.w),
-            SizedBox(width: 8.w),
-            Text(message),
-          ],
-        ),
+        content: Text(message),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
@@ -204,9 +84,56 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     );
   }
 
+  String _getStatusLabel(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 'orders.status.pending'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.status.searchingForDriver'.tr;
+      case OrderStatusEnum.driverNotificationSent:
+        return 'orders.status.driverNotificationSent'.tr;
+      case OrderStatusEnum.accepted:
+        return 'orders.status.accepted'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.status.onTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.completed:
+        return 'orders.status.completed'.tr;
+      case OrderStatusEnum.rejected:
+        return 'orders.status.rejected'.tr;
+      case OrderStatusEnum.cancelled:
+        return 'orders.status.cancelled'.tr;
+    }
+  }
+
+  String _getShortStatus(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 'orders.statusShort.pending'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.statusShort.searching'.tr;
+      case OrderStatusEnum.driverNotificationSent:
+        return 'orders.statusShort.notified'.tr;
+      case OrderStatusEnum.accepted:
+        return 'orders.statusShort.accepted'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.statusShort.onTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.statusShort.delivered'.tr;
+      case OrderStatusEnum.completed:
+        return 'orders.statusShort.done'.tr;
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return status == OrderStatusEnum.rejected ? 'Rejected' : 'Cancelled';
+    }
+  }
+
   String _getTimeAgo(DateTime time) {
     final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 60) {
+    if (diff.inMinutes < 1) {
+      return 'time.justNow'.tr;
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
     } else if (diff.inHours < 24) {
       return '${diff.inHours}h';
@@ -215,329 +142,40 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
   }
 
-  String _getItemsSummary(OrderModel order) {
-    if (order.items.isEmpty) return 'orders.noItems'.tr;
-    
-    final itemDescriptions = order.items.map((item) {
-      return '${item.quantity}x ${item.name}';
-    }).toList();
-    
-    return itemDescriptions.join(', ');
+  int _getItemsCount(OrderModel order) {
+    return order.items.fold(0, (sum, item) => sum + item.quantity);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final order = widget.order;
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _fadeAnimation.value,
-            child: child,
-          ),
-        );
-      },
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          margin: EdgeInsets.only(bottom: 10.h),
-          decoration: BoxDecoration(
-            color: isDark ? DarkColors.surface : LightColors.surface,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: _getStatusBorderColor(order.status, isDark),
-              width: order.status == OrderStatusEnum.pending ? 1.5 : 0.5,
-            ),
-            boxShadow: order.status == OrderStatusEnum.pending
-                ? [
-                    BoxShadow(
-                      color: AppColors.warning.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            children: [
-              // Status indicator bar
-              Container(
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: _getStatusColor(order.status),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12.r),
-                    topRight: Radius.circular(12.r),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(14.w),
-                child: Column(
-                  children: [
-                    // Header row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8.w,
-                                  vertical: 4.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(order.status)
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(6.r),
-                                ),
-                                child: Text(
-                                  '#${order.id}',
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w700,
-                                    color: _getStatusColor(order.status),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 10.w),
-                              Expanded(
-                                child: Text(
-                                  order.customerName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark
-                                        ? DarkColors.textPrimary
-                                        : LightColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 14.w,
-                              color: isDark
-                                  ? DarkColors.textTertiary
-                                  : LightColors.textTertiary,
-                            ),
-                            SizedBox(width: 4.w),
-                            Text(
-                              _getTimeAgo(order.createdAt),
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: isDark
-                                    ? DarkColors.textTertiary
-                                    : LightColors.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-
-                    // Items summary
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? DarkColors.background
-                            : LightColors.backgroundSecondary,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        _getItemsSummary(order),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10.h),
-
-                    // Details row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Text(
-                                '\$${order.total.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? DarkColors.textPrimary
-                                      : LightColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(width: 6.w),
-                              if (order.isPaid) ...[
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 6.w,
-                                    vertical: 2.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.success.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4.r),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle,
-                                        size: 12.w,
-                                        color: AppColors.success,
-                                      ),
-                                      SizedBox(width: 3.w),
-                                      Text(
-                                        'orders.paid'.tr,
-                                        style: TextStyle(
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.success,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        _buildActionButtons(isDark),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(bool isDark) {
-    final status = widget.order.status;
-
-    if (_isProcessing) {
-      return SizedBox(
-        width: 24.w,
-        height: 24.w,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: AppColors.primary,
-        ),
-      );
-    }
-
+  double _getProgress(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
+        return 0.0;
       case OrderStatusEnum.searchingForDriver:
+        return 0.15;
       case OrderStatusEnum.driverNotificationSent:
-        // Show Accept and Cancel buttons
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ActionButton(
-              label: 'orders.reject'.tr,
-              onTap: _handleCancel,
-              isDark: isDark,
-            ),
-            SizedBox(width: 6.w),
-            _ActionButton(
-              label: 'orders.accept'.tr,
-              onTap: _handleAccept,
-              isPrimary: true,
-              icon: Icons.check,
-            ),
-          ],
-        );
-
+        return 0.35;
       case OrderStatusEnum.accepted:
-        return _ActionButton(
-          label: 'orders.markOnTheWay'.tr,
-          onTap: _handleMarkOnTheWay,
-          isPrimary: true,
-          icon: Icons.delivery_dining,
-        );
-
+        return 0.5;
       case OrderStatusEnum.onTheWay:
-        return _ActionButton(
-          label: 'orders.markDelivered'.tr,
-          onTap: _handleMarkDelivered,
-          isPrimary: true,
-          icon: Icons.check_circle_outline,
-        );
-
+        return 0.75;
       case OrderStatusEnum.delivered:
-        return _ActionButton(
-          label: 'orders.markCompleted'.tr,
-          onTap: _handleMarkCompleted,
-          isPrimary: true,
-          icon: Icons.done_all,
-        );
-
+        return 0.9;
       case OrderStatusEnum.completed:
-        return Row(
-          children: [
-            Icon(Icons.done_all, color: AppColors.success, size: 20.w),
-            SizedBox(width: 4.w),
-            Text(
-              'orders.status.completed'.tr,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.success,
-              ),
-            ),
-          ],
-        );
-
+        return 1.0;
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
-        return Row(
-          children: [
-            Icon(Icons.cancel, color: AppColors.error, size: 20.w),
-            SizedBox(width: 4.w),
-            Text(
-              status == OrderStatusEnum.rejected
-                  ? 'orders.status.rejected'.tr
-                  : 'orders.status.cancelled'.tr,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.error,
-              ),
-            ),
-          ],
-        );
+        return 0.0;
     }
   }
 
   Color _getStatusColor(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-      case OrderStatusEnum.searchingForDriver:
-      case OrderStatusEnum.driverNotificationSent:
         return AppColors.warning;
+      case OrderStatusEnum.searchingForDriver:
+        return Colors.orange;
+      case OrderStatusEnum.driverNotificationSent:
+        return Colors.orange;
       case OrderStatusEnum.accepted:
         return AppColors.info;
       case OrderStatusEnum.onTheWay:
@@ -545,85 +183,346 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.delivered:
         return AppColors.success;
       case OrderStatusEnum.completed:
-        return AppColors.success.withValues(alpha: 0.7);
+        return AppColors.success;
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return AppColors.error;
     }
   }
 
-  Color _getStatusBorderColor(OrderStatusEnum status, bool isDark) {
-    if (status == OrderStatusEnum.pending) {
-      return AppColors.warning.withValues(alpha: 0.5);
+  IconData _getStatusIcon(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return Icons.schedule;
+      case OrderStatusEnum.searchingForDriver:
+        return Icons.search;
+      case OrderStatusEnum.driverNotificationSent:
+        return Icons.notifications_active_outlined;
+      case OrderStatusEnum.accepted:
+        return Icons.restaurant;
+      case OrderStatusEnum.onTheWay:
+        return Icons.delivery_dining;
+      case OrderStatusEnum.delivered:
+        return Icons.check_circle_outline;
+      case OrderStatusEnum.completed:
+        return Icons.verified;
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return Icons.cancel_outlined;
     }
-    return isDark ? DarkColors.border : LightColors.border;
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final order = widget.order;
+    final status = order.status;
+    final statusColor = _getStatusColor(status);
+    final isTerminal = status == OrderStatusEnum.completed ||
+        status == OrderStatusEnum.rejected ||
+        status == OrderStatusEnum.cancelled;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
+        );
+      },
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Container(
+          margin: EdgeInsets.only(bottom: 12.h),
+          decoration: BoxDecoration(
+            color: isDark ? DarkColors.surface : LightColors.surface,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: status == OrderStatusEnum.pending
+                  ? statusColor.withValues(alpha: 0.4)
+                  : (isDark ? DarkColors.border : LightColors.border),
+              width: status == OrderStatusEnum.pending ? 1.5 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : Colors.grey).withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  children: [
+                    // Top row: Order ID, Status badge, Time
+                    Row(
+                      children: [
+                        // Order ID
+                        Text(
+                          '#${order.id}',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        // Status badge
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getStatusIcon(status),
+                                size: 12.w,
+                                color: statusColor,
+                              ),
+                              SizedBox(width: 4.w),
+                              Text(
+                                _getShortStatus(status),
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        // Time ago
+                        Text(
+                          _getTimeAgo(order.createdAt),
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 14.h),
+
+                    // Middle row: Customer name and items count
+                    Row(
+                      children: [
+                        // Customer avatar placeholder
+                        Container(
+                          width: 36.w,
+                          height: 36.w,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? DarkColors.backgroundSecondary
+                                : LightColors.backgroundSecondary,
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Icon(
+                            Icons.person_outline,
+                            size: 20.w,
+                            color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        // Customer info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.customerName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                '${_getItemsCount(order)} ${'orders.itemsLabel'.tr}',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Total price
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '\$${order.total.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                              ),
+                            ),
+                            if (order.isPaid)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: 12.w,
+                                    color: AppColors.success,
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    'orders.paid'.tr,
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    // Action button for non-terminal statuses
+                    if (!isTerminal && status.nextStatus != null) ...[
+                      SizedBox(height: 14.h),
+                      _MinimalActionButton(
+                        onTap: _handleMoveToNextStatus,
+                        isLoading: _isProcessing,
+                        statusColor: statusColor,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Bottom progress bar
+              if (!isTerminal)
+                _MiniProgressBar(
+                  progress: _getProgress(status),
+                  color: statusColor,
+                  isDark: isDark,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.label,
+/// Minimal action button
+class _MinimalActionButton extends StatelessWidget {
+  const _MinimalActionButton({
     required this.onTap,
-    this.isPrimary = false,
-    this.isDark = false,
-    this.icon,
+    required this.isLoading,
+    required this.statusColor,
   });
 
-  final String label;
   final VoidCallback onTap;
-  final bool isPrimary;
-  final bool isDark;
-  final IconData? icon;
+  final bool isLoading;
+  final Color statusColor;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.symmetric(
-          horizontal: icon != null ? 8.w : 10.w,
-          vertical: 6.h,
-        ),
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 12.h),
         decoration: BoxDecoration(
-          color: isPrimary ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(6.r),
-          border: isPrimary
-              ? null
-              : Border.all(
-                  color: isDark ? DarkColors.border : LightColors.border,
-                ),
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(10.r),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 12.w,
-                color: isPrimary ? Colors.white : (isDark ? DarkColors.textSecondary : LightColors.textSecondary),
+        child: isLoading
+            ? Center(
+                child: SizedBox(
+                  width: 18.w,
+                  height: 18.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'orders.updateStatus'.tr,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16.w,
+                    color: Colors.white,
+                  ),
+                ],
               ),
-              SizedBox(width: 3.w),
+      ),
+    );
+  }
+}
+
+/// Mini progress bar at the bottom of the card
+class _MiniProgressBar extends StatelessWidget {
+  const _MiniProgressBar({
+    required this.progress,
+    required this.color,
+    required this.isDark,
+  });
+
+  final double progress;
+  final Color color;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 3.h,
+      decoration: BoxDecoration(
+        color: isDark ? DarkColors.border : Colors.grey[200],
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(16.r),
+          bottomRight: Radius.circular(16.r),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOut,
+                width: constraints.maxWidth * progress,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [color, color.withValues(alpha: 0.7)],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(16.r),
+                    bottomRight: progress >= 1.0 ? Radius.circular(16.r) : Radius.zero,
+                  ),
+                ),
+              ),
             ],
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w600,
-                  color: isPrimary
-                      ? Colors.white
-                      : (isDark
-                          ? DarkColors.textSecondary
-                          : LightColors.textSecondary),
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

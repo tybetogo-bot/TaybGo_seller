@@ -72,7 +72,13 @@ class HomeScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      _NotificationIconButton(isDark: isDark),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _RefreshButton(isDark: isDark),
+                          _NotificationIconButton(isDark: isDark),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -309,6 +315,57 @@ class _PrimaryAction extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RefreshButton extends ConsumerStatefulWidget {
+  const _RefreshButton({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  ConsumerState<_RefreshButton> createState() => _RefreshButtonState();
+}
+
+class _RefreshButtonState extends ConsumerState<_RefreshButton> {
+  bool _isRefreshing = false;
+
+  Future<void> _handleRefresh() async {
+    if (_isRefreshing) return;
+
+    setState(() => _isRefreshing = true);
+
+    try {
+      await ref.read(ordersProvider.notifier).refreshOrders();
+      final selectedRestaurant = ref.read(selectedRestaurantProvider);
+      if (selectedRestaurant != null) {
+        await ref.read(restaurantProvider.notifier).fetchRestaurantById(selectedRestaurant.id);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: _isRefreshing ? null : _handleRefresh,
+      icon: _isRefreshing
+          ? SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: widget.isDark ? DarkColors.textPrimary : LightColors.textSecondary,
+              ),
+            )
+          : Icon(
+              Icons.refresh_rounded,
+              color: widget.isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+            ),
     );
   }
 }

@@ -21,6 +21,7 @@ class OrdersScreen extends ConsumerStatefulWidget {
 class _OrdersScreenState extends ConsumerState<OrdersScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -32,6 +33,20 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(ordersPollingProvider.notifier).start();
     });
+  }
+
+  Future<void> _handleRefresh() async {
+    if (_isRefreshing) return;
+
+    setState(() => _isRefreshing = true);
+
+    try {
+      await ref.read(ordersProvider.notifier).refreshOrders();
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+    }
   }
 
   @override
@@ -70,6 +85,19 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
             : LightColors.background,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: _isRefreshing
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: isDark ? DarkColors.textPrimary : LightColors.textSecondary,
+                    ),
+                  )
+                : const Icon(Icons.refresh_rounded),
+            onPressed: _isRefreshing ? null : _handleRefresh,
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => context.push(Routes.createOrder),

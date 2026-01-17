@@ -120,9 +120,59 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
   }
 
-  /// Refresh orders
+  /// Refresh orders (shows loading state)
   Future<void> refreshOrders() async {
     await _loadOrders(page: 1);
+  }
+
+  /// Silent refresh - only updates UI if data has changed
+  /// Used by polling to avoid unnecessary rebuilds
+  Future<bool> silentRefresh() async {
+    try {
+      final result = await _repository.getOrders(page: 1);
+
+      if (result.failure != null || result.data == null) {
+        return false;
+      }
+
+      final newOrders = result.data!;
+
+      // Check if data has actually changed
+      if (_hasOrdersChanged(newOrders)) {
+        state = state.copyWith(
+          orders: newOrders,
+          currentPage: 1,
+          clearError: true,
+        );
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Compare orders to detect changes
+  bool _hasOrdersChanged(List<OrderModel> newOrders) {
+    if (newOrders.length != state.orders.length) return true;
+
+    for (final newOrder in newOrders) {
+      final oldOrder = state.orders.firstWhere(
+        (o) => o.id == newOrder.id,
+        orElse: () => newOrder,
+      );
+
+      // Check if order exists and has same status/payment state
+      if (oldOrder.id != newOrder.id ||
+          oldOrder.status != newOrder.status ||
+          oldOrder.isPaid != newOrder.isPaid ||
+          oldOrder.assignedDriverId != newOrder.assignedDriverId) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Cancel an order (sellers can only cancel, not accept - acceptance is done by drivers)
@@ -235,24 +285,41 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
   }
 
-  /// Move order to next status
+  /// Move order to next status in the flow
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED → COMPLETED
   Future<bool> moveToNextStatus(String orderId) async {
     final order = getOrder(orderId);
     if (order == null) return false;
 
-    switch (order.status) {
+    final nextStatus = order.status.nextStatus;
+    if (nextStatus == null) return false;
+
+    // Convert enum to API status string
+    final statusString = _statusToApiString(nextStatus);
+    return _updateStatus(orderId, statusString);
+  }
+
+  /// Convert OrderStatusEnum to API status string
+  String _statusToApiString(OrderStatusEnum status) {
+    switch (status) {
       case OrderStatusEnum.pending:
+        return 'PENDING';
       case OrderStatusEnum.searchingForDriver:
+        return 'SEARCHING_FOR_DRIVER';
       case OrderStatusEnum.driverNotificationSent:
-        return acceptOrder(orderId);
+        return 'DRIVER_NOTIFICATION_SENT';
       case OrderStatusEnum.accepted:
-        return markOnTheWay(orderId);
+        return 'ACCEPTED';
       case OrderStatusEnum.onTheWay:
-        return markDelivered(orderId);
+        return 'ON_THE_WAY';
       case OrderStatusEnum.delivered:
-        return markCompleted(orderId);
-      default:
-        return false;
+        return 'DELIVERED';
+      case OrderStatusEnum.completed:
+        return 'COMPLETED';
+      case OrderStatusEnum.rejected:
+        return 'REJECTED';
+      case OrderStatusEnum.cancelled:
+        return 'CANCELLED';
     }
   }
 
@@ -308,7 +375,8 @@ final orderByIdProvider = Provider.family<OrderModel?, String>((ref, id) {
 
 /// Provider for orders polling service
 ///
-/// This provider creates a polling service that refreshes orders every 10 seconds.
+/// This provider creates a polling service that refreshes orders every 30 seconds.
+/// Only updates UI when there's new data to avoid unnecessary rebuilds.
 /// Usage:
 /// ```dart
 /// // In a widget or notifier:
@@ -324,7 +392,7 @@ final ordersPollingProvider =
 /// Notifier for orders polling
 class OrdersPollingNotifier extends Notifier<PollingState> {
   PollingService? _service;
-  static const _defaultInterval = Duration(seconds: 10);
+  static const _defaultInterval = Duration(seconds: 30);
 
   @override
   PollingState build() {
@@ -342,7 +410,8 @@ class OrdersPollingNotifier extends Notifier<PollingState> {
     _service?.dispose();
     _service = PollingService(
       onPoll: () async {
-        await ref.read(ordersProvider.notifier).refreshOrders();
+        // Use silentRefresh to only update UI when data changes
+        await ref.read(ordersProvider.notifier).silentRefresh();
       },
       interval: state.interval,
       debugLabel: 'OrdersPolling',
@@ -381,7 +450,8 @@ class OrdersPollingNotifier extends Notifier<PollingState> {
       _service?.dispose();
       _service = PollingService(
         onPoll: () async {
-          await ref.read(ordersProvider.notifier).refreshOrders();
+          // Use silentRefresh to only update UI when data changes
+          await ref.read(ordersProvider.notifier).silentRefresh();
         },
         interval: interval,
         debugLabel: 'OrdersPolling',
