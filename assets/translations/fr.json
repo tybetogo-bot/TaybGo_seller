@@ -229,6 +229,8 @@
     "loadingCoupons": "Chargement des coupons...",
     "noActiveCoupons": "Aucun coupon actif",
     "discount": "Réduction",
+    "itemCustomizations": "Personnalisations / Demandes spéciales",
+    "itemCustomizationsHint": "ex. Sans oignons, sauce supplémentaire...",
     "orderType": "Type de commande",
     "foodOrder": "Commande repas",
     "parcelOrder": "Commande colis",

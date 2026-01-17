@@ -229,6 +229,8 @@
     "loadingCoupons": "Gutscheine laden...",
     "noActiveCoupons": "Keine aktiven Gutscheine",
     "discount": "Rabatt",
+    "itemCustomizations": "Anpassungen / Sonderwünsche",
+    "itemCustomizationsHint": "z.B. Ohne Zwiebeln, extra Soße...",
     "orderType": "Bestellart",
     "foodOrder": "Essensbestellung",
     "parcelOrder": "Paketbestellung",

@@ -30,7 +30,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _customerNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _notesController = TextEditingController();
   final _deliveryFeeController = TextEditingController(text: '3.99');
   final _tipsController = TextEditingController(text: '0.00');
 
@@ -49,7 +48,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   void dispose() {
     _customerNameController.dispose();
     _phoneController.dispose();
-    _notesController.dispose();
     _deliveryFeeController.dispose();
     _tipsController.dispose();
     super.dispose();
@@ -118,6 +116,13 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     });
   }
 
+  void _updateItemNotes(int index, String? notes) {
+    setState(() {
+      final item = _orderItems[index];
+      _orderItems[index] = item.copyWith(notes: notes);
+    });
+  }
+
   bool _validateForm() {
     if (!_formKey.currentState!.validate()) return false;
 
@@ -170,7 +175,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         return CartItem(
           itemId: itemId,
           quantity: item.quantity,
-          notes: item.notes,
+          customizations: item.notes,
         );
       }).toList();
 
@@ -192,12 +197,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         ),
         items: cartItems,
         couponId: _selectedCouponId != null ? int.tryParse(_selectedCouponId!) : null,
-        notes: _notesController.text.isNotEmpty
-            ? 'Customer: ${_customerNameController.text.trim()}, '
-                'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}, '
-                'Notes: ${_notesController.text}'
-            : 'Customer: ${_customerNameController.text.trim()}, '
-                'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}',
+        notes: 'Customer: ${_customerNameController.text.trim()}, '
+            'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}',
       );
 
       // Create the order
@@ -355,20 +356,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       onRemove: () => _removeItem(index),
                       onQuantityChanged: (delta) =>
                           _updateItemQuantity(index, delta),
+                      onNotesChanged: (notes) =>
+                          _updateItemNotes(index, notes),
                       isDark: isDark,
                     ),
                   );
                 }),
-
-              SizedBox(height: 24.h),
-
-              // Order Notes
-              AppTextField(
-                controller: _notesController,
-                label: 'orders.orderNotes'.tr,
-                hint: 'orders.notes'.tr,
-                maxLines: 3,
-              ),
 
               SizedBox(height: 24.h),
 
@@ -1015,12 +1008,14 @@ class _OrderItemCard extends StatelessWidget {
     required this.item,
     required this.onRemove,
     required this.onQuantityChanged,
+    required this.onNotesChanged,
     required this.isDark,
   });
 
   final OrderItemModel item;
   final VoidCallback onRemove;
   final ValueChanged<int> onQuantityChanged;
+  final ValueChanged<String?> onNotesChanged;
   final bool isDark;
 
   @override
@@ -1071,19 +1066,69 @@ class _OrderItemCard extends StatelessWidget {
               ),
             ],
           ),
-          // TODO: Customizations display - hidden for now
-          // if (item.customizations.isNotEmpty) ...[
-          //   SizedBox(height: 4.h),
-          //   Text(
-          //     item.customizations.map((c) => c.name).join(', '),
-          //     style: TextStyle(
-          //       fontSize: 12.sp,
-          //       color: isDark
-          //           ? DarkColors.textTertiary
-          //           : LightColors.textTertiary,
-          //     ),
-          //   ),
-          // ],
+          // Display notes/customizations if present
+          if (item.notes != null && item.notes!.isNotEmpty) ...[
+            SizedBox(height: 4.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.note_alt_outlined,
+                    size: 14.w,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: 4.w),
+                  Expanded(
+                    child: Text(
+                      item.notes!,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColors.primary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          SizedBox(height: 8.h),
+          // Notes text field
+          TextField(
+            controller: TextEditingController(text: item.notes ?? ''),
+            maxLines: 2,
+            style: TextStyle(fontSize: 12.sp),
+            decoration: InputDecoration(
+              hintText: 'orders.itemCustomizationsHint'.tr,
+              hintStyle: TextStyle(
+                fontSize: 12.sp,
+                color: isDark
+                    ? DarkColors.textTertiary
+                    : LightColors.textTertiary,
+              ),
+              prefixIcon: Icon(Icons.edit_note, size: 18.w),
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: isDark ? DarkColors.border : LightColors.border,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(
+                  color: isDark ? DarkColors.border : LightColors.border,
+                ),
+              ),
+            ),
+            onChanged: (value) => onNotesChanged(value.isNotEmpty ? value : null),
+          ),
           SizedBox(height: 8.h),
           Row(
             children: [
@@ -1162,6 +1207,7 @@ class _AddItemBottomSheet extends ConsumerStatefulWidget {
 
 class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
   final _searchController = TextEditingController();
+  final _notesController = TextEditingController();
   String? _selectedCategoryId;
   menu.MenuItemModel? _selectedItem;
   int _quantity = 1;
@@ -1169,6 +1215,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
   @override
   void dispose() {
     _searchController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -1180,13 +1227,13 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
       return;
     }
 
-    // TODO: Customizations disabled for now
     final item = OrderItemModel(
       id: const Uuid().v4(),
       menuItemId: _selectedItem!.id,
       name: _selectedItem!.name,
       quantity: _quantity,
       unitPrice: _selectedItem!.price,
+      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
     );
 
     widget.onItemAdded(item);
@@ -1557,12 +1604,37 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
             ],
           ),
 
-          // TODO: Customizations selection - hidden for now
-          // if (item.customizations.isNotEmpty) ...[
-          //   SizedBox(height: 20.h),
-          //   Text('Customizations', ...),
-          //   // Additions and Removals checkboxes
-          // ],
+          SizedBox(height: 16.h),
+
+          // Customization notes field
+          Text(
+            'orders.itemCustomizations'.tr,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: isDark
+                  ? DarkColors.textPrimary
+                  : LightColors.textPrimary,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          TextField(
+            controller: _notesController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'orders.itemCustomizationsHint'.tr,
+              hintStyle: TextStyle(
+                fontSize: 14.sp,
+                color: isDark
+                    ? DarkColors.textTertiary
+                    : LightColors.textTertiary,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              contentPadding: EdgeInsets.all(12.w),
+            ),
+          ),
           SizedBox(height: 16.h),
         ],
       ),

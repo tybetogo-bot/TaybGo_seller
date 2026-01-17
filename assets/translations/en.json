@@ -232,6 +232,8 @@
     "loadingCoupons": "Loading coupons...",
     "noActiveCoupons": "No active coupons",
     "discount": "Discount",
+    "itemCustomizations": "Customizations / Special Requests",
+    "itemCustomizationsHint": "e.g. No onions, extra sauce...",
     "orderType": "Order Type",
     "foodOrder": "Food Order",
     "parcelOrder": "Parcel Order",

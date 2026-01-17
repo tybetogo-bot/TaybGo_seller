@@ -229,6 +229,8 @@
     "loadingCoupons": "جاري تحميل الكوبونات...",
     "noActiveCoupons": "لا توجد كوبونات نشطة",
     "discount": "خصم",
+    "itemCustomizations": "تخصيصات / طلبات خاصة",
+    "itemCustomizationsHint": "مثال: بدون بصل، صوص إضافي...",
     "orderType": "نوع الطلب",
     "foodOrder": "طلب طعام",
     "parcelOrder": "طلب طرد",

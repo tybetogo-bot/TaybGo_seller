@@ -155,14 +155,12 @@ enum VehicleType {
 class CartItem {
   final int itemId;
   final int quantity;
-  final Map<String, dynamic>? customizations;
-  final String? notes;
+  final String? customizations;
 
   const CartItem({
     required this.itemId,
     required this.quantity,
     this.customizations,
-    this.notes,
   });
 
   Map<String, dynamic> toJson() {
@@ -171,7 +169,6 @@ class CartItem {
       'quantity': quantity,
       if (customizations != null && customizations!.isNotEmpty)
         'customizations': customizations,
-      if (notes != null) 'notes': notes,
     };
   }
 
@@ -179,8 +176,7 @@ class CartItem {
     return CartItem(
       itemId: (json['item_id'] ?? json['item']) as int,
       quantity: json['quantity'] as int,
-      customizations: json['customizations'] as Map<String, dynamic>?,
-      notes: json['notes'] as String?,
+      customizations: json['customizations'] as String?,
     );
   }
 }
