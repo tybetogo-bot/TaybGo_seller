@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub get:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(dir /b \"c:\\\\Users\\\\abdul\\\\teybatseller\\\\lib\")",
+      "Bash(tree:*)",
+      "Bash(dart run build_runner build:*)",
+      "Bash(flutter pub upgrade:*)",
+      "Bash(del \"c:\\\\Users\\\\abdul\\\\teybatseller\\\\lib\\\\core\\\\network\\\\auth_api.g.dart\")",
+      "Bash(ls:*)",
+      "Bash(dart analyze:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

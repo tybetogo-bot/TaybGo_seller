@@ -1,0 +1,196 @@
+/// Orders repository interface and implementation
+library;
+
+import 'package:dio/dio.dart';
+
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/network/orders_api.dart';
+import '../datasources/orders_remote_data_source.dart';
+import '../models/order_model.dart';
+
+/// Result type for repository methods
+typedef OrdersResult<T> = ({Failure? failure, T? data});
+
+/// Orders repository interface
+abstract class OrdersRepository {
+  /// Get orders list with optional filters
+  /// Note: API auto-scopes to seller's restaurants
+  Future<OrdersResult<List<OrderModel>>> getOrders({
+    int page = 1,
+    String? status,
+  });
+
+  /// Get single order by ID
+  Future<OrdersResult<OrderModel>> getOrderById(String id);
+
+  /// Update order status (e.g., CANCELLED)
+  Future<OrdersResult<OrderModel>> updateOrderStatus(String id, String status);
+
+  /// Process refund for an order
+  Future<OrdersResult<RefundResponse>> refundOrder({
+    required String orderId,
+    required double amount,
+    required String reason,
+    String? idempotencyKey,
+  });
+
+  /// Log manual order from scanned form
+  Future<OrdersResult<void>> logManualOrder({
+    required Map<String, dynamic> data,
+  });
+}
+
+/// Implementation of orders repository
+class OrdersRepositoryImpl implements OrdersRepository {
+  OrdersRepositoryImpl({
+    required OrdersDataSource remoteDataSource,
+  }) : _remoteDataSource = remoteDataSource;
+
+  final OrdersDataSource _remoteDataSource;
+
+  @override
+  Future<OrdersResult<List<OrderModel>>> getOrders({
+    int page = 1,
+    String? status,
+  }) async {
+    try {
+      final orders = await _remoteDataSource.getOrders(
+        page: page,
+        status: status,
+      );
+      return (failure: null, data: orders);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ServerFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } on NetworkException catch (e) {
+      return (failure: NetworkFailure(message: e.message), data: null);
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> getOrderById(String id) async {
+    try {
+      final order = await _remoteDataSource.getOrderById(id);
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ServerFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> updateOrderStatus(String id, String status) async {
+    try {
+      final order = await _remoteDataSource.updateOrderStatus(id, status);
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<RefundResponse>> refundOrder({
+    required String orderId,
+    required double amount,
+    required String reason,
+    String? idempotencyKey,
+  }) async {
+    try {
+      final response = await _remoteDataSource.refundOrder(
+        orderId: orderId,
+        amount: amount,
+        reason: reason,
+        idempotencyKey: idempotencyKey,
+      );
+      return (failure: null, data: response);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<void>> logManualOrder({
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      await _remoteDataSource.logManualOrder(data: data);
+      return (failure: null, data: null);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ServerFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+}
