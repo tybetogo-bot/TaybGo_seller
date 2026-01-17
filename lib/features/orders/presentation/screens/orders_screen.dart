@@ -19,19 +19,39 @@ class OrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _OrdersScreenState extends ConsumerState<OrdersScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    WidgetsBinding.instance.addObserver(this);
+
+    // Start polling when screen is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(ordersPollingProvider.notifier).start();
+    });
   }
 
   @override
   void dispose() {
+    // Stop polling when screen is disposed
+    ref.read(ordersPollingProvider.notifier).stop();
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause polling when app is in background, resume when in foreground
+    final pollingNotifier = ref.read(ordersPollingProvider.notifier);
+    if (state == AppLifecycleState.resumed) {
+      pollingNotifier.start();
+    } else if (state == AppLifecycleState.paused) {
+      pollingNotifier.stop();
+    }
   }
 
   @override

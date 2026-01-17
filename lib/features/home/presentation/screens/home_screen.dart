@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../notifications/application/notifications_notifier.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../orders/presentation/widgets/animated_order_card.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -71,18 +72,7 @@ class HomeScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => context.push(Routes.notifications),
-                        icon: Badge(
-                          smallSize: 8.w,
-                          child: Icon(
-                            Icons.notifications_none,
-                            color: isDark
-                                ? DarkColors.textPrimary
-                                : LightColors.textPrimary,
-                          ),
-                        ),
-                      ),
+                      _NotificationIconButton(isDark: isDark),
                     ],
                   ),
                 ),
@@ -317,6 +307,30 @@ class _PrimaryAction extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationIconButton extends ConsumerWidget {
+  const _NotificationIconButton({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    final hasUnread = unreadCount > 0;
+
+    return IconButton(
+      onPressed: () => context.push(Routes.notifications),
+      icon: Badge(
+        smallSize: 8.w,
+        isLabelVisible: hasUnread,
+        child: Icon(
+          Icons.notifications_none,
+          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
         ),
       ),
     );

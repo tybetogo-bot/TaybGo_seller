@@ -25,18 +25,18 @@ class AppColors {
 
   /// Secondary color palette
   static const MaterialColor secondary = MaterialColor(
-    0xFF1A1A2E,
+    0xFF212121,
     <int, Color>{
-      50: Color(0xFFF5F5F7),
-      100: Color(0xFFE8E8ED),
-      200: Color(0xFFD1D1DB),
-      300: Color(0xFFB0B0C0),
-      400: Color(0xFF7E7E95),
-      500: Color(0xFF1A1A2E), // Main
-      600: Color(0xFF151525),
-      700: Color(0xFF10101C),
-      800: Color(0xFF0B0B13),
-      900: Color(0xFF06060A),
+      50: Color(0xFFFAFAFA),
+      100: Color(0xFFF5F5F5),
+      200: Color(0xFFEEEEEE),
+      300: Color(0xFFE0E0E0),
+      400: Color(0xFFBDBDBD),
+      500: Color(0xFF212121), // Main
+      600: Color(0xFF1A1A1A),
+      700: Color(0xFF141414),
+      800: Color(0xFF0D0D0D),
+      900: Color(0xFF050505),
     },
   );
 
@@ -93,7 +93,7 @@ class AppColors {
   static const LinearGradient darkGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+    colors: [Color(0xFF212121), Color(0xFF171717)],
   );
 
   // ============ Social Colors ============
@@ -165,43 +165,43 @@ class DarkColors {
   DarkColors._();
 
   // Backgrounds
-  static const Color background = Color(0xFF111827);
-  static const Color backgroundSecondary = Color(0xFF1F2937);
-  static const Color backgroundTertiary = Color(0xFF374151);
+  static const Color background = Color(0xFF171717);
+  static const Color backgroundSecondary = Color(0xFF212121);
+  static const Color backgroundTertiary = Color(0xFF2E2E2E);
 
   // Surfaces
-  static const Color surface = Color(0xFF1F2937);
-  static const Color surfaceElevated = Color(0xFF374151);
+  static const Color surface = Color(0xFF212121);
+  static const Color surfaceElevated = Color(0xFF2E2E2E);
 
   // Text
-  static const Color textPrimary = Color(0xFFF9FAFB);
-  static const Color textSecondary = Color(0xFFD1D5DB);
-  static const Color textTertiary = Color(0xFF9CA3AF);
-  static const Color textDisabled = Color(0xFF4B5563);
-  static const Color textInverse = Color(0xFF111827);
+  static const Color textPrimary = Color(0xFFF5F5F5);
+  static const Color textSecondary = Color(0xFFBDBDBD);
+  static const Color textTertiary = Color(0xFF9E9E9E);
+  static const Color textDisabled = Color(0xFF616161);
+  static const Color textInverse = Color(0xFF171717);
 
   // Borders
-  static const Color border = Color(0xFF374151);
-  static const Color borderLight = Color(0xFF4B5563);
+  static const Color border = Color(0xFF2E2E2E);
+  static const Color borderLight = Color(0xFF424242);
   static const Color borderFocused = AppColors.primary;
 
   // Input
-  static const Color inputBackground = Color(0xFF1F2937);
-  static const Color inputBorder = Color(0xFF374151);
+  static const Color inputBackground = Color(0xFF212121);
+  static const Color inputBorder = Color(0xFF2E2E2E);
 
   // Card
-  static const Color cardBackground = Color(0xFF1F2937);
+  static const Color cardBackground = Color(0xFF212121);
   static const Color cardShadow = Color(0x40000000);
 
   // Bottom Navigation
-  static const Color bottomNavBackground = Color(0xFF1F2937);
+  static const Color bottomNavBackground = Color(0xFF212121);
   static const Color bottomNavActive = AppColors.primary;
-  static const Color bottomNavInactive = Color(0xFF9CA3AF);
+  static const Color bottomNavInactive = Color(0xFF9E9E9E);
 
   // Divider
-  static const Color divider = Color(0xFF374151);
+  static const Color divider = Color(0xFF2E2E2E);
 
   // Shimmer
-  static const Color shimmerBase = Color(0xFF374151);
-  static const Color shimmerHighlight = Color(0xFF4B5563);
+  static const Color shimmerBase = Color(0xFF2E2E2E);
+  static const Color shimmerHighlight = Color(0xFF424242);
 }

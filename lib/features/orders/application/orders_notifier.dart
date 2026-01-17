@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/polling_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/datasources/orders_remote_data_source.dart';
 import '../data/models/order_model.dart';
@@ -302,3 +305,98 @@ final orderByIdProvider = Provider.family<OrderModel?, String>((ref, id) {
     return null;
   }
 });
+
+/// Provider for orders polling service
+///
+/// This provider creates a polling service that refreshes orders every 10 seconds.
+/// Usage:
+/// ```dart
+/// // In a widget or notifier:
+/// final pollingNotifier = ref.read(ordersPollingProvider.notifier);
+/// pollingNotifier.start(); // Start polling
+/// pollingNotifier.stop();  // Stop polling
+/// ```
+final ordersPollingProvider =
+    NotifierProvider<OrdersPollingNotifier, PollingState>(
+  OrdersPollingNotifier.new,
+);
+
+/// Notifier for orders polling
+class OrdersPollingNotifier extends Notifier<PollingState> {
+  PollingService? _service;
+  static const _defaultInterval = Duration(seconds: 10);
+
+  @override
+  PollingState build() {
+    ref.onDispose(() {
+      _service?.dispose();
+    });
+
+    // Initialize the polling service
+    Future.microtask(() => _initializeService());
+
+    return const PollingState(interval: _defaultInterval);
+  }
+
+  void _initializeService() {
+    _service?.dispose();
+    _service = PollingService(
+      onPoll: () async {
+        await ref.read(ordersProvider.notifier).refreshOrders();
+      },
+      interval: state.interval,
+      debugLabel: 'OrdersPolling',
+    );
+  }
+
+  /// Start polling for new orders
+  void start() {
+    if (_service == null) {
+      _initializeService();
+    }
+    state = state.copyWith(isEnabled: true);
+    _service?.start();
+  }
+
+  /// Stop polling
+  void stop() {
+    state = state.copyWith(isEnabled: false);
+    _service?.stop();
+  }
+
+  /// Toggle polling on/off
+  void toggle() {
+    if (state.isEnabled) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
+  /// Update the polling interval
+  void setInterval(Duration interval) {
+    state = state.copyWith(interval: interval);
+    if (_service != null) {
+      final wasPolling = _service!.isPolling;
+      _service?.dispose();
+      _service = PollingService(
+        onPoll: () async {
+          await ref.read(ordersProvider.notifier).refreshOrders();
+        },
+        interval: interval,
+        debugLabel: 'OrdersPolling',
+      );
+      if (wasPolling) {
+        _service?.start();
+      }
+    }
+  }
+
+  /// Trigger an immediate poll
+  Future<void> pollNow() async {
+    await _service?.pollNow();
+  }
+
+  /// Whether polling is currently active
+  bool get isPolling => _service?.isPolling ?? false;
+}
