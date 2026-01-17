@@ -108,7 +108,240 @@ enum CustomizationType {
   removal,
 }
 
-/// Address model for delivery location
+/// Order type enum
+enum OrderType {
+  @JsonValue('FOOD')
+  food,
+  @JsonValue('PARCEL')
+  parcel,
+}
+
+/// Helper function to parse double from various types
+double? _parseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Restaurant model for order (embedded in order response)
+class OrderRestaurantModel {
+  final int id;
+  final String name;
+  final String? logo;
+  final String? address;
+  final double? lat;
+  final double? lng;
+  final String? phone;
+  final String? status;
+  final DateTime? createdAt;
+
+  const OrderRestaurantModel({
+    required this.id,
+    required this.name,
+    this.logo,
+    this.address,
+    this.lat,
+    this.lng,
+    this.phone,
+    this.status,
+    this.createdAt,
+  });
+
+  factory OrderRestaurantModel.fromJson(Map<String, dynamic> json) {
+    return OrderRestaurantModel(
+      id: json['id'] as int,
+      name: json['name'] as String? ?? '',
+      logo: json['logo'] as String?,
+      address: json['address'] as String?,
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
+      phone: json['phone'] as String?,
+      status: json['status'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+    );
+  }
+}
+
+/// Coupon model for order (embedded in order response)
+class OrderCouponModel {
+  final int id;
+  final int restaurantId;
+  final String title;
+  final String? description;
+  final String code;
+  final int percentage;
+  final String? minPrice;
+  final int? maxTotalUsers;
+  final int? maxPerCustomer;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final bool isActive;
+  final DateTime? createdAt;
+
+  const OrderCouponModel({
+    required this.id,
+    required this.restaurantId,
+    required this.title,
+    this.description,
+    required this.code,
+    required this.percentage,
+    this.minPrice,
+    this.maxTotalUsers,
+    this.maxPerCustomer,
+    this.startDate,
+    this.endDate,
+    this.isActive = true,
+    this.createdAt,
+  });
+
+  factory OrderCouponModel.fromJson(Map<String, dynamic> json) {
+    return OrderCouponModel(
+      id: json['id'] as int,
+      restaurantId: json['restaurant'] as int,
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String?,
+      code: json['code'] as String? ?? '',
+      percentage: json['percentage'] as int? ?? 0,
+      minPrice: json['min_price'] as String?,
+      maxTotalUsers: json['max_total_users'] as int?,
+      maxPerCustomer: json['max_per_customer'] as int?,
+      startDate: json['start_date'] != null
+          ? DateTime.parse(json['start_date'] as String)
+          : null,
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'] as String)
+          : null,
+      isActive: json['is_active'] as bool? ?? true,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+    );
+  }
+}
+
+/// Driver model for order (embedded in order response)
+class OrderDriverModel {
+  final int id;
+  final String email;
+  final String name;
+  final String? phone;
+  final int? age;
+  final bool isVerified;
+  final DateTime? createdAt;
+  final List<String> roles;
+
+  const OrderDriverModel({
+    required this.id,
+    required this.email,
+    required this.name,
+    this.phone,
+    this.age,
+    this.isVerified = false,
+    this.createdAt,
+    this.roles = const [],
+  });
+
+  factory OrderDriverModel.fromJson(Map<String, dynamic> json) {
+    return OrderDriverModel(
+      id: json['id'] as int,
+      email: json['email'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      phone: json['phone'] as String?,
+      age: json['age'] as int?,
+      isVerified: json['is_verified'] as bool? ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      roles: (json['roles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ?? [],
+    );
+  }
+}
+
+/// Order address model for pickup/dropoff (new API structure)
+class OrderAddressModel {
+  final int? id;
+  final String? label;
+  final double? lat;
+  final double? lng;
+  final String? fullAddress;
+  final String? streetName;
+  final String? houseNumber;
+  final String? city;
+  final String? postalCode;
+  final String? country;
+  final DateTime? createdAt;
+
+  const OrderAddressModel({
+    this.id,
+    this.label,
+    this.lat,
+    this.lng,
+    this.fullAddress,
+    this.streetName,
+    this.houseNumber,
+    this.city,
+    this.postalCode,
+    this.country,
+    this.createdAt,
+  });
+
+  factory OrderAddressModel.fromJson(Map<String, dynamic> json) {
+    return OrderAddressModel(
+      id: json['id'] as int?,
+      label: json['label'] as String?,
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
+      fullAddress: json['full_address'] as String?,
+      streetName: json['street_name'] as String?,
+      houseNumber: json['house_number'] as String?,
+      city: json['city'] as String?,
+      postalCode: json['postal_code'] as String?,
+      country: json['country'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+    );
+  }
+
+  /// Get display address
+  String get displayAddress {
+    if (fullAddress != null && fullAddress!.isNotEmpty) {
+      return fullAddress!;
+    }
+    final parts = <String>[
+      if (streetName != null) streetName!,
+      if (houseNumber != null) houseNumber!,
+      if (city != null) city!,
+      if (postalCode != null) postalCode!,
+      if (country != null) country!,
+    ];
+    if (parts.isNotEmpty) return parts.join(', ');
+    return 'N/A';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+      if (fullAddress != null) 'full_address': fullAddress,
+      if (streetName != null) 'street_name': streetName,
+      if (houseNumber != null) 'house_number': houseNumber,
+      if (city != null) 'city': city,
+      if (postalCode != null) 'postal_code': postalCode,
+      if (country != null) 'country': country,
+    };
+  }
+}
+
+/// Address model for delivery location (legacy - keeping for backward compatibility)
 @freezed
 sealed class AddressModel with _$AddressModel {
   const AddressModel._();
@@ -129,6 +362,19 @@ sealed class AddressModel with _$AddressModel {
 
   factory AddressModel.fromJson(Map<String, dynamic> json) =>
       _$AddressModelFromJson(json);
+
+  /// Create from new API OrderAddressModel
+  factory AddressModel.fromOrderAddress(OrderAddressModel orderAddress) {
+    return AddressModel(
+      street: orderAddress.fullAddress ?? orderAddress.streetName ?? 'N/A',
+      building: orderAddress.houseNumber ?? '',
+      city: orderAddress.city,
+      postalCode: orderAddress.postalCode,
+      country: orderAddress.country ?? 'Austria',
+      latitude: orderAddress.lat,
+      longitude: orderAddress.lng,
+    );
+  }
 
   /// Convert to JSON for API requests
   @override
@@ -250,6 +496,7 @@ sealed class OrderModel with _$OrderModel {
     required List<OrderItemModel> items,
     @Default(0.0) double subtotal,
     @Default(0.0) double deliveryFee,
+    @Default(0.0) double discountAmount,
     @Default(0.0) double tips,
     @Default(0.0) double total,
     @Default(false) bool isPaid,
@@ -263,6 +510,16 @@ sealed class OrderModel with _$OrderModel {
     DateTime? deliveredAt,
     String? restaurantId,
     String? assignedDriverId,
+    // New fields from API
+    @Default('FOOD') String orderType,
+    OrderRestaurantModel? restaurant,
+    OrderCouponModel? coupon,
+    OrderAddressModel? pickupAddress,
+    OrderAddressModel? dropoffAddress,
+    String? requestedVehicleType,
+    String? requestedDeliveryType,
+    OrderDriverModel? driver,
+    @Default(false) bool isManual,
   }) = _OrderModel;
 
   /// Custom fromJson to handle API response format
@@ -302,9 +559,30 @@ sealed class OrderModel with _$OrderModel {
           .toList();
     }
 
-    // Build address from API response (may be an ID or object)
+    // Parse new API address format
+    OrderAddressModel? parseOrderAddress(dynamic addressJson) {
+      if (addressJson is Map<String, dynamic>) {
+        return OrderAddressModel.fromJson(addressJson);
+      }
+      return null;
+    }
+
+    // Build legacy address from API response for backward compatibility
     AddressModel parseAddress(dynamic addressJson) {
       if (addressJson is Map<String, dynamic>) {
+        // Check if it's new API format with full_address
+        if (addressJson['full_address'] != null) {
+          return AddressModel(
+            street: addressJson['full_address'] as String? ?? 'N/A',
+            building: addressJson['house_number'] as String? ?? '',
+            city: addressJson['city'] as String?,
+            postalCode: addressJson['postal_code'] as String?,
+            country: addressJson['country'] as String? ?? 'Austria',
+            latitude: _parseDouble(addressJson['lat']),
+            longitude: _parseDouble(addressJson['lng']),
+          );
+        }
+        // Legacy format
         return AddressModel(
           street: addressJson['street'] ?? addressJson['address'] ?? '',
           building: addressJson['building'] ?? '',
@@ -312,16 +590,24 @@ sealed class OrderModel with _$OrderModel {
           floor: addressJson['floor'] as String?,
           city: addressJson['city'] as String?,
           postalCode: addressJson['postal_code'] ?? addressJson['postalCode'] as String?,
-          latitude: (addressJson['lat'] ?? addressJson['latitude'])?.toDouble(),
-          longitude: (addressJson['lng'] ?? addressJson['longitude'])?.toDouble(),
+          latitude: _parseDouble(addressJson['lat'] ?? addressJson['latitude']),
+          longitude: _parseDouble(addressJson['lng'] ?? addressJson['longitude']),
         );
       }
       // If address is just an ID, return empty address
       return const AddressModel(street: 'N/A', building: 'N/A');
     }
 
-    // Parse customer name - could be direct field or nested in customer object
+    // Parse customer name - from dropoff_address label or nested customer object
     String parseCustomerName(Map<String, dynamic> json) {
+      // Try dropoff_address label first (new API format: "Customer: abdulelah")
+      if (json['dropoff_address'] is Map<String, dynamic>) {
+        final dropoff = json['dropoff_address'] as Map<String, dynamic>;
+        final label = dropoff['label'] as String?;
+        if (label != null && label.startsWith('Customer: ')) {
+          return label.replaceFirst('Customer: ', '');
+        }
+      }
       if (json['customer_name'] != null) return json['customer_name'] as String;
       if (json['customerName'] != null) return json['customerName'] as String;
       // Handle nested customer object
@@ -357,6 +643,46 @@ sealed class OrderModel with _$OrderModel {
       return '+43';
     }
 
+    // Parse restaurant - can be nested object or just ID
+    OrderRestaurantModel? parseRestaurant(dynamic restaurantJson) {
+      if (restaurantJson is Map<String, dynamic>) {
+        return OrderRestaurantModel.fromJson(restaurantJson);
+      }
+      return null;
+    }
+
+    // Parse coupon
+    OrderCouponModel? parseCoupon(dynamic couponJson) {
+      if (couponJson is Map<String, dynamic>) {
+        return OrderCouponModel.fromJson(couponJson);
+      }
+      return null;
+    }
+
+    // Parse driver
+    OrderDriverModel? parseDriver(dynamic driverJson) {
+      if (driverJson is Map<String, dynamic>) {
+        return OrderDriverModel.fromJson(driverJson);
+      }
+      return null;
+    }
+
+    // Get restaurant ID from nested object or direct field
+    String? getRestaurantId(Map<String, dynamic> json) {
+      if (json['restaurant'] is Map<String, dynamic>) {
+        return (json['restaurant'] as Map<String, dynamic>)['id']?.toString();
+      }
+      return (json['restaurant'] ?? json['restaurant_id'] ?? json['restaurantId'])?.toString();
+    }
+
+    // Get driver ID from nested object or direct field
+    String? getDriverId(Map<String, dynamic> json) {
+      if (json['driver'] is Map<String, dynamic>) {
+        return (json['driver'] as Map<String, dynamic>)['id']?.toString();
+      }
+      return json['assigned_driver_id']?.toString() ?? json['assignedDriverId']?.toString();
+    }
+
     return OrderModel(
       id: json['id']?.toString() ?? '',
       customerName: parseCustomerName(json),
@@ -366,6 +692,7 @@ sealed class OrderModel with _$OrderModel {
       items: parseItems(json['items'] ?? json['order_items']),
       subtotal: double.tryParse(json['subtotal_amount']?.toString() ?? json['subtotal']?.toString() ?? '0') ?? 0.0,
       deliveryFee: double.tryParse(json['delivery_fee']?.toString() ?? json['deliveryFee']?.toString() ?? '0') ?? 0.0,
+      discountAmount: double.tryParse(json['discount_amount']?.toString() ?? json['discountAmount']?.toString() ?? '0') ?? 0.0,
       tips: double.tryParse(json['tip']?.toString() ?? json['tips']?.toString() ?? '0') ?? 0.0,
       total: double.tryParse(json['total_amount']?.toString() ?? json['total']?.toString() ?? '0') ?? 0.0,
       isPaid: json['is_paid'] ?? json['isPaid'] ?? json['paid'] ?? false,
@@ -379,8 +706,18 @@ sealed class OrderModel with _$OrderModel {
       readyAt: json['ready_at'] != null ? DateTime.parse(json['ready_at'] as String) : null,
       outForDeliveryAt: json['out_for_delivery_at'] != null ? DateTime.parse(json['out_for_delivery_at'] as String) : null,
       deliveredAt: json['delivered_at'] != null ? DateTime.parse(json['delivered_at'] as String) : null,
-      restaurantId: (json['restaurant'] ?? json['restaurant_id'] ?? json['restaurantId'])?.toString(),
-      assignedDriverId: json['assigned_driver_id']?.toString() ?? json['assignedDriverId']?.toString(),
+      restaurantId: getRestaurantId(json),
+      assignedDriverId: getDriverId(json),
+      // New fields
+      orderType: json['order_type'] as String? ?? 'FOOD',
+      restaurant: parseRestaurant(json['restaurant']),
+      coupon: parseCoupon(json['coupon']),
+      pickupAddress: parseOrderAddress(json['pickup_address']),
+      dropoffAddress: parseOrderAddress(json['dropoff_address']),
+      requestedVehicleType: json['requested_vehicle_type'] as String?,
+      requestedDeliveryType: json['requested_delivery_type'] as String?,
+      driver: parseDriver(json['driver']),
+      isManual: json['is_manual'] as bool? ?? false,
     );
   }
 }

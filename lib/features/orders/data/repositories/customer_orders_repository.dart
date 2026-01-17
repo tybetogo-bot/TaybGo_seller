@@ -1,7 +1,10 @@
 /// Customer orders repository interface and implementation
 library;
 
+import 'dart:developer' as developer;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -44,24 +47,83 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
 
   final CustomerOrdersDataSource _remoteDataSource;
 
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'CustomerOrdersRepository',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // ignore: avoid_print
+      print('[CustomerOrdersRepository] $message');
+      if (error != null) {
+        // ignore: avoid_print
+        print('[CustomerOrdersRepository] Error: $error');
+      }
+    }
+  }
+
+  String _extractErrorMessage(DioException e) {
+    final response = e.response;
+    if (response != null) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        // Try common error field names
+        final errorMsg = data['detail'] ??
+            data['message'] ??
+            data['error'] ??
+            data['non_field_errors']?.toString() ??
+            data.toString();
+        return errorMsg.toString();
+      }
+      return data?.toString() ?? e.message ?? 'Unknown error';
+    }
+    return e.message ?? 'Network error occurred';
+  }
+
   @override
   Future<CustomerOrdersResult<OrderModel>> createFoodOrder(FoodCheckoutRequest request) async {
+    _log('Creating food order...');
+    _log('Request data: ${request.toJson()}');
+
     try {
       final order = await _remoteDataSource.createFoodOrder(request);
+      _log('Food order created successfully with ID: ${order.id}');
       return (failure: null, data: order);
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      _log(
+        'DioException in createFoodOrder',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      _log('Status code: ${e.response?.statusCode}');
+      _log('Response data: ${e.response?.data}');
+      _log('Error type: ${e.type}');
+
+      final errorMessage = _extractErrorMessage(e);
+      _log('Extracted error message: $errorMessage');
+
       final apiError = e.error;
       if (apiError is ApiException) {
+        _log('ApiException: ${apiError.message}');
         return (
           failure: ValidationFailure(message: apiError.message),
           data: null,
         );
       }
+
+      // Return detailed error message from API response
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: ServerFailure(message: errorMessage),
         data: null,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log(
+        'Unexpected error in createFoodOrder',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return (
         failure: ServerFailure(message: 'An unexpected error occurred: $e'),
         data: null,

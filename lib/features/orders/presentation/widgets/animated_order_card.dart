@@ -53,7 +53,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     super.dispose();
   }
 
-  /// Cancel an order (sellers cannot accept - that's handled by drivers)
+  /// Cancel an order
   Future<void> _handleCancel() async {
     if (_isProcessing) return;
 
@@ -70,6 +70,28 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
     if (success && mounted) {
       _showSuccessSnackBar('orders.status.cancelled'.tr);
+    }
+
+    if (mounted) {
+      await _controller.reverse();
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  /// Accept an order
+  Future<void> _handleAccept() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    HapticFeedback.mediumImpact();
+    await _controller.forward();
+
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .acceptOrder(widget.order.id);
+
+    if (success && mounted) {
+      _showSuccessSnackBar('orders.status.accepted'.tr);
     }
 
     if (mounted) {
@@ -430,23 +452,21 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.pending:
       case OrderStatusEnum.searchingForDriver:
       case OrderStatusEnum.driverNotificationSent:
-        // Sellers cannot accept orders - that's handled by driver assignment
-        // Show waiting status and cancel option
+        // Show Accept and Cancel buttons
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'orders.waitingForDriver'.tr,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.warning,
-              ),
-            ),
-            SizedBox(width: 8.w),
             _ActionButton(
-              label: 'orders.cancel'.tr,
+              label: 'orders.reject'.tr,
               onTap: _handleCancel,
               isDark: isDark,
+            ),
+            SizedBox(width: 6.w),
+            _ActionButton(
+              label: 'orders.accept'.tr,
+              onTap: _handleAccept,
+              isPrimary: true,
+              icon: Icons.check,
             ),
           ],
         );
@@ -478,10 +498,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.completed:
         return Row(
           children: [
-            Icon(Icons.check_circle, color: AppColors.success, size: 20.w),
+            Icon(Icons.done_all, color: AppColors.success, size: 20.w),
             SizedBox(width: 4.w),
             Text(
-              'orders.status.delivered'.tr,
+              'orders.status.completed'.tr,
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
@@ -538,6 +558,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
     return isDark ? DarkColors.border : LightColors.border;
   }
+
 }
 
 class _ActionButton extends StatelessWidget {

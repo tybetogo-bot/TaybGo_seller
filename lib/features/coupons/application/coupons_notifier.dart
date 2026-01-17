@@ -200,22 +200,17 @@ class CouponsNotifier extends Notifier<CouponsState> {
     try {
       // Prepare data for API
       final data = {
+        'restaurant_id': restaurantId,
         'title': coupon.title,
         'code': coupon.code,
-        'percent_discount': coupon.percentDiscount,
-        'minimum_order_price': coupon.minimumOrderPrice,
+        'percentage': coupon.percentDiscount.toInt(),
+        'min_price': coupon.minimumOrderPrice.toStringAsFixed(2),
         'start_date': coupon.startDate.toIso8601String(),
         'end_date': coupon.endDate.toIso8601String(),
         'is_active': coupon.isActive,
         if (coupon.description != null) 'description': coupon.description,
-        if (coupon.maxTotalUsage != null) 'max_total_usage': coupon.maxTotalUsage,
-        if (coupon.maxUsagePerUser != null) 'max_usage_per_user': coupon.maxUsagePerUser,
-        if (coupon.titleAr != null) 'title_ar': coupon.titleAr,
-        if (coupon.titleDe != null) 'title_de': coupon.titleDe,
-        if (coupon.titleFr != null) 'title_fr': coupon.titleFr,
-        if (coupon.descriptionAr != null) 'description_ar': coupon.descriptionAr,
-        if (coupon.descriptionDe != null) 'description_de': coupon.descriptionDe,
-        if (coupon.descriptionFr != null) 'description_fr': coupon.descriptionFr,
+        if (coupon.maxTotalUsage != null) 'max_total_users': coupon.maxTotalUsage,
+        if (coupon.maxUsagePerUser != null) 'max_per_customer': coupon.maxUsagePerUser,
       };
 
       final result = await _repository.createCoupon(
@@ -252,20 +247,14 @@ class CouponsNotifier extends Notifier<CouponsState> {
       final data = {
         'title': coupon.title,
         'code': coupon.code,
-        'percent_discount': coupon.percentDiscount,
-        'minimum_order_price': coupon.minimumOrderPrice,
+        'percentage': coupon.percentDiscount.toInt(),
+        'min_price': coupon.minimumOrderPrice.toStringAsFixed(2),
         'start_date': coupon.startDate.toIso8601String(),
         'end_date': coupon.endDate.toIso8601String(),
         'is_active': coupon.isActive,
         if (coupon.description != null) 'description': coupon.description,
-        if (coupon.maxTotalUsage != null) 'max_total_usage': coupon.maxTotalUsage,
-        if (coupon.maxUsagePerUser != null) 'max_usage_per_user': coupon.maxUsagePerUser,
-        if (coupon.titleAr != null) 'title_ar': coupon.titleAr,
-        if (coupon.titleDe != null) 'title_de': coupon.titleDe,
-        if (coupon.titleFr != null) 'title_fr': coupon.titleFr,
-        if (coupon.descriptionAr != null) 'description_ar': coupon.descriptionAr,
-        if (coupon.descriptionDe != null) 'description_de': coupon.descriptionDe,
-        if (coupon.descriptionFr != null) 'description_fr': coupon.descriptionFr,
+        if (coupon.maxTotalUsage != null) 'max_total_users': coupon.maxTotalUsage,
+        if (coupon.maxUsagePerUser != null) 'max_per_customer': coupon.maxUsagePerUser,
       };
 
       final result = await _repository.patchCoupon(coupon.id, data);
@@ -405,4 +394,10 @@ final couponProvider = Provider.family<CouponModel?, String>((ref, id) {
   } catch (_) {
     return null;
   }
+});
+
+/// Provider for active/valid coupons only (for use in order creation)
+final activeCouponsProvider = Provider<List<CouponModel>>((ref) {
+  final couponsState = ref.watch(couponsProvider);
+  return couponsState.coupons.where((c) => c.isValid).toList();
 });

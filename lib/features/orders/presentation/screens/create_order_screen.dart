@@ -11,6 +11,10 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
+import '../../../coupons/application/coupons_notifier.dart';
+import '../../../restaurant/application/restaurant_state.dart';
+import '../../application/customer_orders_notifier.dart';
+import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
 import '../widgets/address_search_widget.dart';
 
@@ -36,6 +40,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   bool _isPaid = false;
   bool _isLoading = false;
 
+  // New fields for coupon and vehicle/delivery types
+  String? _selectedCouponId;
+  VehicleType? _selectedVehicleType;
+  VehicleType? _selectedDeliveryType;
+
   @override
   void dispose() {
     _customerNameController.dispose();
@@ -59,7 +68,22 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   double get _deliveryFee =>
       double.tryParse(_deliveryFeeController.text) ?? 0.0;
   double get _tips => double.tryParse(_tipsController.text) ?? 0.0;
-  double get _total => _subtotal + _deliveryFee + _tips;
+
+  /// Get the discount amount based on selected coupon
+  double get _discount {
+    if (_selectedCouponId == null) return 0.0;
+    final coupons = ref.read(activeCouponsProvider);
+    try {
+      final coupon = coupons.firstWhere((c) => c.id == _selectedCouponId);
+      // Check if order meets minimum requirement
+      if (_subtotal < coupon.minimumOrderPrice) return 0.0;
+      return _subtotal * (coupon.percentDiscount / 100);
+    } catch (_) {
+      return 0.0;
+    }
+  }
+
+  double get _total => _subtotal + _deliveryFee + _tips - _discount;
 
   void _showAddItemDialog() {
     showModalBottomSheet(
@@ -125,36 +149,89 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   Future<void> _submitOrder() async {
     if (!_validateForm()) return;
 
-    setState(() => _isLoading = true);
-
-    // ignore: unused_local_variable
-    final order = OrderModel(
-      id: const Uuid().v4(),
-      customerName: _customerNameController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      countryCode: _selectedCountry.dialCode,
-      address: _selectedAddress!,
-      items: _orderItems,
-      subtotal: _subtotal,
-      deliveryFee: _deliveryFee,
-      tips: _tips,
-      total: _total,
-      isPaid: _isPaid,
-      status: OrderStatusEnum.pending,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      createdAt: DateTime.now(),
-    );
-
-    // TODO: Save order to repository
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.pop();
+    // Get the selected restaurant
+    final restaurant = ref.read(selectedRestaurantProvider);
+    if (restaurant == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('orders.orderCreated'.tr),
-          backgroundColor: AppColors.success,
+          content: Text('validation.noRestaurantSelected'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Build cart items from order items
+      final cartItems = _orderItems.map((item) {
+        final itemId = int.tryParse(item.menuItemId) ?? 0;
+        return CartItem(
+          itemId: itemId,
+          quantity: item.quantity,
+          notes: item.notes,
+        );
+      }).toList();
+
+      // Build the checkout request with embedded address data
+      final request = FoodCheckoutRequest(
+        restaurantId: int.tryParse(restaurant.id) ?? 0,
+        subtotalAmount: _subtotal.toStringAsFixed(2),
+        discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : null,
+        deliveryFee: _deliveryFee.toStringAsFixed(2),
+        tip: _tips > 0 ? _tips.toStringAsFixed(2) : null,
+        totalAmount: _total.toStringAsFixed(2),
+        isManual: true,
+        requestedVehicleType: _selectedVehicleType,
+        requestedDeliveryType: _selectedDeliveryType,
+        pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
+        dropoffAddressData: OrderAddressData.fromAddressModel(
+          _selectedAddress!,
+          label: 'Customer: ${_customerNameController.text.trim()}',
+        ),
+        items: cartItems,
+        couponId: _selectedCouponId != null ? int.tryParse(_selectedCouponId!) : null,
+        notes: _notesController.text.isNotEmpty
+            ? 'Customer: ${_customerNameController.text.trim()}, '
+                'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}, '
+                'Notes: ${_notesController.text}'
+            : 'Customer: ${_customerNameController.text.trim()}, '
+                'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}',
+      );
+
+      // Create the order
+      final notifier = ref.read(customerOrdersProvider.notifier);
+      final createdOrder = await notifier.createFoodOrder(request);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (createdOrder != null) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('orders.orderCreated'.tr),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        final error = ref.read(customerOrdersProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'orders.orderCreationFailed'.tr),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orders.orderCreationFailed'.tr),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -295,6 +372,59 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
               SizedBox(height: 24.h),
 
+              // Delivery Options Section
+              _SectionTitle(title: 'orders.deliveryOptions'.tr, isDark: isDark),
+              SizedBox(height: 12.h),
+
+              // Vehicle Type and Delivery Type dropdowns
+              Row(
+                children: [
+                  Expanded(
+                    child: _VehicleTypeDropdown(
+                      label: 'orders.requestedVehicleType'.tr,
+                      value: _selectedVehicleType,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVehicleType = value;
+                        });
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: _VehicleTypeDropdown(
+                      label: 'orders.requestedDeliveryType'.tr,
+                      value: _selectedDeliveryType,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDeliveryType = value;
+                        });
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Coupon Section
+              _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
+              SizedBox(height: 12.h),
+
+              _CouponDropdown(
+                selectedCouponId: _selectedCouponId,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCouponId = value;
+                  });
+                },
+                isDark: isDark,
+              ),
+
+              SizedBox(height: 24.h),
+
               // Payment Section
               _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
               SizedBox(height: 12.h),
@@ -394,6 +524,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       value: _tips,
                       isDark: isDark,
                     ),
+                    // Show discount row if coupon is applied
+                    if (_discount > 0) ...[
+                      SizedBox(height: 8.h),
+                      _DiscountRow(
+                        label: 'orders.discount'.tr,
+                        value: _discount,
+                        isDark: isDark,
+                      ),
+                    ],
                     Divider(
                       height: 24.h,
                       color: isDark ? DarkColors.border : LightColors.border,
@@ -461,6 +600,285 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
+/// Dropdown for selecting vehicle type
+class _VehicleTypeDropdown extends StatelessWidget {
+  const _VehicleTypeDropdown({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    required this.isDark,
+  });
+
+  final String label;
+  final VehicleType? value;
+  final ValueChanged<VehicleType?> onChanged;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? DarkColors.surface : LightColors.surface,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isDark ? DarkColors.border : LightColors.border,
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<VehicleType>(
+              value: value,
+              isExpanded: true,
+              hint: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                child: Text(
+                  'orders.selectVehicleType'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  ),
+                ),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              borderRadius: BorderRadius.circular(12.r),
+              dropdownColor: isDark ? DarkColors.surface : LightColors.surface,
+              items: VehicleType.values.map((type) {
+                return DropdownMenuItem<VehicleType>(
+                  value: type,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _getVehicleIcon(type),
+                        size: 20.w,
+                        color: AppColors.primary,
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'orders.vehicleType.${type.name}'.tr,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getVehicleIcon(VehicleType type) {
+    switch (type) {
+      case VehicleType.bike:
+        return Icons.pedal_bike;
+      case VehicleType.motorcycle:
+        return Icons.two_wheeler;
+      case VehicleType.car:
+        return Icons.directions_car;
+      case VehicleType.van:
+        return Icons.airport_shuttle;
+    }
+  }
+}
+
+/// Dropdown for selecting coupon
+class _CouponDropdown extends ConsumerWidget {
+  const _CouponDropdown({
+    required this.selectedCouponId,
+    required this.onChanged,
+    required this.isDark,
+  });
+
+  final String? selectedCouponId;
+  final ValueChanged<String?> onChanged;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coupons = ref.watch(activeCouponsProvider);
+    final isLoading = ref.watch(couponsProvider).isLoading;
+
+    if (isLoading) {
+      return Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: isDark ? DarkColors.surface : LightColors.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isDark ? DarkColors.border : LightColors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 20.w,
+              height: 20.w,
+              child: CircularProgressIndicator(strokeWidth: 2.w),
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'orders.loadingCoupons'.tr,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (coupons.isEmpty) {
+      return Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: isDark ? DarkColors.surface : LightColors.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isDark ? DarkColors.border : LightColors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.discount_outlined,
+              size: 20.w,
+              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'orders.noActiveCoupons'.tr,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? DarkColors.surface : LightColors.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark ? DarkColors.border : LightColors.border,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedCouponId,
+          isExpanded: true,
+          hint: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.discount_outlined,
+                  size: 20.w,
+                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                ),
+                SizedBox(width: 8.w),
+                Text(
+                  'orders.selectCoupon'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          borderRadius: BorderRadius.circular(12.r),
+          dropdownColor: isDark ? DarkColors.surface : LightColors.surface,
+          items: [
+            // Add "No coupon" option
+            DropdownMenuItem<String>(
+              value: null,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.close,
+                    size: 20.w,
+                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'orders.noCoupon'.tr,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...coupons.map((coupon) {
+              return DropdownMenuItem<String>(
+                value: coupon.id,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_offer,
+                      size: 20.w,
+                      color: AppColors.success,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            coupon.code,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '${coupon.percentDiscount.toStringAsFixed(0)}% off',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: AppColors.success,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
 class _SummaryRow extends StatelessWidget {
   const _SummaryRow({
     required this.label,
@@ -492,6 +910,53 @@ class _SummaryRow extends StatelessWidget {
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
             color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Discount row for order summary (shows negative value in green)
+class _DiscountRow extends StatelessWidget {
+  const _DiscountRow({
+    required this.label,
+    required this.value,
+    required this.isDark,
+  });
+
+  final String label;
+  final double value;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.local_offer,
+              size: 16.w,
+              color: AppColors.success,
+            ),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: AppColors.success,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          '-\u20AC${value.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.success,
           ),
         ),
       ],

@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/addresses_api.dart';
@@ -49,6 +52,23 @@ class AddressesState {
 class AddressesNotifier extends Notifier<AddressesState> {
   late final AddressesRepository _repository;
 
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'AddressesNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // ignore: avoid_print
+      print('[AddressesNotifier] $message');
+      if (error != null) {
+        // ignore: avoid_print
+        print('[AddressesNotifier] Error: $error');
+      }
+    }
+  }
+
   @override
   AddressesState build() {
     _repository = ref.watch(addressesRepositoryProvider);
@@ -60,12 +80,14 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Load addresses from API
   Future<void> _loadAddresses({int page = 1}) async {
+    _log('Loading addresses, page: $page');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getAddresses(page: page);
 
       if (result.failure != null) {
+        _log('Failed to load addresses: ${result.failure!.message}');
         state = state.copyWith(
           isLoading: false,
           error: result.failure!.message,
@@ -73,12 +95,14 @@ class AddressesNotifier extends Notifier<AddressesState> {
         return;
       }
 
+      _log('Loaded ${result.data?.length ?? 0} addresses');
       state = state.copyWith(
         addresses: result.data ?? [],
         isLoading: false,
         currentPage: page,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('Exception loading addresses', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load addresses: $e',
@@ -93,22 +117,31 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Create a new address
   Future<CustomerAddressModel?> createAddress(AddressCreateRequest request) async {
+    _log('=== CREATE ADDRESS START ===');
+    _log('Request: ${request.toJson()}');
     state = state.copyWith(clearError: true);
 
     try {
+      _log('Calling repository.createAddress...');
       final result = await _repository.createAddress(request);
 
       if (result.failure != null) {
+        _log('=== CREATE ADDRESS FAILED ===');
+        _log('Failure message: ${result.failure!.message}');
         state = state.copyWith(error: result.failure!.message);
         return null;
       }
+
+      _log('=== CREATE ADDRESS SUCCESS ===');
+      _log('Created address ID: ${result.data?.id}');
 
       // Add to local state
       final updatedAddresses = [...state.addresses, result.data!];
       state = state.copyWith(addresses: updatedAddresses);
 
       return result.data;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('=== CREATE ADDRESS EXCEPTION ===', error: e, stackTrace: stackTrace);
       state = state.copyWith(error: 'Failed to create address: $e');
       return null;
     }

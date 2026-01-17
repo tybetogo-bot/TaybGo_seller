@@ -92,7 +92,11 @@ class TybeToGoApp extends ConsumerWidget {
               data: mediaQueryData.copyWith(
                 textScaler: constrainedTextScaleFactor,
               ),
-              child: child ?? const SizedBox.shrink(),
+              // Dismiss keyboard when tapping outside of input fields
+              child: GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: child ?? const SizedBox.shrink(),
+              ),
             );
           },
         );

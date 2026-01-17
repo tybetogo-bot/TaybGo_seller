@@ -16,7 +16,6 @@ class RestaurantSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScreen> {
-  late bool _isOpen;
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isInitialized = false;
@@ -39,7 +38,6 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
     if (!_isInitialized && selectedRestaurant != null) {
       _nameController.text = selectedRestaurant.name;
       _phoneController.text = selectedRestaurant.phone ?? '';
-      _isOpen = selectedRestaurant.isOpen;
       _isInitialized = true;
     }
 
@@ -73,47 +71,6 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
           : ListView(
         padding: EdgeInsets.all(16.w),
         children: [
-          // Status toggle
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: isDark ? DarkColors.surface : LightColors.surface,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'settings.restaurantStatus'.tr,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        _isOpen ? 'settings.acceptingOrders'.tr : 'settings.notAcceptingOrders'.tr,
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch.adaptive(
-                  value: _isOpen,
-                  onChanged: (value) => setState(() => _isOpen = value),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-
           // Restaurant info
           Text(
             'settings.restaurantInfo'.tr,
@@ -268,7 +225,7 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
       'name': _nameController.text.trim(),
       if (_phoneController.text.trim().isNotEmpty)
         'phone': _phoneController.text.trim(),
-      'is_open': _isOpen,
+      'is_open': true,
       // Keep existing address ID if we have one
       if (addressId != null) 'address': addressId,
     };

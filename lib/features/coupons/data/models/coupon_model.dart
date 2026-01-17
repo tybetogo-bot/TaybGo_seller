@@ -37,19 +37,22 @@ sealed class CouponModel with _$CouponModel {
       code: json['code'] as String? ?? '',
       percentDiscount:
           double.tryParse(
-            (json['percent_discount'] ?? json['percentDiscount'] ?? '0')
+            (json['percentage'] ?? json['percent_discount'] ?? json['percentDiscount'] ?? '0')
                 .toString(),
           ) ??
           0.0,
       minimumOrderPrice:
           double.tryParse(
-            (json['minimum_order_price'] ?? json['minimumOrderPrice'] ?? '0')
+            (json['min_price'] ?? json['minimum_order_price'] ?? json['minimumOrderPrice'] ?? '0')
                 .toString(),
           ) ??
           0.0,
-      maxTotalUsage: (json['max_total_usage'] ?? json['maxTotalUsage']) as int?,
-      maxUsagePerUser:
-          (json['max_usage_per_user'] ?? json['maxUsagePerUser']) as int?,
+      maxTotalUsage: int.tryParse(
+        (json['max_total_users'] ?? json['max_total_usage'] ?? json['maxTotalUsage'] ?? '').toString(),
+      ),
+      maxUsagePerUser: int.tryParse(
+        (json['max_per_customer'] ?? json['max_usage_per_user'] ?? json['maxUsagePerUser'] ?? '').toString(),
+      ),
       currentUsageCount:
           (json['current_usage_count'] ?? json['currentUsageCount'] ?? 0)
               as int,

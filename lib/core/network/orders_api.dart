@@ -12,8 +12,8 @@ class OrdersApi {
 
   OrdersApi(this._dio);
 
-  /// List seller's restaurant orders
-  /// GET /api/seller/orders/
+  /// List orders owned by the authenticated user
+  /// GET /api/orders/
   Future<PaginatedResponse<OrderModel>> getOrders({
     int page = 1,
     String? status,
@@ -24,7 +24,7 @@ class OrdersApi {
     if (status != null) queryParams['status'] = status;
 
     final response = await _dio.get(
-      '/api/seller/orders/',
+      '/api/orders/',
       queryParameters: queryParams,
     );
 
@@ -35,24 +35,24 @@ class OrdersApi {
   }
 
   /// Get order details
-  /// GET /api/seller/orders/{id}/
+  /// GET /api/orders/{id}/
   Future<OrderModel> getOrderById(String id) async {
-    final response = await _dio.get('/api/seller/orders/$id/');
+    final response = await _dio.get('/api/orders/$id/');
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// Update order status (e.g., CANCELLED)
-  /// POST /api/seller/orders/{id}/status/
+  /// POST /api/orders/{id}/status/
   Future<OrderModel> updateOrderStatus(String id, String status) async {
     final response = await _dio.post(
-      '/api/seller/orders/$id/status/',
+      '/api/orders/$id/status/',
       data: {'status': status},
     );
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// Process refund
-  /// POST /api/seller/orders/{order_id}/refund/
+  /// POST /api/orders/{order_id}/refund/
   Future<RefundResponse> refundOrder({
     required String orderId,
     required double amount,
@@ -60,7 +60,7 @@ class OrdersApi {
     String? idempotencyKey,
   }) async {
     final response = await _dio.post(
-      '/api/seller/orders/$orderId/refund/',
+      '/api/orders/$orderId/refund/',
       data: {
         'amount': amount,
         'reason': reason,
@@ -71,18 +71,18 @@ class OrdersApi {
   }
 
   /// Log manual order from scanned form
-  /// POST /api/seller/orders/manual/
+  /// POST /api/orders/manual/
   Future<void> logManualOrder({
     required Map<String, dynamic> data,
   }) async {
     await _dio.post(
-      '/api/seller/orders/manual/',
+      '/api/orders/manual/',
       data: data,
     );
   }
 
   /// Export orders to Excel
-  /// GET /api/seller/orders/export/excel/
+  /// GET /api/orders/export/excel/
   /// Note: API uses 'from_' with underscore for the from date parameter
   Future<Response> exportToExcel({
     String? status,
@@ -97,7 +97,7 @@ class OrdersApi {
     if (toDate != null) queryParams['to'] = toDate.toIso8601String();
 
     return await _dio.get(
-      '/api/seller/orders/export/excel/',
+      '/api/orders/export/excel/',
       queryParameters: queryParams,
       options: Options(
         responseType: ResponseType.bytes,
@@ -106,7 +106,7 @@ class OrdersApi {
   }
 
   /// Export orders to PDF
-  /// GET /api/seller/orders/export/pdf/
+  /// GET /api/orders/export/pdf/
   /// Note: API uses 'from_' with underscore for the from date parameter
   Future<Response> exportToPdf({
     String? status,
@@ -121,7 +121,7 @@ class OrdersApi {
     if (toDate != null) queryParams['to'] = toDate.toIso8601String();
 
     return await _dio.get(
-      '/api/seller/orders/export/pdf/',
+      '/api/orders/export/pdf/',
       queryParameters: queryParams,
       options: Options(
         responseType: ResponseType.bytes,

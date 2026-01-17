@@ -62,6 +62,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
     bool success = false;
     switch (order.status) {
+      case OrderStatusEnum.pending:
+      case OrderStatusEnum.searchingForDriver:
+        success = await ref.read(ordersProvider.notifier).acceptOrder(order.id);
+        break;
       case OrderStatusEnum.accepted:
       case OrderStatusEnum.driverNotificationSent:
         success = await ref.read(ordersProvider.notifier).markOnTheWay(order.id);
@@ -86,6 +90,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   OrderStatusEnum? _getTargetStatus(OrderStatusEnum currentStatus) {
     switch (currentStatus) {
+      case OrderStatusEnum.pending:
+      case OrderStatusEnum.searchingForDriver:
+        return OrderStatusEnum.accepted;
       case OrderStatusEnum.accepted:
       case OrderStatusEnum.driverNotificationSent:
         return OrderStatusEnum.onTheWay;
@@ -352,17 +359,45 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               _OrderStatusTimeline(order: order, isDark: isDark),
               SizedBox(height: 24.h),
 
-              // Customer info
-              _SectionTitle(title: 'orders.customerInfo'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-              _CustomerCard(order: order, isDark: isDark),
+              // Order info (type, manual indicator)
+              _OrderInfoCard(order: order, isDark: isDark),
               SizedBox(height: 20.h),
+
+              // Pickup & Dropoff Addresses
+              _SectionTitle(title: 'orders.addresses'.tr, isDark: isDark),
+              SizedBox(height: 12.h),
+              _AddressesCard(order: order, isDark: isDark),
+              SizedBox(height: 20.h),
+
+              // Driver info (if assigned)
+              if (order.driver != null) ...[
+                _SectionTitle(title: 'orders.driverInfo'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+                _DriverCard(driver: order.driver!, isDark: isDark),
+                SizedBox(height: 20.h),
+              ],
+
+              // Delivery options (vehicle type)
+              if (order.requestedVehicleType != null || order.requestedDeliveryType != null) ...[
+                _SectionTitle(title: 'orders.deliveryOptions'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+                _DeliveryOptionsCard(order: order, isDark: isDark),
+                SizedBox(height: 20.h),
+              ],
 
               // Order items
               _SectionTitle(title: 'orders.orderItems'.tr, isDark: isDark),
               SizedBox(height: 12.h),
               _OrderItemsCard(order: order, isDark: isDark),
               SizedBox(height: 20.h),
+
+              // Coupon info (if applied)
+              if (order.coupon != null) ...[
+                _SectionTitle(title: 'orders.couponApplied'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+                _CouponCard(coupon: order.coupon!, isDark: isDark),
+                SizedBox(height: 20.h),
+              ],
 
               // Payment summary
               _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
@@ -391,13 +426,13 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       return const SizedBox.shrink();
     }
 
-    // Pending orders - sellers can only reject, not accept (acceptance is handled by drivers)
+    // Pending orders - show both Accept and Reject buttons
     if (status == OrderStatusEnum.pending ||
         status == OrderStatusEnum.searchingForDriver ||
         status == OrderStatusEnum.driverNotificationSent) {
       return Column(
         children: [
-          // Info message explaining the status
+          // Info message explaining the status - show status-specific message
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
@@ -407,11 +442,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.info, size: 20.w),
+                Icon(
+                  _getPendingStatusIcon(status),
+                  color: AppColors.info,
+                  size: 20.w,
+                ),
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
-                    'orders.waitingForDriverAssignment'.tr,
+                    _getPendingStatusMessage(status),
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: AppColors.info,
@@ -422,14 +461,33 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             ),
           ),
           SizedBox(height: 12.h),
-          // Only show reject button
-          AppButton(
-            label: 'orders.rejectOrder'.tr,
-            icon: Icons.cancel_outlined,
-            variant: AppButtonVariant.outline,
-            isLoading: _isProcessing,
-            onPressed: () => _handleReject(order),
-            isFullWidth: true,
+          // Accept and Reject buttons
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'orders.reject'.tr,
+                  icon: Icons.close,
+                  variant: AppButtonVariant.outline,
+                  size: AppButtonSize.small,
+                  isLoading: _isProcessing,
+                  onPressed: () => _handleReject(order),
+                  isFullWidth: true,
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                flex: 2,
+                child: AppButton(
+                  label: 'orders.accept'.tr,
+                  icon: Icons.check,
+                  size: AppButtonSize.small,
+                  isLoading: _isProcessing,
+                  onPressed: () => _handleStatusAction(order),
+                  isFullWidth: true,
+                ),
+              ),
+            ],
           ),
         ],
       );
@@ -466,6 +524,34 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return Icons.check_circle_outline;
       default:
         return Icons.arrow_forward;
+    }
+  }
+
+  /// Get appropriate icon for pending-like statuses
+  IconData _getPendingStatusIcon(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return Icons.hourglass_empty;
+      case OrderStatusEnum.searchingForDriver:
+        return Icons.search;
+      case OrderStatusEnum.driverNotificationSent:
+        return Icons.notifications_active;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  /// Get appropriate message for pending-like statuses
+  String _getPendingStatusMessage(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 'orders.statusDesc.pending'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.statusDesc.searchingForDriver'.tr;
+      case OrderStatusEnum.driverNotificationSent:
+        return 'orders.statusDesc.driverNotificationSent'.tr;
+      default:
+        return 'orders.waitingForDriverAssignment'.tr;
     }
   }
 }
@@ -522,6 +608,43 @@ class _OrderStatusTimeline extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Order ID row
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.primary.withValues(alpha: 0.1)
+                  : AppColors.primary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.tag,
+                  size: 16.w,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  '${'orders.orderId'.tr}: ',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  '#${order.id}',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16.h),
           // Current status header
           Row(
             children: [
@@ -849,99 +972,6 @@ class _TimelineLine extends StatelessWidget {
   }
 }
 
-class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.order, required this.isDark});
-
-  final OrderModel order;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    // Check if data is actually available (not just defaults)
-    final hasCustomerName = order.customerName.isNotEmpty && order.customerName != 'Customer';
-    final hasPhone = order.phoneNumber.isNotEmpty;
-    final hasAddress = order.address.street.isNotEmpty && order.address.street != 'N/A';
-
-    // Build address string only with available parts
-    String buildAddressString() {
-      final parts = <String>[];
-      if (order.address.street.isNotEmpty && order.address.street != 'N/A') {
-        parts.add(order.address.street);
-      }
-      if (order.address.building.isNotEmpty && order.address.building != 'N/A') {
-        parts.add(order.address.building);
-      }
-      if (order.address.city != null && order.address.city!.isNotEmpty) {
-        parts.add(order.address.city!);
-      }
-      return parts.isNotEmpty ? parts.join(', ') : 'orders.addressNotAvailable'.tr;
-    }
-
-    return AppCard(
-      child: Column(
-        children: [
-          if (hasCustomerName) ...[
-            _InfoRow(
-              icon: Icons.person_outline,
-              label: order.customerName,
-              isDark: isDark,
-            ),
-            SizedBox(height: 12.h),
-          ],
-          if (hasPhone) ...[
-            _InfoRow(
-              icon: Icons.phone_outlined,
-              label: '${order.countryCode} ${order.phoneNumber}',
-              isDark: isDark,
-            ),
-            SizedBox(height: 12.h),
-          ],
-          _InfoRow(
-            icon: Icons.location_on_outlined,
-            label: hasAddress ? buildAddressString() : 'orders.addressNotAvailable'.tr,
-            isDark: isDark,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.isDark,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 20.w,
-          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _OrderItemsCard extends ConsumerWidget {
   const _OrderItemsCard({required this.order, required this.isDark});
 
@@ -1106,8 +1136,9 @@ class _PaymentSummaryCard extends ConsumerWidget {
     }
 
     final deliveryFee = order.deliveryFee;
+    final discountAmount = order.discountAmount;
     final tip = order.tips;
-    final total = order.total > 0 ? order.total : (subtotal + deliveryFee + tip);
+    final total = order.total > 0 ? order.total : (subtotal + deliveryFee - discountAmount + tip);
 
     // Check if we have any meaningful payment data
     final hasPaymentData = total > 0 || subtotal > 0 || order.isPaid;
@@ -1150,6 +1181,16 @@ class _PaymentSummaryCard extends ConsumerWidget {
             ),
             SizedBox(height: 8.h),
           ],
+          // Only show discount if available
+          if (discountAmount > 0) ...[
+            _SummaryRow(
+              label: 'orders.discount'.tr,
+              value: '-\$${discountAmount.toStringAsFixed(2)}',
+              isDark: isDark,
+              isDiscount: true,
+            ),
+            SizedBox(height: 8.h),
+          ],
           // Only show tip if available
           if (tip > 0) ...[
             _SummaryRow(
@@ -1161,7 +1202,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           ],
           // Show total if available
           if (total > 0) ...[
-            if (subtotal > 0 || deliveryFee > 0 || tip > 0) ...[
+            if (subtotal > 0 || deliveryFee > 0 || discountAmount > 0 || tip > 0) ...[
               Divider(color: isDark ? DarkColors.border : LightColors.border),
               SizedBox(height: 12.h),
             ],
@@ -1209,12 +1250,14 @@ class _SummaryRow extends StatelessWidget {
     required this.value,
     required this.isDark,
     this.isTotal = false,
+    this.isDiscount = false,
   });
 
   final String label;
   final String value;
   final bool isDark;
   final bool isTotal;
+  final bool isDiscount;
 
   @override
   Widget build(BuildContext context) {
@@ -1226,7 +1269,9 @@ class _SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 16.sp : 14.sp,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w400,
-            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+            color: isDiscount
+                ? AppColors.success
+                : (isDark ? DarkColors.textPrimary : LightColors.textPrimary),
           ),
         ),
         Text(
@@ -1236,10 +1281,457 @@ class _SummaryRow extends StatelessWidget {
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
             color: isTotal
                 ? AppColors.primary
-                : (isDark ? DarkColors.textPrimary : LightColors.textPrimary),
+                : (isDiscount
+                    ? AppColors.success
+                    : (isDark ? DarkColors.textPrimary : LightColors.textPrimary)),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Order info card showing type and manual indicator
+class _OrderInfoCard extends StatelessWidget {
+  const _OrderInfoCard({required this.order, required this.isDark});
+
+  final OrderModel order;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          // Order type
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    order.orderType == 'FOOD' ? Icons.restaurant : Icons.local_shipping,
+                    color: AppColors.primary,
+                    size: 20.w,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'orders.orderType'.tr,
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      order.orderType == 'FOOD' ? 'orders.foodOrder'.tr : 'orders.parcelOrder'.tr,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Manual order indicator
+          if (order.isManual)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit_note, color: AppColors.warning, size: 16.w),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'orders.manualOrder'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.warning,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Addresses card showing pickup and dropoff locations
+class _AddressesCard extends StatelessWidget {
+  const _AddressesCard({required this.order, required this.isDark});
+
+  final OrderModel order;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        children: [
+          // Pickup address
+          _AddressRow(
+            icon: Icons.store,
+            iconColor: AppColors.info,
+            label: 'orders.pickupFrom'.tr,
+            address: order.pickupAddress?.displayAddress ??
+                     order.restaurant?.address ??
+                     'orders.addressNotAvailable'.tr,
+            sublabel: order.pickupAddress?.label ?? order.restaurant?.name,
+            isDark: isDark,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            child: Row(
+              children: [
+                SizedBox(width: 12.w),
+                Container(
+                  width: 2.w,
+                  height: 24.h,
+                  decoration: BoxDecoration(
+                    color: isDark ? DarkColors.border : LightColors.border,
+                    borderRadius: BorderRadius.circular(1.r),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Icon(
+                  Icons.arrow_downward,
+                  size: 16.w,
+                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                ),
+              ],
+            ),
+          ),
+          // Dropoff address
+          _AddressRow(
+            icon: Icons.location_on,
+            iconColor: AppColors.error,
+            label: 'orders.deliverTo'.tr,
+            address: order.dropoffAddress?.displayAddress ??
+                     order.address.street,
+            sublabel: order.customerName != 'Customer' ? order.customerName : null,
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressRow extends StatelessWidget {
+  const _AddressRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.address,
+    required this.isDark,
+    this.sublabel,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String address;
+  final String? sublabel;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(6.w),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6.r),
+          ),
+          child: Icon(icon, color: iconColor, size: 16.w),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                ),
+              ),
+              if (sublabel != null) ...[
+                Text(
+                  sublabel!,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                  ),
+                ),
+              ],
+              Text(
+                address,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Driver card showing assigned driver info
+class _DriverCard extends StatelessWidget {
+  const _DriverCard({required this.driver, required this.isDark});
+
+  final OrderDriverModel driver;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            width: 48.w,
+            height: 48.w,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Icon(
+              Icons.delivery_dining,
+              color: AppColors.primary,
+              size: 24.w,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  driver.name,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                  ),
+                ),
+                if (driver.phone != null)
+                  Text(
+                    driver.phone!,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (driver.isVerified)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.verified, color: AppColors.success, size: 14.w),
+                  SizedBox(width: 4.w),
+                  Text(
+                    'orders.verified'.tr,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Delivery options card showing vehicle and delivery type
+class _DeliveryOptionsCard extends StatelessWidget {
+  const _DeliveryOptionsCard({required this.order, required this.isDark});
+
+  final OrderModel order;
+  final bool isDark;
+
+  IconData _getVehicleIcon(String? type) {
+    switch (type?.toUpperCase()) {
+      case 'BIKE':
+        return Icons.pedal_bike;
+      case 'MOTORCYCLE':
+        return Icons.two_wheeler;
+      case 'CAR':
+        return Icons.directions_car;
+      case 'VAN':
+        return Icons.local_shipping;
+      default:
+        return Icons.local_shipping;
+    }
+  }
+
+  String _getVehicleLabel(String? type) {
+    switch (type?.toUpperCase()) {
+      case 'BIKE':
+        return 'orders.vehicleType.bike'.tr;
+      case 'MOTORCYCLE':
+        return 'orders.vehicleType.motorcycle'.tr;
+      case 'CAR':
+        return 'orders.vehicleType.car'.tr;
+      case 'VAN':
+        return 'orders.vehicleType.van'.tr;
+      default:
+        return type ?? 'N/A';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          if (order.requestedVehicleType != null) ...[
+            Expanded(
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Icon(
+                      _getVehicleIcon(order.requestedVehicleType),
+                      color: Colors.purple,
+                      size: 20.w,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'orders.requestedVehicleType'.tr,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        _getVehicleLabel(order.requestedVehicleType),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Coupon card showing applied coupon
+class _CouponCard extends StatelessWidget {
+  const _CouponCard({required this.coupon, required this.isDark});
+
+  final OrderCouponModel coupon;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(
+              Icons.local_offer,
+              color: AppColors.success,
+              size: 20.w,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  coupon.title,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  coupon.code,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6.r),
+            ),
+            child: Text(
+              '-${coupon.percentage}%',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.success,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

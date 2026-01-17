@@ -1,7 +1,10 @@
 /// Addresses repository interface and implementation
 library;
 
+import 'dart:developer' as developer;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -40,12 +43,50 @@ class AddressesRepositoryImpl implements AddressesRepository {
 
   final AddressesDataSource _remoteDataSource;
 
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'AddressesRepository',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // ignore: avoid_print
+      print('[AddressesRepository] $message');
+      if (error != null) {
+        // ignore: avoid_print
+        print('[AddressesRepository] Error: $error');
+      }
+    }
+  }
+
+  String _extractErrorMessage(DioException e) {
+    final response = e.response;
+    if (response != null) {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final errorMsg = data['detail'] ??
+            data['message'] ??
+            data['error'] ??
+            data['non_field_errors']?.toString() ??
+            data.toString();
+        return errorMsg.toString();
+      }
+      return data?.toString() ?? e.message ?? 'Unknown error';
+    }
+    return e.message ?? 'Network error occurred';
+  }
+
   @override
   Future<AddressesResult<List<CustomerAddressModel>>> getAddresses({int page = 1}) async {
+    _log('Getting addresses, page: $page');
     try {
       final addresses = await _remoteDataSource.getAddresses(page: page);
+      _log('Got ${addresses.length} addresses');
       return (failure: null, data: addresses);
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      _log('DioException getting addresses', error: e, stackTrace: stackTrace);
+      _log('Status: ${e.response?.statusCode}, Data: ${e.response?.data}');
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
@@ -54,14 +95,16 @@ class AddressesRepositoryImpl implements AddressesRepository {
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: ServerFailure(message: _extractErrorMessage(e)),
         data: null,
       );
     } on NetworkException catch (e) {
+      _log('NetworkException getting addresses: ${e.message}');
       return (failure: NetworkFailure(message: e.message), data: null);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('Unexpected error getting addresses', error: e, stackTrace: stackTrace);
       return (
-        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
         data: null,
       );
     }
@@ -69,10 +112,13 @@ class AddressesRepositoryImpl implements AddressesRepository {
 
   @override
   Future<AddressesResult<CustomerAddressModel>> getAddressById(int id) async {
+    _log('Getting address by ID: $id');
     try {
       final address = await _remoteDataSource.getAddressById(id);
+      _log('Got address: ${address.id}');
       return (failure: null, data: address);
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      _log('DioException getting address', error: e, stackTrace: stackTrace);
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
@@ -81,12 +127,13 @@ class AddressesRepositoryImpl implements AddressesRepository {
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: ServerFailure(message: _extractErrorMessage(e)),
         data: null,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('Unexpected error getting address', error: e, stackTrace: stackTrace);
       return (
-        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
         data: null,
       );
     }
@@ -94,10 +141,21 @@ class AddressesRepositoryImpl implements AddressesRepository {
 
   @override
   Future<AddressesResult<CustomerAddressModel>> createAddress(AddressCreateRequest request) async {
+    _log('=== CREATE ADDRESS START ===');
+    _log('Request data: ${request.toJson()}');
     try {
       final address = await _remoteDataSource.createAddress(request);
+      _log('=== CREATE ADDRESS SUCCESS ===');
+      _log('Created address ID: ${address.id}');
       return (failure: null, data: address);
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      _log('=== CREATE ADDRESS FAILED ===', error: e, stackTrace: stackTrace);
+      _log('Status code: ${e.response?.statusCode}');
+      _log('Response data: ${e.response?.data}');
+
+      final errorMessage = _extractErrorMessage(e);
+      _log('Extracted error: $errorMessage');
+
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
@@ -106,12 +164,13 @@ class AddressesRepositoryImpl implements AddressesRepository {
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: ServerFailure(message: errorMessage),
         data: null,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('=== CREATE ADDRESS EXCEPTION ===', error: e, stackTrace: stackTrace);
       return (
-        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
         data: null,
       );
     }

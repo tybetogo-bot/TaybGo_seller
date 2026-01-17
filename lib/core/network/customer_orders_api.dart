@@ -1,7 +1,10 @@
 /// Customer Orders API service for customer order management
 library;
 
+import 'dart:developer' as developer;
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../features/orders/data/models/food_checkout_model.dart';
 import '../../features/orders/data/models/order_model.dart';
@@ -13,14 +16,56 @@ class CustomerOrdersApi {
 
   CustomerOrdersApi(this._dio);
 
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'CustomerOrdersApi',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // ignore: avoid_print
+      print('[CustomerOrdersApi] $message');
+      if (error != null) {
+        // ignore: avoid_print
+        print('[CustomerOrdersApi] Error: $error');
+      }
+    }
+  }
+
   /// Create a food order
-  /// POST /api/customer/checkout/food/
+  /// POST /api/orders/
   Future<OrderModel> createFoodOrder(FoodCheckoutRequest request) async {
-    final response = await _dio.post(
-      '/api/customer/checkout/food/',
-      data: request.toJson(),
-    );
-    return OrderModel.fromJson(response.data as Map<String, dynamic>);
+    final requestJson = request.toJson();
+    _log('Creating food order with data: $requestJson');
+
+    try {
+      final response = await _dio.post(
+        '/api/orders/',
+        data: requestJson,
+      );
+
+      _log('Create food order response status: ${response.statusCode}');
+      _log('Create food order response data: ${response.data}');
+
+      final order = OrderModel.fromJson(response.data as Map<String, dynamic>);
+      _log('Successfully parsed order with ID: ${order.id}');
+
+      return order;
+    } on DioException catch (e) {
+      _log(
+        'DioException creating food order: ${e.message}',
+        error: e,
+        stackTrace: e.stackTrace,
+      );
+      _log('Response status code: ${e.response?.statusCode}');
+      _log('Response data: ${e.response?.data}');
+      _log('Request data sent: $requestJson');
+      rethrow;
+    } catch (e, stackTrace) {
+      _log('Unexpected error creating food order', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
   }
 
   /// List customer's orders

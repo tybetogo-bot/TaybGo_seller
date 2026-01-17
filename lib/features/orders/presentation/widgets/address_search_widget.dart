@@ -1,11 +1,192 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../data/models/order_model.dart';
+
+/// Google Places API key
+const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
+
+/// Google Places API service
+/// Note: On Flutter Web, direct API calls will fail due to CORS.
+/// This works on mobile (Android/iOS). For web, use a proxy or backend service.
+class _PlacesApiService {
+  static final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
+  /// Check if running on web platform
+  static bool get _isWeb => kIsWeb;
+
+  /// Search for place predictions (autocomplete)
+  static Future<List<_PlacePrediction>> getAutocomplete(String query) async {
+    // On web, CORS will block direct calls - return empty and let user enter manually
+    if (_isWeb) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Running on web - Places API requires CORS proxy. Enter address manually.');
+      }
+      return [];
+    }
+
+    try {
+      final response = await _dio.get(
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json',
+        queryParameters: {
+          'input': query,
+          'key': _placesApiKey,
+          'types': 'address',
+          'language': 'en',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        // Check for API errors
+        final status = data['status'] as String?;
+        if (status != 'OK' && status != 'ZERO_RESULTS') {
+          if (kDebugMode) {
+            print('[PlacesAPI] API error status: $status');
+            print('[PlacesAPI] Error message: ${data['error_message']}');
+          }
+          return [];
+        }
+
+        final predictions = data['predictions'] as List<dynamic>? ?? [];
+
+        return predictions.map((p) {
+          final structured = p['structured_formatting'] as Map<String, dynamic>? ?? {};
+          return _PlacePrediction(
+            placeId: p['place_id'] as String? ?? '',
+            description: p['description'] as String? ?? '',
+            mainText: structured['main_text'] as String? ?? p['description'] as String? ?? '',
+            secondaryText: structured['secondary_text'] as String? ?? '',
+          );
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Autocomplete error: $e');
+      }
+      return [];
+    }
+  }
+
+  /// Get place details including lat/lng
+  static Future<_PlaceDetails?> getPlaceDetails(String placeId) async {
+    if (_isWeb) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Running on web - Place details requires CORS proxy.');
+      }
+      return null;
+    }
+
+    try {
+      final response = await _dio.get(
+        'https://maps.googleapis.com/maps/api/place/details/json',
+        queryParameters: {
+          'place_id': placeId,
+          'key': _placesApiKey,
+          'fields': 'geometry,address_components,formatted_address',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        // Check for API errors
+        final status = data['status'] as String?;
+        if (status != 'OK') {
+          if (kDebugMode) {
+            print('[PlacesAPI] API error status: $status');
+            print('[PlacesAPI] Error message: ${data['error_message']}');
+          }
+          return null;
+        }
+
+        final result = data['result'] as Map<String, dynamic>?;
+
+        if (result != null) {
+          final geometry = result['geometry'] as Map<String, dynamic>?;
+          final location = geometry?['location'] as Map<String, dynamic>?;
+          final components = result['address_components'] as List<dynamic>? ?? [];
+
+          String? streetNumber;
+          String? streetName;
+          String? city;
+          String? postalCode;
+          String? country;
+
+          for (final component in components) {
+            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
+            final longName = component['long_name'] as String?;
+
+            if (types.contains('street_number')) {
+              streetNumber = longName;
+            } else if (types.contains('route')) {
+              streetName = longName;
+            } else if (types.contains('locality')) {
+              city = longName;
+            } else if (types.contains('postal_code')) {
+              postalCode = longName;
+            } else if (types.contains('country')) {
+              country = longName;
+            }
+          }
+
+          return _PlaceDetails(
+            latitude: (location?['lat'] as num?)?.toDouble(),
+            longitude: (location?['lng'] as num?)?.toDouble(),
+            formattedAddress: result['formatted_address'] as String?,
+            streetName: streetName,
+            streetNumber: streetNumber,
+            city: city,
+            postalCode: postalCode,
+            country: country,
+          );
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Place details error: $e');
+      }
+      return null;
+    }
+  }
+}
+
+/// Place details from Google Places API
+class _PlaceDetails {
+  final double? latitude;
+  final double? longitude;
+  final String? formattedAddress;
+  final String? streetName;
+  final String? streetNumber;
+  final String? city;
+  final String? postalCode;
+  final String? country;
+
+  const _PlaceDetails({
+    this.latitude,
+    this.longitude,
+    this.formattedAddress,
+    this.streetName,
+    this.streetNumber,
+    this.city,
+    this.postalCode,
+    this.country,
+  });
+}
 
 /// Address search widget using Google Places API
 /// Note: Requires Google Places API key to be configured
@@ -37,6 +218,19 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   bool _showManualEntry = false;
   Timer? _debounce;
 
+  // Store coordinates and country from Places API
+  double? _latitude;
+  double? _longitude;
+  String? _country;
+
+  void _log(String message, {Object? error}) {
+    if (kDebugMode) {
+      developer.log(message, name: 'AddressSearchWidget', error: error);
+      // ignore: avoid_print
+      print('[AddressSearchWidget] $message');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +260,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     _floorController.text = address.floor ?? '';
     _cityController.text = address.city ?? '';
     _postalCodeController.text = address.postalCode ?? '';
+    _latitude = address.latitude;
+    _longitude = address.longitude;
+    _country = address.country;
   }
 
   void _onSearchChanged(String query) {
@@ -87,55 +284,63 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       _isSearching = true;
     });
 
-    // TODO: Implement actual Google Places API call
-    // For now, using mock data
-    await Future.delayed(const Duration(milliseconds: 500));
+    _log('Searching places for: $query');
 
-    // Mock predictions for demonstration
-    final mockPredictions = [
-      _PlacePrediction(
-        placeId: 'place_1',
-        description: '$query, Vienna, Austria',
-        mainText: query,
-        secondaryText: 'Vienna, Austria',
-      ),
-      _PlacePrediction(
-        placeId: 'place_2',
-        description: '$query, Graz, Austria',
-        mainText: query,
-        secondaryText: 'Graz, Austria',
-      ),
-      _PlacePrediction(
-        placeId: 'place_3',
-        description: '$query, Salzburg, Austria',
-        mainText: query,
-        secondaryText: 'Salzburg, Austria',
-      ),
-    ];
+    // Use Google Places API for autocomplete
+    final predictions = await _PlacesApiService.getAutocomplete(query);
+
+    _log('Got ${predictions.length} predictions');
 
     if (mounted) {
       setState(() {
-        _predictions = mockPredictions;
+        _predictions = predictions;
         _isSearching = false;
       });
     }
   }
 
   Future<void> _selectPlace(_PlacePrediction prediction) async {
-    // TODO: Fetch place details from Google Places API
-    // For now, using mock data
+    _log('Selecting place: ${prediction.description} (placeId: ${prediction.placeId})');
+
     setState(() {
-      _showManualEntry = true;
+      _isSearching = true;
       _predictions = [];
       _searchController.text = prediction.mainText;
-      _streetController.text = prediction.mainText;
-      _cityController.text = prediction.secondaryText.split(',').first.trim();
     });
+
+    // Get place details including lat/lng from Google Places API
+    final details = await _PlacesApiService.getPlaceDetails(prediction.placeId);
+
+    if (details != null) {
+      _log('Got place details - lat: ${details.latitude}, lng: ${details.longitude}');
+      _log('Street: ${details.streetName} ${details.streetNumber}, City: ${details.city}');
+
+      setState(() {
+        _showManualEntry = true;
+        _isSearching = false;
+        _latitude = details.latitude;
+        _longitude = details.longitude;
+        _country = details.country;
+        _streetController.text = details.streetName ?? prediction.mainText;
+        _buildingController.text = details.streetNumber ?? '';
+        _cityController.text = details.city ?? '';
+        _postalCodeController.text = details.postalCode ?? '';
+      });
+    } else {
+      _log('Failed to get place details, using prediction data');
+      setState(() {
+        _showManualEntry = true;
+        _isSearching = false;
+        _streetController.text = prediction.mainText;
+        _cityController.text = prediction.secondaryText.split(',').first.trim();
+      });
+    }
 
     _notifyAddressChanged();
   }
 
   void _notifyAddressChanged() {
+    _log('Notifying address change - lat: $_latitude, lng: $_longitude');
     final address = AddressModel(
       street: _streetController.text,
       building: _buildingController.text,
@@ -143,9 +348,42 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       floor: _floorController.text.isNotEmpty ? _floorController.text : null,
       city: _cityController.text.isNotEmpty ? _cityController.text : null,
       postalCode: _postalCodeController.text.isNotEmpty ? _postalCodeController.text : null,
-      country: 'Austria',
+      country: _country ?? '',
+      latitude: _latitude,
+      longitude: _longitude,
     );
     widget.onAddressSelected(address);
+  }
+
+  /// Geocode the current address to get coordinates (for manual entry)
+  Future<void> _geocodeCurrentAddress() async {
+    if (_streetController.text.isEmpty) return;
+
+    final addressParts = <String>[
+      _streetController.text,
+      if (_buildingController.text.isNotEmpty) _buildingController.text,
+      if (_cityController.text.isNotEmpty) _cityController.text,
+      if (_postalCodeController.text.isNotEmpty) _postalCodeController.text,
+      if (_country != null && _country!.isNotEmpty) _country!,
+    ];
+    final addressString = addressParts.join(', ');
+
+    _log('Geocoding address: $addressString');
+
+    try {
+      final locations = await geocoding.locationFromAddress(addressString);
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        _log('Geocoded to: ${location.latitude}, ${location.longitude}');
+        setState(() {
+          _latitude = location.latitude;
+          _longitude = location.longitude;
+        });
+        _notifyAddressChanged();
+      }
+    } catch (e) {
+      _log('Geocoding error: $e');
+    }
   }
 
   @override
@@ -354,6 +592,51 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
               ),
             ],
           ),
+
+          // Get coordinates button (useful for manual entry, especially on web)
+          if (_latitude == null && _streetController.text.isNotEmpty) ...[
+            SizedBox(height: 16.h),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _geocodeCurrentAddress,
+                icon: Icon(Icons.my_location, size: 18.w),
+                label: const Text('Get Location Coordinates'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                ),
+              ),
+            ),
+          ],
+
+          // Show coordinates if available
+          if (_latitude != null && _longitude != null) ...[
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: AppColors.primary, size: 20.w),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'Location: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ],
     );

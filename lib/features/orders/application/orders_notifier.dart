@@ -56,6 +56,7 @@ class OrdersState {
   List<OrderModel> get completedOrders => orders
       .where((o) =>
           o.status == OrderStatusEnum.delivered ||
+          o.status == OrderStatusEnum.completed ||
           o.status == OrderStatusEnum.rejected ||
           o.status == OrderStatusEnum.cancelled)
       .toList();
@@ -190,6 +191,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     return _updateStatus(orderId, 'COMPLETED');
   }
 
+  /// Accept an order
+  Future<bool> acceptOrder(String orderId) async {
+    return _updateStatus(orderId, 'ACCEPTED');
+  }
+
   /// Get order by ID from local state
   OrderModel? getOrder(String orderId) {
     try {
@@ -227,7 +233,6 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   /// Move order to next status
-  /// Note: Sellers cannot accept orders - that's handled by drivers
   Future<bool> moveToNextStatus(String orderId) async {
     final order = getOrder(orderId);
     if (order == null) return false;
@@ -236,8 +241,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
       case OrderStatusEnum.pending:
       case OrderStatusEnum.searchingForDriver:
       case OrderStatusEnum.driverNotificationSent:
-        // Sellers cannot change status for pending orders - handled by driver assignment
-        return false;
+        return acceptOrder(orderId);
       case OrderStatusEnum.accepted:
         return markOnTheWay(orderId);
       case OrderStatusEnum.onTheWay:

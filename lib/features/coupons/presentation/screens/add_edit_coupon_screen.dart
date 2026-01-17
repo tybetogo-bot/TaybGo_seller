@@ -476,19 +476,36 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
         await ref.read(couponsProvider.notifier).addCoupon(coupon);
       }
 
-      if (mounted) {
+      if (!mounted) return;
+
+      // Check if the operation resulted in an error
+      final state = ref.read(couponsProvider);
+      if (state.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.error!),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        ref.read(couponsProvider.notifier).clearError();
+      } else {
+        // Only show success and pop if no error
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_isEditing ? 'coupons.couponUpdated'.tr : 'coupons.couponCreated'.tr),
+            backgroundColor: AppColors.success,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${"common.error".tr}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${"common.error".tr}: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -500,25 +517,43 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
   void _showDeleteDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('coupons.deleteCoupon'.tr),
         content: Text('common.actionCannotBeUndone'.tr),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('common.cancel'.tr),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
+              // Capture references before async gap
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
               await ref
                   .read(couponsProvider.notifier)
                   .deleteCoupon(widget.couponId!);
               if (mounted) {
-                context.pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('coupons.couponDeleted'.tr)));
+                // Check if the delete operation resulted in an error
+                final state = ref.read(couponsProvider);
+                if (state.error != null) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(state.error!),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  ref.read(couponsProvider.notifier).clearError();
+                } else {
+                  context.pop();
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('coupons.couponDeleted'.tr),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
               }
             },
             child: Text('common.delete'.tr, style: TextStyle(color: AppColors.error)),

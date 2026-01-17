@@ -173,11 +173,15 @@ class AppButton extends StatelessWidget {
     }
 
     final iconWidget = Icon(icon, size: _getIconSize());
-    final textWidget = Text(
-      label,
-      style: TextStyle(
-        fontSize: _getFontSize(),
-        fontWeight: FontWeight.w600,
+    final textWidget = Flexible(
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: _getFontSize(),
+          fontWeight: FontWeight.w600,
+        ),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
 

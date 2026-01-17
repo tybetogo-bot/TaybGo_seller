@@ -169,7 +169,27 @@ class OrderStatusTimeline extends StatelessWidget {
       OrderStatusEnum.delivered,
     ];
 
-    final currentIndex = statusOrder.indexOf(currentStatus);
+    // Map current status to timeline index (handling intermediate/grouped statuses)
+    int getTimelineIndex(OrderStatusEnum s) {
+      switch (s) {
+        case OrderStatusEnum.pending:
+        case OrderStatusEnum.searchingForDriver:
+          return 0;
+        case OrderStatusEnum.accepted:
+        case OrderStatusEnum.driverNotificationSent:
+          return 1;
+        case OrderStatusEnum.onTheWay:
+          return 2;
+        case OrderStatusEnum.delivered:
+        case OrderStatusEnum.completed:
+          return 3;
+        case OrderStatusEnum.rejected:
+        case OrderStatusEnum.cancelled:
+          return -1;
+      }
+    }
+
+    final currentIndex = getTimelineIndex(currentStatus);
     final statusIndex = statusOrder.indexOf(status);
 
     return statusIndex <= currentIndex;

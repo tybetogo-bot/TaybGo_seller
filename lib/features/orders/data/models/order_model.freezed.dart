@@ -842,7 +842,8 @@ as List<CustomizationSelection>,
 /// @nodoc
 mixin _$OrderModel {
 
- String get id; String get customerName; String get phoneNumber; String get countryCode; AddressModel get address; List<OrderItemModel> get items; double get subtotal; double get deliveryFee; double get tips; double get total; bool get isPaid; OrderStatusEnum get status; String? get notes; String? get rejectionReason; DateTime get createdAt; DateTime? get acceptedAt; DateTime? get readyAt; DateTime? get outForDeliveryAt; DateTime? get deliveredAt; String? get restaurantId; String? get assignedDriverId;
+ String get id; String get customerName; String get phoneNumber; String get countryCode; AddressModel get address; List<OrderItemModel> get items; double get subtotal; double get deliveryFee; double get discountAmount; double get tips; double get total; bool get isPaid; OrderStatusEnum get status; String? get notes; String? get rejectionReason; DateTime get createdAt; DateTime? get acceptedAt; DateTime? get readyAt; DateTime? get outForDeliveryAt; DateTime? get deliveredAt; String? get restaurantId; String? get assignedDriverId;// New fields from API
+ String get orderType; OrderRestaurantModel? get restaurant; OrderCouponModel? get coupon; OrderAddressModel? get pickupAddress; OrderAddressModel? get dropoffAddress; String? get requestedVehicleType; String? get requestedDeliveryType; OrderDriverModel? get driver; bool get isManual;
 /// Create a copy of OrderModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -853,16 +854,16 @@ $OrderModelCopyWith<OrderModel> get copyWith => _$OrderModelCopyWithImpl<OrderMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderModel&&(identical(other.id, id) || other.id == id)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.address, address) || other.address == address)&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.deliveryFee, deliveryFee) || other.deliveryFee == deliveryFee)&&(identical(other.tips, tips) || other.tips == tips)&&(identical(other.total, total) || other.total == total)&&(identical(other.isPaid, isPaid) || other.isPaid == isPaid)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.rejectionReason, rejectionReason) || other.rejectionReason == rejectionReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.outForDeliveryAt, outForDeliveryAt) || other.outForDeliveryAt == outForDeliveryAt)&&(identical(other.deliveredAt, deliveredAt) || other.deliveredAt == deliveredAt)&&(identical(other.restaurantId, restaurantId) || other.restaurantId == restaurantId)&&(identical(other.assignedDriverId, assignedDriverId) || other.assignedDriverId == assignedDriverId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OrderModel&&(identical(other.id, id) || other.id == id)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.address, address) || other.address == address)&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.deliveryFee, deliveryFee) || other.deliveryFee == deliveryFee)&&(identical(other.discountAmount, discountAmount) || other.discountAmount == discountAmount)&&(identical(other.tips, tips) || other.tips == tips)&&(identical(other.total, total) || other.total == total)&&(identical(other.isPaid, isPaid) || other.isPaid == isPaid)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.rejectionReason, rejectionReason) || other.rejectionReason == rejectionReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.outForDeliveryAt, outForDeliveryAt) || other.outForDeliveryAt == outForDeliveryAt)&&(identical(other.deliveredAt, deliveredAt) || other.deliveredAt == deliveredAt)&&(identical(other.restaurantId, restaurantId) || other.restaurantId == restaurantId)&&(identical(other.assignedDriverId, assignedDriverId) || other.assignedDriverId == assignedDriverId)&&(identical(other.orderType, orderType) || other.orderType == orderType)&&(identical(other.restaurant, restaurant) || other.restaurant == restaurant)&&(identical(other.coupon, coupon) || other.coupon == coupon)&&(identical(other.pickupAddress, pickupAddress) || other.pickupAddress == pickupAddress)&&(identical(other.dropoffAddress, dropoffAddress) || other.dropoffAddress == dropoffAddress)&&(identical(other.requestedVehicleType, requestedVehicleType) || other.requestedVehicleType == requestedVehicleType)&&(identical(other.requestedDeliveryType, requestedDeliveryType) || other.requestedDeliveryType == requestedDeliveryType)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.isManual, isManual) || other.isManual == isManual));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,customerName,phoneNumber,countryCode,address,const DeepCollectionEquality().hash(items),subtotal,deliveryFee,tips,total,isPaid,status,notes,rejectionReason,createdAt,acceptedAt,readyAt,outForDeliveryAt,deliveredAt,restaurantId,assignedDriverId]);
+int get hashCode => Object.hashAll([runtimeType,id,customerName,phoneNumber,countryCode,address,const DeepCollectionEquality().hash(items),subtotal,deliveryFee,discountAmount,tips,total,isPaid,status,notes,rejectionReason,createdAt,acceptedAt,readyAt,outForDeliveryAt,deliveredAt,restaurantId,assignedDriverId,orderType,restaurant,coupon,pickupAddress,dropoffAddress,requestedVehicleType,requestedDeliveryType,driver,isManual]);
 
 @override
 String toString() {
-  return 'OrderModel(id: $id, customerName: $customerName, phoneNumber: $phoneNumber, countryCode: $countryCode, address: $address, items: $items, subtotal: $subtotal, deliveryFee: $deliveryFee, tips: $tips, total: $total, isPaid: $isPaid, status: $status, notes: $notes, rejectionReason: $rejectionReason, createdAt: $createdAt, acceptedAt: $acceptedAt, readyAt: $readyAt, outForDeliveryAt: $outForDeliveryAt, deliveredAt: $deliveredAt, restaurantId: $restaurantId, assignedDriverId: $assignedDriverId)';
+  return 'OrderModel(id: $id, customerName: $customerName, phoneNumber: $phoneNumber, countryCode: $countryCode, address: $address, items: $items, subtotal: $subtotal, deliveryFee: $deliveryFee, discountAmount: $discountAmount, tips: $tips, total: $total, isPaid: $isPaid, status: $status, notes: $notes, rejectionReason: $rejectionReason, createdAt: $createdAt, acceptedAt: $acceptedAt, readyAt: $readyAt, outForDeliveryAt: $outForDeliveryAt, deliveredAt: $deliveredAt, restaurantId: $restaurantId, assignedDriverId: $assignedDriverId, orderType: $orderType, restaurant: $restaurant, coupon: $coupon, pickupAddress: $pickupAddress, dropoffAddress: $dropoffAddress, requestedVehicleType: $requestedVehicleType, requestedDeliveryType: $requestedDeliveryType, driver: $driver, isManual: $isManual)';
 }
 
 
@@ -873,7 +874,7 @@ abstract mixin class $OrderModelCopyWith<$Res>  {
   factory $OrderModelCopyWith(OrderModel value, $Res Function(OrderModel) _then) = _$OrderModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String customerName, String phoneNumber, String countryCode, AddressModel address, List<OrderItemModel> items, double subtotal, double deliveryFee, double tips, double total, bool isPaid, OrderStatusEnum status, String? notes, String? rejectionReason, DateTime createdAt, DateTime? acceptedAt, DateTime? readyAt, DateTime? outForDeliveryAt, DateTime? deliveredAt, String? restaurantId, String? assignedDriverId
+ String id, String customerName, String phoneNumber, String countryCode, AddressModel address, List<OrderItemModel> items, double subtotal, double deliveryFee, double discountAmount, double tips, double total, bool isPaid, OrderStatusEnum status, String? notes, String? rejectionReason, DateTime createdAt, DateTime? acceptedAt, DateTime? readyAt, DateTime? outForDeliveryAt, DateTime? deliveredAt, String? restaurantId, String? assignedDriverId, String orderType, OrderRestaurantModel? restaurant, OrderCouponModel? coupon, OrderAddressModel? pickupAddress, OrderAddressModel? dropoffAddress, String? requestedVehicleType, String? requestedDeliveryType, OrderDriverModel? driver, bool isManual
 });
 
 
@@ -890,7 +891,7 @@ class _$OrderModelCopyWithImpl<$Res>
 
 /// Create a copy of OrderModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? customerName = null,Object? phoneNumber = null,Object? countryCode = null,Object? address = null,Object? items = null,Object? subtotal = null,Object? deliveryFee = null,Object? tips = null,Object? total = null,Object? isPaid = null,Object? status = null,Object? notes = freezed,Object? rejectionReason = freezed,Object? createdAt = null,Object? acceptedAt = freezed,Object? readyAt = freezed,Object? outForDeliveryAt = freezed,Object? deliveredAt = freezed,Object? restaurantId = freezed,Object? assignedDriverId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? customerName = null,Object? phoneNumber = null,Object? countryCode = null,Object? address = null,Object? items = null,Object? subtotal = null,Object? deliveryFee = null,Object? discountAmount = null,Object? tips = null,Object? total = null,Object? isPaid = null,Object? status = null,Object? notes = freezed,Object? rejectionReason = freezed,Object? createdAt = null,Object? acceptedAt = freezed,Object? readyAt = freezed,Object? outForDeliveryAt = freezed,Object? deliveredAt = freezed,Object? restaurantId = freezed,Object? assignedDriverId = freezed,Object? orderType = null,Object? restaurant = freezed,Object? coupon = freezed,Object? pickupAddress = freezed,Object? dropoffAddress = freezed,Object? requestedVehicleType = freezed,Object? requestedDeliveryType = freezed,Object? driver = freezed,Object? isManual = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
@@ -900,6 +901,7 @@ as String,address: null == address ? _self.address : address // ignore: cast_nul
 as AddressModel,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<OrderItemModel>,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
 as double,deliveryFee: null == deliveryFee ? _self.deliveryFee : deliveryFee // ignore: cast_nullable_to_non_nullable
+as double,discountAmount: null == discountAmount ? _self.discountAmount : discountAmount // ignore: cast_nullable_to_non_nullable
 as double,tips: null == tips ? _self.tips : tips // ignore: cast_nullable_to_non_nullable
 as double,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as double,isPaid: null == isPaid ? _self.isPaid : isPaid // ignore: cast_nullable_to_non_nullable
@@ -913,7 +915,16 @@ as DateTime?,outForDeliveryAt: freezed == outForDeliveryAt ? _self.outForDeliver
 as DateTime?,deliveredAt: freezed == deliveredAt ? _self.deliveredAt : deliveredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,restaurantId: freezed == restaurantId ? _self.restaurantId : restaurantId // ignore: cast_nullable_to_non_nullable
 as String?,assignedDriverId: freezed == assignedDriverId ? _self.assignedDriverId : assignedDriverId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,orderType: null == orderType ? _self.orderType : orderType // ignore: cast_nullable_to_non_nullable
+as String,restaurant: freezed == restaurant ? _self.restaurant : restaurant // ignore: cast_nullable_to_non_nullable
+as OrderRestaurantModel?,coupon: freezed == coupon ? _self.coupon : coupon // ignore: cast_nullable_to_non_nullable
+as OrderCouponModel?,pickupAddress: freezed == pickupAddress ? _self.pickupAddress : pickupAddress // ignore: cast_nullable_to_non_nullable
+as OrderAddressModel?,dropoffAddress: freezed == dropoffAddress ? _self.dropoffAddress : dropoffAddress // ignore: cast_nullable_to_non_nullable
+as OrderAddressModel?,requestedVehicleType: freezed == requestedVehicleType ? _self.requestedVehicleType : requestedVehicleType // ignore: cast_nullable_to_non_nullable
+as String?,requestedDeliveryType: freezed == requestedDeliveryType ? _self.requestedDeliveryType : requestedDeliveryType // ignore: cast_nullable_to_non_nullable
+as String?,driver: freezed == driver ? _self.driver : driver // ignore: cast_nullable_to_non_nullable
+as OrderDriverModel?,isManual: null == isManual ? _self.isManual : isManual // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of OrderModel
@@ -1004,10 +1015,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double discountAmount,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId,  String orderType,  OrderRestaurantModel? restaurant,  OrderCouponModel? coupon,  OrderAddressModel? pickupAddress,  OrderAddressModel? dropoffAddress,  String? requestedVehicleType,  String? requestedDeliveryType,  OrderDriverModel? driver,  bool isManual)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OrderModel() when $default != null:
-return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId);case _:
+return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.discountAmount,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId,_that.orderType,_that.restaurant,_that.coupon,_that.pickupAddress,_that.dropoffAddress,_that.requestedVehicleType,_that.requestedDeliveryType,_that.driver,_that.isManual);case _:
   return orElse();
 
 }
@@ -1025,10 +1036,10 @@ return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double discountAmount,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId,  String orderType,  OrderRestaurantModel? restaurant,  OrderCouponModel? coupon,  OrderAddressModel? pickupAddress,  OrderAddressModel? dropoffAddress,  String? requestedVehicleType,  String? requestedDeliveryType,  OrderDriverModel? driver,  bool isManual)  $default,) {final _that = this;
 switch (_that) {
 case _OrderModel():
-return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId);}
+return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.discountAmount,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId,_that.orderType,_that.restaurant,_that.coupon,_that.pickupAddress,_that.dropoffAddress,_that.requestedVehicleType,_that.requestedDeliveryType,_that.driver,_that.isManual);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1042,10 +1053,10 @@ return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String customerName,  String phoneNumber,  String countryCode,  AddressModel address,  List<OrderItemModel> items,  double subtotal,  double deliveryFee,  double discountAmount,  double tips,  double total,  bool isPaid,  OrderStatusEnum status,  String? notes,  String? rejectionReason,  DateTime createdAt,  DateTime? acceptedAt,  DateTime? readyAt,  DateTime? outForDeliveryAt,  DateTime? deliveredAt,  String? restaurantId,  String? assignedDriverId,  String orderType,  OrderRestaurantModel? restaurant,  OrderCouponModel? coupon,  OrderAddressModel? pickupAddress,  OrderAddressModel? dropoffAddress,  String? requestedVehicleType,  String? requestedDeliveryType,  OrderDriverModel? driver,  bool isManual)?  $default,) {final _that = this;
 switch (_that) {
 case _OrderModel() when $default != null:
-return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId);case _:
+return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,_that.address,_that.items,_that.subtotal,_that.deliveryFee,_that.discountAmount,_that.tips,_that.total,_that.isPaid,_that.status,_that.notes,_that.rejectionReason,_that.createdAt,_that.acceptedAt,_that.readyAt,_that.outForDeliveryAt,_that.deliveredAt,_that.restaurantId,_that.assignedDriverId,_that.orderType,_that.restaurant,_that.coupon,_that.pickupAddress,_that.dropoffAddress,_that.requestedVehicleType,_that.requestedDeliveryType,_that.driver,_that.isManual);case _:
   return null;
 
 }
@@ -1057,7 +1068,7 @@ return $default(_that.id,_that.customerName,_that.phoneNumber,_that.countryCode,
 
 
 class _OrderModel implements OrderModel {
-  const _OrderModel({required this.id, required this.customerName, required this.phoneNumber, required this.countryCode, required this.address, required final  List<OrderItemModel> items, this.subtotal = 0.0, this.deliveryFee = 0.0, this.tips = 0.0, this.total = 0.0, this.isPaid = false, this.status = OrderStatusEnum.pending, this.notes, this.rejectionReason, required this.createdAt, this.acceptedAt, this.readyAt, this.outForDeliveryAt, this.deliveredAt, this.restaurantId, this.assignedDriverId}): _items = items;
+  const _OrderModel({required this.id, required this.customerName, required this.phoneNumber, required this.countryCode, required this.address, required final  List<OrderItemModel> items, this.subtotal = 0.0, this.deliveryFee = 0.0, this.discountAmount = 0.0, this.tips = 0.0, this.total = 0.0, this.isPaid = false, this.status = OrderStatusEnum.pending, this.notes, this.rejectionReason, required this.createdAt, this.acceptedAt, this.readyAt, this.outForDeliveryAt, this.deliveredAt, this.restaurantId, this.assignedDriverId, this.orderType = 'FOOD', this.restaurant, this.coupon, this.pickupAddress, this.dropoffAddress, this.requestedVehicleType, this.requestedDeliveryType, this.driver, this.isManual = false}): _items = items;
   
 
 @override final  String id;
@@ -1074,6 +1085,7 @@ class _OrderModel implements OrderModel {
 
 @override@JsonKey() final  double subtotal;
 @override@JsonKey() final  double deliveryFee;
+@override@JsonKey() final  double discountAmount;
 @override@JsonKey() final  double tips;
 @override@JsonKey() final  double total;
 @override@JsonKey() final  bool isPaid;
@@ -1087,6 +1099,16 @@ class _OrderModel implements OrderModel {
 @override final  DateTime? deliveredAt;
 @override final  String? restaurantId;
 @override final  String? assignedDriverId;
+// New fields from API
+@override@JsonKey() final  String orderType;
+@override final  OrderRestaurantModel? restaurant;
+@override final  OrderCouponModel? coupon;
+@override final  OrderAddressModel? pickupAddress;
+@override final  OrderAddressModel? dropoffAddress;
+@override final  String? requestedVehicleType;
+@override final  String? requestedDeliveryType;
+@override final  OrderDriverModel? driver;
+@override@JsonKey() final  bool isManual;
 
 /// Create a copy of OrderModel
 /// with the given fields replaced by the non-null parameter values.
@@ -1098,16 +1120,16 @@ _$OrderModelCopyWith<_OrderModel> get copyWith => __$OrderModelCopyWithImpl<_Ord
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderModel&&(identical(other.id, id) || other.id == id)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.address, address) || other.address == address)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.deliveryFee, deliveryFee) || other.deliveryFee == deliveryFee)&&(identical(other.tips, tips) || other.tips == tips)&&(identical(other.total, total) || other.total == total)&&(identical(other.isPaid, isPaid) || other.isPaid == isPaid)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.rejectionReason, rejectionReason) || other.rejectionReason == rejectionReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.outForDeliveryAt, outForDeliveryAt) || other.outForDeliveryAt == outForDeliveryAt)&&(identical(other.deliveredAt, deliveredAt) || other.deliveredAt == deliveredAt)&&(identical(other.restaurantId, restaurantId) || other.restaurantId == restaurantId)&&(identical(other.assignedDriverId, assignedDriverId) || other.assignedDriverId == assignedDriverId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OrderModel&&(identical(other.id, id) || other.id == id)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.address, address) || other.address == address)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.subtotal, subtotal) || other.subtotal == subtotal)&&(identical(other.deliveryFee, deliveryFee) || other.deliveryFee == deliveryFee)&&(identical(other.discountAmount, discountAmount) || other.discountAmount == discountAmount)&&(identical(other.tips, tips) || other.tips == tips)&&(identical(other.total, total) || other.total == total)&&(identical(other.isPaid, isPaid) || other.isPaid == isPaid)&&(identical(other.status, status) || other.status == status)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.rejectionReason, rejectionReason) || other.rejectionReason == rejectionReason)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.acceptedAt, acceptedAt) || other.acceptedAt == acceptedAt)&&(identical(other.readyAt, readyAt) || other.readyAt == readyAt)&&(identical(other.outForDeliveryAt, outForDeliveryAt) || other.outForDeliveryAt == outForDeliveryAt)&&(identical(other.deliveredAt, deliveredAt) || other.deliveredAt == deliveredAt)&&(identical(other.restaurantId, restaurantId) || other.restaurantId == restaurantId)&&(identical(other.assignedDriverId, assignedDriverId) || other.assignedDriverId == assignedDriverId)&&(identical(other.orderType, orderType) || other.orderType == orderType)&&(identical(other.restaurant, restaurant) || other.restaurant == restaurant)&&(identical(other.coupon, coupon) || other.coupon == coupon)&&(identical(other.pickupAddress, pickupAddress) || other.pickupAddress == pickupAddress)&&(identical(other.dropoffAddress, dropoffAddress) || other.dropoffAddress == dropoffAddress)&&(identical(other.requestedVehicleType, requestedVehicleType) || other.requestedVehicleType == requestedVehicleType)&&(identical(other.requestedDeliveryType, requestedDeliveryType) || other.requestedDeliveryType == requestedDeliveryType)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.isManual, isManual) || other.isManual == isManual));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,customerName,phoneNumber,countryCode,address,const DeepCollectionEquality().hash(_items),subtotal,deliveryFee,tips,total,isPaid,status,notes,rejectionReason,createdAt,acceptedAt,readyAt,outForDeliveryAt,deliveredAt,restaurantId,assignedDriverId]);
+int get hashCode => Object.hashAll([runtimeType,id,customerName,phoneNumber,countryCode,address,const DeepCollectionEquality().hash(_items),subtotal,deliveryFee,discountAmount,tips,total,isPaid,status,notes,rejectionReason,createdAt,acceptedAt,readyAt,outForDeliveryAt,deliveredAt,restaurantId,assignedDriverId,orderType,restaurant,coupon,pickupAddress,dropoffAddress,requestedVehicleType,requestedDeliveryType,driver,isManual]);
 
 @override
 String toString() {
-  return 'OrderModel(id: $id, customerName: $customerName, phoneNumber: $phoneNumber, countryCode: $countryCode, address: $address, items: $items, subtotal: $subtotal, deliveryFee: $deliveryFee, tips: $tips, total: $total, isPaid: $isPaid, status: $status, notes: $notes, rejectionReason: $rejectionReason, createdAt: $createdAt, acceptedAt: $acceptedAt, readyAt: $readyAt, outForDeliveryAt: $outForDeliveryAt, deliveredAt: $deliveredAt, restaurantId: $restaurantId, assignedDriverId: $assignedDriverId)';
+  return 'OrderModel(id: $id, customerName: $customerName, phoneNumber: $phoneNumber, countryCode: $countryCode, address: $address, items: $items, subtotal: $subtotal, deliveryFee: $deliveryFee, discountAmount: $discountAmount, tips: $tips, total: $total, isPaid: $isPaid, status: $status, notes: $notes, rejectionReason: $rejectionReason, createdAt: $createdAt, acceptedAt: $acceptedAt, readyAt: $readyAt, outForDeliveryAt: $outForDeliveryAt, deliveredAt: $deliveredAt, restaurantId: $restaurantId, assignedDriverId: $assignedDriverId, orderType: $orderType, restaurant: $restaurant, coupon: $coupon, pickupAddress: $pickupAddress, dropoffAddress: $dropoffAddress, requestedVehicleType: $requestedVehicleType, requestedDeliveryType: $requestedDeliveryType, driver: $driver, isManual: $isManual)';
 }
 
 
@@ -1118,7 +1140,7 @@ abstract mixin class _$OrderModelCopyWith<$Res> implements $OrderModelCopyWith<$
   factory _$OrderModelCopyWith(_OrderModel value, $Res Function(_OrderModel) _then) = __$OrderModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String customerName, String phoneNumber, String countryCode, AddressModel address, List<OrderItemModel> items, double subtotal, double deliveryFee, double tips, double total, bool isPaid, OrderStatusEnum status, String? notes, String? rejectionReason, DateTime createdAt, DateTime? acceptedAt, DateTime? readyAt, DateTime? outForDeliveryAt, DateTime? deliveredAt, String? restaurantId, String? assignedDriverId
+ String id, String customerName, String phoneNumber, String countryCode, AddressModel address, List<OrderItemModel> items, double subtotal, double deliveryFee, double discountAmount, double tips, double total, bool isPaid, OrderStatusEnum status, String? notes, String? rejectionReason, DateTime createdAt, DateTime? acceptedAt, DateTime? readyAt, DateTime? outForDeliveryAt, DateTime? deliveredAt, String? restaurantId, String? assignedDriverId, String orderType, OrderRestaurantModel? restaurant, OrderCouponModel? coupon, OrderAddressModel? pickupAddress, OrderAddressModel? dropoffAddress, String? requestedVehicleType, String? requestedDeliveryType, OrderDriverModel? driver, bool isManual
 });
 
 
@@ -1135,7 +1157,7 @@ class __$OrderModelCopyWithImpl<$Res>
 
 /// Create a copy of OrderModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? customerName = null,Object? phoneNumber = null,Object? countryCode = null,Object? address = null,Object? items = null,Object? subtotal = null,Object? deliveryFee = null,Object? tips = null,Object? total = null,Object? isPaid = null,Object? status = null,Object? notes = freezed,Object? rejectionReason = freezed,Object? createdAt = null,Object? acceptedAt = freezed,Object? readyAt = freezed,Object? outForDeliveryAt = freezed,Object? deliveredAt = freezed,Object? restaurantId = freezed,Object? assignedDriverId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? customerName = null,Object? phoneNumber = null,Object? countryCode = null,Object? address = null,Object? items = null,Object? subtotal = null,Object? deliveryFee = null,Object? discountAmount = null,Object? tips = null,Object? total = null,Object? isPaid = null,Object? status = null,Object? notes = freezed,Object? rejectionReason = freezed,Object? createdAt = null,Object? acceptedAt = freezed,Object? readyAt = freezed,Object? outForDeliveryAt = freezed,Object? deliveredAt = freezed,Object? restaurantId = freezed,Object? assignedDriverId = freezed,Object? orderType = null,Object? restaurant = freezed,Object? coupon = freezed,Object? pickupAddress = freezed,Object? dropoffAddress = freezed,Object? requestedVehicleType = freezed,Object? requestedDeliveryType = freezed,Object? driver = freezed,Object? isManual = null,}) {
   return _then(_OrderModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
@@ -1145,6 +1167,7 @@ as String,address: null == address ? _self.address : address // ignore: cast_nul
 as AddressModel,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<OrderItemModel>,subtotal: null == subtotal ? _self.subtotal : subtotal // ignore: cast_nullable_to_non_nullable
 as double,deliveryFee: null == deliveryFee ? _self.deliveryFee : deliveryFee // ignore: cast_nullable_to_non_nullable
+as double,discountAmount: null == discountAmount ? _self.discountAmount : discountAmount // ignore: cast_nullable_to_non_nullable
 as double,tips: null == tips ? _self.tips : tips // ignore: cast_nullable_to_non_nullable
 as double,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as double,isPaid: null == isPaid ? _self.isPaid : isPaid // ignore: cast_nullable_to_non_nullable
@@ -1158,7 +1181,16 @@ as DateTime?,outForDeliveryAt: freezed == outForDeliveryAt ? _self.outForDeliver
 as DateTime?,deliveredAt: freezed == deliveredAt ? _self.deliveredAt : deliveredAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,restaurantId: freezed == restaurantId ? _self.restaurantId : restaurantId // ignore: cast_nullable_to_non_nullable
 as String?,assignedDriverId: freezed == assignedDriverId ? _self.assignedDriverId : assignedDriverId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,orderType: null == orderType ? _self.orderType : orderType // ignore: cast_nullable_to_non_nullable
+as String,restaurant: freezed == restaurant ? _self.restaurant : restaurant // ignore: cast_nullable_to_non_nullable
+as OrderRestaurantModel?,coupon: freezed == coupon ? _self.coupon : coupon // ignore: cast_nullable_to_non_nullable
+as OrderCouponModel?,pickupAddress: freezed == pickupAddress ? _self.pickupAddress : pickupAddress // ignore: cast_nullable_to_non_nullable
+as OrderAddressModel?,dropoffAddress: freezed == dropoffAddress ? _self.dropoffAddress : dropoffAddress // ignore: cast_nullable_to_non_nullable
+as OrderAddressModel?,requestedVehicleType: freezed == requestedVehicleType ? _self.requestedVehicleType : requestedVehicleType // ignore: cast_nullable_to_non_nullable
+as String?,requestedDeliveryType: freezed == requestedDeliveryType ? _self.requestedDeliveryType : requestedDeliveryType // ignore: cast_nullable_to_non_nullable
+as String?,driver: freezed == driver ? _self.driver : driver // ignore: cast_nullable_to_non_nullable
+as OrderDriverModel?,isManual: null == isManual ? _self.isManual : isManual // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

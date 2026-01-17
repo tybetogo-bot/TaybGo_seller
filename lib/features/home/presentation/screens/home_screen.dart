@@ -68,27 +68,6 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 2.h),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 6.w,
-                                  height: 6.w,
-                                  decoration: BoxDecoration(
-                                    color: selectedRestaurant?.isOpen == true ? AppColors.success : AppColors.error,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                SizedBox(width: 6.w),
-                                Text(
-                                  selectedRestaurant?.isOpen == true ? 'common.open'.tr : 'common.closed'.tr,
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    color: selectedRestaurant?.isOpen == true ? AppColors.success : AppColors.error,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),

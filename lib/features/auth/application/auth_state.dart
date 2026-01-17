@@ -63,21 +63,31 @@ class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
     _repository = ref.watch(authRepositoryProvider);
-    _checkAuthStatus();
-    return const AuthInitial();
+    // Check auth status synchronously since SharedPreferences is already initialized
+    return _getInitialAuthState();
   }
 
-  /// Check if user is already authenticated
-  Future<void> _checkAuthStatus() async {
-    if (_repository.isAuthenticated()) {
-      final phone = _repository.getStoredPhone();
-      if (phone != null) {
-        state = AuthAuthenticated(phone: phone);
-      } else {
-        state = const AuthUnauthenticated();
+  /// Get initial auth state synchronously
+  AuthState _getInitialAuthState() {
+    try {
+      print('🔵 [AuthNotifier] Checking auth status...');
+      final isAuth = _repository.isAuthenticated();
+      print('🔵 [AuthNotifier] isAuthenticated: $isAuth');
+
+      if (isAuth) {
+        final phone = _repository.getStoredPhone();
+        print('🔵 [AuthNotifier] Stored phone: $phone');
+        if (phone != null) {
+          print('🟢 [AuthNotifier] Returning AuthAuthenticated');
+          return AuthAuthenticated(phone: phone);
+        }
       }
-    } else {
-      state = const AuthUnauthenticated();
+      print('🟡 [AuthNotifier] Returning AuthUnauthenticated');
+      return const AuthUnauthenticated();
+    } catch (e, stack) {
+      print('🔴 [AuthNotifier] Error checking auth status: $e');
+      print('🔴 [AuthNotifier] Stack: $stack');
+      return const AuthUnauthenticated();
     }
   }
 

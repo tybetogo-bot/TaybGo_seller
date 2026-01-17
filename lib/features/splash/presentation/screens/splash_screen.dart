@@ -60,6 +60,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     print('🟡 [SplashScreen] Auth state: $authState');
     print('🟡 [SplashScreen] Restaurant state: $restaurantState');
 
+    // Wait for auth state to be resolved (not initial or loading)
+    if (authState is AuthInitial || authState is AuthLoading) {
+      print('🟡 [SplashScreen] Auth still checking, waiting...');
+      return; // Will be called again when state changes via listener
+    }
+
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
       // Wait for restaurant state to finish loading
@@ -94,6 +100,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    // Listen to auth state changes and try to navigate when state resolves
+    ref.listen(authProvider, (previous, next) {
+      print('🟡 [SplashScreen] Auth state changed: $previous -> $next');
+      _tryNavigate();
+    });
+
     // Listen to restaurant state changes and try to navigate when state resolves
     ref.listen(restaurantProvider, (previous, next) {
       print('🟡 [SplashScreen] Restaurant state changed: $previous -> $next');

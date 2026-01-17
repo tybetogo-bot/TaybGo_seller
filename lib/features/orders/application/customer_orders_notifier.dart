@@ -1,3 +1,6 @@
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/customer_orders_api.dart';
@@ -79,6 +82,23 @@ class CustomerOrdersState {
 class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
   late final CustomerOrdersRepository _repository;
 
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'CustomerOrdersNotifier',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // ignore: avoid_print
+      print('[CustomerOrdersNotifier] $message');
+      if (error != null) {
+        // ignore: avoid_print
+        print('[CustomerOrdersNotifier] Error: $error');
+      }
+    }
+  }
+
   @override
   CustomerOrdersState build() {
     _repository = ref.watch(customerOrdersRepositoryProvider);
@@ -90,12 +110,14 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Load orders from API
   Future<void> _loadOrders({int page = 1}) async {
+    _log('Loading orders, page: $page');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getCustomerOrders(page: page);
 
       if (result.failure != null) {
+        _log('Failed to load orders: ${result.failure!.message}');
         state = state.copyWith(
           isLoading: false,
           error: result.failure!.message,
@@ -103,12 +125,14 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
         return;
       }
 
+      _log('Loaded ${result.data?.length ?? 0} orders');
       state = state.copyWith(
         orders: result.data ?? [],
         isLoading: false,
         currentPage: page,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('Exception loading orders', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load orders: $e',
@@ -123,18 +147,26 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Create a new food order
   Future<OrderModel?> createFoodOrder(FoodCheckoutRequest request) async {
+    _log('=== CREATE FOOD ORDER START ===');
+    _log('Request: ${request.toJson()}');
     state = state.copyWith(isCreating: true, clearError: true);
 
     try {
+      _log('Calling repository.createFoodOrder...');
       final result = await _repository.createFoodOrder(request);
 
       if (result.failure != null) {
+        _log('=== CREATE FOOD ORDER FAILED ===');
+        _log('Failure message: ${result.failure!.message}');
         state = state.copyWith(
           isCreating: false,
           error: result.failure!.message,
         );
         return null;
       }
+
+      _log('=== CREATE FOOD ORDER SUCCESS ===');
+      _log('Created order ID: ${result.data?.id}');
 
       // Add to local state at the beginning
       final updatedOrders = [result.data!, ...state.orders];
@@ -144,7 +176,8 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
       );
 
       return result.data;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log('=== CREATE FOOD ORDER EXCEPTION ===', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isCreating: false,
         error: 'Failed to create order: $e',
