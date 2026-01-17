@@ -1056,15 +1056,45 @@ class _OrderItemsCard extends ConsumerWidget {
                                 : LightColors.textPrimary,
                           ),
                         ),
+                        // Show customizations text (e.g., "no sauce")
+                        if (item.customizationsText != null && item.customizationsText!.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.edit_note,
+                                  size: 14.w,
+                                  color: AppColors.warning,
+                                ),
+                                SizedBox(width: 4.w),
+                                Expanded(
+                                  child: Text(
+                                    item.customizationsText!,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: isDark
+                                          ? DarkColors.textSecondary
+                                          : LightColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        // Show notes if present
                         if (item.notes != null && item.notes!.isNotEmpty)
-                          Text(
-                            item.notes!,
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontStyle: FontStyle.italic,
-                              color: isDark
-                                  ? DarkColors.textTertiary
-                                  : LightColors.textTertiary,
+                          Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Text(
+                              item.notes!,
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontStyle: FontStyle.italic,
+                                color: isDark
+                                    ? DarkColors.textTertiary
+                                    : LightColors.textTertiary,
+                              ),
                             ),
                           ),
                       ],

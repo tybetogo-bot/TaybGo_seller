@@ -244,27 +244,35 @@
     "driverInfo": "Driver",
     "verified": "Verified",
     "scan": {
-      "title": "Scan Order Form",
-      "subtitle": "Scan Printed Order Form",
-      "description": "Use OCR to extract order details from printed forms",
+      "title": "AI Scan Order",
+      "subtitle": "AI-Powered Order Scanning",
+      "description": "Use Gemini AI to intelligently extract order details from images",
       "takePhoto": "Take Photo",
       "chooseFromGallery": "Choose from Gallery",
-      "processing": "Processing image...",
+      "processing": "AI is analyzing images...",
+      "capturedImages": "Captured Images ({count})",
+      "addMore": "Add More",
+      "addCamera": "Camera",
+      "addGallery": "Gallery",
+      "processImages": "Process {count} Image(s)",
+      "noImages": "Please capture at least one image",
+      "clearAll": "Clear All",
       "tips": {
         "title": "Tips for Best Results",
         "flatSurface": "Place order form on a flat surface",
         "goodLighting": "Ensure good lighting (avoid shadows)",
-        "holdAbove": "Hold phone directly above the paper",
-        "keepFocus": "Keep text in focus and readable",
-        "avoidGlare": "Avoid glare and reflections"
+        "multiplePages": "Take multiple photos for multi-page orders",
+        "keepFocus": "Keep text in focus and readable"
       },
       "whatNext": {
         "title": "What happens next?",
-        "step1": "Image is scanned with OCR",
-        "step2": "Order details are extracted",
-        "step3": "You can verify and edit the data",
+        "step1": "AI analyzes all images together",
+        "step2": "Order details are intelligently extracted",
+        "step3": "You verify and fill any missing data",
         "step4": "Order is logged to the system"
-      }
+      },
+      "itemNotInMenu": "Not in menu",
+      "itemsNotInMenuWarning": "{count} item(s) not found in menu: {items}"
     },
     "verify": {
       "title": "Verify Order Details",
@@ -283,12 +291,16 @@
       "paymentStatus": "Payment Status (Optional)",
       "totalAmount": "Total Amount (Optional)",
       "orderItems": "Order Items ({count})",
+      "orderItemsLabel": "Items",
       "missingFields": "Missing Fields",
       "lowConfidence": "Low confidence ({percent}%)",
       "submitOrder": "Submit Order",
       "orderLogged": "Order logged successfully",
       "orderLogFailed": "Failed to log order. Please try again.",
-      "requiredField": "{field} is required"
+      "requiredField": "{field} is required",
+      "aiScanComplete": "AI Scan Complete",
+      "fieldsExtracted": "Auto-filled",
+      "fieldsToFill": "Please fill"
     }
   },
   "address": {

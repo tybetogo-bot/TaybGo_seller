@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../auth/application/auth_state.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/user_profile_notifier.dart';
 
@@ -130,7 +131,12 @@ class ProfileScreen extends ConsumerWidget {
 
           // Logout
           GestureDetector(
-            onTap: () => context.go(Routes.login),
+            onTap: () async {
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                context.go(Routes.login);
+              }
+            },
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 14.h),
               decoration: BoxDecoration(

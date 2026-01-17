@@ -3,12 +3,15 @@ library;
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../data/models/order_model.dart';
+import '../../data/models/scanned_order_data.dart';
 import '../../data/services/order_form_parser.dart';
 import '../../application/orders_notifier.dart';
 
@@ -19,11 +22,18 @@ class OrderVerificationScreen extends ConsumerStatefulWidget {
     required this.scannedText,
     required this.parsedData,
     this.imagePath,
+    this.extractedFields = const {},
+    this.onDataConfirmed,
   });
 
   final String scannedText;
   final ParsedOrderData parsedData;
   final String? imagePath;
+  final Map<String, bool> extractedFields;
+
+  /// Callback when user confirms the scanned data
+  /// If provided, data is returned to caller instead of submitting order
+  final void Function(ScannedOrderData data)? onDataConfirmed;
 
   @override
   ConsumerState<OrderVerificationScreen> createState() =>
@@ -37,7 +47,6 @@ class _OrderVerificationScreenState
   String? _submitError;
 
   // Controllers for editable fields
-  late final TextEditingController _orderIdController;
   late final TextEditingController _customerNameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _streetController;
@@ -52,7 +61,6 @@ class _OrderVerificationScreenState
     super.initState();
     final data = widget.parsedData;
 
-    _orderIdController = TextEditingController(text: data.orderId ?? '');
     _customerNameController = TextEditingController(
       text: data.customerName ?? '',
     );
@@ -73,7 +81,6 @@ class _OrderVerificationScreenState
 
   @override
   void dispose() {
-    _orderIdController.dispose();
     _customerNameController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -90,6 +97,12 @@ class _OrderVerificationScreenState
       return;
     }
 
+    // If callback is provided, return data to caller (CreateOrderScreen)
+    if (widget.onDataConfirmed != null) {
+      _returnDataToCaller();
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
       _submitError = null;
@@ -98,7 +111,6 @@ class _OrderVerificationScreenState
     try {
       // Prepare scanned form data
       final scannedFormData = {
-        'orderId': _orderIdController.text.trim(),
         'customerName': _customerNameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'street': _streetController.text.trim(),
@@ -123,7 +135,6 @@ class _OrderVerificationScreenState
             .toList(),
         'rawText': widget.scannedText,
         'confidence': {
-          'orderId': widget.parsedData.orderIdConfidence,
           'phone': widget.parsedData.phoneConfidence,
           'address': widget.parsedData.addressConfidence,
         },
@@ -159,6 +170,87 @@ class _OrderVerificationScreenState
     }
   }
 
+  /// Return scanned data to caller via callback
+  void _returnDataToCaller() {
+    // Parse phone and extract country code if present
+    String phone = _phoneController.text.trim();
+    String? countryCode;
+
+    if (phone.startsWith('+')) {
+      final match = RegExp(r'^(\+\d{1,3})(.*)$').firstMatch(phone);
+      if (match != null) {
+        countryCode = match.group(1);
+        phone = match.group(2)?.replaceAll(RegExp(r'[\s\-]'), '') ?? phone;
+      }
+    }
+
+    // Parse street and building number
+    final streetText = _streetController.text.trim();
+    String street = streetText;
+    String building = '';
+
+    final streetMatch = RegExp(r'^(.+?)\s+(\d+\s*[a-zA-Z]?)$').firstMatch(streetText);
+    if (streetMatch != null) {
+      street = streetMatch.group(1) ?? streetText;
+      building = streetMatch.group(2) ?? '';
+    }
+
+    // Build address model
+    final address = AddressModel(
+      street: street,
+      building: building,
+      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
+      postalCode: _postalCodeController.text.trim().isNotEmpty ? _postalCodeController.text.trim() : null,
+    );
+
+    // Convert items
+    final items = widget.parsedData.items.map((item) => ScannedOrderItem(
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      notes: item.toppings.isNotEmpty ? item.toppings.join(', ') : null,
+    )).toList();
+
+    // Determine if paid - check for online/paid indicators
+    final paymentStatus = _paymentStatusController.text.trim().toLowerCase();
+    bool? isPaid;
+    if (paymentStatus.isNotEmpty) {
+      isPaid = paymentStatus.contains('paid') ||
+               paymentStatus.contains('betaald') ||
+               paymentStatus.contains('online') ||
+               paymentStatus.contains('ideal') ||
+               paymentStatus.contains('card') ||
+               paymentStatus.contains('kaart') ||
+               paymentStatus.contains('pin') ||
+               paymentStatus.contains('creditcard') ||
+               paymentStatus.contains('debit');
+    }
+
+    // Build scanned data
+    final scannedData = ScannedOrderData(
+      customerName: _customerNameController.text.trim().isNotEmpty
+          ? _customerNameController.text.trim()
+          : null,
+      phone: phone.isNotEmpty ? phone : null,
+      countryCode: countryCode,
+      address: address,
+      items: items,
+      total: double.tryParse(_totalController.text.trim()),
+      isPaid: isPaid,
+      notes: _deliveryTimeController.text.trim().isNotEmpty
+          ? 'Delivery time: ${_deliveryTimeController.text.trim()}'
+          : null,
+      extractedFields: widget.extractedFields,
+    );
+
+    // Call callback and navigate back
+    widget.onDataConfirmed!(scannedData);
+
+    // Pop both verification and scan screens
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -179,6 +271,12 @@ class _OrderVerificationScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // AI scan summary banner
+              if (widget.extractedFields.isNotEmpty) ...[
+                _buildScanSummary(isDark),
+                SizedBox(height: 16.h),
+              ],
+
               // Info banner
               Container(
                 padding: EdgeInsets.all(12.w),
@@ -234,10 +332,21 @@ class _OrderVerificationScreenState
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
-                    child: Image.file(
-                      File(widget.imagePath!),
-                      fit: BoxFit.contain,
-                    ),
+                    child: kIsWeb
+                        ? Image.network(
+                            widget.imagePath!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                              ),
+                            ),
+                          )
+                        : Image.file(
+                            File(widget.imagePath!),
+                            fit: BoxFit.contain,
+                          ),
                   ),
                 ),
                 SizedBox(height: 24.h),
@@ -253,22 +362,6 @@ class _OrderVerificationScreenState
                       ? DarkColors.textPrimary
                       : LightColors.textPrimary,
                 ),
-              ),
-              SizedBox(height: 12.h),
-
-              // Order ID
-              _buildTextField(
-                controller: _orderIdController,
-                label: 'orders.verify.orderId'.tr,
-                icon: Icons.tag,
-                required: true,
-                confidence: widget.parsedData.orderIdConfidence,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'orders.verify.requiredField'.trParams({'field': 'orders.verify.orderId'.tr});
-                  }
-                  return null;
-                },
               ),
               SizedBox(height: 12.h),
 
@@ -517,6 +610,127 @@ class _OrderVerificationScreenState
         ),
       ),
     );
+  }
+
+  Widget _buildScanSummary(bool isDark) {
+    final extracted = widget.extractedFields.entries.where((e) => e.value).map((e) => e.key).toList();
+    final notExtracted = widget.extractedFields.entries.where((e) => !e.value).map((e) => e.key).toList();
+
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: AppColors.success.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                color: AppColors.success,
+                size: 20.w,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'orders.verify.aiScanComplete'.tr,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.success,
+                ),
+              ),
+            ],
+          ),
+          if (extracted.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: AppColors.success,
+                  size: 16.w,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    '${'orders.verify.fieldsExtracted'.tr}: ${_getFieldLabels(extracted).join(', ')}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (notExtracted.isNotEmpty) ...[
+            SizedBox(height: 6.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.edit,
+                  color: AppColors.warning,
+                  size: 16.w,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    '${'orders.verify.fieldsToFill'.tr}: ${_getFieldLabels(notExtracted).join(', ')}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColors.warning,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  List<String> _getFieldLabels(List<String> fieldKeys) {
+    final labels = <String>[];
+    for (final key in fieldKeys) {
+      switch (key) {
+        case 'customerName':
+          labels.add('orders.verify.customerName'.tr);
+          break;
+        case 'phone':
+          labels.add('orders.verify.phoneNumber'.tr);
+          break;
+        case 'street':
+          labels.add('orders.verify.streetAndNumber'.tr);
+          break;
+        case 'postalCode':
+          labels.add('orders.verify.postalCode'.tr);
+          break;
+        case 'city':
+          labels.add('orders.verify.city'.tr);
+          break;
+        case 'deliveryTime':
+          labels.add('orders.verify.deliveryTime'.tr);
+          break;
+        case 'paymentStatus':
+          labels.add('orders.verify.paymentStatus'.tr);
+          break;
+        case 'total':
+          labels.add('orders.verify.totalAmount'.tr);
+          break;
+        case 'items':
+          labels.add('orders.verify.orderItemsLabel'.tr);
+          break;
+      }
+    }
+    return labels;
   }
 
   Widget _buildTextField({

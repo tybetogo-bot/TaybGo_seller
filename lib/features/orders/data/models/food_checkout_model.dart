@@ -129,7 +129,7 @@ enum OrderType {
 /// Vehicle/delivery type enum
 enum VehicleType {
   bike('BIKE'),
-  motorcycle('MOTORCYCLE'),
+  motorcycle('MOTOR'),
   car('CAR'),
   van('VAN');
 

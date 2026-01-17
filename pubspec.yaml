@@ -66,6 +66,9 @@ dependencies:
   google_mlkit_text_recognition: ^0.11.0
   permission_handler: ^11.3.1
 
+  # Gemini AI
+  google_generative_ai: ^0.4.6
+
   # Notifications
   flutter_local_notifications: ^19.5.0
 
@@ -83,8 +86,22 @@ dev_dependencies:
   json_serializable: ^6.9.0
   freezed: ^3.0.0
 
+  # App Icon Generator
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "assets/icons/logo.jpg"
+  image_path: "assets/icons/logo.jpg"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icons/logo.jpg"
+
 flutter:
   uses-material-design: true
 
   assets:
     - assets/translations/
+    - assets/icons/

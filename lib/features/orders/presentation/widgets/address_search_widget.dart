@@ -14,13 +14,14 @@ import '../../data/models/order_model.dart';
 /// Google Places API key
 const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
 
+/// CORS proxy for web platform
+const String _corsProxy = 'https://corsproxy.io/?';
+
 /// Google Places API service
-/// Note: On Flutter Web, direct API calls will fail due to CORS.
-/// This works on mobile (Android/iOS). For web, use a proxy or backend service.
 class _PlacesApiService {
   static final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
   ));
 
   /// Check if running on web platform
@@ -28,39 +29,47 @@ class _PlacesApiService {
 
   /// Search for place predictions (autocomplete)
   static Future<List<_PlacePrediction>> getAutocomplete(String query) async {
-    // On web, CORS will block direct calls - return empty and let user enter manually
-    if (_isWeb) {
-      if (kDebugMode) {
-        print('[PlacesAPI] Running on web - Places API requires CORS proxy. Enter address manually.');
-      }
-      return [];
-    }
-
     try {
-      final response = await _dio.get(
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json',
-        queryParameters: {
-          'input': query,
-          'key': _placesApiKey,
-          'types': 'address',
-          'language': 'en',
-        },
-      );
+      final baseUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+      final params = {
+        'input': query,
+        'key': _placesApiKey,
+        'types': 'address',
+        'language': 'en',
+        'components': 'country:nl|country:at|country:de',
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final requestUrl = _isWeb ? '$_corsProxy${uri.toString()}' : uri.toString();
+
+      if (kDebugMode) {
+        print('[PlacesAPI-Widget] Searching for: $query');
+        print('[PlacesAPI-Widget] Platform: ${_isWeb ? "Web (CORS proxy)" : "Native"}');
+      }
+
+      final response = await _dio.get(requestUrl);
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
 
         // Check for API errors
         final status = data['status'] as String?;
+        if (kDebugMode) {
+          print('[PlacesAPI-Widget] Response status: $status');
+        }
+
         if (status != 'OK' && status != 'ZERO_RESULTS') {
           if (kDebugMode) {
-            print('[PlacesAPI] API error status: $status');
-            print('[PlacesAPI] Error message: ${data['error_message']}');
+            print('[PlacesAPI-Widget] API error status: $status');
+            print('[PlacesAPI-Widget] Error message: ${data['error_message']}');
           }
           return [];
         }
 
         final predictions = data['predictions'] as List<dynamic>? ?? [];
+        if (kDebugMode) {
+          print('[PlacesAPI-Widget] Found ${predictions.length} predictions');
+        }
 
         return predictions.map((p) {
           final structured = p['structured_formatting'] as Map<String, dynamic>? ?? {};
@@ -75,7 +84,7 @@ class _PlacesApiService {
       return [];
     } catch (e) {
       if (kDebugMode) {
-        print('[PlacesAPI] Autocomplete error: $e');
+        print('[PlacesAPI-Widget] Autocomplete error: $e');
       }
       return [];
     }
@@ -83,22 +92,22 @@ class _PlacesApiService {
 
   /// Get place details including lat/lng
   static Future<_PlaceDetails?> getPlaceDetails(String placeId) async {
-    if (_isWeb) {
-      if (kDebugMode) {
-        print('[PlacesAPI] Running on web - Place details requires CORS proxy.');
-      }
-      return null;
-    }
-
     try {
-      final response = await _dio.get(
-        'https://maps.googleapis.com/maps/api/place/details/json',
-        queryParameters: {
-          'place_id': placeId,
-          'key': _placesApiKey,
-          'fields': 'geometry,address_components,formatted_address',
-        },
-      );
+      final baseUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
+      final params = {
+        'place_id': placeId,
+        'key': _placesApiKey,
+        'fields': 'geometry,address_components,formatted_address',
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final requestUrl = _isWeb ? '$_corsProxy${uri.toString()}' : uri.toString();
+
+      if (kDebugMode) {
+        print('[PlacesAPI-Widget] Getting details for placeId: $placeId');
+      }
+
+      final response = await _dio.get(requestUrl);
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
@@ -107,8 +116,7 @@ class _PlacesApiService {
         final status = data['status'] as String?;
         if (status != 'OK') {
           if (kDebugMode) {
-            print('[PlacesAPI] API error status: $status');
-            print('[PlacesAPI] Error message: ${data['error_message']}');
+            print('[PlacesAPI-Widget] Details error: $status');
           }
           return null;
         }
@@ -143,6 +151,10 @@ class _PlacesApiService {
             }
           }
 
+          if (kDebugMode) {
+            print('[PlacesAPI-Widget] Got details - lat: ${location?['lat']}, lng: ${location?['lng']}');
+          }
+
           return _PlaceDetails(
             latitude: (location?['lat'] as num?)?.toDouble(),
             longitude: (location?['lng'] as num?)?.toDouble(),
@@ -158,7 +170,7 @@ class _PlacesApiService {
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print('[PlacesAPI] Place details error: $e');
+        print('[PlacesAPI-Widget] Place details error: $e');
       }
       return null;
     }
@@ -237,6 +249,42 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     if (widget.initialAddress != null) {
       _populateFields(widget.initialAddress!);
       _showManualEntry = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AddressSearchWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If initialAddress changed and has data, trigger search
+    if (widget.initialAddress != null &&
+        widget.initialAddress != oldWidget.initialAddress) {
+      final newAddress = widget.initialAddress!;
+      _log('Initial address updated - triggering search');
+      _log('Street: ${newAddress.street}, Building: ${newAddress.building}');
+
+      // Build search query from address
+      final searchParts = <String>[];
+      if (newAddress.street.isNotEmpty) searchParts.add(newAddress.street);
+      if (newAddress.building.isNotEmpty) searchParts.add(newAddress.building);
+      if (newAddress.postalCode != null && newAddress.postalCode!.isNotEmpty) {
+        searchParts.add(newAddress.postalCode!);
+      }
+      if (newAddress.city != null && newAddress.city!.isNotEmpty) {
+        searchParts.add(newAddress.city!);
+      }
+
+      final searchQuery = searchParts.join(' ').trim();
+
+      if (searchQuery.length >= 3) {
+        // Set search text and trigger search
+        _searchController.text = searchQuery;
+        _log('Searching for: $searchQuery');
+        _searchPlaces(searchQuery);
+      } else {
+        // Just populate fields without search
+        _populateFields(newAddress);
+        _showManualEntry = true;
+      }
     }
   }
 

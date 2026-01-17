@@ -4,11 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
-import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
 import '../../../coupons/application/coupons_notifier.dart';
@@ -16,7 +14,9 @@ import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/customer_orders_notifier.dart';
 import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
+import '../../data/models/scanned_order_data.dart';
 import '../widgets/address_search_widget.dart';
+import 'scan_order_screen.dart';
 
 /// Create order screen with all required fields
 class CreateOrderScreen extends ConsumerStatefulWidget {
@@ -33,7 +33,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final _deliveryFeeController = TextEditingController(text: '3.99');
   final _tipsController = TextEditingController(text: '0.00');
 
-  Country _selectedCountry = Countries.defaultCountry;
   AddressModel? _selectedAddress;
   final List<OrderItemModel> _orderItems = [];
   bool _isPaid = false;
@@ -41,8 +40,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
   // New fields for coupon and vehicle/delivery types
   String? _selectedCouponId;
-  VehicleType? _selectedVehicleType;
-  VehicleType? _selectedDeliveryType;
+  VehicleType? _selectedVehicleType = VehicleType.bike;
+  VehicleType? _selectedDeliveryType = VehicleType.bike;
 
   @override
   void dispose() {
@@ -123,6 +122,136 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     });
   }
 
+  /// Fill form with scanned data from AI scan
+  Future<void> _fillWithScannedData(ScannedOrderData scannedData) async {
+    debugPrint('[ScanFill] ===== _fillWithScannedData START =====');
+    debugPrint('[ScanFill] Customer: ${scannedData.customerName}');
+    debugPrint('[ScanFill] Phone: ${scannedData.phone}');
+    debugPrint('[ScanFill] Address: ${scannedData.address}');
+
+    // Get menu items for matching
+    final menuState = ref.read(menuProvider);
+    final menuItems = menuState.items;
+
+    // Track items not found in menu
+    final List<String> itemsNotInMenu = [];
+
+    // First, fill basic fields synchronously
+    setState(() {
+      // Fill customer name
+      if (scannedData.customerName != null) {
+        _customerNameController.text = scannedData.customerName!;
+      }
+
+      // Fill phone number (with country code if present)
+      if (scannedData.phone != null) {
+        String phone = scannedData.phone!;
+        // If country code is provided, prepend it to the phone
+        if (scannedData.countryCode != null) {
+          phone = '${scannedData.countryCode}$phone';
+        }
+        _phoneController.text = phone;
+      }
+
+      // Fill order items - match with menu
+      if (scannedData.items.isNotEmpty) {
+        _orderItems.clear();
+        for (final item in scannedData.items) {
+          // Try to find matching menu item by name (case insensitive)
+          final matchedMenuItem = menuItems.where((m) {
+            final scannedName = item.name.toLowerCase().trim();
+            final menuName = m.name.toLowerCase().trim();
+            // Check for exact match or if one contains the other
+            return menuName == scannedName ||
+                   menuName.contains(scannedName) ||
+                   scannedName.contains(menuName);
+          }).firstOrNull;
+
+          if (matchedMenuItem != null) {
+            // Found in menu - use menu item details
+            _orderItems.add(
+              OrderItemModel(
+                id: const Uuid().v4(),
+                menuItemId: matchedMenuItem.id,
+                name: matchedMenuItem.name,
+                quantity: item.quantity,
+                unitPrice: matchedMenuItem.price,
+                notes: item.notes,
+              ),
+            );
+          } else {
+            // Not found in menu - skip it (don't add)
+            itemsNotInMenu.add(item.name);
+          }
+        }
+      }
+
+      // Fill payment status - check for online payment
+      if (scannedData.isPaid != null) {
+        _isPaid = scannedData.isPaid!;
+      }
+      // Also check notes for online payment indicators
+      if (scannedData.notes != null) {
+        final notesLower = scannedData.notes!.toLowerCase();
+        if (notesLower.contains('online') ||
+            notesLower.contains('betaald') ||
+            notesLower.contains('paid') ||
+            notesLower.contains('ideal') ||
+            notesLower.contains('card') ||
+            notesLower.contains('kaart')) {
+          _isPaid = true;
+        }
+      }
+    });
+
+    // Pass the scanned address to AddressSearchWidget
+    // The widget will detect this change via didUpdateWidget and trigger Google Places search
+    if (scannedData.address != null) {
+      final address = scannedData.address!;
+
+      debugPrint('[ScanFill] Setting address for widget search:');
+      debugPrint('[ScanFill]   street: "${address.street}"');
+      debugPrint('[ScanFill]   building: "${address.building}"');
+      debugPrint('[ScanFill]   postalCode: "${address.postalCode}"');
+      debugPrint('[ScanFill]   city: "${address.city}"');
+
+      // Set the address - AddressSearchWidget will detect this change
+      // and automatically trigger a Google Places search in the search field
+      setState(() {
+        _selectedAddress = address;
+      });
+    } else {
+      debugPrint('[ScanFill] No address in scanned data!');
+    }
+
+    debugPrint('[ScanFill] ===== _fillWithScannedData END =====');
+
+    // Show appropriate message
+    if (!mounted) return;
+
+    if (itemsNotInMenu.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'orders.scan.itemsNotInMenuWarning'.trParams({
+              'count': itemsNotInMenu.length.toString(),
+              'items': itemsNotInMenu.join(', '),
+            }),
+          ),
+          backgroundColor: AppColors.warning,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orders.verify.aiScanComplete'.tr),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
   bool _validateForm() {
     if (!_formKey.currentState!.validate()) return false;
 
@@ -138,15 +267,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       return false;
     }
 
-    if (_orderItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('validation.addAtLeastOneItem'.tr),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return false;
-    }
+    // Items are optional - no validation required for empty items list
 
     return true;
   }
@@ -198,7 +319,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         items: cartItems,
         couponId: _selectedCouponId != null ? int.tryParse(_selectedCouponId!) : null,
         notes: 'Customer: ${_customerNameController.text.trim()}, '
-            'Phone: ${_selectedCountry.dialCode}${_phoneController.text.trim()}',
+            'Phone: ${_phoneController.text.trim()}',
       );
 
       // Create the order
@@ -248,9 +369,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         title: 'orders.createOrder'.tr,
         actions: [
           IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
+            icon: const Icon(Icons.document_scanner),
+            tooltip: 'orders.scan.title'.tr,
             onPressed: () {
-              // TODO: Open scanner
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ScanOrderScreen(
+                    onDataScanned: _fillWithScannedData,
+                  ),
+                ),
+              );
             },
           ),
         ],
@@ -293,14 +422,42 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                 ),
               ),
               SizedBox(height: 8.h),
-              PhoneInputField(
+              TextFormField(
                 controller: _phoneController,
-                selectedCountry: _selectedCountry,
-                onCountrySelected: (country) {
-                  setState(() {
-                    _selectedCountry = country;
-                  });
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'validation.phoneRequired'.tr;
+                  }
+                  return null;
                 },
+                decoration: InputDecoration(
+                  hintText: 'auth.phoneNumber'.tr,
+                  prefixIcon: Icon(Icons.phone, size: 20.w),
+                  filled: true,
+                  fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(
+                      color: isDark ? DarkColors.border : LightColors.border,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(
+                      color: isDark ? DarkColors.border : LightColors.border,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: const BorderSide(color: AppColors.error),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                ),
               ),
 
               SizedBox(height: 24.h),

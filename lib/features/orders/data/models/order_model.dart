@@ -435,6 +435,8 @@ sealed class OrderItemModel with _$OrderItemModel {
     required double unitPrice,
     String? notes,
     @Default([]) List<CustomizationSelection> customizations,
+    /// Raw customizations text from API (e.g., "no sauce")
+    String? customizationsText,
   }) = _OrderItemModel;
 
   /// Convert to JSON for API requests
@@ -456,6 +458,21 @@ sealed class OrderItemModel with _$OrderItemModel {
     // Try multiple field names for price: price, unit_price, unitPrice, item_price
     final priceValue = json['price'] ?? json['unit_price'] ?? json['unitPrice'] ?? json['item_price'] ?? 0;
 
+    // Handle customizations - can be a string (from API) or a list of objects
+    final customizationsRaw = json['customizations'];
+    String? customizationsText;
+    List<CustomizationSelection> customizationsList = [];
+
+    if (customizationsRaw is String && customizationsRaw.isNotEmpty) {
+      // API returns customizations as a string (e.g., "no sauce")
+      customizationsText = customizationsRaw;
+    } else if (customizationsRaw is List) {
+      // Structured customizations list
+      customizationsList = customizationsRaw
+          .map((c) => CustomizationSelection.fromJson(c as Map<String, dynamic>))
+          .toList();
+    }
+
     return OrderItemModel(
       id: json['id']?.toString() ?? '',
       menuItemId: (json['item'] ?? json['menuItemId'] ?? json['menu_item_id'])?.toString() ?? '',
@@ -463,11 +480,8 @@ sealed class OrderItemModel with _$OrderItemModel {
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (priceValue is num) ? priceValue.toDouble() : (double.tryParse(priceValue.toString()) ?? 0.0),
       notes: json['notes'] as String?,
-      customizations: json['customizations'] != null && json['customizations'] is List
-          ? (json['customizations'] as List)
-              .map((c) => CustomizationSelection.fromJson(c as Map<String, dynamic>))
-              .toList()
-          : [],
+      customizations: customizationsList,
+      customizationsText: customizationsText,
     );
   }
 }
