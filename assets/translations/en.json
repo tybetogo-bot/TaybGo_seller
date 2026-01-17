@@ -247,6 +247,9 @@
     "deliverTo": "Deliver to",
     "driverInfo": "Driver",
     "verified": "Verified",
+    "openInMaps": "Open in Maps",
+    "copyMapsLink": "Copy Maps Link",
+    "linkCopied": "Link copied to clipboard",
     "receipt": {
       "title": "Receipt",
       "printReceipt": "Print Receipt",

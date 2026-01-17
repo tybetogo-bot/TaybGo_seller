@@ -244,6 +244,9 @@
     "deliverTo": "التوصيل إلى",
     "driverInfo": "السائق",
     "verified": "موثق",
+    "openInMaps": "فتح في الخريطة",
+    "copyMapsLink": "نسخ رابط الخريطة",
+    "linkCopied": "تم نسخ الرابط",
     "receipt": {
       "title": "الإيصال",
       "printReceipt": "طباعة الإيصال",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
@@ -1313,6 +1314,10 @@ class _AddressesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get coordinates from dropoffAddress or legacy address
+    final dropoffLat = order.dropoffAddress?.lat ?? order.address.latitude;
+    final dropoffLng = order.dropoffAddress?.lng ?? order.address.longitude;
+
     return AppCard(
       child: Column(
         children: [
@@ -1358,6 +1363,8 @@ class _AddressesCard extends StatelessWidget {
                      order.address.street,
             sublabel: order.customerName != 'Customer' ? order.customerName : null,
             isDark: isDark,
+            latitude: dropoffLat,
+            longitude: dropoffLng,
           ),
         ],
       ),
@@ -1373,6 +1380,8 @@ class _AddressRow extends StatelessWidget {
     required this.address,
     required this.isDark,
     this.sublabel,
+    this.latitude,
+    this.longitude,
   });
 
   final IconData icon;
@@ -1381,53 +1390,148 @@ class _AddressRow extends StatelessWidget {
   final String address;
   final String? sublabel;
   final bool isDark;
+  final double? latitude;
+  final double? longitude;
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  String get googleMapsUrl =>
+      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+
+  Future<void> _openInMaps() async {
+    if (!hasCoordinates) return;
+    final uri = Uri.parse(googleMapsUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _copyMapsLink(BuildContext context) {
+    if (!hasCoordinates) return;
+    Clipboard.setData(ClipboardData(text: googleMapsUrl));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('orders.linkCopied'.tr),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.all(6.w),
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(6.r),
-          ),
-          child: Icon(icon, color: iconColor, size: 16.w),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(6.w),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6.r),
               ),
-              if (sublabel != null) ...[
-                Text(
-                  sublabel!,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+              child: Icon(icon, color: iconColor, size: 16.w),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                    ),
                   ),
-                ),
-              ],
-              Text(
-                address,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-                ),
+                  if (sublabel != null) ...[
+                    Text(
+                      sublabel!,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                  Text(
+                    address,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        // Maps buttons
+        if (hasCoordinates) ...[
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              SizedBox(width: 40.w), // Align with address text
+              _MapActionButton(
+                icon: Icons.map_outlined,
+                label: 'orders.openInMaps'.tr,
+                onTap: _openInMaps,
+              ),
+              SizedBox(width: 8.w),
+              _MapActionButton(
+                icon: Icons.copy,
+                label: 'orders.copyMapsLink'.tr,
+                onTap: () => _copyMapsLink(context),
               ),
             ],
           ),
-        ),
+        ],
       ],
+    );
+  }
+}
+
+class _MapActionButton extends StatelessWidget {
+  const _MapActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(4.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12.w, color: AppColors.primary),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w500,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

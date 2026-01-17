@@ -26,7 +26,7 @@ class ThemeNotifier extends Notifier<AppThemeMode> {
       case 'dark':
         return AppThemeMode.dark;
       default:
-        return AppThemeMode.system;
+        return AppThemeMode.light;
     }
   }
 

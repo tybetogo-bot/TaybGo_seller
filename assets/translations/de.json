@@ -244,6 +244,9 @@
     "deliverTo": "Lieferung an",
     "driverInfo": "Fahrer",
     "verified": "Verifiziert",
+    "openInMaps": "In Karten öffnen",
+    "copyMapsLink": "Kartenlink kopieren",
+    "linkCopied": "Link kopiert",
     "receipt": {
       "title": "Quittung",
       "printReceipt": "Quittung drucken",

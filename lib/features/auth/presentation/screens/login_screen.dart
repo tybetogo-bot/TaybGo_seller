@@ -97,23 +97,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // Logo
                       Center(
                         child: Container(
-                          width: 72.w,
-                          height: 72.w,
+                          width: 100.w,
+                          height: 100.w,
                           decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
                             borderRadius: BorderRadius.circular(18.r),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
+                                color: AppColors.primary.withValues(alpha: 0.2),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            Icons.storefront_rounded,
-                            size: 40.w,
-                            color: Colors.white,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18.r),
+                            child: Image.asset(
+                              'assets/icons/logo.jpg',
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
