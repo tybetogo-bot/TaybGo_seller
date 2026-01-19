@@ -390,9 +390,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     final targetStatus = _getTargetStatus(status);
     if (targetStatus == null) return const SizedBox.shrink();
 
-    // Show Update Status button for all active statuses
+    // Show button with next status name
     return AppButton(
-      label: '${'orders.updateStatus'.tr}: ${_getStatusDisplayName(targetStatus)}',
+      label: _getStatusDisplayName(targetStatus),
       icon: _getStatusIcon(targetStatus),
       isLoading: _isProcessing,
       onPressed: () => _handleStatusAction(order),
@@ -403,22 +403,23 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   IconData _getStatusIcon(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-        return Icons.hourglass_empty;
+        return Icons.fiber_new_rounded; // New order indicator
       case OrderStatusEnum.searchingForDriver:
-        return Icons.search;
+        return Icons.person_search_rounded; // Searching for driver
       case OrderStatusEnum.driverNotificationSent:
-        return Icons.notifications_active;
+        return Icons.notifications_active_rounded; // Driver notified
       case OrderStatusEnum.accepted:
-        return Icons.check_circle_outline;
+        return Icons.restaurant_menu_rounded; // Preparing food
       case OrderStatusEnum.onTheWay:
-        return Icons.delivery_dining;
+        return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
-        return Icons.done_all;
+        return Icons.where_to_vote_rounded; // Arrived
       case OrderStatusEnum.completed:
-        return Icons.verified;
+        return Icons.check_circle_rounded; // Completed
       case OrderStatusEnum.rejected:
+        return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
-        return Icons.cancel;
+        return Icons.block_rounded; // Cancelled
     }
   }
 
@@ -660,43 +661,46 @@ class _OrderStatusTimeline extends StatelessWidget {
   Color _getStatusColor(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-        return AppColors.warning;
+        return const Color(0xFFFF9800); // Orange - New order waiting
       case OrderStatusEnum.searchingForDriver:
-        return AppColors.warning;
+        return const Color(0xFF2196F3); // Blue - Searching
       case OrderStatusEnum.driverNotificationSent:
-        return Colors.orange;
+        return const Color(0xFF9C27B0); // Purple - Driver notified
       case OrderStatusEnum.accepted:
-        return AppColors.info;
+        return const Color(0xFF00BCD4); // Cyan - Accepted/Preparing
       case OrderStatusEnum.onTheWay:
-        return Colors.purple;
+        return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
-        return AppColors.success;
+        return const Color(0xFF8BC34A); // Light Green - Delivered
       case OrderStatusEnum.completed:
-        return AppColors.success;
+        return const Color(0xFF4CAF50); // Green - Completed
       case OrderStatusEnum.rejected:
+        return const Color(0xFFF44336); // Red - Rejected
       case OrderStatusEnum.cancelled:
-        return AppColors.error;
+        return const Color(0xFF9E9E9E); // Grey - Cancelled
     }
   }
 
   IconData _getStatusIcon(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-        return Icons.pending_actions;
+        return Icons.fiber_new_rounded; // New order indicator
       case OrderStatusEnum.searchingForDriver:
-        return Icons.search;
-      case OrderStatusEnum.accepted:
-        return Icons.thumb_up_alt;
+        return Icons.person_search_rounded; // Searching for driver
       case OrderStatusEnum.driverNotificationSent:
-        return Icons.person_pin;
+        return Icons.notifications_active_rounded; // Driver notified
+      case OrderStatusEnum.accepted:
+        return Icons.restaurant_menu_rounded; // Preparing food
       case OrderStatusEnum.onTheWay:
-        return Icons.delivery_dining;
+        return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
+        return Icons.where_to_vote_rounded; // Arrived
       case OrderStatusEnum.completed:
-        return Icons.check_circle;
+        return Icons.check_circle_rounded; // Completed
       case OrderStatusEnum.rejected:
+        return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
-        return Icons.cancel;
+        return Icons.block_rounded; // Cancelled
     }
   }
 

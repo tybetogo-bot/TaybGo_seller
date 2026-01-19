@@ -21,6 +21,7 @@ class OrdersScreen extends ConsumerStatefulWidget {
 class _OrdersScreenState extends ConsumerState<OrdersScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  final _searchController = TextEditingController();
   bool _isRefreshing = false;
 
   @override
@@ -55,6 +56,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     ref.read(ordersPollingProvider.notifier).stop();
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -143,23 +145,106 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
       ),
       body: ordersState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
+          : Column(
               children: [
-                _OrdersList(
-                  orders: ordersState.pendingOrders,
-                  isDark: isDark,
-                  emptyMessage: 'orders.noPendingOrders'.tr,
+                // Search bar
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      ref.read(ordersProvider.notifier).setSearchQuery(value);
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'orders.searchHint'.tr,
+                      hintStyle: TextStyle(
+                        color: isDark
+                            ? DarkColors.textTertiary
+                            : LightColors.textTertiary,
+                        fontSize: 14.sp,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
+                        size: 20.w,
+                      ),
+                      suffixIcon: ordersState.searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear_rounded,
+                                color: isDark
+                                    ? DarkColors.textSecondary
+                                    : LightColors.textSecondary,
+                                size: 20.w,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                ref.read(ordersProvider.notifier).clearSearch();
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: isDark
+                          ? DarkColors.surface
+                          : LightColors.surface,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                      fontSize: 14.sp,
+                    ),
+                  ),
                 ),
-                _OrdersList(
-                  orders: ordersState.activeOrders,
-                  isDark: isDark,
-                  emptyMessage: 'orders.noActiveOrders'.tr,
-                ),
-                _OrdersList(
-                  orders: ordersState.completedOrders,
-                  isDark: isDark,
-                  emptyMessage: 'orders.noCompletedOrders'.tr,
+                // Tab content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _OrdersList(
+                        orders: ordersState.pendingOrders,
+                        isDark: isDark,
+                        emptyMessage: ordersState.searchQuery.isNotEmpty
+                            ? 'orders.noSearchResults'.tr
+                            : 'orders.noPendingOrders'.tr,
+                      ),
+                      _OrdersList(
+                        orders: ordersState.activeOrders,
+                        isDark: isDark,
+                        emptyMessage: ordersState.searchQuery.isNotEmpty
+                            ? 'orders.noSearchResults'.tr
+                            : 'orders.noActiveOrders'.tr,
+                      ),
+                      _OrdersList(
+                        orders: ordersState.completedOrders,
+                        isDark: isDark,
+                        emptyMessage: ordersState.searchQuery.isNotEmpty
+                            ? 'orders.noSearchResults'.tr
+                            : 'orders.noCompletedOrders'.tr,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

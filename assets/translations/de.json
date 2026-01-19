@@ -208,6 +208,8 @@
     "noPendingOrders": "Keine ausstehenden Bestellungen",
     "noActiveOrders": "Keine aktiven Bestellungen",
     "noCompletedOrders": "Keine abgeschlossenen Bestellungen",
+    "searchHint": "Suche nach ID, Kunde, Telefon, Artikel...",
+    "noSearchResults": "Keine Bestellungen gefunden",
     "addressNotAvailable": "Adresse nicht verfügbar",
     "paymentInfoNotAvailable": "Zahlungsinformationen nicht verfügbar",
     "unknownItem": "Unbekannter Artikel",
@@ -276,7 +278,9 @@
         "step2": "Bestelldetails werden extrahiert",
         "step3": "Sie können die Daten überprüfen und bearbeiten",
         "step4": "Die Bestellung wird im System protokolliert"
-      }
+      },
+      "cardTitle": "Bestellung mit KI scannen",
+      "cardDescription": "Fotografieren Sie das Bestellformular und lassen Sie die KI die Details ausfüllen"
     },
     "verify": {
       "title": "Bestelldetails überprüfen",

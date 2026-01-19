@@ -208,6 +208,8 @@
     "noPendingOrders": "لا توجد طلبات قيد الانتظار",
     "noActiveOrders": "لا توجد طلبات نشطة",
     "noCompletedOrders": "لا توجد طلبات مكتملة",
+    "searchHint": "بحث بالرقم، العميل، الهاتف، الصنف...",
+    "noSearchResults": "لم يتم العثور على طلبات",
     "addressNotAvailable": "العنوان غير متوفر",
     "paymentInfoNotAvailable": "معلومات الدفع غير متوفرة",
     "unknownItem": "عنصر غير معروف",
@@ -284,7 +286,9 @@
         "step4": "يتم تسجيل الطلب في النظام"
       },
       "itemNotInMenu": "غير موجود في القائمة",
-      "itemsNotInMenuWarning": "{count} عنصر(ات) غير موجودة في القائمة: {items}"
+      "itemsNotInMenuWarning": "{count} عنصر(ات) غير موجودة في القائمة: {items}",
+      "cardTitle": "مسح الطلب بالذكاء الاصطناعي",
+      "cardDescription": "التقط صورة لنموذج الطلب ودع الذكاء الاصطناعي يملأ التفاصيل"
     },
     "verify": {
       "title": "التحقق من تفاصيل الطلب",

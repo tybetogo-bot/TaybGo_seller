@@ -208,6 +208,8 @@
     "noPendingOrders": "Aucune commande en attente",
     "noActiveOrders": "Aucune commande active",
     "noCompletedOrders": "Aucune commande terminée",
+    "searchHint": "Rechercher par ID, client, téléphone, article...",
+    "noSearchResults": "Aucune commande trouvée",
     "addressNotAvailable": "Adresse non disponible",
     "paymentInfoNotAvailable": "Informations de paiement non disponibles",
     "unknownItem": "Article inconnu",
@@ -276,7 +278,9 @@
         "step2": "Les détails de la commande sont extraits",
         "step3": "Vous pouvez vérifier et modifier les données",
         "step4": "La commande est enregistrée dans le système"
-      }
+      },
+      "cardTitle": "Scanner la commande avec l'IA",
+      "cardDescription": "Prenez une photo du formulaire et laissez l'IA remplir les détails"
     },
     "verify": {
       "title": "Vérifier les détails de la commande",

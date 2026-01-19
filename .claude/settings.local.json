@@ -21,7 +21,10 @@
       "Bash(flutter pub run build_runner build:*)",
       "Bash(git checkout:*)",
       "Bash(dart run:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter build:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }

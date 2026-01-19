@@ -211,6 +211,8 @@
     "noPendingOrders": "No pending orders",
     "noActiveOrders": "No active orders",
     "noCompletedOrders": "No completed orders",
+    "searchHint": "Search by ID, customer, phone, item...",
+    "noSearchResults": "No orders found",
     "addressNotAvailable": "Address not available",
     "paymentInfoNotAvailable": "Payment information not available",
     "unknownItem": "Unknown Item",
@@ -287,7 +289,9 @@
         "step4": "Order is logged to the system"
       },
       "itemNotInMenu": "Not in menu",
-      "itemsNotInMenuWarning": "{count} item(s) not found in menu: {items}"
+      "itemsNotInMenuWarning": "{count} item(s) not found in menu: {items}",
+      "cardTitle": "Scan Order with AI",
+      "cardDescription": "Take a photo of the order form and let AI fill in the details"
     },
     "verify": {
       "title": "Verify Order Details",

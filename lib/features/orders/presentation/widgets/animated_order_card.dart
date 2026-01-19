@@ -107,28 +107,6 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
   }
 
-  String _getShortStatus(OrderStatusEnum status) {
-    switch (status) {
-      case OrderStatusEnum.pending:
-        return 'orders.statusShort.pending'.tr;
-      case OrderStatusEnum.searchingForDriver:
-        return 'orders.statusShort.searching'.tr;
-      case OrderStatusEnum.driverNotificationSent:
-        return 'orders.statusShort.notified'.tr;
-      case OrderStatusEnum.accepted:
-        return 'orders.statusShort.accepted'.tr;
-      case OrderStatusEnum.onTheWay:
-        return 'orders.statusShort.onTheWay'.tr;
-      case OrderStatusEnum.delivered:
-        return 'orders.statusShort.delivered'.tr;
-      case OrderStatusEnum.completed:
-        return 'orders.statusShort.done'.tr;
-      case OrderStatusEnum.rejected:
-      case OrderStatusEnum.cancelled:
-        return status == OrderStatusEnum.rejected ? 'Rejected' : 'Cancelled';
-    }
-  }
-
   String _getTimeAgo(DateTime time) {
     final diff = DateTime.now().difference(time);
     if (diff.inMinutes < 1) {
@@ -171,44 +149,46 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   Color _getStatusColor(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-        return AppColors.warning;
+        return const Color(0xFFFF9800); // Orange - New order waiting
       case OrderStatusEnum.searchingForDriver:
-        return Colors.orange;
+        return const Color(0xFF2196F3); // Blue - Searching
       case OrderStatusEnum.driverNotificationSent:
-        return Colors.orange;
+        return const Color(0xFF9C27B0); // Purple - Driver notified
       case OrderStatusEnum.accepted:
-        return AppColors.info;
+        return const Color(0xFF00BCD4); // Cyan - Accepted/Preparing
       case OrderStatusEnum.onTheWay:
-        return Colors.purple;
+        return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
-        return AppColors.success;
+        return const Color(0xFF8BC34A); // Light Green - Delivered
       case OrderStatusEnum.completed:
-        return AppColors.success;
+        return const Color(0xFF4CAF50); // Green - Completed
       case OrderStatusEnum.rejected:
+        return const Color(0xFFF44336); // Red - Rejected
       case OrderStatusEnum.cancelled:
-        return AppColors.error;
+        return const Color(0xFF9E9E9E); // Grey - Cancelled
     }
   }
 
   IconData _getStatusIcon(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
-        return Icons.schedule;
+        return Icons.fiber_new_rounded; // New order indicator
       case OrderStatusEnum.searchingForDriver:
-        return Icons.search;
+        return Icons.person_search_rounded; // Searching for driver
       case OrderStatusEnum.driverNotificationSent:
-        return Icons.notifications_active_outlined;
+        return Icons.notifications_active_rounded; // Driver notified
       case OrderStatusEnum.accepted:
-        return Icons.restaurant;
+        return Icons.restaurant_menu_rounded; // Preparing food
       case OrderStatusEnum.onTheWay:
-        return Icons.delivery_dining;
+        return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
-        return Icons.check_circle_outline;
+        return Icons.where_to_vote_rounded; // Arrived
       case OrderStatusEnum.completed:
-        return Icons.verified;
+        return Icons.check_circle_rounded; // Completed
       case OrderStatusEnum.rejected:
+        return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
-        return Icons.cancel_outlined;
+        return Icons.block_rounded; // Cancelled
     }
   }
 
@@ -221,6 +201,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final isTerminal = status == OrderStatusEnum.completed ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled;
+    final nextStatus = status.nextStatus;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -238,10 +219,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
             color: isDark ? DarkColors.surface : LightColors.surface,
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-              color: status == OrderStatusEnum.pending
-                  ? statusColor.withValues(alpha: 0.4)
-                  : (isDark ? DarkColors.border : LightColors.border),
-              width: status == OrderStatusEnum.pending ? 1.5 : 1,
+              color: isTerminal
+                  ? (isDark ? DarkColors.border : LightColors.border)
+                  : statusColor.withValues(alpha: 0.5),
+              width: isTerminal ? 1 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
@@ -257,7 +238,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   children: [
-                    // Top row: Order ID, Status badge, Time
+                    // Top row: Order ID and Time
                     Row(
                       children: [
                         // Order ID
@@ -267,34 +248,6 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w700,
                             color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(width: 10.w),
-                        // Status badge
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6.r),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getStatusIcon(status),
-                                size: 12.w,
-                                color: statusColor,
-                              ),
-                              SizedBox(width: 4.w),
-                              Text(
-                                _getShortStatus(status),
-                                style: TextStyle(
-                                  fontSize: 11.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                         const Spacer(),
@@ -308,9 +261,66 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                         ),
                       ],
                     ),
-                    SizedBox(height: 14.h),
+                    SizedBox(height: 12.h),
 
-                    // Middle row: Customer name and items count
+                    // Current Status - Prominent display
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Icon(
+                              _getStatusIcon(status),
+                              size: 18.w,
+                              color: statusColor,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getStatusLabel(status),
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: statusColor,
+                                  ),
+                                ),
+                                SizedBox(height: 2.h),
+                                Text(
+                                  _getStatusDescription(status),
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    color: isDark
+                                        ? DarkColors.textSecondary
+                                        : LightColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+
+                    // Customer info row
                     Row(
                       children: [
                         // Customer avatar placeholder
@@ -394,12 +404,13 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                     ),
 
                     // Action button for non-terminal statuses
-                    if (!isTerminal && status.nextStatus != null) ...[
+                    if (!isTerminal && nextStatus != null) ...[
                       SizedBox(height: 14.h),
-                      _MinimalActionButton(
+                      _StatusActionButton(
                         onTap: _handleMoveToNextStatus,
                         isLoading: _isProcessing,
-                        statusColor: statusColor,
+                        nextStatusLabel: _getStatusLabel(nextStatus),
+                        nextStatusIcon: _getStatusIcon(nextStatus),
                       ),
                     ],
                   ],
@@ -419,19 +430,44 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       ),
     );
   }
+
+  String _getStatusDescription(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 'orders.statusDesc.pending'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.statusDesc.searchingForDriver'.tr;
+      case OrderStatusEnum.driverNotificationSent:
+        return 'orders.statusDesc.driverNotificationSent'.tr;
+      case OrderStatusEnum.accepted:
+        return 'orders.statusDesc.accepted'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.statusDesc.onTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.statusDesc.delivered'.tr;
+      case OrderStatusEnum.completed:
+        return 'orders.statusDesc.completed'.tr;
+      case OrderStatusEnum.rejected:
+        return 'orders.statusDesc.rejected'.tr;
+      case OrderStatusEnum.cancelled:
+        return 'orders.statusDesc.cancelled'.tr;
+    }
+  }
 }
 
-/// Minimal action button
-class _MinimalActionButton extends StatelessWidget {
-  const _MinimalActionButton({
+/// Status action button showing next status
+class _StatusActionButton extends StatelessWidget {
+  const _StatusActionButton({
     required this.onTap,
     required this.isLoading,
-    required this.statusColor,
+    required this.nextStatusLabel,
+    required this.nextStatusIcon,
   });
 
   final VoidCallback onTap;
   final bool isLoading;
-  final Color statusColor;
+  final String nextStatusLabel;
+  final IconData nextStatusIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -439,10 +475,17 @@ class _MinimalActionButton extends StatelessWidget {
       onTap: isLoading ? null : onTap,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
         decoration: BoxDecoration(
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(10.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: isLoading
             ? Center(
@@ -458,19 +501,25 @@ class _MinimalActionButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(
+                    nextStatusIcon,
+                    size: 18.w,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8.w),
                   Text(
-                    'orders.updateStatus'.tr,
+                    nextStatusLabel,
                     style: TextStyle(
-                      fontSize: 13.sp,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: 8.w),
                   Icon(
                     Icons.arrow_forward_rounded,
                     size: 16.w,
-                    color: Colors.white,
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ],
               ),

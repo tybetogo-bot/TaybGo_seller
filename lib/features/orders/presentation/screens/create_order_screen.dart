@@ -12,6 +12,7 @@ import '../../../menu/data/models/menu_item_model.dart' as menu;
 import '../../../coupons/application/coupons_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/customer_orders_notifier.dart';
+import '../../application/orders_notifier.dart';
 import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/scanned_order_data.dart';
@@ -331,6 +332,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       setState(() => _isLoading = false);
 
       if (createdOrder != null) {
+        // Refresh the orders list so the new order appears immediately
+        ref.read(ordersProvider.notifier).refreshOrders();
+
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -391,6 +395,22 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Prominent Scan Card
+              _ScanOrderCard(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ScanOrderScreen(
+                        onDataScanned: _fillWithScannedData,
+                      ),
+                    ),
+                  );
+                },
+                isDark: isDark,
+              ),
+              SizedBox(height: 24.h),
+
               // Customer Information Section
               _SectionTitle(title: 'orders.customerInfo'.tr, isDark: isDark),
               SizedBox(height: 12.h),
@@ -564,7 +584,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               SizedBox(height: 12.h),
 
               _CouponDropdown(
+                key: ValueKey('coupon_dropdown_$_subtotal'),
                 selectedCouponId: _selectedCouponId,
+                subtotal: _subtotal,
                 onChanged: (value) {
                   setState(() {
                     _selectedCouponId = value;
@@ -847,22 +869,119 @@ class _VehicleTypeDropdown extends StatelessWidget {
   }
 }
 
+/// Prominent card for scanning orders with AI
+class _ScanOrderCard extends StatelessWidget {
+  const _ScanOrderCard({
+    required this.onTap,
+    required this.isDark,
+  });
+
+  final VoidCallback onTap;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary,
+              AppColors.primary.withValues(alpha: 0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                Icons.document_scanner_rounded,
+                color: Colors.white,
+                size: 32.w,
+              ),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'orders.scan.cardTitle'.tr,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'orders.scan.cardDescription'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.8),
+              size: 20.w,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Dropdown for selecting coupon
 class _CouponDropdown extends ConsumerWidget {
   const _CouponDropdown({
+    super.key,
     required this.selectedCouponId,
+    required this.subtotal,
     required this.onChanged,
     required this.isDark,
   });
 
   final String? selectedCouponId;
+  final double subtotal;
   final ValueChanged<String?> onChanged;
   final bool isDark;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final coupons = ref.watch(activeCouponsProvider);
+    final allCoupons = ref.watch(activeCouponsProvider);
+    // Filter coupons to only show those applicable to the current subtotal
+    final coupons = allCoupons
+        .where((coupon) => coupon.minimumOrderPrice <= subtotal)
+        .toList();
     final isLoading = ref.watch(couponsProvider).isLoading;
+
+    // If selected coupon is no longer applicable, treat as no selection
+    final effectiveSelectedId = selectedCouponId != null &&
+            coupons.any((c) => c.id == selectedCouponId)
+        ? selectedCouponId
+        : null;
 
     if (isLoading) {
       return Container(
@@ -936,7 +1055,7 @@ class _CouponDropdown extends ConsumerWidget {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: selectedCouponId,
+          value: effectiveSelectedId,
           isExpanded: true,
           hint: Padding(
             padding: EdgeInsets.symmetric(horizontal: 12.w),

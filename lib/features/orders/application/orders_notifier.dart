@@ -17,6 +17,7 @@ class OrdersState {
     this.error,
     this.currentPage = 1,
     this.hasMorePages = true,
+    this.searchQuery = '',
   });
 
   final List<OrderModel> orders;
@@ -24,6 +25,7 @@ class OrdersState {
   final String? error;
   final int currentPage;
   final bool hasMorePages;
+  final String searchQuery;
 
   OrdersState copyWith({
     List<OrderModel>? orders,
@@ -32,6 +34,7 @@ class OrdersState {
     bool clearError = false,
     int? currentPage,
     bool? hasMorePages,
+    String? searchQuery,
   }) {
     return OrdersState(
       orders: orders ?? this.orders,
@@ -39,30 +42,55 @@ class OrdersState {
       error: clearError ? null : (error ?? this.error),
       currentPage: currentPage ?? this.currentPage,
       hasMorePages: hasMorePages ?? this.hasMorePages,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
-  /// Get orders by status
-  List<OrderModel> get pendingOrders =>
-      orders.where((o) => 
+  /// Filter orders by search query
+  List<OrderModel> _filterBySearch(List<OrderModel> orderList) {
+    if (searchQuery.isEmpty) return orderList;
+
+    final query = searchQuery.toLowerCase();
+    return orderList.where((order) {
+      // Search by order ID
+      if (order.id.toLowerCase().contains(query)) return true;
+      // Search by customer name
+      if (order.customerName.toLowerCase().contains(query)) return true;
+      // Search by phone number
+      if (order.phoneNumber.contains(query)) return true;
+      // Search by item names
+      if (order.items.any((item) => item.name.toLowerCase().contains(query))) {
+        return true;
+      }
+      // Search by restaurant name
+      if (order.restaurant?.name.toLowerCase().contains(query) ?? false) {
+        return true;
+      }
+      return false;
+    }).toList();
+  }
+
+  /// Get orders by status (filtered by search)
+  List<OrderModel> get pendingOrders => _filterBySearch(
+      orders.where((o) =>
           o.status == OrderStatusEnum.pending ||
           o.status == OrderStatusEnum.searchingForDriver
-      ).toList();
+      ).toList());
 
-  List<OrderModel> get activeOrders => orders
+  List<OrderModel> get activeOrders => _filterBySearch(orders
       .where((o) =>
           o.status == OrderStatusEnum.accepted ||
           o.status == OrderStatusEnum.driverNotificationSent ||
           o.status == OrderStatusEnum.onTheWay)
-      .toList();
+      .toList());
 
-  List<OrderModel> get completedOrders => orders
+  List<OrderModel> get completedOrders => _filterBySearch(orders
       .where((o) =>
           o.status == OrderStatusEnum.delivered ||
           o.status == OrderStatusEnum.completed ||
           o.status == OrderStatusEnum.rejected ||
           o.status == OrderStatusEnum.cancelled)
-      .toList();
+      .toList());
 }
 
 /// Orders notifier for managing order state (Riverpod 3.x)
@@ -123,6 +151,16 @@ class OrdersNotifier extends Notifier<OrdersState> {
   /// Refresh orders (shows loading state)
   Future<void> refreshOrders() async {
     await _loadOrders(page: 1);
+  }
+
+  /// Set search query for filtering orders
+  void setSearchQuery(String query) {
+    state = state.copyWith(searchQuery: query);
+  }
+
+  /// Clear search query
+  void clearSearch() {
+    state = state.copyWith(searchQuery: '');
   }
 
   /// Silent refresh - only updates UI if data has changed
