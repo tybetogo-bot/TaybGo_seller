@@ -112,6 +112,98 @@ class AppColors {
   // ============ Rating Colors ============
   static const Color ratingStar = Color(0xFFFBBF24);
   static const Color ratingStarEmpty = Color(0xFFD1D5DB);
+
+  // ============ Preset Accent Colors ============
+  /// Available accent colors for user customization
+  static const List<AccentColor> presetAccentColors = [
+    AccentColor(
+      name: 'green',
+      color: Color(0xFF00C853),
+      lightVariant: Color(0xFFE8FDF5),
+      darkVariant: Color(0xFF00A344),
+    ),
+    AccentColor(
+      name: 'blue',
+      color: Color(0xFF2196F3),
+      lightVariant: Color(0xFFE3F2FD),
+      darkVariant: Color(0xFF1976D2),
+    ),
+    AccentColor(
+      name: 'purple',
+      color: Color(0xFF9C27B0),
+      lightVariant: Color(0xFFF3E5F5),
+      darkVariant: Color(0xFF7B1FA2),
+    ),
+    AccentColor(
+      name: 'orange',
+      color: Color(0xFFFF9800),
+      lightVariant: Color(0xFFFFF3E0),
+      darkVariant: Color(0xFFF57C00),
+    ),
+    AccentColor(
+      name: 'red',
+      color: Color(0xFFF44336),
+      lightVariant: Color(0xFFFFEBEE),
+      darkVariant: Color(0xFFD32F2F),
+    ),
+    AccentColor(
+      name: 'teal',
+      color: Color(0xFF009688),
+      lightVariant: Color(0xFFE0F2F1),
+      darkVariant: Color(0xFF00796B),
+    ),
+    AccentColor(
+      name: 'pink',
+      color: Color(0xFFE91E63),
+      lightVariant: Color(0xFFFCE4EC),
+      darkVariant: Color(0xFFC2185B),
+    ),
+    AccentColor(
+      name: 'indigo',
+      color: Color(0xFF3F51B5),
+      lightVariant: Color(0xFFE8EAF6),
+      darkVariant: Color(0xFF303F9F),
+    ),
+  ];
+
+  /// Get accent color by name
+  static AccentColor getAccentByName(String name) {
+    return presetAccentColors.firstWhere(
+      (c) => c.name == name,
+      orElse: () => presetAccentColors.first,
+    );
+  }
+}
+
+/// Model for preset accent colors
+class AccentColor {
+  const AccentColor({
+    required this.name,
+    required this.color,
+    required this.lightVariant,
+    required this.darkVariant,
+  });
+
+  final String name;
+  final Color color;
+  final Color lightVariant;
+  final Color darkVariant;
+
+  /// Generate a MaterialColor swatch from the accent color
+  MaterialColor get swatch {
+    return MaterialColor(color.value, <int, Color>{
+      50: lightVariant,
+      100: Color.lerp(lightVariant, color, 0.1)!,
+      200: Color.lerp(lightVariant, color, 0.3)!,
+      300: Color.lerp(lightVariant, color, 0.5)!,
+      400: Color.lerp(lightVariant, color, 0.7)!,
+      500: color,
+      600: Color.lerp(color, darkVariant, 0.2)!,
+      700: Color.lerp(color, darkVariant, 0.4)!,
+      800: Color.lerp(color, darkVariant, 0.6)!,
+      900: darkVariant,
+    });
+  }
 }
 
 /// Light theme color scheme

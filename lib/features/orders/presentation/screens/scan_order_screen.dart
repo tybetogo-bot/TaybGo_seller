@@ -163,7 +163,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             Icon(
               Icons.document_scanner_outlined,
               size: 60.w,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             SizedBox(height: 16.h),
 
@@ -253,7 +253,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       padding: EdgeInsets.symmetric(
                         horizontal: 32.w,
                         vertical: 16.h,
@@ -540,7 +540,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Text(
@@ -614,7 +614,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             width: 24.w,
             height: 24.w,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -623,7 +623,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),

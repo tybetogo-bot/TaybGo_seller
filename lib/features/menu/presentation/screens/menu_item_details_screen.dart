@@ -109,14 +109,14 @@ class MenuItemDetailsScreen extends ConsumerWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Text(
                         category.name,
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -198,7 +198,7 @@ class MenuItemDetailsScreen extends ConsumerWidget {
                           icon: const Icon(Icons.edit),
                           label: Text('menuItem.editItem'.tr),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(vertical: 12.h),
                             shape: RoundedRectangleBorder(

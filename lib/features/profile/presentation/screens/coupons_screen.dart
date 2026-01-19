@@ -86,7 +86,7 @@ class CouponsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/coupons/add'),
-        backgroundColor: AppColors.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
           'coupons.addCoupon'.tr,
@@ -198,7 +198,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = color ?? AppColors.primary;
+    final activeColor = color ?? Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
@@ -321,7 +321,7 @@ class _CouponCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isValid
-                ? AppColors.primary.withValues(alpha: 0.3)
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
                 : (isDark ? DarkColors.border : LightColors.border),
           ),
         ),
@@ -340,7 +340,7 @@ class _CouponCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isValid
-                        ? AppColors.primary.withValues(alpha: 0.1)
+                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                         : (isDark
                               ? DarkColors.backgroundTertiary
                               : LightColors.backgroundTertiary),
@@ -352,7 +352,7 @@ class _CouponCard extends StatelessWidget {
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                       color: isValid
-                          ? AppColors.primary
+                          ? Theme.of(context).colorScheme.primary
                           : (isDark
                                 ? DarkColors.textSecondary
                                 : LightColors.textSecondary),

@@ -29,7 +29,7 @@ class HelpScreen extends ConsumerWidget {
             Icon(
               Icons.support_agent_outlined,
               size: 80.w,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             SizedBox(height: 24.h),
             Text(
@@ -45,7 +45,7 @@ class HelpScreen extends ConsumerWidget {
               'support@tybetogo.com',
               style: TextStyle(
                 fontSize: 16.sp,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             SizedBox(height: 8.h),

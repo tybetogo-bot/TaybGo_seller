@@ -106,7 +106,7 @@ class _NavItem extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final color = isSelected
-        ? AppColors.primary
+        ? theme.colorScheme.primary
         : (isDark ? DarkColors.bottomNavInactive : LightColors.bottomNavInactive);
 
     return InkWell(

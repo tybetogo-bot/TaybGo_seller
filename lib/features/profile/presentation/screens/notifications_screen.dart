@@ -34,7 +34,7 @@ class NotificationsScreen extends ConsumerWidget {
                 'notifications.markAllRead'.tr,
                 style: TextStyle(
                   fontSize: 13.sp,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -146,7 +146,7 @@ class NotificationsScreen extends ConsumerWidget {
               icon: const Icon(Icons.refresh),
               label: Text('common.retry'.tr),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -292,11 +292,12 @@ class _NotificationTile extends StatelessWidget {
     return Icons.notifications_outlined;
   }
 
-  Color _getIconColor() {
+  Color _getIconColor(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final title = notification.title.toLowerCase();
     if (title.contains('order')) {
       if (title.contains('new') || title.contains('received')) {
-        return AppColors.primary;
+        return primaryColor;
       }
       if (title.contains('deliver') || title.contains('shipped')) {
         return AppColors.success;
@@ -338,8 +339,8 @@ class _NotificationTile extends StatelessWidget {
           color: notification.isRead
               ? Colors.transparent
               : (isDark
-                  ? AppColors.primary.withValues(alpha: 0.05)
-                  : AppColors.primary.withValues(alpha: 0.03)),
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.05)
+                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.03)),
           border: Border(
             bottom: BorderSide(
               color: isDark ? DarkColors.border : LightColors.border,
@@ -355,12 +356,12 @@ class _NotificationTile extends StatelessWidget {
               width: 44.w,
               height: 44.w,
               decoration: BoxDecoration(
-                color: _getIconColor().withValues(alpha: 0.1),
+                color: _getIconColor(context).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 _getIcon(),
-                color: _getIconColor(),
+                color: _getIconColor(context),
                 size: 22.w,
               ),
             ),
@@ -419,7 +420,7 @@ class _NotificationTile extends StatelessWidget {
                 width: 8.w,
                 height: 8.w,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -520,7 +521,7 @@ class _NotificationSettingsSheetState
                     ),
                     _SettingsTile(
                       icon: Icons.shopping_bag,
-                      iconColor: AppColors.primary,
+                      iconColor: Theme.of(context).colorScheme.primary,
                       title: 'notifications.newOrders'.tr,
                       subtitle: 'notifications.newOrdersDesc'.tr,
                       value: _newOrders,
@@ -655,7 +656,7 @@ class _SettingsTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeColor: Theme.of(context).colorScheme.primary,
           ),
         ],
       ),

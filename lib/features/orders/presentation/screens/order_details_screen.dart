@@ -124,99 +124,102 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   Future<bool?> _showStatusConfirmationDialog(OrderStatusEnum currentStatus, OrderStatusEnum targetStatus) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('orders.updateStatus'.tr),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('orders.confirmStatusUpdate'.tr),
-            SizedBox(height: 16.h),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'orders.from'.tr,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: Colors.grey,
+      builder: (dialogContext) {
+        final primaryColor = Theme.of(dialogContext).colorScheme.primary;
+        return AlertDialog(
+          title: Text('orders.updateStatus'.tr),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('orders.confirmStatusUpdate'.tr),
+              SizedBox(height: 16.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'orders.from'.tr,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          _getStatusDisplayName(currentStatus),
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
+                          SizedBox(height: 4.h),
+                          Text(
+                            _getStatusDisplayName(currentStatus),
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                  child: Icon(Icons.arrow_forward, color: AppColors.primary),
-                ),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'orders.to'.tr,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          _getStatusDisplayName(targetStatus),
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Icon(Icons.arrow_forward, color: primaryColor),
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'orders.to'.tr,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: primaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            _getStatusDisplayName(targetStatus),
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: primaryColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text('common.cancel'.tr),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('orders.update'.tr),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('common.cancel'.tr),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('orders.update'.tr),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -473,8 +476,8 @@ class _OrderStatusTimeline extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: isDark
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : AppColors.primary.withValues(alpha: 0.05),
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Row(
@@ -483,7 +486,7 @@ class _OrderStatusTimeline extends StatelessWidget {
                 Icon(
                   Icons.tag,
                   size: 16.w,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 SizedBox(width: 6.w),
                 Text(
@@ -498,7 +501,7 @@ class _OrderStatusTimeline extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -788,7 +791,7 @@ class _SimpleProgressBar extends StatelessWidget {
                   width: MediaQuery.of(context).size.width * 0.85 * progress,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.8)],
                     ),
                     borderRadius: BorderRadius.circular(2.r),
                   ),
@@ -828,16 +831,16 @@ class _MilestoneDot extends StatelessWidget {
       width: isActive ? 16.w : 12.w,
       height: isActive ? 16.w : 12.w,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primary : (isDark ? DarkColors.surface : Colors.white),
+        color: isActive ? Theme.of(context).colorScheme.primary : (isDark ? DarkColors.surface : Colors.white),
         shape: BoxShape.circle,
         border: Border.all(
-          color: isActive ? AppColors.primary : (isDark ? DarkColors.border : Colors.grey[400]!),
+          color: isActive ? Theme.of(context).colorScheme.primary : (isDark ? DarkColors.border : Colors.grey[400]!),
           width: 2,
         ),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -870,7 +873,7 @@ class _MilestoneLabel extends StatelessWidget {
         fontSize: 11.sp,
         fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
         color: isActive
-            ? AppColors.primary
+            ? Theme.of(context).colorScheme.primary
             : (isDark ? DarkColors.textTertiary : LightColors.textTertiary),
       ),
     );
@@ -933,7 +936,7 @@ class _OrderItemsCard extends ConsumerWidget {
                     width: 32.w,
                     height: 32.w,
                     decoration: BoxDecoration(
-                      color: AppColors.primary[50],
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Center(
@@ -942,7 +945,7 @@ class _OrderItemsCard extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ),
@@ -1215,7 +1218,7 @@ class _SummaryRow extends StatelessWidget {
             fontSize: isTotal ? 18.sp : 14.sp,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
             color: isTotal
-                ? AppColors.primary
+                ? Theme.of(context).colorScheme.primary
                 : (isDiscount
                     ? AppColors.success
                     : (isDark ? DarkColors.textPrimary : LightColors.textPrimary)),
@@ -1245,12 +1248,12 @@ class _OrderInfoCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
                     order.orderType == 'FOOD' ? Icons.restaurant : Icons.local_shipping,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     size: 20.w,
                   ),
                 ),
@@ -1517,20 +1520,20 @@ class _MapActionButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.08),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(4.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12.w, color: AppColors.primary),
+            Icon(icon, size: 12.w, color: Theme.of(context).colorScheme.primary),
             SizedBox(width: 4.w),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -1556,12 +1559,12 @@ class _DriverCard extends StatelessWidget {
             width: 48.w,
             height: 48.w,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               Icons.delivery_dining,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
               size: 24.w,
             ),
           ),

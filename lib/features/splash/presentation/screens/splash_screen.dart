@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,12 +19,10 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _mainController;
-  late AnimationController _shimmerController;
   late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
-  late Animation<double> _shimmerAnimation;
   late Animation<double> _pulseAnimation;
   bool _minimumDelayPassed = false;
   bool _hasNavigated = false;
@@ -38,12 +34,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // Main animation controller for logo entrance
     _mainController = AnimationController(
       duration: const Duration(milliseconds: 1800),
-      vsync: this,
-    );
-
-    // Shimmer effect controller
-    _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -74,23 +64,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     );
 
-    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
-    );
-
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _mainController.forward();
-    _shimmerController.repeat();
-    _pulseController.repeat(reverse: true);
+    // Delay animation start to avoid jank during initial build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _mainController.forward();
+        _pulseController.repeat(reverse: true);
+      }
+    });
 
     // Set minimum delay before navigation can happen
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         _minimumDelayPassed = true;
         _tryNavigate();
+      }
+    });
+
+    // Timeout fallback - if nothing happens in 10 seconds, go to login
+    Future.delayed(const Duration(seconds: 10), () {
+      if (mounted && !_hasNavigated) {
+        print('🟠 [SplashScreen] Timeout reached, forcing navigation to login');
+        _hasNavigated = true;
+        context.go(Routes.login);
       }
     });
   }
@@ -113,13 +112,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
-      // Wait for restaurant state to finish loading
+      // Wait for restaurant state to finish loading (but not indefinitely)
       if (restaurantState is RestaurantInitial || restaurantState is RestaurantLoading) {
         print('🟡 [SplashScreen] Restaurant still loading, waiting...');
         return; // Will be called again when state changes via listener
       }
 
       _hasNavigated = true;
+
+      // Handle restaurant error - go to restaurant selection to retry
+      if (restaurantState is RestaurantError) {
+        print('🟠 [SplashScreen] Restaurant error: ${restaurantState.message}');
+        print('🟢 [SplashScreen] -> Going to restaurant selection');
+        context.go(Routes.restaurantSelection);
+        return;
+      }
 
       // Check if restaurant is selected
       if (restaurantState is RestaurantLoaded &&
@@ -131,6 +138,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go(Routes.restaurantSelection);
       }
     } else {
+      // Handle unauthenticated, error, or any other auth state -> go to login
       print('🟢 [SplashScreen] -> Going to login');
       _hasNavigated = true;
       context.go(Routes.login);
@@ -140,7 +148,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void dispose() {
     _mainController.dispose();
-    _shimmerController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -177,93 +184,88 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             // Animated background circles with green accent
             ..._buildBackgroundCircles(),
 
-            // Main content
+            // Main content - using separate AnimatedBuilders to reduce rebuilds
             Center(
-              child: AnimatedBuilder(
-                animation: Listenable.merge([
-                  _mainController,
-                  _pulseController,
-                  _shimmerController,
-                ]),
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo with animations - no container, blends with background
-                        Transform.translate(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo with slide and scale animations
+                    AnimatedBuilder(
+                      animation: _mainController,
+                      builder: (context, child) {
+                        return Transform.translate(
                           offset: Offset(0, _slideAnimation.value),
                           child: Transform.scale(
-                            scale: _scaleAnimation.value * _pulseAnimation.value,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Logo image - larger and seamless
-                                Image.asset(
-                                  'assets/icons/logo.jpg',
-                                  width: 280.w,
-                                  height: 140.w,
-                                  fit: BoxFit.contain,
-                                ),
-                                // Shimmer overlay
-                                Positioned.fill(
-                                  child: _buildShimmerOverlay(),
-                                ),
-                              ],
-                            ),
+                            scale: _scaleAnimation.value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: RepaintBoundary(
+                        child: Image.asset(
+                          'assets/icons/logo.jpg',
+                          width: 280.w,
+                          height: 140.w,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 32.h),
+
+                    // "Seller" badge with slide animation
+                    AnimatedBuilder(
+                      animation: _mainController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, _slideAnimation.value * 0.5),
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(30.r),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
                         ),
-
-                        SizedBox(height: 32.h),
-
-                        // "Seller" badge with slide animation - green themed
-                        Transform.translate(
-                          offset: Offset(0, _slideAnimation.value * 0.5),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24.w,
-                              vertical: 10.h,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.storefront_rounded,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20.w,
                             ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(30.r),
-                              border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                width: 1.5,
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Seller Portal',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.primary,
+                                letterSpacing: 1.5,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.storefront_rounded,
-                                  color: AppColors.primary,
-                                  size: 20.w,
-                                ),
-                                SizedBox(width: 8.w),
-                                Text(
-                                  'Seller Portal',
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.primary,
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          ],
                         ),
-
-                        SizedBox(height: 60.h),
-
-                        // Loading indicator
-                        _buildLoadingIndicator(),
-                      ],
+                      ),
                     ),
-                  );
-                },
+
+                    SizedBox(height: 60.h),
+
+                    // Loading indicator
+                    _buildLoadingIndicator(),
+                  ],
+                ),
               ),
             ),
           ],
@@ -287,7 +289,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 height: 300.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                 ),
               ),
             );
@@ -307,7 +309,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 height: 400.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.03),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.03),
                 ),
               ),
             );
@@ -322,42 +324,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           height: 150.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primary.withValues(alpha: 0.04),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
           ),
         ),
       ),
     ];
-  }
-
-  Widget _buildShimmerOverlay() {
-    return AnimatedBuilder(
-      animation: _shimmerController,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary.withValues(alpha: 0.0),
-                AppColors.primary.withValues(alpha: 0.15),
-                AppColors.primary.withValues(alpha: 0.0),
-              ],
-              stops: [
-                _shimmerAnimation.value - 0.3,
-                _shimmerAnimation.value,
-                _shimmerAnimation.value + 0.3,
-              ].map((s) => s.clamp(0.0, 1.0)).toList(),
-              transform: GradientRotation(math.pi / 4),
-            ).createShader(bounds);
-          },
-          blendMode: BlendMode.srcATop,
-          child: Container(
-            color: AppColors.primary.withValues(alpha: 0.1),
-          ),
-        );
-      },
-    );
   }
 
   Widget _buildLoadingIndicator() {
@@ -375,7 +346,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.primary.withValues(alpha: 0.8),
+                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -385,7 +356,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.primary.withValues(alpha: 0.6),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
                   letterSpacing: 1,
                 ),
               ),

@@ -484,7 +484,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
           ),
         ),
@@ -522,7 +522,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                   leading: Icon(
                     Icons.location_on_outlined,
                     size: 20.w,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
                     prediction.mainText,
@@ -651,8 +651,8 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                 icon: Icon(Icons.my_location, size: 18.w),
                 label: const Text('Get Location Coordinates'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                  side: BorderSide(color: Theme.of(context).colorScheme.primary),
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                 ),
               ),
@@ -665,19 +665,19 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: AppColors.primary, size: 20.w),
+                  Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 20.w),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       'Location: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -756,7 +756,7 @@ class _AddressField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.r),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
           ),

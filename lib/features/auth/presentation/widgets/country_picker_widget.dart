@@ -199,7 +199,7 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
                         Icon(
                           Icons.check_circle,
                           size: 20.w,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ],
                     ],
@@ -285,7 +285,7 @@ class PhoneInputField extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: const BorderSide(color: AppColors.primary),
+                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),

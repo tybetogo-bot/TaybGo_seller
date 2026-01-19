@@ -576,12 +576,12 @@ class _OrderVerificationScreenState
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitOrder,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   padding: EdgeInsets.symmetric(vertical: 16.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
-                  disabledBackgroundColor: AppColors.primary.withValues(
+                  disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(
                     alpha: 0.5,
                   ),
                 ),
@@ -786,7 +786,7 @@ class _OrderVerificationScreenState
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide(
-            color: isLowConfidence ? AppColors.warning : AppColors.primary,
+            color: isLowConfidence ? AppColors.warning : Theme.of(context).colorScheme.primary,
             width: 2,
           ),
         ),
@@ -810,7 +810,7 @@ class _OrderVerificationScreenState
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
                 child: Text(
@@ -818,7 +818,7 @@ class _OrderVerificationScreenState
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -841,7 +841,7 @@ class _OrderVerificationScreenState
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
             ],

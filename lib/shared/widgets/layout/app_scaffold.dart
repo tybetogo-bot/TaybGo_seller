@@ -108,7 +108,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
                     size: 20.w,
                     color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
                   ),
-                  onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+                  onPressed: onBackPressed ?? () => Navigator.of(context).maybePop(),
                 )
               : null),
       actions: actions,

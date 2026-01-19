@@ -144,7 +144,7 @@ class _IngredientChipsState extends State<IngredientChips> {
                     IconButton(
                       onPressed: () => _addIngredient(_controller.text),
                       style: IconButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.all(10.w),
                       ),
@@ -188,10 +188,10 @@ class _IngredientChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -201,7 +201,7 @@ class _IngredientChip extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 13.sp,
-              color: AppColors.primary,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -212,7 +212,7 @@ class _IngredientChip extends StatelessWidget {
               child: Icon(
                 Icons.close,
                 size: 16.w,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],

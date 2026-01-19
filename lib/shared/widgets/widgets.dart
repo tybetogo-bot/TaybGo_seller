@@ -7,6 +7,9 @@ export 'buttons/app_button.dart';
 // Cards
 export 'cards/app_card.dart';
 
+// Dialogs
+export 'dialogs/unsaved_changes_dialog.dart';
+
 // Feedback
 export 'feedback/app_loading.dart';
 

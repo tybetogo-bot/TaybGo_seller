@@ -50,6 +50,7 @@ class TybeToGoApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    final accentColor = ref.watch(accentColorProvider);
 
     // Watch translations to ensure they reload when locale changes
     ref.watch(translationsLoadedProvider);
@@ -70,9 +71,9 @@ class TybeToGoApp extends ConsumerWidget {
           title: 'TybeToGo Seller',
           debugShowCheckedModeBanner: false,
 
-          // Theme
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
+          // Theme with dynamic accent color
+          theme: AppTheme.lightWithAccent(accentColor),
+          darkTheme: AppTheme.darkWithAccent(accentColor),
           themeMode: themeMode,
 
           // Routing

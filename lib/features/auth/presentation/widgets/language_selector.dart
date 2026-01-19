@@ -89,7 +89,7 @@ class LanguageSelector extends ConsumerWidget {
                 Icon(
                   Icons.check_rounded,
                   size: 18.w,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
             ],
           ),

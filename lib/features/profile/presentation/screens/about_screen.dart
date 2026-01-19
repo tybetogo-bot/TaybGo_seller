@@ -30,7 +30,7 @@ class AboutScreen extends ConsumerWidget {
               width: 80.w,
               height: 80.w,
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(20.r),
               ),
               child: Icon(

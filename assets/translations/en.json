@@ -34,7 +34,8 @@
     "seeAll": "See all",
     "name": "Name",
     "actionCannotBeUndone": "This action cannot be undone.",
-    "version": "Version"
+    "version": "Version",
+    "undo": "Undo"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -174,7 +175,9 @@
     "to": "To",
     "update": "Update",
     "statusUpdatedTo": "Status updated to {status}",
+    "statusReverted": "Status reverted",
     "statusUpdateFailed": "Failed to update order status",
+    "viewDetails": "View Details",
     "rejectConfirmMessage": "Are you sure you want to reject this order? This action cannot be undone.",
     "orderRejectedSuccess": "Order rejected successfully",
     "orderRejectFailed": "Failed to reject order",
@@ -382,7 +385,13 @@
     "preparationTime": "Prep Time",
     "basicInfo": "Basic Information",
     "additionalPrice": "Additional Price",
-    "imagePickerComingSoon": "Image picker coming soon"
+    "imagePickerComingSoon": "Image picker coming soon",
+    "itemMarkedAvailable": "Item marked as available",
+    "itemMarkedUnavailable": "Item marked as unavailable",
+    "availabilityReverted": "Availability reverted",
+    "markAvailable": "Mark Available",
+    "markUnavailable": "Mark Unavailable",
+    "viewItem": "View Item"
   },
   "coupons": {
     "title": "Coupons",
@@ -429,6 +438,15 @@
     "restaurantSettings": "Restaurant Settings",
     "statistics": "Statistics",
     "currency": "Currency",
+    "accentColor": "Accent Color",
+    "accentColor_green": "Green",
+    "accentColor_blue": "Blue",
+    "accentColor_purple": "Purple",
+    "accentColor_orange": "Orange",
+    "accentColor_red": "Red",
+    "accentColor_teal": "Teal",
+    "accentColor_pink": "Pink",
+    "accentColor_indigo": "Indigo",
     "restaurantStatus": "Restaurant Status",
     "acceptingOrders": "Currently accepting orders",
     "notAcceptingOrders": "Not accepting orders",
@@ -605,5 +623,11 @@
   "restaurantStatus": {
     "pendingApproval": "Restaurant pending approval",
     "inactive": "Restaurant is inactive"
+  },
+  "unsavedChanges": {
+    "title": "Unsaved Changes",
+    "message": "You have unsaved changes. Are you sure you want to discard them?",
+    "keepEditing": "Keep Editing",
+    "discard": "Discard"
   }
 }

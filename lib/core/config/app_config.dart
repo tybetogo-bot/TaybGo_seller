@@ -13,7 +13,7 @@ class AppConfig {
   // API Configuration
   static const String baseUrl = 'https://taybat-backend.onrender.com';
   static const String stagingUrl = 'https://taybat-backend.onrender.com';
-  static const Duration apiTimeout = Duration(seconds: 30);
+  static const Duration apiTimeout = Duration(seconds: 15);
 
   // Pagination
   static const int defaultPageSize = 20;

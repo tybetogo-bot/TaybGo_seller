@@ -1,6 +1,7 @@
 /// Theme barrel file
 library;
 
+export 'accent_color_provider.dart';
 export 'app_colors.dart';
 export 'app_shadows.dart';
 export 'app_spacing.dart';

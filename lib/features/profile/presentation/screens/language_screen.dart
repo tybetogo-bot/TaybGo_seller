@@ -64,7 +64,7 @@ class LanguageScreen extends ConsumerWidget {
               ),
             ),
             trailing: isSelected
-                ? Icon(Icons.check_circle, color: AppColors.primary, size: 24.w)
+                ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 24.w)
                 : Icon(
                     Icons.circle_outlined,
                     color: isDark ? DarkColors.border : LightColors.border,

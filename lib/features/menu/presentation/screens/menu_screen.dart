@@ -7,6 +7,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/menu_notifier.dart';
+import '../widgets/swipeable_menu_item_card.dart';
 
 /// Menu management screen - connected to API
 class MenuScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class MenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final menuState = ref.watch(menuProvider);
     final categories = menuState.categories;
     final items = menuState.filteredItems;
@@ -71,7 +73,7 @@ class MenuScreen extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primary
+                                  ? primaryColor
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(20.r),
                               border: isSelected
@@ -116,7 +118,7 @@ class MenuScreen extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primary
+                                ? primaryColor
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(20.r),
                             border: isSelected
@@ -250,15 +252,9 @@ class MenuScreen extends ConsumerWidget {
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    return _MenuItemRow(
+                    return SwipeableMenuItemCard(
                       item: item,
-                      isDark: isDark,
                       onTap: () => context.push(Routes.menuItemPath(item.id)),
-                      onToggle: (val) {
-                        ref
-                            .read(menuProvider.notifier)
-                            .toggleItemAvailability(item.id);
-                      },
                     );
                   },
                 ),
@@ -270,106 +266,3 @@ class MenuScreen extends ConsumerWidget {
   }
 }
 
-class _MenuItemRow extends StatelessWidget {
-  const _MenuItemRow({
-    required this.item,
-    required this.isDark,
-    required this.onTap,
-    required this.onToggle,
-  });
-
-  final dynamic item; // MenuItemModel
-  final bool isDark;
-  final VoidCallback onTap;
-  final ValueChanged<bool> onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 8.h),
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: isDark ? DarkColors.surface : LightColors.surface,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(
-            color: isDark ? DarkColors.border : LightColors.border,
-            width: 0.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Small image placeholder
-            Container(
-              width: 48.w,
-              height: 48.w,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? DarkColors.background
-                    : LightColors.background,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: item.imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.network(
-                        item.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.restaurant,
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                        ),
-                      ),
-                    )
-                  : Icon(
-                      Icons.restaurant,
-                      color: isDark
-                          ? DarkColors.textSecondary
-                          : LightColors.textSecondary,
-                    ),
-            ),
-            SizedBox(width: 12.w),
-
-            // Name and price
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? DarkColors.textPrimary
-                          : LightColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    '€${item.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Availability toggle
-            Switch(
-              value: item.isAvailable,
-              onChanged: onToggle,
-              activeTrackColor: AppColors.success,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

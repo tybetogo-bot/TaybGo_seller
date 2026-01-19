@@ -34,7 +34,8 @@
     "seeAll": "Alle anzeigen",
     "name": "Name",
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
-    "version": "Version"
+    "version": "Version",
+    "undo": "Rückgängig"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -171,7 +172,9 @@
     "to": "Nach",
     "update": "Aktualisieren",
     "statusUpdatedTo": "Status aktualisiert auf {status}",
+    "statusReverted": "Status zurückgesetzt",
     "statusUpdateFailed": "Status konnte nicht aktualisiert werden",
+    "viewDetails": "Details anzeigen",
     "rejectConfirmMessage": "Sind Sie sicher, dass Sie diese Bestellung ablehnen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "orderRejectedSuccess": "Bestellung erfolgreich abgelehnt",
     "orderRejectFailed": "Bestellung konnte nicht abgelehnt werden",
@@ -367,7 +370,13 @@
     "preparationTime": "Zubereitung",
     "basicInfo": "Grundinfo",
     "additionalPrice": "Aufpreis",
-    "imagePickerComingSoon": "Bildauswahl kommt bald"
+    "imagePickerComingSoon": "Bildauswahl kommt bald",
+    "itemMarkedAvailable": "Artikel als verfügbar markiert",
+    "itemMarkedUnavailable": "Artikel als nicht verfügbar markiert",
+    "availabilityReverted": "Verfügbarkeit zurückgesetzt",
+    "markAvailable": "Verfügbar machen",
+    "markUnavailable": "Nicht verfügbar machen",
+    "viewItem": "Artikel anzeigen"
   },
   "coupons": {
     "title": "Gutscheine",
@@ -414,6 +423,15 @@
     "restaurantSettings": "Restaurant-Einst.",
     "statistics": "Statistiken",
     "currency": "Währung",
+    "accentColor": "Akzentfarbe",
+    "accentColor_green": "Grün",
+    "accentColor_blue": "Blau",
+    "accentColor_purple": "Lila",
+    "accentColor_orange": "Orange",
+    "accentColor_red": "Rot",
+    "accentColor_teal": "Blaugrün",
+    "accentColor_pink": "Rosa",
+    "accentColor_indigo": "Indigo",
     "restaurantStatus": "Restaurant-Status",
     "acceptingOrders": "Nimmt Bestellungen an",
     "notAcceptingOrders": "Nimmt keine Bestellungen an",
@@ -590,5 +608,11 @@
   "restaurantStatus": {
     "pendingApproval": "Restaurant wartet auf Genehmigung",
     "inactive": "Restaurant ist inaktiv"
+  },
+  "unsavedChanges": {
+    "title": "Ungespeicherte Änderungen",
+    "message": "Sie haben ungespeicherte Änderungen. Möchten Sie diese wirklich verwerfen?",
+    "keepEditing": "Weiter bearbeiten",
+    "discard": "Verwerfen"
   }
 }

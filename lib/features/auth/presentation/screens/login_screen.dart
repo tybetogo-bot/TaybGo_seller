@@ -103,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             borderRadius: BorderRadius.circular(18.r),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.2),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -186,9 +186,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: ElevatedButton(
                           onPressed: isLoading ? null : _handleRequestOtp,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.r),
@@ -236,7 +236,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     TextSpan(
                       text: 'auth.termsOfService'.tr,
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -244,7 +244,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     TextSpan(
                       text: 'auth.privacyPolicy'.tr,
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

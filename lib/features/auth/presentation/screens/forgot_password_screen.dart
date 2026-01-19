@@ -72,13 +72,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               width: 80.w,
               height: 80.w,
               decoration: BoxDecoration(
-                color: AppColors.primary[50],
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20.r),
               ),
               child: Icon(
                 Icons.lock_reset_rounded,
                 size: 40.w,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
@@ -195,7 +195,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               'Didn\'t receive email? Try again',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ),

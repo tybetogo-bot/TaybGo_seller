@@ -9,16 +9,19 @@ import '../data/datasources/orders_remote_data_source.dart';
 import '../data/models/order_model.dart';
 import '../data/repositories/orders_repository.dart';
 
-/// Orders state
+/// Orders state with cached filtered lists for performance
 class OrdersState {
-  const OrdersState({
+  OrdersState({
     this.orders = const [],
     this.isLoading = false,
     this.error,
     this.currentPage = 1,
     this.hasMorePages = true,
     this.searchQuery = '',
-  });
+  }) {
+    // Pre-compute filtered lists once during construction
+    _computeFilteredLists();
+  }
 
   final List<OrderModel> orders;
   final bool isLoading;
@@ -26,6 +29,58 @@ class OrdersState {
   final int currentPage;
   final bool hasMorePages;
   final String searchQuery;
+
+  // Cached filtered lists
+  late final List<OrderModel> _pendingOrders;
+  late final List<OrderModel> _activeOrders;
+  late final List<OrderModel> _completedOrders;
+
+  void _computeFilteredLists() {
+    final query = searchQuery.toLowerCase();
+    final bool hasSearch = searchQuery.isNotEmpty;
+
+    final pending = <OrderModel>[];
+    final active = <OrderModel>[];
+    final completed = <OrderModel>[];
+
+    for (final order in orders) {
+      // Apply search filter once
+      if (hasSearch && !_matchesSearch(order, query)) continue;
+
+      // Categorize by status
+      switch (order.status) {
+        case OrderStatusEnum.pending:
+        case OrderStatusEnum.searchingForDriver:
+          pending.add(order);
+        case OrderStatusEnum.accepted:
+        case OrderStatusEnum.driverNotificationSent:
+        case OrderStatusEnum.onTheWay:
+          active.add(order);
+        case OrderStatusEnum.delivered:
+        case OrderStatusEnum.completed:
+        case OrderStatusEnum.rejected:
+        case OrderStatusEnum.cancelled:
+          completed.add(order);
+      }
+    }
+
+    _pendingOrders = pending;
+    _activeOrders = active;
+    _completedOrders = completed;
+  }
+
+  bool _matchesSearch(OrderModel order, String query) {
+    if (order.id.toLowerCase().contains(query)) return true;
+    if (order.customerName.toLowerCase().contains(query)) return true;
+    if (order.phoneNumber.contains(query)) return true;
+    if (order.items.any((item) => item.name.toLowerCase().contains(query))) {
+      return true;
+    }
+    if (order.restaurant?.name.toLowerCase().contains(query) ?? false) {
+      return true;
+    }
+    return false;
+  }
 
   OrdersState copyWith({
     List<OrderModel>? orders,
@@ -46,51 +101,10 @@ class OrdersState {
     );
   }
 
-  /// Filter orders by search query
-  List<OrderModel> _filterBySearch(List<OrderModel> orderList) {
-    if (searchQuery.isEmpty) return orderList;
-
-    final query = searchQuery.toLowerCase();
-    return orderList.where((order) {
-      // Search by order ID
-      if (order.id.toLowerCase().contains(query)) return true;
-      // Search by customer name
-      if (order.customerName.toLowerCase().contains(query)) return true;
-      // Search by phone number
-      if (order.phoneNumber.contains(query)) return true;
-      // Search by item names
-      if (order.items.any((item) => item.name.toLowerCase().contains(query))) {
-        return true;
-      }
-      // Search by restaurant name
-      if (order.restaurant?.name.toLowerCase().contains(query) ?? false) {
-        return true;
-      }
-      return false;
-    }).toList();
-  }
-
-  /// Get orders by status (filtered by search)
-  List<OrderModel> get pendingOrders => _filterBySearch(
-      orders.where((o) =>
-          o.status == OrderStatusEnum.pending ||
-          o.status == OrderStatusEnum.searchingForDriver
-      ).toList());
-
-  List<OrderModel> get activeOrders => _filterBySearch(orders
-      .where((o) =>
-          o.status == OrderStatusEnum.accepted ||
-          o.status == OrderStatusEnum.driverNotificationSent ||
-          o.status == OrderStatusEnum.onTheWay)
-      .toList());
-
-  List<OrderModel> get completedOrders => _filterBySearch(orders
-      .where((o) =>
-          o.status == OrderStatusEnum.delivered ||
-          o.status == OrderStatusEnum.completed ||
-          o.status == OrderStatusEnum.rejected ||
-          o.status == OrderStatusEnum.cancelled)
-      .toList());
+  /// Cached getters - no computation on access
+  List<OrderModel> get pendingOrders => _pendingOrders;
+  List<OrderModel> get activeOrders => _activeOrders;
+  List<OrderModel> get completedOrders => _completedOrders;
 }
 
 /// Orders notifier for managing order state (Riverpod 3.x)
@@ -110,7 +124,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
     // Load initial orders
     Future.microtask(() => _loadOrders());
-    return const OrdersState(isLoading: true);
+    return OrdersState(isLoading: true);
   }
 
   /// Load orders from API
@@ -334,6 +348,12 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
     // Convert enum to API status string
     final statusString = _statusToApiString(nextStatus);
+    return _updateStatus(orderId, statusString);
+  }
+
+  /// Update order to a specific status (used for undo functionality)
+  Future<bool> updateToStatus(String orderId, OrderStatusEnum status) async {
+    final statusString = _statusToApiString(status);
     return _updateStatus(orderId, statusString);
   }
 

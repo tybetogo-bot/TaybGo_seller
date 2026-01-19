@@ -235,9 +235,9 @@ class _CustomizationSection extends StatelessWidget {
               if (onAdd != null)
                 IconButton(
                   onPressed: onAdd,
-                  icon: Icon(Icons.add, color: AppColors.primary),
+                  icon: Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   ),
                   iconSize: 20.w,
                 ),

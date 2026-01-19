@@ -15,6 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeMode = ref.watch(themeProvider);
+    final accentColor = ref.watch(accentColorProvider);
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -36,6 +37,12 @@ class SettingsScreen extends ConsumerWidget {
                       ? 'settings.lightMode'.tr
                       : 'settings.systemMode'.tr),
             onTap: () => _showThemeDialog(context, ref, themeMode),
+            isDark: isDark,
+          ),
+          _AccentColorTile(
+            title: 'settings.accentColor'.tr,
+            currentColor: accentColor,
+            onTap: () => _showAccentColorDialog(context, ref, accentColor),
             isDark: isDark,
           ),
           _SettingsTile(
@@ -90,7 +97,7 @@ class SettingsScreen extends ConsumerWidget {
                   current == AppThemeMode.light
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 12),
                 Text('settings.lightMode'.tr),
@@ -108,7 +115,7 @@ class SettingsScreen extends ConsumerWidget {
                   current == AppThemeMode.dark
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 12),
                 Text('settings.darkMode'.tr),
@@ -126,7 +133,7 @@ class SettingsScreen extends ConsumerWidget {
                   current == AppThemeMode.system
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 12),
                 Text('settings.systemMode'.tr),
@@ -135,6 +142,98 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showAccentColorDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AccentColor current,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text('settings.accentColor'.tr),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: AppColors.presetAccentColors.map((accent) {
+                final isSelected = accent.name == current.name;
+                return GestureDetector(
+                  onTap: () {
+                    ref.read(accentColorProvider.notifier).setAccentColor(accent);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: accent.color,
+                      shape: BoxShape.circle,
+                      border: isSelected
+                          ? Border.all(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                              width: 3,
+                            )
+                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.color.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 24)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccentColorTile extends StatelessWidget {
+  const _AccentColorTile({
+    required this.title,
+    required this.currentColor,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  final String title;
+  final AccentColor currentColor;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: currentColor.color,
+          shape: BoxShape.circle,
+        ),
+      ),
+      title: Text(title),
+      subtitle: Text('settings.accentColor_${currentColor.name}'.tr),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+      ),
+      onTap: onTap,
     );
   }
 }

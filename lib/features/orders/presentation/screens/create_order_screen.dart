@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
@@ -27,7 +28,8 @@ class CreateOrderScreen extends ConsumerStatefulWidget {
   ConsumerState<CreateOrderScreen> createState() => _CreateOrderScreenState();
 }
 
-class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
+class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
+    with UnsavedChangesMixin {
   final _formKey = GlobalKey<FormState>();
   final _customerNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -43,6 +45,19 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   String? _selectedCouponId;
   VehicleType? _selectedVehicleType = VehicleType.bike;
   VehicleType? _selectedDeliveryType = VehicleType.bike;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupChangeListeners();
+  }
+
+  void _setupChangeListeners() {
+    _customerNameController.addListener(markAsChanged);
+    _phoneController.addListener(markAsChanged);
+    _deliveryFeeController.addListener(markAsChanged);
+    _tipsController.addListener(markAsChanged);
+  }
 
   @override
   void dispose() {
@@ -93,6 +108,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           setState(() {
             _orderItems.add(item);
           });
+          markAsChanged();
         },
       ),
     );
@@ -102,6 +118,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     setState(() {
       _orderItems.removeAt(index);
     });
+    markAsChanged();
   }
 
   void _updateItemQuantity(int index, int delta) {
@@ -114,6 +131,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         _orderItems.removeAt(index);
       }
     });
+    markAsChanged();
   }
 
   void _updateItemNotes(int index, String? notes) {
@@ -121,6 +139,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       final item = _orderItems[index];
       _orderItems[index] = item.copyWith(notes: notes);
     });
+    markAsChanged();
   }
 
   /// Fill form with scanned data from AI scan
@@ -335,6 +354,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         // Refresh the orders list so the new order appears immediately
         ref.read(ordersProvider.notifier).refreshOrders();
 
+        markAsSaved();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -368,7 +388,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return AppScaffold(
+    return buildWithUnsavedChangesGuard(
+      child: AppScaffold(
       appBar: AppAppBar(
         title: 'orders.createOrder'.tr,
         actions: [
@@ -470,7 +491,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -502,6 +523,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   setState(() {
                     _selectedAddress = address;
                   });
+                  markAsChanged();
                 },
               ),
 
@@ -557,6 +579,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         setState(() {
                           _selectedVehicleType = value;
                         });
+                        markAsChanged();
                       },
                       isDark: isDark,
                     ),
@@ -570,6 +593,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         setState(() {
                           _selectedDeliveryType = value;
                         });
+                        markAsChanged();
                       },
                       isDark: isDark,
                     ),
@@ -591,6 +615,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   setState(() {
                     _selectedCouponId = value;
                   });
+                  markAsChanged();
                 },
                 isDark: isDark,
               ),
@@ -641,6 +666,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     setState(() {
                       _isPaid = value ?? false;
                     });
+                    markAsChanged();
                   },
                   title: Text(
                     'orders.isPaid'.tr,
@@ -727,7 +753,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           style: TextStyle(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ],
@@ -749,6 +775,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -833,7 +860,7 @@ class _VehicleTypeDropdown extends StatelessWidget {
                       Icon(
                         _getVehicleIcon(type),
                         size: 20.w,
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       SizedBox(width: 8.w),
                       Text(
@@ -888,8 +915,8 @@ class _ScanOrderCard extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.primary,
-              AppColors.primary.withValues(alpha: 0.8),
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -897,7 +924,7 @@ class _ScanOrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -1327,7 +1354,7 @@ class _OrderItemCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               IconButton(
@@ -1348,7 +1375,7 @@ class _OrderItemCard extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Row(
@@ -1356,7 +1383,7 @@ class _OrderItemCard extends StatelessWidget {
                   Icon(
                     Icons.note_alt_outlined,
                     size: 14.w,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   SizedBox(width: 4.w),
                   Expanded(
@@ -1364,7 +1391,7 @@ class _OrderItemCard extends StatelessWidget {
                       item.notes!,
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -1738,7 +1765,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                   : LightColors.backgroundSecondary,
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -1756,12 +1783,12 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                         width: 60.w,
                         height: 60.w,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(
                           Icons.restaurant,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 30.w,
                         ),
                       ),
@@ -1772,12 +1799,12 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                     width: 60.w,
                     height: 60.w,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(
                       Icons.restaurant,
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 30.w,
                     ),
                   ),
@@ -1816,7 +1843,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -1948,12 +1975,12 @@ class _MenuItemTile extends StatelessWidget {
                     width: 50.w,
                     height: 50.w,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(
                       Icons.restaurant,
-                      color: AppColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 24.w,
                     ),
                   ),
@@ -1963,12 +1990,12 @@ class _MenuItemTile extends StatelessWidget {
                 width: 50.w,
                 height: 50.w,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Icon(
                   Icons.restaurant,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 24.w,
                 ),
               ),
@@ -1994,7 +2021,7 @@ class _MenuItemTile extends StatelessWidget {
           '€${item.price.toStringAsFixed(2)}',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.primary,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
       ),

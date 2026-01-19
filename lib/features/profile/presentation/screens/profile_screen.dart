@@ -19,6 +19,7 @@ class ProfileScreen extends ConsumerWidget {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeMode = ref.watch(themeProvider);
+    final accentColor = ref.watch(accentColorProvider);
 
     // Get user profile and restaurant data
     final userProfileState = ref.watch(userProfileProvider);
@@ -96,6 +97,11 @@ class ProfileScreen extends ConsumerWidget {
               },
             ),
           ),
+          _AccentColorRow(
+            accentColor: accentColor,
+            isDark: isDark,
+            onTap: () => _showAccentColorPicker(context, ref, accentColor),
+          ),
           _SettingRow(
             icon: Icons.language_outlined,
             label: 'settings.language'.tr,
@@ -166,6 +172,149 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+
+  void _showAccentColorPicker(
+    BuildContext context,
+    WidgetRef ref,
+    AccentColor current,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'settings.accentColor'.tr,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Wrap(
+              spacing: 16.w,
+              runSpacing: 16.h,
+              children: AppColors.presetAccentColors.map((accent) {
+                final isSelected = accent.name == current.name;
+                return GestureDetector(
+                  onTap: () {
+                    ref.read(accentColorProvider.notifier).setAccentColor(accent);
+                    Navigator.pop(context);
+                  },
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 48.w,
+                        height: 48.w,
+                        decoration: BoxDecoration(
+                          color: accent.color,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  width: 3,
+                                )
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.color.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check, color: Colors.white, size: 24)
+                            : null,
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        'settings.accentColor_${accent.name}'.tr,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16.h),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AccentColorRow extends StatelessWidget {
+  const _AccentColorRow({
+    required this.accentColor,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final AccentColor accentColor;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        child: Row(
+          children: [
+            Container(
+              width: 20.w,
+              height: 20.w,
+              decoration: BoxDecoration(
+                color: accentColor.color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'settings.accentColor'.tr,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : LightColors.textPrimary,
+                ),
+              ),
+            ),
+            Text(
+              'settings.accentColor_${accentColor.name}'.tr,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? DarkColors.textTertiary
+                    : LightColors.textTertiary,
+              ),
+            ),
+            SizedBox(width: 4.w),
+            Icon(
+              Icons.chevron_right,
+              size: 18.w,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _ProfileCard extends StatelessWidget {
@@ -183,6 +332,8 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
@@ -199,13 +350,13 @@ class _ProfileCard extends StatelessWidget {
             width: 50.w,
             height: 50.w,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
               Icons.storefront_rounded,
               size: 24.w,
-              color: AppColors.primary,
+              color: primaryColor,
             ),
           ),
           SizedBox(width: 12.w),
@@ -240,7 +391,7 @@ class _ProfileCard extends StatelessWidget {
             child: Icon(
               Icons.edit_outlined,
               size: 18.w,
-              color: AppColors.primary,
+              color: primaryColor,
             ),
           ),
         ],
@@ -266,6 +417,8 @@ class _QuickStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -273,7 +426,7 @@ class _QuickStat extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
             color: isAction
-                ? AppColors.primary.withValues(alpha: 0.1)
+                ? primaryColor.withValues(alpha: 0.1)
                 : (isDark
                       ? DarkColors.surface
                       : LightColors.backgroundSecondary),
@@ -287,7 +440,7 @@ class _QuickStat extends StatelessWidget {
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
                   color: isAction
-                      ? AppColors.primary
+                      ? primaryColor
                       : (isDark
                             ? DarkColors.textPrimary
                             : LightColors.textPrimary),

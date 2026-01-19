@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
 import '../widgets/ingredient_chips.dart';
@@ -19,7 +20,8 @@ class AddMenuItemScreen extends ConsumerStatefulWidget {
   ConsumerState<AddMenuItemScreen> createState() => _AddMenuItemScreenState();
 }
 
-class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
+class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
+    with UnsavedChangesMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -32,15 +34,30 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
   List<String> _ingredients = [];
   List<CustomizationOption> _customizations = [];
   String? _imageUrl;
+  bool _initialDataLoaded = false;
 
   bool get _isEditing => widget.itemId != null;
 
   @override
   void initState() {
     super.initState();
+    _setupChangeListeners();
     if (_isEditing) {
       _loadExistingItem();
+    } else {
+      _initialDataLoaded = true;
     }
+  }
+
+  void _setupChangeListeners() {
+    void onChange() {
+      if (_initialDataLoaded) markAsChanged();
+    }
+
+    _nameController.addListener(onChange);
+    _descriptionController.addListener(onChange);
+    _priceController.addListener(onChange);
+    _prepTimeController.addListener(onChange);
   }
 
   void _loadExistingItem() {
@@ -57,7 +74,10 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
           _ingredients = List.from(item.ingredients);
           _customizations = List.from(item.customizations);
           _imageUrl = item.imageUrl;
+          _initialDataLoaded = true;
         });
+      } else {
+        _initialDataLoaded = true;
       }
     });
   }
@@ -83,7 +103,8 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
       _selectedCategoryId = categories.first.id;
     }
 
-    return Scaffold(
+    return buildWithUnsavedChangesGuard(
+      child: Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
         title: Text(_isEditing ? 'menu.editItem'.tr : 'menu.addItem'.tr),
@@ -180,7 +201,10 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
                   )
                   .toList(),
               onChanged: (value) {
-                if (value != null) setState(() => _selectedCategoryId = value);
+                if (value != null) {
+                  setState(() => _selectedCategoryId = value);
+                  if (_initialDataLoaded) markAsChanged();
+                }
               },
             ),
             SizedBox(height: 24.h),
@@ -192,8 +216,10 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
             // Ingredients section
             IngredientChips(
               ingredients: _ingredients,
-              onChanged: (ingredients) =>
-                  setState(() => _ingredients = ingredients),
+              onChanged: (ingredients) {
+                setState(() => _ingredients = ingredients);
+                if (_initialDataLoaded) markAsChanged();
+              },
             ),
             SizedBox(height: 32.h),
 
@@ -210,7 +236,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _saveItem,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   padding: EdgeInsets.symmetric(vertical: 16.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -235,6 +261,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -308,7 +335,10 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
           Switch.adaptive(
             value: _isAvailable,
             activeColor: AppColors.success,
-            onChanged: (value) => setState(() => _isAvailable = value),
+            onChanged: (value) {
+              setState(() => _isAvailable = value);
+              if (_initialDataLoaded) markAsChanged();
+            },
           ),
         ],
       ),
@@ -339,7 +369,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
       ),
     );
   }
@@ -387,6 +417,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
       }
 
       if (mounted) {
+        markAsSaved();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isEditing ? 'menu.itemUpdated'.tr : 'menu.itemAdded'.tr)),
@@ -421,6 +452,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen> {
               Navigator.pop(context);
               await ref.read(menuProvider.notifier).deleteItem(widget.itemId!);
               if (mounted) {
+                markAsSaved();
                 context.pop();
                 ScaffoldMessenger.of(
                   context,

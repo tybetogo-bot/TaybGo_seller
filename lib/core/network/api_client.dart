@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
+import 'interceptors/retry_interceptor.dart';
 
 /// Creates and configures the Dio instance for API calls
 class ApiClient {
@@ -45,6 +46,7 @@ class ApiClient {
     // Add interceptors
     _dio!.interceptors.addAll([
       AuthInterceptor(prefs, onUnauthorized: _onUnauthorized),
+      RetryInterceptor(dio: _dio!, maxRetries: 2),
       ErrorInterceptor(),
       if (AppConfig.isDevelopment)
         PrettyDioLogger(

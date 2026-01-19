@@ -178,10 +178,11 @@ class _AppTextFieldState extends State<AppTextField> {
   }
 
   OutlineInputBorder _buildBorder(bool isDark, bool isFocused) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(widget.borderRadius ?? AppSpacing.radiusMd),
       borderSide: BorderSide(
-        color: isFocused ? AppColors.primary : (isDark ? DarkColors.border : LightColors.border),
+        color: isFocused ? primaryColor : (isDark ? DarkColors.border : LightColors.border),
         width: isFocused ? 1.5 : 1,
       ),
     );

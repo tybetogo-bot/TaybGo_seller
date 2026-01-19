@@ -9,6 +9,7 @@ abstract class StorageKeys {
   static const String userId = 'user_id';
   static const String userRole = 'user_role';
   static const String themeMode = 'theme_mode';
+  static const String accentColor = 'accent_color';
   static const String locale = 'locale';
   static const String currency = 'currency';
   static const String onboardingComplete = 'onboarding_complete';

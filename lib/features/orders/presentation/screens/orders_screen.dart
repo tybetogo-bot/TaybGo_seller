@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,6 +25,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   late TabController _tabController;
   final _searchController = TextEditingController();
   bool _isRefreshing = false;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -55,6 +58,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     // Stop polling when screen is disposed
     ref.read(ordersPollingProvider.notifier).stop();
     WidgetsBinding.instance.removeObserver(this);
+    _searchDebounce?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -75,6 +79,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final ordersState = ref.watch(ordersProvider);
 
     return Scaffold(
@@ -107,11 +112,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
+          labelColor: primaryColor,
           unselectedLabelColor: isDark
               ? DarkColors.textSecondary
               : LightColors.textSecondary,
-          indicatorColor: AppColors.primary,
+          indicatorColor: primaryColor,
           indicatorSize: TabBarIndicatorSize.label,
           dividerColor: Colors.transparent,
           tabs: [
@@ -153,7 +158,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) {
-                      ref.read(ordersProvider.notifier).setSearchQuery(value);
+                      // Debounce search to avoid filtering on every keystroke
+                      _searchDebounce?.cancel();
+                      _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                        ref.read(ordersProvider.notifier).setSearchQuery(value);
+                      });
                     },
                     decoration: InputDecoration(
                       hintText: 'orders.searchHint'.tr,
@@ -204,7 +213,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.r),
                         borderSide: BorderSide(
-                          color: AppColors.primary,
+                          color: primaryColor,
                           width: 1.5,
                         ),
                       ),
@@ -262,7 +271,7 @@ class _TabBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: Text(
@@ -313,28 +322,17 @@ class _OrdersList extends StatelessWidget {
       );
     }
 
-    return AnimatedList(
-      key: ValueKey(orders.length),
-      initialItemCount: orders.length,
+    return ListView.builder(
       padding: EdgeInsets.all(16.w),
-      itemBuilder: (context, index, animation) {
-        if (index >= orders.length) return const SizedBox.shrink();
-        
+      itemCount: orders.length,
+      // Use itemExtent for better performance if cards have fixed height
+      itemBuilder: (context, index) {
         final order = orders[index];
-        return SlideTransition(
-          position: animation.drive(
-            Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).chain(CurveTween(curve: Curves.easeOutCubic)),
-          ),
-          child: FadeTransition(
-            opacity: animation,
-            child: AnimatedOrderCard(
-              key: ValueKey(order.id),
-              order: order,
-              onTap: () => context.push(Routes.orderDetailsPath(order.id)),
-            ),
+        return RepaintBoundary(
+          child: AnimatedOrderCard(
+            key: ValueKey(order.id),
+            order: order,
+            onTap: () => context.push(Routes.orderDetailsPath(order.id)),
           ),
         );
       },

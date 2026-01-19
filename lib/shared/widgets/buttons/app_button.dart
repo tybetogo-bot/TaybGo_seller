@@ -63,10 +63,11 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildPrimaryButton(BuildContext context, bool isEnabled) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return ElevatedButton(
       onPressed: isEnabled ? onPressed : null,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
+        backgroundColor: primaryColor,
         foregroundColor: AppColors.white,
         disabledBackgroundColor: AppColors.neutral[300],
         disabledForegroundColor: AppColors.neutral[500],
@@ -81,11 +82,12 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildSecondaryButton(BuildContext context, bool isEnabled) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return ElevatedButton(
       onPressed: isEnabled ? onPressed : null,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary[50],
-        foregroundColor: AppColors.primary,
+        backgroundColor: primaryColor.withValues(alpha: 0.1),
+        foregroundColor: primaryColor,
         disabledBackgroundColor: AppColors.neutral[100],
         disabledForegroundColor: AppColors.neutral[400],
         elevation: 0,
@@ -94,41 +96,43 @@ class AppButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius ?? AppSpacing.radiusMd),
         ),
       ),
-      child: _buildContent(AppColors.primary),
+      child: _buildContent(primaryColor),
     );
   }
 
   Widget _buildOutlineButton(BuildContext context, bool isEnabled) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return OutlinedButton(
       onPressed: isEnabled ? onPressed : null,
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
+        foregroundColor: primaryColor,
         disabledForegroundColor: AppColors.neutral[400],
         padding: _getPadding(),
         side: BorderSide(
-          color: isEnabled ? AppColors.primary : AppColors.neutral[300]!,
+          color: isEnabled ? primaryColor : AppColors.neutral[300]!,
           width: 1.5,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? AppSpacing.radiusMd),
         ),
       ),
-      child: _buildContent(isEnabled ? AppColors.primary : AppColors.neutral[400]!),
+      child: _buildContent(isEnabled ? primaryColor : AppColors.neutral[400]!),
     );
   }
 
   Widget _buildTextButton(BuildContext context, bool isEnabled) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return TextButton(
       onPressed: isEnabled ? onPressed : null,
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
+        foregroundColor: primaryColor,
         disabledForegroundColor: AppColors.neutral[400],
         padding: _getPadding(),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius ?? AppSpacing.radiusMd),
         ),
       ),
-      child: _buildContent(isEnabled ? AppColors.primary : AppColors.neutral[400]!),
+      child: _buildContent(isEnabled ? primaryColor : AppColors.neutral[400]!),
     );
   }
 

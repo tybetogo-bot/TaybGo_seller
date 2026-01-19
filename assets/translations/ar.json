@@ -34,7 +34,8 @@
     "seeAll": "عرض الكل",
     "name": "الاسم",
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
-    "version": "الإصدار"
+    "version": "الإصدار",
+    "undo": "تراجع"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -171,7 +172,9 @@
     "to": "إلى",
     "update": "تحديث",
     "statusUpdatedTo": "تم تحديث الحالة إلى {status}",
+    "statusReverted": "تم إرجاع الحالة",
     "statusUpdateFailed": "فشل تحديث حالة الطلب",
+    "viewDetails": "عرض التفاصيل",
     "rejectConfirmMessage": "هل أنت متأكد من رفض هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.",
     "orderRejectedSuccess": "تم رفض الطلب بنجاح",
     "orderRejectFailed": "فشل رفض الطلب",
@@ -379,7 +382,13 @@
     "preparationTime": "وقت التحضير",
     "basicInfo": "معلومات أساسية",
     "additionalPrice": "سعر إضافي",
-    "imagePickerComingSoon": "قريباً"
+    "imagePickerComingSoon": "قريباً",
+    "itemMarkedAvailable": "تم تحديد العنصر كمتاح",
+    "itemMarkedUnavailable": "تم تحديد العنصر كغير متاح",
+    "availabilityReverted": "تم إرجاع حالة التوفر",
+    "markAvailable": "جعله متاحاً",
+    "markUnavailable": "جعله غير متاح",
+    "viewItem": "عرض العنصر"
   },
   "coupons": {
     "title": "الكوبونات",
@@ -426,6 +435,15 @@
     "restaurantSettings": "إعدادات المطعم",
     "statistics": "الإحصائيات",
     "currency": "العملة",
+    "accentColor": "لون التمييز",
+    "accentColor_green": "أخضر",
+    "accentColor_blue": "أزرق",
+    "accentColor_purple": "بنفسجي",
+    "accentColor_orange": "برتقالي",
+    "accentColor_red": "أحمر",
+    "accentColor_teal": "أزرق مخضر",
+    "accentColor_pink": "وردي",
+    "accentColor_indigo": "نيلي",
     "restaurantStatus": "حالة المطعم",
     "acceptingOrders": "يقبل الطلبات",
     "notAcceptingOrders": "مغلق",
@@ -602,5 +620,11 @@
   "restaurantStatus": {
     "pendingApproval": "المطعم في انتظار الموافقة",
     "inactive": "المطعم غير نشط"
+  },
+  "unsavedChanges": {
+    "title": "تغييرات غير محفوظة",
+    "message": "لديك تغييرات غير محفوظة. هل أنت متأكد من رغبتك في تجاهلها؟",
+    "keepEditing": "متابعة التعديل",
+    "discard": "تجاهل"
   }
 }

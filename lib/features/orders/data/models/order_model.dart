@@ -100,6 +100,29 @@ extension OrderStatusExtension on OrderStatusEnum {
         return null;
     }
   }
+
+  /// Get the previous status in the flow (for undo functionality)
+  /// Flow: COMPLETED → DELIVERED → ON_THE_WAY → ACCEPTED → DRIVER_NOTIFICATION_SENT → SEARCHING_FOR_DRIVER → PENDING
+  OrderStatusEnum? get previousStatus {
+    switch (this) {
+      case OrderStatusEnum.completed:
+        return OrderStatusEnum.delivered;
+      case OrderStatusEnum.delivered:
+        return OrderStatusEnum.onTheWay;
+      case OrderStatusEnum.onTheWay:
+        return OrderStatusEnum.accepted;
+      case OrderStatusEnum.accepted:
+        return OrderStatusEnum.driverNotificationSent;
+      case OrderStatusEnum.driverNotificationSent:
+        return OrderStatusEnum.searchingForDriver;
+      case OrderStatusEnum.searchingForDriver:
+        return OrderStatusEnum.pending;
+      case OrderStatusEnum.pending:
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return null;
+    }
+  }
 }
 
 /// Customization type for menu items

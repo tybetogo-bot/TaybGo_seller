@@ -62,7 +62,7 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
           else
             TextButton(
               onPressed: _saveSettings,
-              child: Text('common.save'.tr, style: TextStyle(color: AppColors.primary)),
+              child: Text('common.save'.tr, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
             ),
         ],
       ),
@@ -112,7 +112,7 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
                     children: [
                       Icon(
                         Icons.location_on,
-                        color: AppColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 20.sp,
                       ),
                       SizedBox(width: 8.w),

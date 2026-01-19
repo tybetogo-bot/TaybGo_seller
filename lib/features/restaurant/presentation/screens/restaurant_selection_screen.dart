@@ -201,7 +201,7 @@ class _RestaurantCard extends StatelessWidget {
                     height: 56.w,
                     decoration: BoxDecoration(
                       color: restaurant.status == RestaurantStatus.active
-                          ? AppColors.primary[50]
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                           : AppColors.warningLight,
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -209,7 +209,7 @@ class _RestaurantCard extends StatelessWidget {
                       Icons.restaurant,
                       size: 28.w,
                       color: restaurant.status == RestaurantStatus.active
-                          ? AppColors.primary
+                          ? Theme.of(context).colorScheme.primary
                           : AppColors.warning,
                     ),
                   ),
@@ -284,7 +284,7 @@ class _RestaurantCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDark
                         ? DarkColors.backgroundTertiary
-                        : AppColors.primary[50],
+                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Row(
@@ -302,7 +302,7 @@ class _RestaurantCard extends StatelessWidget {
                           icon: Icons.shopping_bag_outlined,
                           label: 'navigation.orders'.tr,
                           value: restaurant.todayStats!.totalOrders.toString(),
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       Expanded(

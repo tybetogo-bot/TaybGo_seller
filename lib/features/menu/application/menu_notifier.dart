@@ -6,9 +6,9 @@ import '../data/models/menu_item_model.dart';
 import '../data/datasources/menu_remote_data_source.dart';
 import '../data/repositories/menu_repository.dart';
 
-/// Menu state containing items, categories, and filters
+/// Menu state containing items, categories, and filters with cached filtering
 class MenuState {
-  const MenuState({
+  MenuState({
     this.items = const [],
     this.categories = const [],
     this.selectedCategoryId,
@@ -16,7 +16,10 @@ class MenuState {
     this.isLoading = false,
     this.error,
     this.showOnlyAvailable = false,
-  });
+  }) {
+    // Pre-compute filtered items once during construction
+    _computeFilteredItems();
+  }
 
   final List<MenuItemModel> items;
   final List<CategoryModel> categories;
@@ -25,6 +28,34 @@ class MenuState {
   final bool isLoading;
   final String? error;
   final bool showOnlyAvailable;
+
+  // Cached filtered items
+  late final List<MenuItemModel> _filteredItems;
+
+  void _computeFilteredItems() {
+    final query = searchQuery.toLowerCase();
+    final hasSearch = searchQuery.isNotEmpty;
+    final hasCategoryFilter = selectedCategoryId != null;
+
+    final result = <MenuItemModel>[];
+    for (final item in items) {
+      // Filter by category
+      if (hasCategoryFilter && item.categoryId != selectedCategoryId) continue;
+      // Filter by availability
+      if (showOnlyAvailable && !item.isAvailable) continue;
+      // Filter by search query
+      if (hasSearch && !_matchesSearch(item, query)) continue;
+      result.add(item);
+    }
+    _filteredItems = result;
+  }
+
+  bool _matchesSearch(MenuItemModel item, String query) {
+    if (item.name.toLowerCase().contains(query)) return true;
+    if (item.description?.toLowerCase().contains(query) ?? false) return true;
+    if (item.ingredients.any((i) => i.toLowerCase().contains(query))) return true;
+    return false;
+  }
 
   MenuState copyWith({
     List<MenuItemModel>? items,
@@ -48,34 +79,10 @@ class MenuState {
     );
   }
 
-  /// Get filtered items based on current filters
-  List<MenuItemModel> get filteredItems {
-    var result = items;
+  /// Cached getter - no computation on access
+  List<MenuItemModel> get filteredItems => _filteredItems;
 
-    // Filter by category
-    if (selectedCategoryId != null) {
-      result = result.where((item) => item.categoryId == selectedCategoryId).toList();
-    }
-
-    // Filter by availability
-    if (showOnlyAvailable) {
-      result = result.where((item) => item.isAvailable).toList();
-    }
-
-    // Filter by search query
-    if (searchQuery.isNotEmpty) {
-      final query = searchQuery.toLowerCase();
-      result = result.where((item) =>
-        item.name.toLowerCase().contains(query) ||
-        (item.description?.toLowerCase().contains(query) ?? false) ||
-        item.ingredients.any((i) => i.toLowerCase().contains(query))
-      ).toList();
-    }
-
-    return result;
-  }
-
-  /// Get item count for a category
+  /// Get item count for a category (still computed but only called occasionally)
   int getItemCountForCategory(String categoryId) {
     return items.where((item) => item.categoryId == categoryId).length;
   }
@@ -105,7 +112,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
     // Load initial data
     Future.microtask(() => _loadInitialData());
-    return const MenuState();
+    return MenuState();
   }
 
   /// Load initial data from API

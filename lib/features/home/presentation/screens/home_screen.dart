@@ -25,13 +25,29 @@ class HomeScreen extends ConsumerWidget {
     // Use restaurant stats from API if available, fallback to calculated values
     final selectedRestaurant = ref.watch(selectedRestaurantProvider);
     final todayStats = selectedRestaurant?.todayStats;
-    
-    final todayTotal = todayStats?.totalRevenue ?? ordersState.orders
-        .where((o) => o.createdAt.day == DateTime.now().day)
-        .fold<double>(0, (sum, o) => sum + o.total);
-    final totalOrdersToday = todayStats?.totalOrders ?? ordersState.orders
-        .where((o) => o.createdAt.day == DateTime.now().day)
-        .length;
+
+    // Cache DateTime.now() to avoid multiple allocations
+    final double todayTotal;
+    final int totalOrdersToday;
+    if (todayStats != null) {
+      todayTotal = todayStats.totalRevenue;
+      totalOrdersToday = todayStats.totalOrders;
+    } else {
+      // Fallback calculation - only done when API stats unavailable
+      final today = DateTime.now().day;
+      var total = 0.0;
+      var count = 0;
+      for (final o in ordersState.orders) {
+        if (o.createdAt.day == today) {
+          total += o.total;
+          count++;
+        }
+      }
+      todayTotal = total;
+      totalOrdersToday = count;
+    }
+
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -44,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
               await ref.read(restaurantProvider.notifier).fetchRestaurantById(selectedRestaurant.id);
             }
           },
-          color: AppColors.primary,
+          color: primaryColor,
           child: CustomScrollView(
             slivers: [
               // Header
@@ -108,7 +124,7 @@ class HomeScreen extends ConsumerWidget {
                       _StatBox(
                         value: totalOrdersToday.toString(),
                         label: 'navigation.orders'.tr,
-                        color: AppColors.primary,
+                        color: primaryColor,
                         isDark: isDark,
                       ),
                     ],
@@ -151,7 +167,7 @@ class HomeScreen extends ConsumerWidget {
                           'common.seeAll'.tr,
                           style: TextStyle(
                             fontSize: 13.sp,
-                            color: AppColors.primary,
+                            color: primaryColor,
                           ),
                         ),
                       ),
@@ -193,11 +209,13 @@ class HomeScreen extends ConsumerWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final order = pendingOrders[index];
-                        return AnimatedOrderCard(
-                          key: ValueKey(order.id),
-                          order: order,
-                          onTap: () => context.push(
-                            Routes.orderDetailsPath(order.id),
+                        return RepaintBoundary(
+                          child: AnimatedOrderCard(
+                            key: ValueKey(order.id),
+                            order: order,
+                            onTap: () => context.push(
+                              Routes.orderDetailsPath(order.id),
+                            ),
                           ),
                         );
                       },
@@ -287,12 +305,14 @@ class _PrimaryAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 14.h),
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: primaryColor,
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Row(

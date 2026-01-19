@@ -20,6 +20,7 @@ class AppLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -29,7 +30,7 @@ class AppLoading extends StatelessWidget {
             height: size.w,
             child: CircularProgressIndicator(
               strokeWidth: strokeWidth,
-              valueColor: AlwaysStoppedAnimation<Color>(color ?? AppColors.primary),
+              valueColor: AlwaysStoppedAnimation<Color>(color ?? primaryColor),
             ),
           ),
           if (message != null) ...[

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../application/coupons_notifier.dart';
 import '../../data/models/coupon_model.dart';
 
@@ -23,7 +24,8 @@ class AddEditCouponScreen extends ConsumerStatefulWidget {
       _AddEditCouponScreenState();
 }
 
-class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
+class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen>
+    with UnsavedChangesMixin {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -37,15 +39,33 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
   bool _isActive = true;
   bool _isLoading = false;
+  bool _initialDataLoaded = false;
 
   bool get _isEditing => widget.couponId != null;
 
   @override
   void initState() {
     super.initState();
+    _setupChangeListeners();
     if (_isEditing) {
       _loadExistingCoupon();
+    } else {
+      _initialDataLoaded = true;
     }
+  }
+
+  void _setupChangeListeners() {
+    void onChange() {
+      if (_initialDataLoaded) markAsChanged();
+    }
+
+    _titleController.addListener(onChange);
+    _descriptionController.addListener(onChange);
+    _codeController.addListener(onChange);
+    _discountController.addListener(onChange);
+    _minPriceController.addListener(onChange);
+    _maxUsageController.addListener(onChange);
+    _maxPerUserController.addListener(onChange);
   }
 
   void _loadExistingCoupon() {
@@ -67,7 +87,10 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
           _startDate = coupon.startDate;
           _endDate = coupon.endDate;
           _isActive = coupon.isActive;
+          _initialDataLoaded = true;
         });
+      } else {
+        _initialDataLoaded = true;
       }
     });
   }
@@ -112,6 +135,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
           _endDate = picked;
         }
       });
+      if (_initialDataLoaded) markAsChanged();
     }
   }
 
@@ -121,7 +145,8 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateFormat = DateFormat('MMM d, yyyy');
 
-    return Scaffold(
+    return buildWithUnsavedChangesGuard(
+      child: Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
         title: Text(
@@ -194,7 +219,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
                   icon: const Icon(Icons.auto_awesome),
                   label: Text('coupons.generateCode'.tr),
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     padding: EdgeInsets.symmetric(
                       horizontal: 16.w,
                       vertical: 18.h,
@@ -376,7 +401,10 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
                   Switch.adaptive(
                     value: _isActive,
                     activeColor: AppColors.success,
-                    onChanged: (value) => setState(() => _isActive = value),
+                    onChanged: (value) {
+                      setState(() => _isActive = value);
+                      if (_initialDataLoaded) markAsChanged();
+                    },
                   ),
                 ],
               ),
@@ -389,7 +417,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _saveCoupon,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   padding: EdgeInsets.symmetric(vertical: 16.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
@@ -414,6 +442,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -443,7 +472,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
       ),
     );
   }
@@ -490,6 +519,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
         ref.read(couponsProvider.notifier).clearError();
       } else {
         // Only show success and pop if no error
+        markAsSaved();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -546,6 +576,7 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen> {
                   );
                   ref.read(couponsProvider.notifier).clearError();
                 } else {
+                  markAsSaved();
                   context.pop();
                   scaffoldMessenger.showSnackBar(
                     SnackBar(
@@ -646,7 +677,7 @@ class _DatePicker extends StatelessWidget {
                 Icon(
                   Icons.calendar_today,
                   size: 16.w,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 SizedBox(width: 8.w),
                 Text(

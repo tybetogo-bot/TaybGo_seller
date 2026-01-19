@@ -132,7 +132,7 @@ class OrderStatusTimeline extends StatelessWidget {
                           step.icon,
                           size: 18.w,
                           color: step.isCompleted || step.isCurrent
-                              ? AppColors.primary
+                              ? Theme.of(context).colorScheme.primary
                               : (isDark ? DarkColors.textTertiary : LightColors.textTertiary),
                         ),
                         SizedBox(width: 8.w),
@@ -151,7 +151,7 @@ class OrderStatusTimeline extends StatelessWidget {
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4.r),
                             ),
                             child: Text(
@@ -159,7 +159,7 @@ class OrderStatusTimeline extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10.sp,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
@@ -280,11 +280,11 @@ class _StatusDot extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isCompleted || isCurrent
-            ? AppColors.primary
+            ? Theme.of(context).colorScheme.primary
             : (isDark ? DarkColors.backgroundSecondary : LightColors.backgroundSecondary),
         border: Border.all(
           color: isCompleted || isCurrent
-              ? AppColors.primary
+              ? Theme.of(context).colorScheme.primary
               : (isDark ? DarkColors.border : LightColors.border),
           width: 2,
         ),
@@ -323,7 +323,7 @@ class _TimelineLine extends StatelessWidget {
       width: 2.w,
       height: 40.h,
       color: isCompleted
-          ? AppColors.primary
+          ? Theme.of(context).colorScheme.primary
           : (isDark ? DarkColors.border : LightColors.border),
     );
   }
@@ -417,7 +417,7 @@ class OrderActionButtons extends StatelessWidget {
     return _ActionButton(
       label: 'orders.updateStatus'.tr,
       icon: Icons.arrow_forward,
-      color: AppColors.primary,
+      color: Theme.of(context).colorScheme.primary,
       onPressed: isLoading ? null : onUpdateStatus,
       isLoading: isLoading,
     );

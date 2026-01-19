@@ -10,15 +10,21 @@ import 'app_typography.dart';
 class AppTheme {
   AppTheme._();
 
-  /// Light theme
-  static ThemeData get light => ThemeData(
+  /// Default light theme (uses default green accent)
+  static ThemeData get light => lightWithAccent(AppColors.presetAccentColors.first);
+
+  /// Default dark theme (uses default green accent)
+  static ThemeData get dark => darkWithAccent(AppColors.presetAccentColors.first);
+
+  /// Light theme with custom accent color
+  static ThemeData lightWithAccent(AccentColor accent) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        primarySwatch: AppColors.primary,
-        primaryColor: AppColors.primary,
+        primarySwatch: accent.swatch,
+        primaryColor: accent.color,
         scaffoldBackgroundColor: LightColors.background,
-        colorScheme: const ColorScheme.light(
-          primary: AppColors.primary,
+        colorScheme: ColorScheme.light(
+          primary: accent.color,
           onPrimary: AppColors.white,
           secondary: AppColors.secondary,
           onSecondary: AppColors.white,
@@ -29,34 +35,34 @@ class AppTheme {
         ),
         textTheme: AppTypography.getTextTheme(isDark: false),
         appBarTheme: _lightAppBarTheme,
-        elevatedButtonTheme: _elevatedButtonTheme,
-        outlinedButtonTheme: _outlinedButtonTheme,
-        textButtonTheme: _textButtonTheme,
-        inputDecorationTheme: _lightInputDecorationTheme,
+        elevatedButtonTheme: _elevatedButtonTheme(accent.color),
+        outlinedButtonTheme: _outlinedButtonTheme(accent.color),
+        textButtonTheme: _textButtonTheme(accent.color),
+        inputDecorationTheme: _lightInputDecorationTheme(accent.color),
         cardTheme: _lightCardTheme,
-        bottomNavigationBarTheme: _lightBottomNavTheme,
+        bottomNavigationBarTheme: _lightBottomNavTheme(accent.color),
         dividerTheme: _lightDividerTheme,
-        chipTheme: _lightChipTheme,
-        floatingActionButtonTheme: _fabTheme,
-        checkboxTheme: _checkboxTheme,
-        radioTheme: _radioTheme,
-        switchTheme: _switchTheme,
+        chipTheme: _lightChipTheme(accent.color),
+        floatingActionButtonTheme: _fabTheme(accent.color),
+        checkboxTheme: _checkboxTheme(accent.color),
+        radioTheme: _radioTheme(accent.color),
+        switchTheme: _switchTheme(accent.color),
         bottomSheetTheme: _lightBottomSheetTheme,
         dialogTheme: _lightDialogTheme,
         snackBarTheme: _snackBarTheme,
-        tabBarTheme: _lightTabBarTheme,
-        progressIndicatorTheme: _progressIndicatorTheme,
+        tabBarTheme: _lightTabBarTheme(accent.color),
+        progressIndicatorTheme: _progressIndicatorTheme(accent),
       );
 
-  /// Dark theme
-  static ThemeData get dark => ThemeData(
+  /// Dark theme with custom accent color
+  static ThemeData darkWithAccent(AccentColor accent) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        primarySwatch: AppColors.primary,
-        primaryColor: AppColors.primary,
+        primarySwatch: accent.swatch,
+        primaryColor: accent.color,
         scaffoldBackgroundColor: DarkColors.background,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.primary,
+        colorScheme: ColorScheme.dark(
+          primary: accent.color,
           onPrimary: AppColors.white,
           secondary: AppColors.secondary,
           onSecondary: AppColors.white,
@@ -67,23 +73,23 @@ class AppTheme {
         ),
         textTheme: AppTypography.getTextTheme(isDark: true),
         appBarTheme: _darkAppBarTheme,
-        elevatedButtonTheme: _elevatedButtonTheme,
-        outlinedButtonTheme: _outlinedButtonThemeDark,
-        textButtonTheme: _textButtonTheme,
-        inputDecorationTheme: _darkInputDecorationTheme,
+        elevatedButtonTheme: _elevatedButtonTheme(accent.color),
+        outlinedButtonTheme: _outlinedButtonThemeDark(accent.color),
+        textButtonTheme: _textButtonTheme(accent.color),
+        inputDecorationTheme: _darkInputDecorationTheme(accent.color),
         cardTheme: _darkCardTheme,
-        bottomNavigationBarTheme: _darkBottomNavTheme,
+        bottomNavigationBarTheme: _darkBottomNavTheme(accent.color),
         dividerTheme: _darkDividerTheme,
-        chipTheme: _darkChipTheme,
-        floatingActionButtonTheme: _fabTheme,
-        checkboxTheme: _checkboxTheme,
-        radioTheme: _radioTheme,
-        switchTheme: _switchTheme,
+        chipTheme: _darkChipTheme(accent.color),
+        floatingActionButtonTheme: _fabTheme(accent.color),
+        checkboxTheme: _checkboxTheme(accent.color),
+        radioTheme: _radioTheme(accent.color),
+        switchTheme: _switchTheme(accent.color),
         bottomSheetTheme: _darkBottomSheetTheme,
         dialogTheme: _darkDialogTheme,
         snackBarTheme: _snackBarTheme,
-        tabBarTheme: _darkTabBarTheme,
-        progressIndicatorTheme: _progressIndicatorTheme,
+        tabBarTheme: _darkTabBarTheme(accent.color),
+        progressIndicatorTheme: _progressIndicatorTheme(accent),
       );
 
   // ============ AppBar Themes ============
@@ -116,9 +122,9 @@ class AppTheme {
       );
 
   // ============ Button Themes ============
-  static ElevatedButtonThemeData get _elevatedButtonTheme => ElevatedButtonThemeData(
+  static ElevatedButtonThemeData _elevatedButtonTheme(Color accentColor) => ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: accentColor,
           foregroundColor: AppColors.white,
           disabledBackgroundColor: AppColors.neutral[300],
           disabledForegroundColor: AppColors.neutral[500],
@@ -132,9 +138,9 @@ class AppTheme {
         ),
       );
 
-  static OutlinedButtonThemeData get _outlinedButtonTheme => OutlinedButtonThemeData(
+  static OutlinedButtonThemeData _outlinedButtonTheme(Color accentColor) => OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
+          foregroundColor: accentColor,
           disabledForegroundColor: AppColors.neutral[400],
           elevation: 0,
           minimumSize: Size(double.infinity, AppSpacing.buttonHeight),
@@ -142,14 +148,14 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: AppBorderRadius.md,
           ),
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
-          textStyle: AppTypography.button().copyWith(color: AppColors.primary),
+          side: BorderSide(color: accentColor, width: 1.5),
+          textStyle: AppTypography.button().copyWith(color: accentColor),
         ),
       );
 
-  static OutlinedButtonThemeData get _outlinedButtonThemeDark => OutlinedButtonThemeData(
+  static OutlinedButtonThemeData _outlinedButtonThemeDark(Color accentColor) => OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
+          foregroundColor: accentColor,
           disabledForegroundColor: AppColors.neutral[600],
           elevation: 0,
           minimumSize: Size(double.infinity, AppSpacing.buttonHeight),
@@ -157,21 +163,21 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: AppBorderRadius.md,
           ),
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
-          textStyle: AppTypography.button().copyWith(color: AppColors.primary),
+          side: BorderSide(color: accentColor, width: 1.5),
+          textStyle: AppTypography.button().copyWith(color: accentColor),
         ),
       );
 
-  static TextButtonThemeData get _textButtonTheme => TextButtonThemeData(
+  static TextButtonThemeData _textButtonTheme(Color accentColor) => TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
+          foregroundColor: accentColor,
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           textStyle: AppTypography.link(),
         ),
       );
 
   // ============ Input Decoration Theme ============
-  static InputDecorationTheme get _lightInputDecorationTheme => InputDecorationTheme(
+  static InputDecorationTheme _lightInputDecorationTheme(Color accentColor) => InputDecorationTheme(
         filled: true,
         fillColor: LightColors.inputBackground,
         contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
@@ -185,7 +191,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppBorderRadius.md,
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: accentColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppBorderRadius.md,
@@ -200,7 +206,7 @@ class AppTheme {
         labelStyle: AppTypography.inputText(),
       );
 
-  static InputDecorationTheme get _darkInputDecorationTheme => InputDecorationTheme(
+  static InputDecorationTheme _darkInputDecorationTheme(Color accentColor) => InputDecorationTheme(
         filled: true,
         fillColor: DarkColors.inputBackground,
         contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
@@ -214,7 +220,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppBorderRadius.md,
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: accentColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppBorderRadius.md,
@@ -249,9 +255,9 @@ class AppTheme {
       );
 
   // ============ Bottom Navigation Theme ============
-  static BottomNavigationBarThemeData get _lightBottomNavTheme => BottomNavigationBarThemeData(
+  static BottomNavigationBarThemeData _lightBottomNavTheme(Color accentColor) => BottomNavigationBarThemeData(
         backgroundColor: LightColors.bottomNavBackground,
-        selectedItemColor: LightColors.bottomNavActive,
+        selectedItemColor: accentColor,
         unselectedItemColor: LightColors.bottomNavInactive,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -259,9 +265,9 @@ class AppTheme {
         unselectedLabelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
       );
 
-  static BottomNavigationBarThemeData get _darkBottomNavTheme => BottomNavigationBarThemeData(
+  static BottomNavigationBarThemeData _darkBottomNavTheme(Color accentColor) => BottomNavigationBarThemeData(
         backgroundColor: DarkColors.bottomNavBackground,
-        selectedItemColor: DarkColors.bottomNavActive,
+        selectedItemColor: accentColor,
         unselectedItemColor: DarkColors.bottomNavInactive,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -283,9 +289,9 @@ class AppTheme {
       );
 
   // ============ Chip Theme ============
-  static ChipThemeData get _lightChipTheme => ChipThemeData(
+  static ChipThemeData _lightChipTheme(Color accentColor) => ChipThemeData(
         backgroundColor: LightColors.backgroundSecondary,
-        selectedColor: AppColors.primary,
+        selectedColor: accentColor,
         disabledColor: LightColors.backgroundTertiary,
         labelStyle: AppTypography.categoryChip(),
         secondaryLabelStyle: AppTypography.categoryChip(isSelected: true),
@@ -295,9 +301,9 @@ class AppTheme {
         ),
       );
 
-  static ChipThemeData get _darkChipTheme => ChipThemeData(
+  static ChipThemeData _darkChipTheme(Color accentColor) => ChipThemeData(
         backgroundColor: DarkColors.backgroundSecondary,
-        selectedColor: AppColors.primary,
+        selectedColor: accentColor,
         disabledColor: DarkColors.backgroundTertiary,
         labelStyle: AppTypography.categoryChip(),
         secondaryLabelStyle: AppTypography.categoryChip(isSelected: true),
@@ -308,8 +314,8 @@ class AppTheme {
       );
 
   // ============ FAB Theme ============
-  static FloatingActionButtonThemeData get _fabTheme => FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
+  static FloatingActionButtonThemeData _fabTheme(Color accentColor) => FloatingActionButtonThemeData(
+        backgroundColor: accentColor,
         foregroundColor: AppColors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(
@@ -318,10 +324,10 @@ class AppTheme {
       );
 
   // ============ Checkbox Theme ============
-  static CheckboxThemeData get _checkboxTheme => CheckboxThemeData(
+  static CheckboxThemeData _checkboxTheme(Color accentColor) => CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary;
+            return accentColor;
           }
           return Colors.transparent;
         }),
@@ -332,17 +338,17 @@ class AppTheme {
       );
 
   // ============ Radio Theme ============
-  static RadioThemeData get _radioTheme => RadioThemeData(
+  static RadioThemeData _radioTheme(Color accentColor) => RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary;
+            return accentColor;
           }
           return AppColors.neutral[400];
         }),
       );
 
   // ============ Switch Theme ============
-  static SwitchThemeData get _switchTheme => SwitchThemeData(
+  static SwitchThemeData _switchTheme(Color accentColor) => SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppColors.white;
@@ -351,7 +357,7 @@ class AppTheme {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return AppColors.primary;
+            return accentColor;
           }
           return AppColors.neutral[200];
         }),
@@ -404,29 +410,29 @@ class AppTheme {
       );
 
   // ============ TabBar Theme ============
-  static TabBarThemeData get _lightTabBarTheme => TabBarThemeData(
-        labelColor: AppColors.primary,
+  static TabBarThemeData _lightTabBarTheme(Color accentColor) => TabBarThemeData(
+        labelColor: accentColor,
         unselectedLabelColor: LightColors.textSecondary,
         labelStyle: AppTypography.tabLabel(isSelected: true),
         unselectedLabelStyle: AppTypography.tabLabel(),
-        indicatorColor: AppColors.primary,
+        indicatorColor: accentColor,
         indicatorSize: TabBarIndicatorSize.label,
       );
 
-  static TabBarThemeData get _darkTabBarTheme => TabBarThemeData(
-        labelColor: AppColors.primary,
+  static TabBarThemeData _darkTabBarTheme(Color accentColor) => TabBarThemeData(
+        labelColor: accentColor,
         unselectedLabelColor: DarkColors.textSecondary,
         labelStyle: AppTypography.tabLabel(isSelected: true, isDark: true),
         unselectedLabelStyle: AppTypography.tabLabel(isDark: true),
-        indicatorColor: AppColors.primary,
+        indicatorColor: accentColor,
         indicatorSize: TabBarIndicatorSize.label,
       );
 
   // ============ Progress Indicator Theme ============
-  static ProgressIndicatorThemeData get _progressIndicatorTheme => ProgressIndicatorThemeData(
-        color: AppColors.primary,
-        linearTrackColor: AppColors.primary[100],
-        circularTrackColor: AppColors.primary[100],
+  static ProgressIndicatorThemeData _progressIndicatorTheme(AccentColor accent) => ProgressIndicatorThemeData(
+        color: accent.color,
+        linearTrackColor: accent.lightVariant,
+        circularTrackColor: accent.lightVariant,
       );
 }
 

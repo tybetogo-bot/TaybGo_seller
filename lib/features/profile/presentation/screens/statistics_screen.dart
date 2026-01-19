@@ -70,7 +70,7 @@ class StatisticsScreen extends ConsumerWidget {
             // Stats grid with real data
             Row(
               children: [
-                Expanded(child: _StatCard(title: 'statistics.totalOrders'.tr, value: '$totalOrders', icon: Icons.receipt_long_outlined, color: AppColors.primary, isDark: isDark)),
+                Expanded(child: _StatCard(title: 'statistics.totalOrders'.tr, value: '$totalOrders', icon: Icons.receipt_long_outlined, color: Theme.of(context).colorScheme.primary, isDark: isDark)),
                 SizedBox(width: 12.w),
                 Expanded(child: _StatCard(title: 'statistics.revenue'.tr, value: '\$${revenue.toStringAsFixed(0)}', icon: Icons.attach_money, color: AppColors.success, isDark: isDark)),
               ],

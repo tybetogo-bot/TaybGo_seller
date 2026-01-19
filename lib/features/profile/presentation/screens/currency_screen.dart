@@ -32,7 +32,7 @@ class CurrencyScreen extends ConsumerWidget {
             title: Text(currency.name),
             subtitle: Text('${currency.code} (${currency.symbol})'),
             trailing: isSelected
-                ? Icon(Icons.check, color: AppColors.primary)
+                ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
                 : null,
             onTap: () {
               ref.read(currencyProvider.notifier).setCurrency(currency);

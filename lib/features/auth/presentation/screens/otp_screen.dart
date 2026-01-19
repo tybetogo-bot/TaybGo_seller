@@ -211,7 +211,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               // Debug OTP display (only in dev/test)
@@ -292,8 +292,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.r),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
                               width: 2,
                             ),
                           ),
@@ -317,7 +317,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _verifyOtp,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -357,7 +357,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       )

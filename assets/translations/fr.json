@@ -34,7 +34,8 @@
     "seeAll": "Voir tout",
     "name": "Nom",
     "actionCannotBeUndone": "Cette action est irréversible.",
-    "version": "Version"
+    "version": "Version",
+    "undo": "Annuler"
   },
   "auth": {
     "phoneNumber": "Téléphone",
@@ -171,7 +172,9 @@
     "to": "À",
     "update": "Mettre à jour",
     "statusUpdatedTo": "Statut mis à jour: {status}",
+    "statusReverted": "Statut annulé",
     "statusUpdateFailed": "Échec de la mise à jour du statut",
+    "viewDetails": "Voir détails",
     "rejectConfirmMessage": "Êtes-vous sûr de vouloir refuser cette commande? Cette action est irréversible.",
     "orderRejectedSuccess": "Commande refusée avec succès",
     "orderRejectFailed": "Échec du refus de la commande",
@@ -367,7 +370,13 @@
     "preparationTime": "Préparation",
     "basicInfo": "Infos",
     "additionalPrice": "Supplément",
-    "imagePickerComingSoon": "Bientôt disponible"
+    "imagePickerComingSoon": "Bientôt disponible",
+    "itemMarkedAvailable": "Article marqué comme disponible",
+    "itemMarkedUnavailable": "Article marqué comme indisponible",
+    "availabilityReverted": "Disponibilité annulée",
+    "markAvailable": "Rendre disponible",
+    "markUnavailable": "Rendre indisponible",
+    "viewItem": "Voir article"
   },
   "coupons": {
     "title": "Coupons",
@@ -414,6 +423,15 @@
     "restaurantSettings": "Paramètres",
     "statistics": "Statistiques",
     "currency": "Devise",
+    "accentColor": "Couleur d'accent",
+    "accentColor_green": "Vert",
+    "accentColor_blue": "Bleu",
+    "accentColor_purple": "Violet",
+    "accentColor_orange": "Orange",
+    "accentColor_red": "Rouge",
+    "accentColor_teal": "Sarcelle",
+    "accentColor_pink": "Rose",
+    "accentColor_indigo": "Indigo",
     "restaurantStatus": "Statut",
     "acceptingOrders": "Accepte les commandes",
     "notAcceptingOrders": "Fermé",
@@ -590,5 +608,11 @@
   "restaurantStatus": {
     "pendingApproval": "Restaurant en attente d'approbation",
     "inactive": "Restaurant inactif"
+  },
+  "unsavedChanges": {
+    "title": "Modifications non enregistrées",
+    "message": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir les abandonner?",
+    "keepEditing": "Continuer",
+    "discard": "Abandonner"
   }
 }
