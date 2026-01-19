@@ -21,10 +21,21 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be overridden');
 });
 
+/// Global callback for handling unauthorized access (401 errors)
+/// This is set from the main app initialization to avoid circular dependencies
+void Function()? globalUnauthorizedCallback;
+
 /// Provider for Dio instance
 final dioProvider = Provider<Dio>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return ApiClient.getInstance(prefs);
+
+  return ApiClient.getInstance(
+    prefs,
+    onUnauthorized: () async {
+      // Call the global callback if set
+      globalUnauthorizedCallback?.call();
+    },
+  );
 });
 
 /// Provider for AuthApi

@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/router/app_router.dart';
+import 'app/router/routes.dart';
 import 'core/config/constants.dart';
 import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
@@ -52,6 +53,13 @@ class TybeToGoApp extends ConsumerWidget {
 
     // Watch translations to ensure they reload when locale changes
     ref.watch(translationsLoadedProvider);
+
+    // Set up global unauthorized callback to handle 401 errors
+    // This callback will be called by the AuthInterceptor when a 401 error occurs
+    globalUnauthorizedCallback = () {
+      // Navigate to login screen when token is invalid
+      router.go(Routes.login);
+    };
 
     return ScreenUtilInit(
       designSize: const Size(375, 812), // iPhone X design size

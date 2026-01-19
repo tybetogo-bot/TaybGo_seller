@@ -47,6 +47,15 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final response = await _remoteDataSource.getRestaurants(page: page);
       return (failure: null, data: response.results);
     } on DioException catch (e) {
+      // Check if it's a 401 Unauthorized error
+      if (e.response?.statusCode == 401) {
+        // AuthInterceptor will handle logout, just return auth failure
+        return (
+          failure: const AuthFailure(message: 'Session expired. Please login again.'),
+          data: null,
+        );
+      }
+
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
@@ -74,6 +83,15 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final restaurant = await _remoteDataSource.getRestaurantById(id);
       return (failure: null, data: restaurant);
     } on DioException catch (e) {
+      // Check if it's a 401 Unauthorized error
+      if (e.response?.statusCode == 401) {
+        // AuthInterceptor will handle logout, just return auth failure
+        return (
+          failure: const AuthFailure(message: 'Session expired. Please login again.'),
+          data: null,
+        );
+      }
+
       final apiError = e.error;
       if (apiError is ApiException) {
         return (

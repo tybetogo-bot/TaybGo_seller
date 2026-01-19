@@ -15,9 +15,18 @@ class ApiClient {
   ApiClient._();
 
   static Dio? _dio;
+  static Future<void> Function()? _onUnauthorized;
 
   /// Get the configured Dio instance
-  static Dio getInstance(SharedPreferences prefs) {
+  static Dio getInstance(
+    SharedPreferences prefs, {
+    Future<void> Function()? onUnauthorized,
+  }) {
+    // Store the callback for future use
+    if (onUnauthorized != null) {
+      _onUnauthorized = onUnauthorized;
+    }
+
     if (_dio != null) return _dio!;
 
     _dio = Dio(
@@ -35,7 +44,7 @@ class ApiClient {
 
     // Add interceptors
     _dio!.interceptors.addAll([
-      AuthInterceptor(prefs),
+      AuthInterceptor(prefs, onUnauthorized: _onUnauthorized),
       ErrorInterceptor(),
       if (AppConfig.isDevelopment)
         PrettyDioLogger(
@@ -56,5 +65,6 @@ class ApiClient {
   static void reset() {
     _dio?.close();
     _dio = null;
+    _onUnauthorized = null;
   }
 }
