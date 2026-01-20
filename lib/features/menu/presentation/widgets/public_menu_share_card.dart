@@ -19,7 +19,7 @@ class PublicMenuShareCard extends StatelessWidget {
   });
 
   String get _publicMenuUrl =>
-      '${DeploymentConfig.baseUrl}/public-menu/$restaurantId';
+      '${DeploymentConfig.baseUrl}/#/public-menu/$restaurantId';
 
   @override
   Widget build(BuildContext context) {
