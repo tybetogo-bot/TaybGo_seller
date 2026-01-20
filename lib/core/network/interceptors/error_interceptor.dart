@@ -121,7 +121,7 @@ class ErrorInterceptor extends Interceptor {
       case 500:
       case 502:
       case 503:
-        return ServerException(message: 'Server error. Please try again later.');
+        return ServerException(message: message.isEmpty ? 'Server error. Please try again later.' : message);
       default:
         return ApiException(message: message, statusCode: statusCode);
     }

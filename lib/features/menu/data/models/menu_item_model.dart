@@ -72,7 +72,7 @@ sealed class CategoryModel with _$CategoryModel {
       nameAr: json['name_ar'] as String?,
       nameDe: json['name_de'] as String?,
       nameFr: json['name_fr'] as String?,
-      imageUrl: (json['image_url'] ?? json['imageUrl']) as String?,
+      imageUrl: (json['image'] ?? json['image_url'] ?? json['imageUrl']) as String?,
       sortOrder: (json['sort_order'] ?? json['sortOrder'] ?? 0) as int,
       isActive: json['is_active'] ?? json['isActive'] ?? true,
     );
@@ -124,7 +124,7 @@ sealed class MenuItemModel with _$MenuItemModel {
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      imageUrl: (json['image_url'] ?? json['imageUrl']) as String?,
+      imageUrl: (json['image'] ?? json['image_url'] ?? json['imageUrl']) as String?,
       description: json['description'] as String?,
       categoryId:
           (json['category_id'] ?? json['categoryId'] ?? json['category'])

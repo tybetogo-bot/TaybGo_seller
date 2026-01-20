@@ -26,6 +26,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/restaurant_settings_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
+import '../../features/public_menu/presentation/screens/public_menu_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../shell/main_shell.dart';
 import 'routes.dart';
@@ -44,8 +45,55 @@ class AppRouter {
 
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: Routes.splash,
+    // No fixed initialLocation - redirect decides based on route
     debugLogDiagnostics: true,
+    redirect: (context, state) {
+      final currentPath = state.uri.path;
+      final isPublicMenuRoute = currentPath.startsWith('/public-menu');
+      final isAuthRoute = currentPath == Routes.login ||
+                          currentPath == Routes.register ||
+                          currentPath == Routes.forgotPassword ||
+                          currentPath == Routes.otp;
+      final isSplash = currentPath == Routes.splash;
+      final isRoot = currentPath == '/';
+
+      print('🔵 [Router] Checking redirect for: $currentPath');
+
+      // Public menu routes - allow direct access without authentication
+      if (isPublicMenuRoute) {
+        print('🟢 [Router] Public menu - allowing direct access');
+        return null;
+      }
+
+      // Auth routes - allow direct access
+      if (isAuthRoute) {
+        print('🟢 [Router] Auth route - allowing direct access');
+        return null;
+      }
+
+      // Splash route - allow it
+      if (isSplash) {
+        print('🟢 [Router] Splash route - allowing');
+        return null;
+      }
+
+      // Root or other protected routes - redirect to splash for auth check
+      if (isRoot) {
+        print('🟡 [Router] Root path - redirecting to splash');
+        return Routes.splash;
+      }
+
+      // Restaurant selection and coupon routes are also public-ish
+      if (currentPath == Routes.restaurantSelection ||
+          currentPath == Routes.addCoupon ||
+          currentPath.startsWith(Routes.editCoupon.split(':').first)) {
+        return null;
+      }
+
+      // All other routes need authentication - go through splash
+      print('🟡 [Router] Protected route - redirecting to splash');
+      return Routes.splash;
+    },
     routes: [
       // Splash screen
       GoRoute(
@@ -99,6 +147,16 @@ class AppRouter {
         path: Routes.restaurantSelection,
         name: Routes.restaurantSelectionName,
         builder: (context, state) => const RestaurantSelectionScreen(),
+      ),
+
+      // Public menu (outside shell - no authentication required)
+      GoRoute(
+        path: Routes.publicMenu,
+        name: Routes.publicMenuName,
+        builder: (context, state) {
+          final restaurantId = state.pathParameters['restaurantId']!;
+          return PublicMenuScreen(restaurantId: restaurantId);
+        },
       ),
 
       // Main app shell with bottom navigation

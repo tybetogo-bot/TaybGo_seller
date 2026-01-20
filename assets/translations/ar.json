@@ -35,7 +35,8 @@
     "name": "الاسم",
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
     "version": "الإصدار",
-    "undo": "تراجع"
+    "undo": "تراجع",
+    "optional": "اختياري"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -84,6 +85,7 @@
     "failedToAddItem": "فشل إضافة العنصر",
     "failedToUpdateItem": "فشل تحديث العنصر",
     "failedToDeleteItem": "فشل حذف العنصر",
+    "itemDeleteFailed": "فشل حذف العنصر",
     "failedToLoadCoupons": "فشل تحميل الكوبونات",
     "failedToAddCoupon": "فشل إضافة الكوبون",
     "failedToUpdateCoupon": "فشل تحديث الكوبون",
@@ -377,8 +379,17 @@
     "itemUpdated": "تم التحديث",
     "noItems": "لا توجد عناصر",
     "image": "الصورة",
+    "itemImage": "صورة العنصر",
     "addImage": "إضافة صورة",
+    "changeImage": "تغيير الصورة",
+    "removeImage": "إزالة الصورة",
     "selectImage": "اختر صورة",
+    "selectImageSource": "اختر مصدر الصورة",
+    "camera": "الكاميرا",
+    "gallery": "المعرض",
+    "uploadingImage": "جاري رفع الصورة...",
+    "imageUploadError": "فشل رفع الصورة",
+    "imageUploadSuccess": "تم رفع الصورة بنجاح",
     "preparationTime": "وقت التحضير",
     "basicInfo": "معلومات أساسية",
     "additionalPrice": "سعر إضافي",
@@ -388,7 +399,8 @@
     "availabilityReverted": "تم إرجاع حالة التوفر",
     "markAvailable": "جعله متاحاً",
     "markUnavailable": "جعله غير متاح",
-    "viewItem": "عرض العنصر"
+    "viewItem": "عرض العنصر",
+    "swipeToDelete": "اسحب للحذف"
   },
   "coupons": {
     "title": "الكوبونات",
@@ -449,6 +461,7 @@
     "notAcceptingOrders": "مغلق",
     "restaurantInfo": "معلومات المطعم",
     "restaurantName": "اسم المطعم",
+    "restaurantLogo": "شعار المطعم",
     "businessHours": "ساعات العمل",
     "settingsSaved": "تم الحفظ"
   },
@@ -530,7 +543,10 @@
     "enterAddress": "أدخل العنوان",
     "enterStreetAndBuilding": "أدخل الشارع والمبنى",
     "addAtLeastOneItem": "أضف عنصراً واحداً على الأقل",
-    "codeTooShort": "4 أحرف على الأقل"
+    "codeTooShort": "4 أحرف على الأقل",
+    "imageTooLarge": "يجب أن تكون الصورة أقل من 5 ميجابايت",
+    "invalidImageFormat": "الصيغ المسموحة: JPG, PNG, WEBP فقط",
+    "imageRequired": "الرجاء اختيار صورة"
   },
   "time": {
     "justNow": "الآن",
@@ -626,5 +642,22 @@
     "message": "لديك تغييرات غير محفوظة. هل أنت متأكد من رغبتك في تجاهلها؟",
     "keepEditing": "متابعة التعديل",
     "discard": "تجاهل"
+  },
+  "publicMenu": {
+    "title": "القائمة",
+    "callRestaurant": "الاتصال بالمطعم",
+    "viewDetails": "عرض التفاصيل",
+    "unavailable": "غير متوفر حالياً",
+    "noItems": "لا توجد عناصر في هذا القسم",
+    "errorLoading": "فشل تحميل القائمة",
+    "retry": "إعادة المحاولة",
+    "restaurantNotFound": "المطعم غير موجود"
+  },
+  "menuShare": {
+    "title": "مشاركة القائمة",
+    "qrCode": "امسح رمز QR لعرض القائمة العامة",
+    "copyLink": "نسخ الرابط",
+    "linkCopied": "تم نسخ الرابط!",
+    "previewMenu": "معاينة القائمة العامة"
   }
 }

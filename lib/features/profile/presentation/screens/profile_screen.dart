@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,6 +45,7 @@ class ProfileScreen extends ConsumerWidget {
           _ProfileCard(
             name: selectedRestaurant?.name ?? userProfileState.profile?.name ?? 'profile.yourRestaurant'.tr,
             email: userProfileState.profile?.email ?? userProfileState.profile?.phone ?? '',
+            logoUrl: selectedRestaurant?.logoUrl,
             isDark: isDark,
             onEdit: () => context.push(Routes.restaurantSettings),
           ),
@@ -321,12 +323,14 @@ class _ProfileCard extends StatelessWidget {
   const _ProfileCard({
     required this.name,
     required this.email,
+    this.logoUrl,
     required this.isDark,
     required this.onEdit,
   });
 
   final String name;
   final String email;
+  final String? logoUrl;
   final bool isDark;
   final VoidCallback onEdit;
 
@@ -350,14 +354,38 @@ class _ProfileCard extends StatelessWidget {
             width: 50.w,
             height: 50.w,
             decoration: BoxDecoration(
-              color: primaryColor.withValues(alpha: 0.1),
+              color: logoUrl != null ? Colors.transparent : primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Icon(
-              Icons.storefront_rounded,
-              size: 24.w,
-              color: primaryColor,
-            ),
+            clipBehavior: Clip.antiAlias,
+            child: logoUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: logoUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: primaryColor.withValues(alpha: 0.1),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.storefront_rounded,
+                      size: 24.w,
+                      color: primaryColor,
+                    ),
+                  )
+                : Icon(
+                    Icons.storefront_rounded,
+                    size: 24.w,
+                    color: primaryColor,
+                  ),
           ),
           SizedBox(width: 12.w),
           Expanded(

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
 
@@ -20,6 +21,8 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
   final _phoneController = TextEditingController();
   bool _isInitialized = false;
   bool _isSaving = false;
+  String? _logoUrl;
+  bool _isUploadingLogo = false;
 
   @override
   void dispose() {
@@ -38,6 +41,7 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
     if (!_isInitialized && selectedRestaurant != null) {
       _nameController.text = selectedRestaurant.name;
       _phoneController.text = selectedRestaurant.phone ?? '';
+      _logoUrl = selectedRestaurant.logoUrl;
       _isInitialized = true;
     }
 
@@ -48,7 +52,7 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
         backgroundColor: isDark ? DarkColors.background : LightColors.background,
         elevation: 0,
         actions: [
-          if (_isSaving)
+          if (_isSaving || _isUploadingLogo)
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: const Center(
@@ -84,6 +88,30 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
           _buildTextField('settings.restaurantName'.tr, _nameController, isDark),
           SizedBox(height: 12.h),
           _buildTextField('auth.phoneNumber'.tr, _phoneController, isDark, keyboardType: TextInputType.phone),
+          SizedBox(height: 24.h),
+
+          // Restaurant logo
+          Text(
+            'settings.restaurantLogo'.tr,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          ImagePickerWidget(
+            initialImageUrl: _logoUrl,
+            onImageUploaded: (url) {
+              setState(() => _logoUrl = url);
+            },
+            onImageRemoved: () {
+              setState(() => _logoUrl = null);
+            },
+            onUploadStateChanged: (isUploading) {
+              setState(() => _isUploadingLogo = isUploading);
+            },
+          ),
           SizedBox(height: 24.h),
 
           // Address section (read-only display)
@@ -225,6 +253,8 @@ class _RestaurantSettingsScreenState extends ConsumerState<RestaurantSettingsScr
       'name': _nameController.text.trim(),
       if (_phoneController.text.trim().isNotEmpty)
         'phone': _phoneController.text.trim(),
+      if (_logoUrl != null && _logoUrl!.isNotEmpty)
+        'logo': _logoUrl,
       'is_open': true,
       // Keep existing address ID if we have one
       if (addressId != null) 'address': addressId,

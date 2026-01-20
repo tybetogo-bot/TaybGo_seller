@@ -35,7 +35,8 @@
     "name": "Name",
     "actionCannotBeUndone": "This action cannot be undone.",
     "version": "Version",
-    "undo": "Undo"
+    "undo": "Undo",
+    "optional": "Optional"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -84,6 +85,7 @@
     "failedToAddItem": "Failed to add item",
     "failedToUpdateItem": "Failed to update item",
     "failedToDeleteItem": "Failed to delete item",
+    "itemDeleteFailed": "Failed to delete item",
     "failedToLoadCoupons": "Failed to load coupons",
     "failedToAddCoupon": "Failed to add coupon",
     "failedToUpdateCoupon": "Failed to update coupon",
@@ -380,8 +382,17 @@
     "itemUpdated": "Item updated",
     "noItems": "No items in menu",
     "image": "Image",
+    "itemImage": "Item Image",
     "addImage": "Add Image",
+    "changeImage": "Change Image",
+    "removeImage": "Remove Image",
     "selectImage": "Select Image",
+    "selectImageSource": "Select Image Source",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "uploadingImage": "Uploading image...",
+    "imageUploadError": "Failed to upload image",
+    "imageUploadSuccess": "Image uploaded successfully",
     "preparationTime": "Prep Time",
     "basicInfo": "Basic Information",
     "additionalPrice": "Additional Price",
@@ -391,7 +402,8 @@
     "availabilityReverted": "Availability reverted",
     "markAvailable": "Mark Available",
     "markUnavailable": "Mark Unavailable",
-    "viewItem": "View Item"
+    "viewItem": "View Item",
+    "swipeToDelete": "Swipe to Delete"
   },
   "coupons": {
     "title": "Coupons",
@@ -452,6 +464,7 @@
     "notAcceptingOrders": "Not accepting orders",
     "restaurantInfo": "Restaurant Information",
     "restaurantName": "Restaurant Name",
+    "restaurantLogo": "Restaurant Logo",
     "businessHours": "Business Hours",
     "settingsSaved": "Settings saved"
   },
@@ -533,7 +546,10 @@
     "enterAddress": "Please enter delivery address",
     "enterStreetAndBuilding": "Please enter address with street and building number",
     "addAtLeastOneItem": "Please add at least one item",
-    "codeTooShort": "Code must be at least 4 characters"
+    "codeTooShort": "Code must be at least 4 characters",
+    "imageTooLarge": "Image must be under 5MB",
+    "invalidImageFormat": "Only JPG, PNG, and WEBP formats allowed",
+    "imageRequired": "Please select an image"
   },
   "time": {
     "justNow": "Just now",
@@ -629,5 +645,22 @@
     "message": "You have unsaved changes. Are you sure you want to discard them?",
     "keepEditing": "Keep Editing",
     "discard": "Discard"
+  },
+  "publicMenu": {
+    "title": "Menu",
+    "callRestaurant": "Call Restaurant",
+    "viewDetails": "View Details",
+    "unavailable": "Currently Unavailable",
+    "noItems": "No items in this category",
+    "errorLoading": "Failed to load menu",
+    "retry": "Retry",
+    "restaurantNotFound": "Restaurant not found"
+  },
+  "menuShare": {
+    "title": "Share Your Menu",
+    "qrCode": "Scan QR code to view public menu",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied to clipboard!",
+    "previewMenu": "Preview Public Menu"
   }
 }

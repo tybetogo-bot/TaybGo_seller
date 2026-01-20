@@ -12,6 +12,7 @@ import '../network/menu_api.dart';
 import '../network/orders_api.dart';
 import '../network/coupons_api.dart';
 import '../network/user_api.dart';
+import '../services/cloudinary_service.dart';
 import '../../features/auth/data/datasources/auth_data_source.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -88,4 +89,53 @@ final couponsApiProvider = Provider<CouponsApi>((ref) {
 final userApiProvider = Provider<UserApi>((ref) {
   final dio = ref.watch(dioProvider);
   return UserApi(dio);
+});
+
+/// Provider for dedicated Cloudinary Dio instance (no auth interceptor)
+final cloudinaryDioProvider = Provider<Dio>((ref) {
+  return Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+    ),
+  );
+});
+
+/// Provider for CloudinaryService
+final cloudinaryServiceProvider = Provider<CloudinaryService>((ref) {
+  final dio = ref.watch(cloudinaryDioProvider);
+  return CloudinaryService(dio);
+});
+
+/// Provider for public Dio instance (no auth interceptor)
+/// Used for public-facing APIs that don't require authentication (e.g., public menu)
+final publicDioProvider = Provider<Dio>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final authenticatedDio = ApiClient.getInstance(prefs);
+
+  return Dio(
+    BaseOptions(
+      baseUrl: authenticatedDio.options.baseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ),
+  );
+});
+
+/// Provider for public MenuApi (no authentication required)
+final publicMenuApiProvider = Provider<MenuApi>((ref) {
+  final dio = ref.watch(publicDioProvider);
+  return MenuApi(dio);
+});
+
+/// Provider for public RestaurantApi (no authentication required)
+final publicRestaurantApiProvider = Provider<RestaurantApi>((ref) {
+  final dio = ref.watch(publicDioProvider);
+  return RestaurantApi(dio);
 });

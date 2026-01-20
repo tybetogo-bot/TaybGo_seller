@@ -94,6 +94,10 @@ class Routes {
   static const String about = '/profile/about';
   static const String aboutName = 'about';
 
+  // ============ Public Menu ============
+  static const String publicMenu = '/public-menu/:restaurantId';
+  static const String publicMenuName = 'publicMenu';
+
   // ============ Helper Methods ============
 
   /// Get order details path with id
@@ -101,4 +105,8 @@ class Routes {
 
   /// Get menu item path with id
   static String menuItemPath(String itemId) => '/menu/item/$itemId';
+
+  /// Get public menu path with restaurant id
+  static String publicMenuPath(String restaurantId) =>
+      '/public-menu/$restaurantId';
 }

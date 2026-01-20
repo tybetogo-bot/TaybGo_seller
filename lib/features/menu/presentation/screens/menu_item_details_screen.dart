@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -63,11 +64,21 @@ class MenuItemDetailsScreen extends ConsumerWidget {
             pinned: true,
             backgroundColor: isDark ? DarkColors.background : LightColors.background,
             flexibleSpace: FlexibleSpaceBar(
-              background: item.imageUrl != null
-                  ? Image.network(
-                      item.imageUrl!,
+              background: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: item.imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPlaceholder(isDark),
+                      placeholder: (context, url) => Container(
+                        color: isDark ? DarkColors.surface : LightColors.surface,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: isDark
+                                ? DarkColors.textTertiary
+                                : LightColors.textTertiary,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => _buildPlaceholder(isDark),
                     )
                   : _buildPlaceholder(isDark),
             ),

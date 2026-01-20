@@ -44,7 +44,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   // Swipe thresholds
   static const double _swipeThreshold = 0.25; // 25% of card width
   static const double _maxSwipeRatio = 0.4; // Max 40% swipe
-  static const double _processingSwipeRatio = 0.35; // Locked position during processing
+  static const double _processingSwipeRatio =
+      0.35; // Locked position during processing
 
   @override
   void initState() {
@@ -53,9 +54,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.98,
+    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOut));
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -110,7 +112,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
     final swipeRatio = _dragExtent / maxWidth;
     final status = widget.order.status;
-    final isTerminal = status == OrderStatusEnum.completed ||
+    final isTerminal =
+        status == OrderStatusEnum.completed ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled;
     final nextStatus = status.nextStatus;
@@ -139,9 +142,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
   Future<void> _animateToPosition(double targetExtent) async {
     final startExtent = _dragExtent;
-    _slideAnimation = Tween<double>(begin: startExtent, end: targetExtent).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(begin: startExtent, end: targetExtent)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     void listener() {
       setState(() {
@@ -214,7 +218,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   }
 
   void _showUndoSnackBar(
-      OrderStatusEnum previousStatus, OrderStatusEnum newStatus) {
+    OrderStatusEnum previousStatus,
+    OrderStatusEnum newStatus,
+  ) {
     final orderId = widget.order.id;
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -222,21 +228,15 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              Icons.check_circle_rounded,
-              color: Colors.white,
-              size: 20.w,
-            ),
+            Icon(Icons.check_circle_rounded, color: Colors.white, size: 20.w),
             SizedBox(width: 12.w),
             Expanded(
               child: Text(
-                'orders.statusUpdatedTo'
-                    .tr
-                    .replaceAll('{status}', _getStatusLabel(newStatus)),
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
+                'orders.statusUpdatedTo'.tr.replaceAll(
+                  '{status}',
+                  _getStatusLabel(newStatus),
                 ),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -263,11 +263,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                 SnackBar(
                   content: Row(
                     children: [
-                      Icon(
-                        Icons.undo_rounded,
-                        color: Colors.white,
-                        size: 20.w,
-                      ),
+                      Icon(Icons.undo_rounded, color: Colors.white, size: 20.w),
                       SizedBox(width: 12.w),
                       Expanded(
                         child: Text(
@@ -433,7 +429,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final order = widget.order;
     final status = order.status;
     final statusColor = _getStatusColor(status);
-    final isTerminal = status == OrderStatusEnum.completed ||
+    final isTerminal =
+        status == OrderStatusEnum.completed ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled;
     final nextStatus = status.nextStatus;
@@ -446,10 +443,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return AnimatedBuilder(
           animation: _scaleController,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: child,
-            );
+            return Transform.scale(scale: _scaleAnimation.value, child: child);
           },
           child: GestureDetector(
             onTap: widget.onTap,
@@ -479,11 +473,15 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                     offset: Offset(_dragExtent, 0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark ? DarkColors.surface : LightColors.surface,
+                        color: isDark
+                            ? DarkColors.surface
+                            : LightColors.surface,
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
                           color: isTerminal
-                              ? (isDark ? DarkColors.border : LightColors.border)
+                              ? (isDark
+                                    ? DarkColors.border
+                                    : LightColors.border)
                               : statusColor.withValues(alpha: 0.5),
                           width: isTerminal ? 1 : 1.5,
                         ),
@@ -527,7 +525,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                 Container(
                                   width: double.infinity,
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w, vertical: 10.h),
+                                    horizontal: 12.w,
+                                    vertical: 10.h,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: statusColor.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10.r),
@@ -541,10 +541,12 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                       Container(
                                         padding: EdgeInsets.all(8.w),
                                         decoration: BoxDecoration(
-                                          color:
-                                              statusColor.withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(8.r),
+                                          color: statusColor.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
                                         ),
                                         child: Icon(
                                           _getStatusIcon(status),
@@ -595,7 +597,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                         color: isDark
                                             ? DarkColors.backgroundSecondary
                                             : LightColors.backgroundSecondary,
-                                        borderRadius: BorderRadius.circular(10.r),
+                                        borderRadius: BorderRadius.circular(
+                                          10.r,
+                                        ),
                                       ),
                                       child: Icon(
                                         Icons.person_outline,
@@ -639,7 +643,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                     ),
                                     // Total price
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                           '\$${order.total.toStringAsFixed(2)}',
@@ -682,7 +687,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                   _StatusActionButton(
                                     onTap: _handleMoveToNextStatus,
                                     isLoading: _isProcessing,
-                                    nextStatusLabel: _getStatusLabel(nextStatus),
+                                    nextStatusLabel: _getStatusLabel(
+                                      nextStatus,
+                                    ),
                                     nextStatusIcon: _getStatusIcon(nextStatus),
                                   ),
                                 ],
@@ -743,14 +750,16 @@ class _SwipeBackground extends StatelessWidget {
 
     if (!isSwipingRight && nextStatus != null) {
       // Swiping left - update status
-      backgroundColor =
-          hasReachedThreshold ? AppColors.success : AppColors.success.withValues(alpha: 0.7);
+      backgroundColor = hasReachedThreshold
+          ? AppColors.success
+          : AppColors.success.withValues(alpha: 0.7);
       icon = getStatusIcon(nextStatus!);
       label = getStatusLabel(nextStatus!);
     } else {
       // Swiping right - view details
-      backgroundColor =
-          hasReachedThreshold ? AppColors.info : AppColors.info.withValues(alpha: 0.7);
+      backgroundColor = hasReachedThreshold
+          ? AppColors.info
+          : AppColors.info.withValues(alpha: 0.7);
       icon = Icons.visibility_rounded;
       label = 'orders.viewDetails'.tr;
     }
@@ -759,10 +768,7 @@ class _SwipeBackground extends StatelessWidget {
       duration: const Duration(milliseconds: 100),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            backgroundColor.withValues(alpha: 0.9),
-            backgroundColor,
-          ],
+          colors: [backgroundColor.withValues(alpha: 0.9), backgroundColor],
           begin: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
           end: isSwipingRight ? Alignment.centerRight : Alignment.centerLeft,
         ),
@@ -779,89 +785,62 @@ class _SwipeBackground extends StatelessWidget {
               top: -20.h,
               child: Opacity(
                 opacity: 0.1,
-                child: Icon(
-                  icon,
-                  size: 150.w,
-                  color: Colors.white,
-                ),
+                child: Icon(icon, size: 150.w, color: Colors.white),
               ),
             ),
 
-            // Content
-            Positioned(
-              left: isSwipingRight ? 24.w : null,
-              right: isSwipingRight ? null : 24.w,
-              top: 0,
-              bottom: 0,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: absProgress > 0.1 ? 1.0 : 0.0,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isSwipingRight) ...[
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: Text(
-                          isProcessing ? 'common.loading'.tr : label,
-                          key: ValueKey(isProcessing),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+            // Content - Text only
+            if (absProgress > 0.1 && !isProcessing)
+              Align(
+                alignment: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 150),
+                    opacity: absProgress > 0.15 ? 1.0 : 0.0,
+                    child: Text(
+                      label,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.4,
+                        height: 1.3,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.black.withValues(alpha: 0.4),
+                            offset: const Offset(0, 1),
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(width: 12.w),
-                    ],
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: EdgeInsets.all(isProcessing ? 10.w : (hasReachedThreshold ? 14.w : 12.w)),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: isProcessing ? 0.3 : (hasReachedThreshold ? 0.25 : 0.15)),
-                        borderRadius: BorderRadius.circular(isProcessing ? 20.r : (hasReachedThreshold ? 16.r : 12.r)),
-                      ),
-                      child: isProcessing
-                          ? SizedBox(
-                              width: 28.w,
-                              height: 28.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                color: Colors.white,
-                              ),
-                            )
-                          : AnimatedRotation(
-                              duration: const Duration(milliseconds: 200),
-                              turns: hasReachedThreshold ? 0.0 : 0.0,
-                              child: Transform.rotate(
-                                angle: hasReachedThreshold ? 0 : (isSwipingRight ? -0.1 : 0.1),
-                                child: Icon(
-                                  hasReachedThreshold
-                                      ? (isSwipingRight
-                                          ? Icons.check_rounded
-                                          : Icons.arrow_forward_rounded)
-                                      : icon,
-                                  color: Colors.white,
-                                  size: hasReachedThreshold ? 28.w : 24.w,
-                                ),
-                              ),
-                            ),
                     ),
-                    if (isSwipingRight) ...[
-                      SizedBox(width: 12.w),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ),
-            ),
+
+            // Loading indicator
+            if (isProcessing)
+              Center(
+                child: Container(
+                  padding: EdgeInsets.all(14.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: SizedBox(
+                    width: 28.w,
+                    height: 28.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
 
             // Arrow indicators on edges
             if (absProgress > 0.05)
@@ -945,11 +924,7 @@ class _StatusActionButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    nextStatusIcon,
-                    size: 18.w,
-                    color: Colors.white,
-                  ),
+                  Icon(nextStatusIcon, size: 18.w, color: Colors.white),
                   SizedBox(width: 8.w),
                   Text(
                     nextStatusLabel,
@@ -1009,8 +984,9 @@ class _MiniProgressBar extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(16.r),
-                    bottomRight:
-                        progress >= 1.0 ? Radius.circular(16.r) : Radius.zero,
+                    bottomRight: progress >= 1.0
+                        ? Radius.circular(16.r)
+                        : Radius.zero,
                   ),
                 ),
               ),

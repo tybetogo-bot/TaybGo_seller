@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,7 @@ import '../../data/models/menu_item_model.dart';
 
 /// Swipeable menu item card with clean design
 /// - Swipe left: Toggle availability (activate/deactivate)
-/// - Swipe right: Open item details
+/// - Swipe right: Delete item
 class SwipeableMenuItemCard extends ConsumerStatefulWidget {
   const SwipeableMenuItemCard({
     super.key,
@@ -111,11 +112,9 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
     if (swipeRatio < -_swipeThreshold) {
       await _handleSwipeToToggleAvailability();
     }
-    // Swipe right threshold reached - open details
+    // Swipe right threshold reached - delete item
     else if (swipeRatio > _swipeThreshold) {
-      _resetSwipe();
-      HapticFeedback.lightImpact();
-      widget.onTap();
+      await _handleSwipeToDelete();
     }
     // Reset if threshold not reached
     else {
@@ -169,6 +168,121 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
       await _animateToPosition(0.0);
       _showUndoSnackBar(previousAvailability);
       setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _handleSwipeToDelete() async {
+    if (_isProcessing) return;
+
+    HapticFeedback.mediumImpact();
+
+    // Show confirmation dialog immediately without animation
+    _resetSwipe();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('menu.deleteItem'.tr),
+        content: Text('common.actionCannotBeUndone'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('common.cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.error,
+            ),
+            child: Text('common.delete'.tr),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (confirmed == true) {
+      setState(() => _isProcessing = true);
+      HapticFeedback.mediumImpact();
+
+      // Delete the item
+      await ref.read(menuProvider.notifier).deleteItem(widget.item.id);
+
+      if (!mounted) return;
+
+      // Check if there was an error
+      final menuState = ref.read(menuProvider);
+
+      if (menuState.error != null) {
+        // Log error for debugging
+        debugPrint('❌ Delete failed: ${menuState.error}');
+
+        // Show error message
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20.w,
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    menuState.error ?? 'errors.itemDeleteFailed'.tr,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            margin: EdgeInsets.all(16.w),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ),
+        );
+      } else {
+        // Show success message only if deletion was successful
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 20.w,
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Text(
+                    'menu.itemDeleted'.tr,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            margin: EdgeInsets.all(16.w),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -322,14 +436,31 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10.r),
-                              child: item.imageUrl != null
+                              child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                                   ? Stack(
                                       fit: StackFit.expand,
                                       children: [
-                                        Image.network(
-                                          item.imageUrl!,
+                                        CachedNetworkImage(
+                                          imageUrl: item.imageUrl!,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, e, s) => Icon(
+                                          placeholder: (context, url) => Container(
+                                            color: isDark
+                                                ? DarkColors.background
+                                                : LightColors.background,
+                                            child: Center(
+                                              child: SizedBox(
+                                                width: 20.w,
+                                                height: 20.w,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: isDark
+                                                      ? DarkColors.textTertiary
+                                                      : LightColors.textTertiary,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) => Icon(
                                             Icons.restaurant,
                                             color: isDark
                                                 ? DarkColors.textSecondary
@@ -489,7 +620,7 @@ class _SwipeBackground extends StatelessWidget {
     final hasReachedThreshold = absProgress >= 0.25;
 
     // Swipe left: Toggle availability
-    // Swipe right: View details (blue)
+    // Swipe right: Delete item (red)
     final Color backgroundColor;
     final IconData icon;
     final String label;
@@ -512,12 +643,12 @@ class _SwipeBackground extends StatelessWidget {
         label = 'menu.markAvailable'.tr;
       }
     } else {
-      // Swiping right - view details
+      // Swiping right - delete item
       backgroundColor = hasReachedThreshold
-          ? AppColors.info
-          : AppColors.info.withValues(alpha: 0.7);
-      icon = Icons.edit_rounded;
-      label = 'menu.viewItem'.tr;
+          ? AppColors.error
+          : AppColors.error.withValues(alpha: 0.7);
+      icon = Icons.delete_rounded;
+      label = 'menu.swipeToDelete'.tr;
     }
 
     return AnimatedContainer(
@@ -552,76 +683,56 @@ class _SwipeBackground extends StatelessWidget {
               ),
             ),
 
-            // Content
-            Positioned(
-              left: isSwipingRight ? 20.w : null,
-              right: isSwipingRight ? null : 20.w,
-              top: 0,
-              bottom: 0,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: absProgress > 0.1 ? 1.0 : 0.0,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isSwipingRight) ...[
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: Text(
-                          isProcessing ? 'common.loading'.tr : label,
-                          key: ValueKey(isProcessing),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
+            // Content - Text only
+            if (absProgress > 0.1 && !isProcessing)
+              Align(
+                alignment: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 150),
+                    opacity: absProgress > 0.15 ? 1.0 : 0.0,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.black.withValues(alpha: 0.4),
+                            offset: const Offset(0, 1),
                           ),
-                        ),
+                        ],
                       ),
-                      SizedBox(width: 8.w),
-                    ],
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: EdgeInsets.all(isProcessing ? 8.w : (hasReachedThreshold ? 10.w : 8.w)),
-                      decoration: BoxDecoration(
-                        color: Colors.white
-                            .withValues(alpha: isProcessing ? 0.3 : (hasReachedThreshold ? 0.25 : 0.15)),
-                        borderRadius:
-                            BorderRadius.circular(isProcessing ? 16.r : (hasReachedThreshold ? 12.r : 8.r)),
-                      ),
-                      child: isProcessing
-                          ? SizedBox(
-                              width: 22.w,
-                              height: 22.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Icon(
-                              hasReachedThreshold
-                                  ? (isSwipingRight
-                                      ? Icons.arrow_forward_rounded
-                                      : Icons.check_rounded)
-                                  : icon,
-                              color: Colors.white,
-                              size: hasReachedThreshold ? 22.w : 18.w,
-                            ),
                     ),
-                    if (isSwipingRight) ...[
-                      SizedBox(width: 8.w),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ),
-            ),
+
+            // Loading indicator
+            if (isProcessing)
+              Center(
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: SizedBox(
+                    width: 24.w,
+                    height: 24.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
 
             // Arrow indicators on edges
             if (absProgress > 0.05)

@@ -58,7 +58,15 @@ class TybeToGoApp extends ConsumerWidget {
     // Set up global unauthorized callback to handle 401 errors
     // This callback will be called by the AuthInterceptor when a 401 error occurs
     globalUnauthorizedCallback = () {
-      // Navigate to login screen when token is invalid
+      // Check if we're on a public route - don't redirect if so
+      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      if (currentLocation.startsWith('/public-menu')) {
+        print('🟡 [UnauthorizedCallback] On public route, skipping login redirect');
+        return;
+      }
+
+      // Navigate to login screen when token is invalid (only for protected routes)
+      print('🔴 [UnauthorizedCallback] Unauthorized on protected route, redirecting to login');
       router.go(Routes.login);
     };
 

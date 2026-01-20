@@ -98,6 +98,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void _tryNavigate() {
     if (_hasNavigated || !_minimumDelayPassed || !mounted) return;
 
+    // Don't navigate if we're coming from a public route (like public menu)
+    // This prevents splash screen from redirecting when user lands on public menu directly
+    final router = GoRouter.of(context);
+    final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+    if (currentLocation.startsWith('/public-menu')) {
+      print('🟢 [SplashScreen] Public route detected, skipping navigation');
+      _hasNavigated = true; // Mark as navigated to prevent timeout redirect
+      return;
+    }
+
     final authState = ref.read(authProvider);
     final restaurantState = ref.read(restaurantProvider);
 

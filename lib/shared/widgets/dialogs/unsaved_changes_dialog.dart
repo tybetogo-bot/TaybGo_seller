@@ -59,10 +59,11 @@ class UnsavedChangesDialog extends StatelessWidget {
             ),
           ),
         ),
-        FilledButton(
+        TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: FilledButton.styleFrom(
+          style: TextButton.styleFrom(
             backgroundColor: AppColors.error,
+            foregroundColor: Colors.white,
           ),
           child: Text(
             'unsavedChanges.discard'.tr,

@@ -9,6 +9,7 @@ import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
 import '../widgets/ingredient_chips.dart';
+import '../widgets/image_picker_widget.dart';
 
 /// Add/Edit menu item screen with full functionality
 class AddMenuItemScreen extends ConsumerStatefulWidget {
@@ -31,6 +32,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
   String? _selectedCategoryId;
   bool _isAvailable = true;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
   List<String> _ingredients = [];
   List<CustomizationOption> _customizations = [];
   String? _imageUrl;
@@ -125,6 +127,23 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
         child: ListView(
           padding: EdgeInsets.all(16.w),
           children: [
+            // Image picker section
+            ImagePickerWidget(
+              initialImageUrl: _imageUrl,
+              onImageUploaded: (url) {
+                setState(() => _imageUrl = url);
+                if (_initialDataLoaded) markAsChanged();
+              },
+              onImageRemoved: () {
+                setState(() => _imageUrl = null);
+                if (_initialDataLoaded) markAsChanged();
+              },
+              onUploadStateChanged: (isUploading) {
+                setState(() => _isUploadingImage = isUploading);
+              },
+            ),
+            SizedBox(height: 24.h),
+
             // Basic info section
             _buildSectionTitle('menu.basicInfo'.tr, Icons.info_outline, isDark),
             SizedBox(height: 12.h),
@@ -234,7 +253,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveItem,
+                onPressed: (_isLoading || _isUploadingImage) ? null : _saveItem,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   padding: EdgeInsets.symmetric(vertical: 16.h),

@@ -35,7 +35,8 @@
     "name": "Name",
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "version": "Version",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "optional": "Optional"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -84,6 +85,7 @@
     "failedToAddItem": "Artikel konnte nicht hinzugefügt werden",
     "failedToUpdateItem": "Artikel konnte nicht aktualisiert werden",
     "failedToDeleteItem": "Artikel konnte nicht gelöscht werden",
+    "itemDeleteFailed": "Löschen fehlgeschlagen",
     "failedToLoadCoupons": "Coupons konnten nicht geladen werden",
     "failedToAddCoupon": "Coupon konnte nicht hinzugefügt werden",
     "failedToUpdateCoupon": "Coupon konnte nicht aktualisiert werden",
@@ -365,8 +367,17 @@
     "itemUpdated": "Aktualisiert",
     "noItems": "Keine Artikel",
     "image": "Bild",
+    "itemImage": "Artikelbild",
     "addImage": "Bild hinzufügen",
+    "changeImage": "Bild ändern",
+    "removeImage": "Bild entfernen",
     "selectImage": "Bild auswählen",
+    "selectImageSource": "Bildquelle wählen",
+    "camera": "Kamera",
+    "gallery": "Galerie",
+    "uploadingImage": "Bild wird hochgeladen...",
+    "imageUploadError": "Fehler beim Hochladen",
+    "imageUploadSuccess": "Bild erfolgreich hochgeladen",
     "preparationTime": "Zubereitung",
     "basicInfo": "Grundinfo",
     "additionalPrice": "Aufpreis",
@@ -376,7 +387,8 @@
     "availabilityReverted": "Verfügbarkeit zurückgesetzt",
     "markAvailable": "Verfügbar machen",
     "markUnavailable": "Nicht verfügbar machen",
-    "viewItem": "Artikel anzeigen"
+    "viewItem": "Artikel anzeigen",
+    "swipeToDelete": "Zum Löschen wischen"
   },
   "coupons": {
     "title": "Gutscheine",
@@ -437,6 +449,7 @@
     "notAcceptingOrders": "Nimmt keine Bestellungen an",
     "restaurantInfo": "Restaurant-Info",
     "restaurantName": "Name",
+    "restaurantLogo": "Restaurant-Logo",
     "businessHours": "Öffnungszeiten",
     "settingsSaved": "Gespeichert"
   },
@@ -518,7 +531,10 @@
     "enterAddress": "Adresse eingeben",
     "enterStreetAndBuilding": "Straße und Hausnummer eingeben",
     "addAtLeastOneItem": "Mind. einen Artikel hinzufügen",
-    "codeTooShort": "Mind. 4 Zeichen"
+    "codeTooShort": "Mind. 4 Zeichen",
+    "imageTooLarge": "Bild muss unter 5 MB sein",
+    "invalidImageFormat": "Nur JPG, PNG und WEBP erlaubt",
+    "imageRequired": "Bitte wählen Sie ein Bild"
   },
   "time": {
     "justNow": "Gerade eben",
@@ -614,5 +630,22 @@
     "message": "Sie haben ungespeicherte Änderungen. Möchten Sie diese wirklich verwerfen?",
     "keepEditing": "Weiter bearbeiten",
     "discard": "Verwerfen"
+  },
+  "publicMenu": {
+    "title": "Menü",
+    "callRestaurant": "Restaurant anrufen",
+    "viewDetails": "Details anzeigen",
+    "unavailable": "Derzeit nicht verfügbar",
+    "noItems": "Keine Artikel in dieser Kategorie",
+    "errorLoading": "Fehler beim Laden des Menüs",
+    "retry": "Erneut versuchen",
+    "restaurantNotFound": "Restaurant nicht gefunden"
+  },
+  "menuShare": {
+    "title": "Menü teilen",
+    "qrCode": "QR-Code scannen, um das öffentliche Menü anzuzeigen",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link kopiert!",
+    "previewMenu": "Öffentliches Menü Vorschau"
   }
 }

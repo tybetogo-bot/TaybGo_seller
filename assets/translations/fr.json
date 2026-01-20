@@ -35,7 +35,8 @@
     "name": "Nom",
     "actionCannotBeUndone": "Cette action est irréversible.",
     "version": "Version",
-    "undo": "Annuler"
+    "undo": "Annuler",
+    "optional": "Optionnel"
   },
   "auth": {
     "phoneNumber": "Téléphone",
@@ -84,6 +85,7 @@
     "failedToAddItem": "Échec de l'ajout de l'article",
     "failedToUpdateItem": "Échec de la mise à jour de l'article",
     "failedToDeleteItem": "Échec de la suppression de l'article",
+    "itemDeleteFailed": "Suppression échouée",
     "failedToLoadCoupons": "Échec du chargement des coupons",
     "failedToAddCoupon": "Échec de l'ajout du coupon",
     "failedToUpdateCoupon": "Échec de la mise à jour du coupon",
@@ -365,8 +367,17 @@
     "itemUpdated": "Mis à jour",
     "noItems": "Aucun article",
     "image": "Image",
+    "itemImage": "Image de l'article",
     "addImage": "Ajouter image",
+    "changeImage": "Changer l'image",
+    "removeImage": "Supprimer l'image",
     "selectImage": "Choisir image",
+    "selectImageSource": "Choisir la source",
+    "camera": "Caméra",
+    "gallery": "Galerie",
+    "uploadingImage": "Téléchargement en cours...",
+    "imageUploadError": "Échec du téléchargement",
+    "imageUploadSuccess": "Image téléchargée avec succès",
     "preparationTime": "Préparation",
     "basicInfo": "Infos",
     "additionalPrice": "Supplément",
@@ -376,7 +387,8 @@
     "availabilityReverted": "Disponibilité annulée",
     "markAvailable": "Rendre disponible",
     "markUnavailable": "Rendre indisponible",
-    "viewItem": "Voir article"
+    "viewItem": "Voir article",
+    "swipeToDelete": "Glisser pour supprimer"
   },
   "coupons": {
     "title": "Coupons",
@@ -437,6 +449,7 @@
     "notAcceptingOrders": "Fermé",
     "restaurantInfo": "Informations",
     "restaurantName": "Nom",
+    "restaurantLogo": "Logo du restaurant",
     "businessHours": "Horaires",
     "settingsSaved": "Enregistré"
   },
@@ -518,7 +531,10 @@
     "enterAddress": "Entrez l'adresse",
     "enterStreetAndBuilding": "Entrez rue et numéro",
     "addAtLeastOneItem": "Ajoutez un article",
-    "codeTooShort": "Min. 4 caractères"
+    "codeTooShort": "Min. 4 caractères",
+    "imageTooLarge": "L'image doit faire moins de 5 Mo",
+    "invalidImageFormat": "Formats autorisés : JPG, PNG, WEBP",
+    "imageRequired": "Veuillez sélectionner une image"
   },
   "time": {
     "justNow": "À l'instant",
@@ -614,5 +630,22 @@
     "message": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir les abandonner?",
     "keepEditing": "Continuer",
     "discard": "Abandonner"
+  },
+  "publicMenu": {
+    "title": "Menu",
+    "callRestaurant": "Appeler le restaurant",
+    "viewDetails": "Voir les détails",
+    "unavailable": "Actuellement indisponible",
+    "noItems": "Aucun article dans cette catégorie",
+    "errorLoading": "Échec du chargement du menu",
+    "retry": "Réessayer",
+    "restaurantNotFound": "Restaurant non trouvé"
+  },
+  "menuShare": {
+    "title": "Partager le menu",
+    "qrCode": "Scannez le code QR pour voir le menu public",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié!",
+    "previewMenu": "Aperçu du menu public"
   }
 }

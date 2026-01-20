@@ -2,6 +2,12 @@
 /// Contains all constant values used throughout the app
 library;
 
+/// Deployment configuration constants
+abstract class DeploymentConfig {
+  /// Base URL for web deployment (used for QR code generation)
+  static const String baseUrl = 'https://taybatseller.web.app';
+}
+
 /// Storage keys for SharedPreferences/Hive
 abstract class StorageKeys {
   static const String authToken = 'auth_token';
