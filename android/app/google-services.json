@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "861868751268",
+    "project_id": "tybetogoseller",
+    "storage_bucket": "tybetogoseller.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:861868751268:android:6e861d2c9ec2db5a352931",
+        "android_client_info": {
+          "package_name": "com.tybetogo.seller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDJ0ZMTIFUO2ZGNIAP-p4yzkF5fNNoBuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
