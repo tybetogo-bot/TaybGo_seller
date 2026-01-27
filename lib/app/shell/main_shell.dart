@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/i18n/i18n.dart';
 import '../../core/theme/theme.dart';
+import '../../features/tour/utils/tour_keys.dart';
 import '../router/routes.dart';
 
 /// Main shell with bottom navigation
@@ -50,6 +51,7 @@ class AppBottomNavBar extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavItem(
+                key: TourKeys.homeBottomNavKey,
                 icon: Icons.home_outlined,
                 activeIcon: Icons.home_rounded,
                 label: 'navigation.home'.tr,
@@ -57,6 +59,7 @@ class AppBottomNavBar extends ConsumerWidget {
                 onTap: () => context.go(Routes.home),
               ),
               _NavItem(
+                key: TourKeys.ordersBottomNavKey,
                 icon: Icons.receipt_long_outlined,
                 activeIcon: Icons.receipt_long_rounded,
                 label: 'navigation.orders'.tr,
@@ -64,6 +67,7 @@ class AppBottomNavBar extends ConsumerWidget {
                 onTap: () => context.go(Routes.orders),
               ),
               _NavItem(
+                key: TourKeys.menuBottomNavKey,
                 icon: Icons.restaurant_menu_outlined,
                 activeIcon: Icons.restaurant_menu_rounded,
                 label: 'navigation.menu'.tr,
@@ -71,6 +75,7 @@ class AppBottomNavBar extends ConsumerWidget {
                 onTap: () => context.go(Routes.menu),
               ),
               _NavItem(
+                key: TourKeys.profileBottomNavKey,
                 icon: Icons.person_outline_rounded,
                 activeIcon: Icons.person_rounded,
                 label: 'navigation.profile'.tr,
@@ -87,12 +92,13 @@ class AppBottomNavBar extends ConsumerWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
+    Key? key,
     required this.icon,
     required this.activeIcon,
     required this.label,
     required this.isSelected,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   final IconData icon;
   final IconData activeIcon;

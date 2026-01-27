@@ -9,6 +9,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../application/user_profile_notifier.dart';
 
 /// Profile screen - minimal design
@@ -53,6 +54,7 @@ class ProfileScreen extends ConsumerWidget {
 
           // Quick stats row
           Row(
+            key: TourKeys.quickStatsKey,
             children: [
               _QuickStat(
                 label: 'profile.today'.tr,
@@ -81,12 +83,14 @@ class ProfileScreen extends ConsumerWidget {
 
           // Settings list
           _SettingRow(
+            key: TourKeys.settingsOptionsKey,
             icon: Icons.local_offer_outlined,
             label: 'coupons.title'.tr,
             isDark: isDark,
             onTap: () => context.push(Routes.coupons),
           ),
           _SettingRow(
+            key: TourKeys.themeSettingKey,
             icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
             label: 'settings.darkMode'.tr,
             isDark: isDark,
@@ -100,11 +104,13 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           _AccentColorRow(
+            key: TourKeys.accentColorSettingKey,
             accentColor: accentColor,
             isDark: isDark,
             onTap: () => _showAccentColorPicker(context, ref, accentColor),
           ),
           _SettingRow(
+            key: TourKeys.languageSettingKey,
             icon: Icons.language_outlined,
             label: 'settings.language'.tr,
             value: ref.watch(localeProvider).languageCode.toUpperCase(),
@@ -257,10 +263,11 @@ class ProfileScreen extends ConsumerWidget {
 
 class _AccentColorRow extends StatelessWidget {
   const _AccentColorRow({
+    Key? key,
     required this.accentColor,
     required this.isDark,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   final AccentColor accentColor;
   final bool isDark;
@@ -493,13 +500,14 @@ class _QuickStat extends StatelessWidget {
 
 class _SettingRow extends StatelessWidget {
   const _SettingRow({
+    Key? key,
     required this.icon,
     required this.label,
     required this.isDark,
     this.value,
     this.trailing,
     this.onTap,
-  });
+  }) : super(key: key);
 
   final IconData icon;
   final String label;

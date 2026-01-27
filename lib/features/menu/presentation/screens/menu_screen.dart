@@ -7,6 +7,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../application/menu_notifier.dart';
 import '../widgets/public_menu_share_card.dart';
 import '../widgets/swipeable_menu_item_card.dart';
@@ -54,6 +55,7 @@ class MenuScreen extends ConsumerWidget {
             // Category filter
             if (categories.isNotEmpty) ...[
               SizedBox(
+                key: TourKeys.menuCategoriesKey,
                 height: 44.h,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -260,11 +262,13 @@ class MenuScreen extends ConsumerWidget {
             else
               Expanded(
                 child: ListView.builder(
+                  key: TourKeys.menuItemsListKey,
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return SwipeableMenuItemCard(
+                      key: index == 0 ? TourKeys.firstMenuItemKey : ValueKey(item.id),
                       item: item,
                       onTap: () => context.push(Routes.menuItemPath(item.id)),
                     );

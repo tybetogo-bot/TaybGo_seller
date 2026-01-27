@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 import '../widgets/animated_order_card.dart';
@@ -121,6 +122,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
           dividerColor: Colors.transparent,
           tabs: [
             Tab(
+              key: TourKeys.pendingOrdersTabKey,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -133,6 +135,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
               ),
             ),
             Tab(
+              key: TourKeys.activeOrdersTabKey,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -232,6 +235,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                     controller: _tabController,
                     children: [
                       _OrdersList(
+                        key: TourKeys.pendingOrdersListKey,
                         orders: ordersState.pendingOrders,
                         isDark: isDark,
                         emptyMessage: ordersState.searchQuery.isNotEmpty
@@ -239,6 +243,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                             : 'orders.noPendingOrders'.tr,
                       ),
                       _OrdersList(
+                        key: TourKeys.activeOrdersListKey,
                         orders: ordersState.activeOrders,
                         isDark: isDark,
                         emptyMessage: ordersState.searchQuery.isNotEmpty
@@ -288,10 +293,11 @@ class _TabBadge extends StatelessWidget {
 
 class _OrdersList extends StatelessWidget {
   const _OrdersList({
+    Key? key,
     required this.orders,
     required this.isDark,
     required this.emptyMessage,
-  });
+  }) : super(key: key);
 
   final List<OrderModel> orders;
   final bool isDark;
@@ -330,7 +336,7 @@ class _OrdersList extends StatelessWidget {
         final order = orders[index];
         return RepaintBoundary(
           child: AnimatedOrderCard(
-            key: ValueKey(order.id),
+            key: index == 0 ? TourKeys.firstOrderCardKey : ValueKey(order.id),
             order: order,
             onTap: () => context.push(Routes.orderDetailsPath(order.id)),
           ),

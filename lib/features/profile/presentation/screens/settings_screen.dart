@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../tour/application/tour_notifier.dart';
+import '../../../tour/application/tour_state.dart';
 
 /// Settings screen
 class SettingsScreen extends ConsumerWidget {
@@ -56,6 +58,26 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.notifications_outlined,
             title: 'settings.notifications'.tr,
             onTap: () => context.push(Routes.notifications),
+            isDark: isDark,
+          ),
+          const Divider(height: 32),
+          _SettingsTile(
+            icon: Icons.tour_outlined,
+            title: 'settings.appTour'.tr,
+            subtitle: 'settings.appTourSubtitle'.tr,
+            onTap: () => _showTourSelectionDialog(context, ref),
+            isDark: isDark,
+          ),
+          _SettingsTile(
+            icon: Icons.help_center_outlined,
+            title: 'settings.howTo'.tr,
+            subtitle: 'settings.howToSubtitle'.tr,
+            onTap: () {
+              // TODO: Navigate to documentation when implemented
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Documentation coming soon!'.tr)),
+              );
+            },
             isDark: isDark,
           ),
           const Divider(height: 32),
@@ -201,6 +223,112 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showTourSelectionDialog(BuildContext context, WidgetRef ref) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
+  showDialog(
+    context: context,
+    builder: (context) => SimpleDialog(
+      title: Text('settings.selectTour'.tr),
+      children: [
+        SimpleDialogOption(
+          onPressed: () {
+            Navigator.pop(context);
+            ref.read(tourProvider.notifier).startTour(TourType.fullApp);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settings.fullAppTour'.tr,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'settings.fullAppTourDesc'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SimpleDialogOption(
+          onPressed: () {
+            Navigator.pop(context);
+            ref.read(tourProvider.notifier).startTour(TourType.ordersQuick);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settings.ordersQuickTour'.tr,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'settings.ordersQuickTourDesc'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SimpleDialogOption(
+          onPressed: () {
+            Navigator.pop(context);
+            ref.read(tourProvider.notifier).startTour(TourType.menuQuick);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'settings.menuQuickTour'.tr,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'settings.menuQuickTourDesc'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _AccentColorTile extends StatelessWidget {

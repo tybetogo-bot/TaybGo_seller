@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../features/tour/utils/tour_keys.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../orders/presentation/widgets/animated_order_card.dart';
@@ -105,6 +106,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
                   child: Row(
+                    key: TourKeys.homeStatsCardKey,
                     children: [
                       _StatBox(
                         value: pendingOrders.length.toString(),
@@ -149,6 +151,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 28.h, 20.w, 12.h),
                   child: Row(
+                    key: TourKeys.homePendingOrdersKey,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(

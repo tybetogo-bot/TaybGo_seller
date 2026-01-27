@@ -466,7 +466,18 @@
     "restaurantName": "Restaurant Name",
     "restaurantLogo": "Restaurant Logo",
     "businessHours": "Business Hours",
-    "settingsSaved": "Settings saved"
+    "settingsSaved": "Settings saved",
+    "appTour": "App Tour",
+    "appTourSubtitle": "Learn how to use the app",
+    "howTo": "How to?",
+    "howToSubtitle": "Guides and documentation",
+    "selectTour": "Select Tour Type",
+    "fullAppTour": "Full App Tour",
+    "fullAppTourDesc": "Complete walkthrough of all features (~5 mins)",
+    "ordersQuickTour": "Orders Quick Tour",
+    "ordersQuickTourDesc": "Learn order management basics (~2 mins)",
+    "menuQuickTour": "Menu Quick Tour",
+    "menuQuickTourDesc": "Master menu management (~2 mins)"
   },
   "profile": {
     "title": "Profile",
@@ -662,5 +673,97 @@
     "copyLink": "Copy Link",
     "linkCopied": "Link copied to clipboard!",
     "previewMenu": "Preview Public Menu"
+  },
+  "tour": {
+    "step": "Step",
+    "of": "of",
+    "skip": "Skip",
+    "next": "Next",
+    "finish": "Finish",
+    "actionHint": {
+      "tap": "Tap to continue",
+      "swipe": "Swipe to interact",
+      "navigate": "Navigate here",
+      "observe": "Take a look",
+      "interact": "Try it out"
+    },
+    "welcome": {
+      "title": "Welcome!",
+      "description": "Let's see today's overview"
+    },
+    "homeStats": {
+      "title": "Today's Performance",
+      "description": "Track your daily revenue and order count at a glance"
+    },
+    "ordersTab": {
+      "title": "Orders Management",
+      "description": "Navigate to orders screen to manage incoming requests"
+    },
+    "pendingOrders": {
+      "title": "New Orders",
+      "description": "These are waiting for your response. Swipe to accept or reject"
+    },
+    "orderDetails": {
+      "title": "Order Details",
+      "description": "Tap any order to view full details and customer information"
+    },
+    "orderActions": {
+      "title": "Update Status",
+      "description": "Swipe orders to quickly change status as you prepare and deliver"
+    },
+    "activeOrders": {
+      "title": "Active Orders",
+      "description": "Track orders currently being prepared or delivered"
+    },
+    "menuTab": {
+      "title": "Menu Management",
+      "description": "Navigate to menu screen to manage your offerings"
+    },
+    "menuItems": {
+      "title": "Your Menu",
+      "description": "View and organize all your menu items here"
+    },
+    "itemAvailability": {
+      "title": "Quick Toggle",
+      "description": "Swipe items to mark them available or unavailable instantly"
+    },
+    "menuCategories": {
+      "title": "Categories",
+      "description": "Organize items by categories for better menu structure"
+    },
+    "profileTab": {
+      "title": "Profile & Settings",
+      "description": "Access your restaurant profile and app settings"
+    },
+    "quickStats": {
+      "title": "Quick Stats",
+      "description": "View your daily performance and access detailed analytics"
+    },
+    "statistics": {
+      "title": "Analytics",
+      "description": "Dive deeper into your sales and performance metrics"
+    },
+    "themeCustomization": {
+      "title": "Customize Theme",
+      "description": "Toggle dark mode and choose your preferred accent color"
+    },
+    "languageSettings": {
+      "title": "Change Language",
+      "description": "App supports English, Arabic, German, and French"
+    },
+    "tourComplete": {
+      "title": "You're All Set!",
+      "description": "You can restart this tour anytime from Settings. Happy selling!"
+    }
+  },
+  "welcomeTour": {
+    "title": "Welcome to TybeToGo Seller",
+    "description": "Take a quick tour to discover how to manage orders, update your menu, and track your performance.",
+    "benefit1": "Learn key features in under 5 minutes",
+    "benefit2": "See how to handle orders efficiently",
+    "benefit3": "Discover tips for better sales",
+    "dontShowAgain": "Don't show this again",
+    "skipForNow": "Skip for Now",
+    "startTour": "Start Tour"
   }
 }

@@ -11,6 +11,7 @@ import 'core/config/constants.dart';
 import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
 import 'core/theme/theme.dart';
+import 'features/tour/presentation/widgets/tour_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,7 +76,8 @@ class TybeToGoApp extends ConsumerWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp.router(
+        return TourOverlay(
+          child: MaterialApp.router(
           title: 'TybeToGo Seller',
           debugShowCheckedModeBanner: false,
 
@@ -116,6 +118,7 @@ class TybeToGoApp extends ConsumerWidget {
               ),
             );
           },
+        ),
         );
       },
     );
