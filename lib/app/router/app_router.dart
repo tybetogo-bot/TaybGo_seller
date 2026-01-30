@@ -90,9 +90,10 @@ class AppRouter {
         return null;
       }
 
-      // All other routes need authentication - go through splash
-      print('🟡 [Router] Protected route - redirecting to splash');
-      return Routes.splash;
+      // Allow all other routes - splash screen handles auth/restaurant checks
+      // Don't redirect protected routes here to avoid redirect loops
+      print('🟢 [Router] Protected route - allowing (auth check handled by splash)');
+      return null;
     },
     routes: [
       // Splash screen
