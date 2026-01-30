@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teybatseller/features/menu/application/menu_notifier.dart';
-import 'package:teybatseller/features/orders/application/orders_notifier.dart';
-import 'package:teybatseller/features/restaurant/application/restaurant_state.dart';
-import 'package:teybatseller/features/tour/application/mock_providers.dart';
 import 'package:teybatseller/features/tour/application/tour_notifier.dart';
 import 'package:teybatseller/features/tour/data/tour_steps_data.dart';
 import 'package:teybatseller/features/tour/presentation/widgets/tour_controls.dart';
@@ -12,7 +8,7 @@ import 'package:teybatseller/features/tour/presentation/widgets/tour_progress_in
 import 'package:teybatseller/features/tour/presentation/widgets/tour_tooltip.dart';
 
 /// Main tour overlay widget that wraps the entire app
-/// When tour is active, it creates a nested ProviderScope with mock data
+/// Shows interactive tour UI on top of the REAL app (not mock data)
 class TourOverlay extends ConsumerWidget {
   const TourOverlay({
     required this.child,
@@ -38,29 +34,17 @@ class TourOverlay extends ConsumerWidget {
 
     final currentStep = steps[tourState.currentStepIndex];
 
-    // Create nested ProviderScope with mock data providers
-    return ProviderScope(
-      overrides: [
-        // Override orders provider with mock version
-        ordersProvider.overrideWith(() => MockOrdersNotifier()),
+    // Show tour UI overlay on top of real app
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          // Original app content (with REAL data - no mocks!)
+          child,
 
-        // Override menu provider with mock version
-        menuProvider.overrideWith(() => MockMenuNotifier()),
-
-        // Override restaurant provider with mock version
-        restaurantProvider.overrideWith(() => MockRestaurantNotifier()),
-      ],
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Stack(
-          children: [
-            // Original app content (with mock data)
-            child,
-
-            // Tour UI overlay
-            _TourOverlayUI(currentStep: currentStep),
-          ],
-        ),
+          // Tour UI overlay
+          _TourOverlayUI(currentStep: currentStep),
+        ],
       ),
     );
   }

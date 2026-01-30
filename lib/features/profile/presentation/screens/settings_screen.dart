@@ -236,6 +236,8 @@ void _showTourSelectionDialog(BuildContext context, WidgetRef ref) {
         SimpleDialogOption(
           onPressed: () {
             Navigator.pop(context);
+            final router = GoRouter.of(context);
+            ref.read(tourProvider.notifier).setRouter(router);
             ref.read(tourProvider.notifier).startTour(TourType.fullApp);
           },
           child: Padding(
@@ -267,6 +269,8 @@ void _showTourSelectionDialog(BuildContext context, WidgetRef ref) {
         SimpleDialogOption(
           onPressed: () {
             Navigator.pop(context);
+            final router = GoRouter.of(context);
+            ref.read(tourProvider.notifier).setRouter(router);
             ref.read(tourProvider.notifier).startTour(TourType.ordersQuick);
           },
           child: Padding(
@@ -298,6 +302,8 @@ void _showTourSelectionDialog(BuildContext context, WidgetRef ref) {
         SimpleDialogOption(
           onPressed: () {
             Navigator.pop(context);
+            final router = GoRouter.of(context);
+            ref.read(tourProvider.notifier).setRouter(router);
             ref.read(tourProvider.notifier).startTour(TourType.menuQuick);
           },
           child: Padding(

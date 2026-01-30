@@ -1,9 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teybatseller/features/tour/application/tour_state.dart';
 import 'package:teybatseller/features/tour/data/tour_steps_data.dart';
 import 'package:teybatseller/features/tour/utils/tour_persistence.dart';
 
 class TourNotifier extends Notifier<TourState> {
+  GoRouter? _router;
+
+  void setRouter(GoRouter router) {
+    _router = router;
+  }
+
   @override
   TourState build() {
     _loadSavedState();
@@ -30,6 +37,9 @@ class TourNotifier extends Notifier<TourState> {
       totalSteps: steps.length,
       tourType: tourType,
     );
+
+    // Navigate to the first step's target screen
+    _navigateToCurrentStep();
   }
 
   void nextStep() {
@@ -42,6 +52,9 @@ class TourNotifier extends Notifier<TourState> {
     state = state.copyWith(
       currentStepIndex: state.currentStepIndex + 1,
     );
+
+    // Navigate to the next step's target screen
+    _navigateToCurrentStep();
   }
 
   void previousStep() {
@@ -51,6 +64,25 @@ class TourNotifier extends Notifier<TourState> {
     state = state.copyWith(
       currentStepIndex: state.currentStepIndex - 1,
     );
+
+    // Navigate back to the previous step's target screen
+    _navigateToCurrentStep();
+  }
+
+  void _navigateToCurrentStep() {
+    if (_router == null) return;
+
+    final steps = TourSteps.getStepsForTourType(state.tourType);
+    if (state.currentStepIndex >= steps.length) return;
+
+    final currentStep = steps[state.currentStepIndex];
+    final targetScreen = currentStep.targetScreen;
+
+    // Only navigate if we're not already on the target screen
+    final currentLocation = _router!.routerDelegate.currentConfiguration.uri.path;
+    if (currentLocation != targetScreen) {
+      _router!.go(targetScreen);
+    }
   }
 
   Future<void> skipStep() async {

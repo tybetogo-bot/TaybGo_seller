@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:teybatseller/core/i18n/i18n.dart';
 import 'package:teybatseller/core/theme/app_spacing.dart';
 import 'package:teybatseller/features/tour/application/tour_notifier.dart';
@@ -60,6 +61,10 @@ class _WelcomeTourDialogState extends ConsumerState<WelcomeTourDialog>
     }
 
     if (!mounted) return;
+
+    // Inject router for navigation
+    final router = GoRouter.of(context);
+    ref.read(tourProvider.notifier).setRouter(router);
 
     // Start the full app tour
     ref.read(tourProvider.notifier).startTour(TourType.fullApp);

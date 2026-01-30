@@ -153,6 +153,10 @@ class HomeScreen extends ConsumerWidget {
                         icon: Icons.tour_outlined,
                         label: 'Start Tour (Test)',
                         onTap: () {
+                          // Inject router for navigation
+                          final router = GoRouter.of(context);
+                          ref.read(tourProvider.notifier).setRouter(router);
+                          // Start the interactive tour
                           ref.read(tourProvider.notifier).startTour(TourType.fullApp);
                         },
                       ),
