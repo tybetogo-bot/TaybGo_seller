@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../features/tour/application/tour_notifier.dart';
+import '../../../../features/tour/application/tour_state.dart';
 import '../../../../features/tour/utils/tour_keys.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../orders/application/orders_notifier.dart';
@@ -138,10 +140,23 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
-                  child: _PrimaryAction(
-                    icon: Icons.add,
-                    label: 'orders.createOrder'.tr,
-                    onTap: () => context.push(Routes.createOrder),
+                  child: Column(
+                    children: [
+                      _PrimaryAction(
+                        icon: Icons.add,
+                        label: 'orders.createOrder'.tr,
+                        onTap: () => context.push(Routes.createOrder),
+                      ),
+                      SizedBox(height: 12.h),
+                      // TEST: Tour Button
+                      _SecondaryAction(
+                        icon: Icons.tour_outlined,
+                        label: 'Start Tour (Test)',
+                        onTap: () {
+                          ref.read(tourProvider.notifier).startTour(TourType.fullApp);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -332,6 +347,58 @@ class _PrimaryAction extends StatelessWidget {
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SecondaryAction extends StatelessWidget {
+  const _SecondaryAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        decoration: BoxDecoration(
+          color: isDark ? DarkColors.surface : LightColors.backgroundSecondary,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: primaryColor.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18.w, color: primaryColor),
+            SizedBox(width: 8.w),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
                 ),
               ),
             ),
