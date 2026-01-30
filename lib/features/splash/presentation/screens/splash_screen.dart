@@ -84,8 +84,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
     });
 
-    // Timeout fallback - if nothing happens in 10 seconds, go to login
-    Future.delayed(const Duration(seconds: 10), () {
+    // Timeout fallback - if nothing happens in 20 seconds, go to login
+    Future.delayed(const Duration(seconds: 20), () {
       if (mounted && !_hasNavigated) {
         print('🟠 [SplashScreen] Timeout reached, forcing navigation to login');
         _hasNavigated = true;
