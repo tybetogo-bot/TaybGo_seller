@@ -42,14 +42,17 @@ class TourOverlay extends ConsumerWidget {
         menuProvider.overrideWith(() => MockMenuNotifier()),
         restaurantProvider.overrideWith(() => MockRestaurantNotifier()),
       ],
-      child: Stack(
-        children: [
-          // App content with mock data
-          child,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Stack(
+          children: [
+            // App content with mock data
+            child,
 
-          // Professional tour UI
-          _TourSpotlight(step: currentStep),
-        ],
+            // Professional tour UI
+            _TourSpotlight(step: currentStep),
+          ],
+        ),
       ),
     );
   }
