@@ -548,7 +548,13 @@
     "chooseRestaurant": "Wählen Sie das Restaurant, das Sie verwalten möchten",
     "noRestaurants": "Keine Restaurants gefunden",
     "contactSupport": "Bitte kontaktieren Sie den Support, um Ihr Restaurant einzurichten",
-    "retry": "Wiederholen"
+    "retry": "Wiederholen",
+    "noRestaurantWelcome": "Willkommen bei TybeToGo!",
+    "noRestaurantMessage": "Ihrem Konto sind derzeit keine Restaurants zugeordnet. Bitte kontaktieren Sie unser Team, damit wir Ihr Restaurant einrichten können.",
+    "contactUsTitle": "Kontaktieren Sie uns",
+    "thankYou": "Vielen Dank, dass Sie sich für TybeToGo entschieden haben. Wir freuen uns auf die Zusammenarbeit!",
+    "emailCopied": "E-Mail in die Zwischenablage kopiert",
+    "phoneCopied": "Telefonnummer in die Zwischenablage kopiert"
   },
   "demo": {
     "modeTitle": "DEMO-MODUS - Nur Testdaten"
