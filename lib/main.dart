@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -10,11 +11,18 @@ import 'app/router/routes.dart';
 import 'core/config/constants.dart';
 import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
+import 'core/services/push_notification_service.dart';
 import 'core/theme/theme.dart';
 import 'features/tour/presentation/widgets/tour_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Initialize push notification service
+  await PushNotificationService.instance.initialize();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

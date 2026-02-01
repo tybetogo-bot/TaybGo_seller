@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../../auth/application/auth_state.dart';
 import '../../application/restaurant_state.dart';
 import '../../data/models/restaurant_model.dart';
 
@@ -90,34 +93,7 @@ class RestaurantSelectionScreen extends ConsumerWidget {
 
     if (state is RestaurantLoaded) {
       if (state.restaurants.isEmpty) {
-        return Center(
-          child: Padding(
-            padding: AppSpacing.screenPadding,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.store_mall_directory_outlined,
-                  size: 64.w,
-                  color: theme.disabledColor,
-                ),
-                SizedBox(height: 16.h),
-                Text(
-                  'restaurant.noRestaurants'.tr,
-                  style: theme.textTheme.titleLarge,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'restaurant.contactSupport'.tr,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.disabledColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        return _NoRestaurantView(ref: ref);
       }
 
       return ListView(
@@ -154,6 +130,270 @@ class RestaurantSelectionScreen extends ConsumerWidget {
 
     // Initial or unknown state
     return const Center(child: CircularProgressIndicator());
+  }
+}
+
+/// Full-page view shown when user has no restaurants
+class _NoRestaurantView extends StatelessWidget {
+  const _NoRestaurantView({required this.ref});
+
+  final WidgetRef ref;
+
+  Future<void> _launchEmail() async {
+    final uri = Uri(scheme: 'mailto', path: 'support@tybetogo.com');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _launchPhone() async {
+    final uri = Uri(scheme: 'tel', path: '+1234567890');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  void _logout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('auth.logout'.tr),
+        content: Text('auth.logoutConfirm'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('common.cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              ref.read(authProvider.notifier).logout();
+              context.go(Routes.login);
+            },
+            child: Text(
+              'auth.logout'.tr,
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      child: Column(
+        children: [
+          SizedBox(height: 24.h),
+
+          // Illustration circle
+          Container(
+            width: 120.w,
+            height: 120.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: primaryColor.withValues(alpha: 0.1),
+            ),
+            child: Icon(
+              Icons.storefront_outlined,
+              size: 56.w,
+              color: primaryColor,
+            ),
+          ),
+
+          SizedBox(height: 32.h),
+
+          // Welcome title
+          Text(
+            'restaurant.noRestaurantWelcome'.tr,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          SizedBox(height: 12.h),
+
+          // Explanation
+          Text(
+            'restaurant.noRestaurantMessage'.tr,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.disabledColor,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          SizedBox(height: 32.h),
+
+          // Contact card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DarkColors.surfaceElevated
+                  : LightColors.backgroundSecondary,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(
+                color: isDark ? DarkColors.border : LightColors.border,
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'restaurant.contactUsTitle'.tr,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Email row
+                _ContactRow(
+                  icon: Icons.email_outlined,
+                  label: 'support@tybetogo.com',
+                  onTap: _launchEmail,
+                  onLongPress: () {
+                    Clipboard.setData(
+                      const ClipboardData(text: 'support@tybetogo.com'),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('restaurant.emailCopied'.tr),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Phone row
+                _ContactRow(
+                  icon: Icons.phone_outlined,
+                  label: '+1234567890',
+                  onTap: _launchPhone,
+                  onLongPress: () {
+                    Clipboard.setData(
+                      const ClipboardData(text: '+1234567890'),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('restaurant.phoneCopied'.tr),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 24.h),
+
+          // Thank you message
+          Text(
+            'restaurant.thankYou'.tr,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.disabledColor,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          SizedBox(height: 32.h),
+
+          // Retry button
+          AppButton(
+            label: 'restaurant.retry'.tr,
+            variant: AppButtonVariant.outline,
+            icon: Icons.refresh,
+            onPressed: () {
+              ref.read(restaurantProvider.notifier).fetchRestaurants();
+            },
+          ),
+
+          SizedBox(height: 12.h),
+
+          // Logout button
+          AppButton(
+            label: 'auth.logout'.tr,
+            variant: AppButtonVariant.text,
+            icon: Icons.logout,
+            onPressed: () => _logout(context),
+          ),
+
+          SizedBox(height: 24.h),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tappable contact row
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.onLongPress,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return InkWell(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+        child: Row(
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              child: Icon(icon, size: 20.w, color: primaryColor),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14.w,
+              color: theme.disabledColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
