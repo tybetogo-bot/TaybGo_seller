@@ -4,12 +4,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/i18n/i18n.dart';
+import '../../core/services/push_notification_service.dart';
 import '../../core/theme/theme.dart';
+import '../../features/notifications/application/notifications_notifier.dart';
 import '../../features/tour/utils/tour_keys.dart';
 import '../router/routes.dart';
 
 /// Main shell with bottom navigation
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({
     super.key,
     required this.child,
@@ -18,9 +20,38 @@ class MainShell extends StatelessWidget {
   final Widget child;
 
   @override
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Set up notification tap handler for navigation.
+    PushNotificationService.instance.onNotificationTap = (data) {
+      final orderId = data['order_id']?.toString();
+      if (orderId != null && mounted) {
+        context.go(Routes.orderDetailsPath(orderId));
+      } else if (mounted) {
+        context.go(Routes.notifications);
+      }
+    };
+
+    // Refresh in-app notifications when a push arrives in the foreground.
+    PushNotificationService.instance.onForegroundMessage = (_) {
+      ref.read(notificationsProvider.notifier).refresh();
+    };
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Watch the FCM token provider to trigger token retrieval & backend
+    // registration whenever the main shell is active.
+    ref.watch(fcmTokenProvider);
+
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: const AppBottomNavBar(),
     );
   }
