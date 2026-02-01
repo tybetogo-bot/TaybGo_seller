@@ -459,6 +459,23 @@
     "today": "Aujourd'hui",
     "viewStats": "Statistiques"
   },
+  "deleteAccount": {
+    "title": "Supprimer le compte",
+    "warningTitle": "Cette action est irréversible",
+    "warningDescription": "La suppression de votre compte supprimera définitivement toutes vos données. Cette action ne peut pas être annulée.",
+    "consequencesTitle": "Ce qui va se passer :",
+    "consequence1": "Votre compte et vos données personnelles seront définitivement supprimés",
+    "consequence2": "Tous vos restaurants et éléments de menu seront supprimés",
+    "consequence3": "Tout l'historique des commandes et les statistiques seront perdus",
+    "consequence4": "Vous ne pourrez récupérer aucune de ces données",
+    "acknowledgment": "Je comprends que cette action est permanente et que toutes mes données seront supprimées de manière irréversible",
+    "typeConfirmation": "Tapez DELETE ci-dessous pour confirmer :",
+    "deleteButton": "Supprimer mon compte",
+    "deleting": "Suppression de votre compte...",
+    "finalConfirmTitle": "Êtes-vous absolument sûr ?",
+    "finalConfirmMessage": "C'est votre dernière chance d'annuler. Une fois confirmé, votre compte et toutes les données associées seront définitivement supprimés.",
+    "error": "Échec de la suppression du compte. Veuillez réessayer."
+  },
   "notifications": {
     "title": "Notifications",
     "settings": "Paramètres",
@@ -653,5 +670,390 @@
     "copyLink": "Copier le lien",
     "linkCopied": "Lien copié!",
     "previewMenu": "Aperçu du menu public"
+  },
+  "kb": {
+    "categories": {
+      "gettingStarted": "Pour commencer",
+      "orders": "Commandes",
+      "menu": "Menu",
+      "coupons": "Coupons",
+      "settings": "Paramètres",
+      "statistics": "Statistiques",
+      "tips": "Astuces"
+    },
+    "gsWelcome": {
+      "title": "Bienvenue sur TybeToGo Vendeur",
+      "description": "Un aperçu de l'application et de ce que vous pouvez faire.",
+      "s1Title": "Qu'est-ce que TybeToGo Vendeur ?",
+      "s1Body": "TybeToGo Vendeur est votre application tout-en-un de gestion de restaurant. Recevez et gérez les commandes, mettez à jour votre menu en temps réel, créez des coupons promotionnels et suivez les performances de votre entreprise — le tout depuis votre téléphone.",
+      "s2Title": "Fonctionnalités clés",
+      "s2Body": "• Gestion des commandes en temps réel avec suivi du statut\n• Édition complète du menu avec catégories, images et personnalisations\n• Création de coupons et gestion des réductions\n• Analyses commerciales et suivi des revenus\n• Scan de commandes par IA pour les commandes manuelles\n• Notifications push pour les nouvelles commandes\n• Mode sombre et personnalisation du thème\n• Support multilingue (anglais, arabe, allemand, français)",
+      "s3Title": "Obtenir de l'aide",
+      "s3Body": "Vous pouvez accéder à cette base de connaissances à tout moment depuis Profil > Base de connaissances. Pour un guide pratique, appuyez sur le bouton \"Démarrer la visite interactive\" en haut de cette page."
+    },
+    "gsNav": {
+      "title": "Navigation dans l'application",
+      "description": "Découvrez les écrans principaux et comment naviguer entre eux.",
+      "s1Title": "Barre de navigation inférieure",
+      "s1Body": "L'application comporte quatre onglets principaux en bas de l'écran :\n\n• Accueil — Votre tableau de bord avec les statistiques du jour et les commandes en attente\n• Commandes — Gérer toutes les commandes entrantes, actives et terminées\n• Menu — Afficher et modifier les articles du menu de votre restaurant\n• Profil — Accéder aux paramètres, statistiques, coupons et plus",
+      "s2Title": "Tableau de bord d'accueil",
+      "s2Body": "L'écran d'accueil vous donne un aperçu rapide de votre journée. Vous verrez le nombre de commandes en attente, les revenus du jour et le total des commandes. Appuyez sur \"Voir tout\" pour accéder à la liste complète des commandes.",
+      "s3Title": "Revenir en arrière",
+      "s3Body": "Lorsque vous ouvrez un écran de détails (comme les détails d'une commande ou l'édition d'un article), utilisez la flèche retour en haut à gauche pour revenir à l'écran précédent."
+    },
+    "ordersManaging": {
+      "title": "Afficher et gérer les commandes",
+      "description": "Comment afficher, rechercher et suivre vos commandes.",
+      "s1Title": "Onglets des commandes",
+      "s1Body": "L'écran des commandes a trois onglets :\n\n• Nouvelles — Commandes en attente de votre réponse (accepter ou refuser)\n• Actives — Commandes acceptées en cours de préparation ou de livraison\n• Terminées — Commandes complétées, livrées, refusées ou annulées",
+      "s2Title": "Rechercher des commandes",
+      "s2Body": "Utilisez la barre de recherche en haut de l'écran des commandes pour trouver des commandes spécifiques. Vous pouvez rechercher par ID de commande, nom du client, numéro de téléphone ou noms d'articles.",
+      "s3Title": "Actualisation automatique",
+      "s3Body": "Les commandes s'actualisent automatiquement toutes les 30 secondes. Vous pouvez aussi tirer vers le bas pour actualiser manuellement la liste à tout moment.",
+      "s4Title": "Détails de la commande",
+      "s4Body": "Appuyez sur une carte de commande pour ouvrir ses détails complets. Vous verrez :\n\n• Nom du client, téléphone et adresse de livraison\n• Tous les articles commandés avec quantités et personnalisations\n• Statut du paiement et totaux de la commande\n• Une chronologie visuelle de la progression du statut\n• Des boutons d'action pour mettre à jour le statut"
+    },
+    "ordersStatus": {
+      "title": "Accepter et mettre à jour le statut",
+      "description": "Comment accepter, refuser et faire progresser les commandes à chaque étape.",
+      "s1Title": "Accepter ou Refuser",
+      "s1Body": "Quand une nouvelle commande arrive, vous avez deux options :\n\n• Accepter — La commande passe dans votre onglet Actives et le système cherche un livreur\n• Refuser — La commande est déclinée (irréversible)\n\nVous recevrez une notification push pour chaque nouvelle commande.",
+      "s2Title": "Flux du statut de commande",
+      "s2Body": "Après acceptation, une commande progresse à travers ces étapes :\n\n1. Acceptée — Vous préparez la commande\n2. Recherche de livreur — Le système cherche un livreur\n3. Livreur notifié — Un livreur a été assigné\n4. Prête pour la livraison — La nourriture est prête\n5. En route — Le livreur livre au client\n6. Livrée / Terminée — Commande terminée",
+      "s3Title": "Annuler les changements de statut",
+      "s3Body": "Si vous mettez accidentellement à jour le statut d'une commande, une option \"Annuler\" apparaîtra brièvement en bas de l'écran."
+    },
+    "ordersCreate": {
+      "title": "Créer des commandes manuelles",
+      "description": "Comment créer des commandes manuellement pour les clients par téléphone ou sur place.",
+      "s1Title": "Quand utiliser les commandes manuelles",
+      "s1Body": "Utilisez la fonction Créer une commande quand un client commande par téléphone, en personne ou via un autre canal.",
+      "s2Title": "Créer une commande",
+      "s2Body": "Depuis l'écran des commandes ou l'accueil, appuyez sur \"Créer une commande\". Remplissez :\n\n1. Nom du client et numéro de téléphone\n2. Adresse de livraison (utilisez la recherche d'adresse pour l'auto-complétion)\n3. Ajoutez des articles de votre menu\n4. Ajoutez optionnellement un coupon, des frais de livraison ou un pourboire\n5. Définissez le statut de paiement et les notes\n6. Appuyez sur Envoyer",
+      "s3Title": "Recherche d'adresse",
+      "s3Body": "Lors de la saisie d'une adresse de livraison, l'application utilise l'auto-complétion Google Places. Commencez à taper au moins 3 caractères et des suggestions apparaîtront."
+    },
+    "ordersScan": {
+      "title": "Scan de commande par IA",
+      "description": "Utilisez l'IA pour scanner les commandes papier et extraire les détails automatiquement.",
+      "s1Title": "Comment fonctionne le scan IA",
+      "s1Body": "La fonction de scan IA utilise Gemini AI pour lire les formulaires de commande à partir de photos. Prenez une photo d'une commande manuscrite ou imprimée, et l'IA extraira automatiquement les détails.",
+      "s2Title": "Conseils pour de meilleurs résultats",
+      "s2Body": "• Placez le formulaire de commande sur une surface plane\n• Assurez un bon éclairage sans ombres\n• Gardez le texte net et lisible\n• Pour les commandes multi-pages, prenez plusieurs photos\n• Vous pouvez utiliser l'appareil photo ou choisir des images de la galerie",
+      "s3Title": "Vérifier les données scannées",
+      "s3Body": "Après le scan, vous verrez un écran de vérification avec toutes les données extraites. Les champs à faible confiance sont mis en évidence. Corrigez les erreurs puis soumettez la commande."
+    },
+    "menuItems": {
+      "title": "Gérer les articles du menu",
+      "description": "Ajoutez, modifiez et organisez le menu de votre restaurant.",
+      "s1Title": "Afficher votre menu",
+      "s1Body": "L'écran Menu affiche tous vos articles organisés par catégorie. Utilisez les onglets de catégories horizontaux en haut pour filtrer, ou la barre de recherche pour trouver des articles spécifiques.",
+      "s2Title": "Ajouter un nouvel article",
+      "s2Body": "Appuyez sur \"+\" sur l'écran Menu pour ajouter un article. Remplissez :\n\n• Nom et description de l'article\n• Prix\n• Catégorie (sélectionner existante ou créer nouvelle)\n• Liste des ingrédients\n• Image de l'article (appareil photo ou galerie)\n• Temps de préparation\n• Statut de disponibilité",
+      "s3Title": "Modifier un article",
+      "s3Body": "Appuyez sur une carte d'article pour ouvrir la vue détaillée, puis sur \"Modifier l'article\". Les modifications sont enregistrées quand vous appuyez sur \"Enregistrer\".",
+      "s4Title": "Basculement rapide de disponibilité",
+      "s4Body": "Glissez une carte d'article pour basculer rapidement sa disponibilité. Les articles non disponibles sont masqués pour les clients.",
+      "s5Title": "Supprimer des articles",
+      "s5Body": "Glissez un article pour révéler l'option de suppression. Vous devrez confirmer avant la suppression définitive."
+    },
+    "menuCats": {
+      "title": "Catégories du menu",
+      "description": "Organisez votre menu avec des catégories pour une meilleure structure.",
+      "s1Title": "Que sont les catégories ?",
+      "s1Body": "Les catégories aident à organiser votre menu en sections logiques comme \"Burgers\", \"Pizza\", \"Boissons\", \"Desserts\", etc.",
+      "s2Title": "Gérer les catégories",
+      "s2Body": "Allez dans Menu > Catégories pour :\n\n• Ajouter de nouvelles catégories avec un nom\n• Modifier les noms des catégories existantes\n• Supprimer des catégories (les articles de la catégorie seront aussi affectés)\n\nChaque catégorie montre le nombre d'articles qu'elle contient.",
+      "s3Title": "Filtrer par catégorie",
+      "s3Body": "Sur l'écran principal du Menu, les onglets de catégories horizontaux vous permettent de filtrer rapidement. Appuyez sur \"Tout\" pour tout voir, ou sur une catégorie spécifique."
+    },
+    "menuCustom": {
+      "title": "Personnalisations et extras",
+      "description": "Configurez les extras et options de retrait pour les articles du menu.",
+      "s1Title": "Que sont les personnalisations ?",
+      "s1Body": "Les personnalisations permettent aux clients de modifier leurs articles. Il y a deux types :\n\n• Extras (Ajouts) — Options ajoutant des ingrédients avec un coût supplémentaire (ex. \"Fromage supplémentaire +1,50€\")\n• Retraits — Ingrédients que les clients peuvent demander de retirer (ex. \"Sans oignons\")",
+      "s2Title": "Ajouter des extras",
+      "s2Body": "Lors de la modification d'un article, faites défiler jusqu'à la section Personnalisations et appuyez sur \"Ajouter un extra\". Entrez le nom et le prix supplémentaire.",
+      "s3Title": "Ajouter des options de retrait",
+      "s3Body": "Dans la même section, appuyez sur \"Ajouter une option de retrait\" pour permettre aux clients de demander le retrait d'ingrédients. Pas de changement de prix — ce sont simplement des instructions pour la cuisine."
+    },
+    "couponsCreate": {
+      "title": "Créer des coupons",
+      "description": "Configurez des codes de réduction promotionnels pour vos clients.",
+      "s1Title": "Créer un coupon",
+      "s1Body": "Allez dans Profil > Coupons et appuyez sur \"+\". Remplissez :\n\n• Titre et description du coupon\n• Code unique (ou appuyez sur \"Générer\")\n• Pourcentage de réduction\n• Prix minimum de commande\n• Limites d'utilisation maximales\n• Dates de début et de fin",
+      "s2Title": "Comment fonctionnent les réductions",
+      "s2Body": "Quand un coupon est appliqué à une commande, le pourcentage de réduction est calculé sur le sous-total. Le coupon ne fonctionnera que si la commande atteint le prix minimum que vous avez défini.",
+      "s3Title": "Utiliser les coupons dans les commandes",
+      "s3Body": "Lors de la création d'une commande manuelle, vous pouvez sélectionner un coupon actif. La réduction sera automatiquement calculée et affichée dans le résumé de la commande."
+    },
+    "couponsManage": {
+      "title": "Gérer les coupons",
+      "description": "Modifier, activer, désactiver et suivre vos coupons.",
+      "s1Title": "Liste des coupons",
+      "s1Body": "L'écran des coupons affiche tous vos coupons avec des onglets de filtre :\n\n• Tous — Chaque coupon\n• Actifs — Coupons actuellement utilisables\n• Expirés — Passé leur date de fin",
+      "s2Title": "Modifier et supprimer",
+      "s2Body": "Appuyez sur un coupon pour modifier ses détails. Vous pouvez mettre à jour tous les champs sauf le code. Pour supprimer, utilisez l'option de suppression sur la carte du coupon.",
+      "s3Title": "Basculer le statut actif",
+      "s3Body": "Vous pouvez rapidement activer ou désactiver un coupon sans le supprimer. Les coupons désactivés ne fonctionneront pas pour les clients mais restent dans votre liste."
+    },
+    "settingsTheme": {
+      "title": "Thème et apparence",
+      "description": "Personnalisez le mode sombre et les couleurs d'accentuation.",
+      "s1Title": "Mode sombre",
+      "s1Body": "Basculez le mode sombre depuis le Profil avec l'interrupteur. Le mode sombre réduit la fatigue oculaire dans les environnements sombres et peut économiser la batterie sur les écrans OLED.",
+      "s2Title": "Couleur d'accentuation",
+      "s2Body": "Appuyez sur \"Couleur d'accentuation\" dans le Profil pour choisir parmi 8 options :\n\nVert, Bleu, Violet, Orange, Rouge, Sarcelle, Rose et Indigo.\n\nLa couleur d'accentuation est utilisée pour les boutons, les mises en évidence et les éléments de navigation actifs."
+    },
+    "settingsLang": {
+      "title": "Paramètres de langue",
+      "description": "Changer la langue de l'application.",
+      "s1Title": "Langues supportées",
+      "s1Body": "L'application prend en charge plusieurs langues : anglais, arabe, allemand et français. Vous pouvez aussi sélectionner votre langue sur l'écran de connexion.",
+      "s2Title": "Changer de langue",
+      "s2Body": "Allez dans Profil > Langue et sélectionnez votre langue préférée. L'application basculera immédiatement tous les textes. Votre préférence de langue est sauvegardée et persiste entre les redémarrages."
+    },
+    "settingsNotif": {
+      "title": "Préférences de notifications",
+      "description": "Configurez les notifications que vous recevez.",
+      "s1Title": "Types de notifications",
+      "s1Body": "Vous pouvez configurer les notifications pour :\n\n• Nouvelles commandes — Alerte quand une nouvelle commande arrive\n• Mises à jour des commandes — Changements de statut de vos commandes\n• Promotions — Nouvelles et offres spéciales de TybeToGo",
+      "s2Title": "Son et haptique",
+      "s2Body": "Dans les paramètres de notifications, vous pouvez aussi contrôler :\n\n• Son — Activer ou désactiver les sons de notification\n• Vibration — Activer ou désactiver le retour haptique",
+      "s3Title": "Voir les notifications",
+      "s3Body": "Appuyez sur l'icône de cloche sur l'écran d'accueil pour voir votre historique de notifications. Les notifications non lues affichent un badge de comptage. Utilisez \"Tout marquer comme lu\"."
+    },
+    "statsOverview": {
+      "title": "Comprendre vos analyses",
+      "description": "Suivez les revenus, commandes et métriques de performance.",
+      "s1Title": "Accéder aux statistiques",
+      "s1Body": "Vous pouvez voir vos analyses de deux façons :\n\n• Statistiques rapides sur l'écran Profil (revenus du jour et nombre de commandes)\n• Vue détaillée via Profil > bouton \"Voir les stats\"",
+      "s2Title": "Périodes",
+      "s2Body": "L'écran Statistiques vous permet de voir les données pour différentes périodes :\n\n• Aujourd'hui — Performance du jour\n• Semaine — 7 derniers jours\n• Mois — 30 derniers jours\n• Année — 12 derniers mois",
+      "s3Title": "Métriques clés",
+      "s3Body": "• Total des commandes — Nombre de commandes sur la période\n• Revenus — Revenu total de toutes les commandes\n• Commande moyenne — Valeur moyenne des commandes\n• Clients — Clients uniques servis\n• Articles les plus vendus — Vos articles les plus populaires"
+    },
+    "tipsGestures": {
+      "title": "Actions de glissement et gestes",
+      "description": "Accélérez votre travail avec les gestes de glissement.",
+      "s1Title": "Actions de glissement des commandes",
+      "s1Body": "Sur l'écran des commandes, glissez les cartes pour :\n\n• Accepter rapidement les commandes en attente\n• Mettre à jour le statut vers l'étape suivante\n• Cela fait gagner du temps par rapport à l'ouverture de chaque commande",
+      "s2Title": "Actions de glissement du menu",
+      "s2Body": "Sur l'écran Menu, glissez les cartes d'articles pour :\n\n• Basculer la disponibilité (disponible/indisponible)\n• Supprimer des articles\n\nLes actions de glissement montrent des indicateurs colorés.",
+      "s3Title": "Tirer pour actualiser",
+      "s3Body": "Tirez vers le bas sur tout écran de liste (Commandes, Menu, Notifications) pour actualiser manuellement les données."
+    },
+    "tipsBest": {
+      "title": "Bonnes pratiques",
+      "description": "Conseils pour tirer le meilleur parti de l'application.",
+      "s1Title": "Gardez votre menu à jour",
+      "s1Body": "• Marquez les articles comme indisponibles dès qu'ils sont épuisés\n• Mettez à jour les prix régulièrement\n• Ajoutez des descriptions claires et des images pour attirer les clients\n• Utilisez les catégories pour bien organiser votre menu",
+      "s2Title": "Répondez rapidement aux commandes",
+      "s2Body": "• Activez les notifications push pour ne jamais manquer une commande\n• Acceptez ou refusez les nouvelles commandes le plus vite possible\n• Gardez les statuts des commandes à jour\n• Utilisez la fonction de recherche pour trouver rapidement des commandes",
+      "s3Title": "Utilisez les coupons stratégiquement",
+      "s3Body": "• Créez des coupons à durée limitée pour créer l'urgence\n• Fixez des valeurs minimales de commande pour augmenter la taille moyenne\n• Utilisez les coupons pendant les périodes creuses pour stimuler les ventes\n• Suivez l'utilisation des coupons pour voir quelles promotions fonctionnent",
+      "s4Title": "Surveillez vos statistiques",
+      "s4Body": "• Vérifiez régulièrement vos statistiques quotidiennes sur l'écran d'accueil\n• Examinez les tendances hebdomadaires et mensuelles dans la section Statistiques\n• Portez attention à vos articles les plus vendus\n• Utilisez les insights pour ajuster votre stratégie de menu et de prix"
+    }
+  },
+  "knowledgeBase": {
+    "title": "Base de connaissances",
+    "subtitle": "Apprenez à utiliser chaque fonctionnalité",
+    "searchHint": "Rechercher des articles...",
+    "startTour": "Démarrer la visite interactive",
+    "tourDescription": "Parcourez l'application étape par étape",
+    "fullTour": "Visite complète",
+    "ordersTour": "Commandes",
+    "menuTour": "Menu",
+    "allCategories": "Tout",
+    "noResults": "Aucun article trouvé"
+  },
+  "tour": {
+    "step": "Étape",
+    "of": "sur",
+    "skip": "Passer",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "actionHint": {
+      "tap": "Appuyez pour continuer",
+      "swipe": "Glissez pour interagir",
+      "navigate": "Naviguez ici",
+      "observe": "Regardez",
+      "interact": "Essayez"
+    },
+    "welcome": {
+      "title": "Bienvenue !",
+      "description": "Voyons le résumé d'aujourd'hui"
+    },
+    "homeStats": {
+      "title": "Performance du jour",
+      "description": "Suivez vos revenus quotidiens et le nombre de commandes en un coup d'œil"
+    },
+    "ordersTab": {
+      "title": "Gestion des commandes",
+      "description": "Accédez à l'écran des commandes pour gérer les demandes entrantes"
+    },
+    "pendingOrders": {
+      "title": "Nouvelles commandes",
+      "description": "Celles-ci attendent votre réponse. Glissez pour accepter ou refuser"
+    },
+    "orderDetails": {
+      "title": "Détails de la commande",
+      "description": "Appuyez sur une commande pour voir les détails et les informations client"
+    },
+    "orderDetailView": {
+      "title": "Vue détaillée de la commande",
+      "description": "Consultez tous les détails d'une commande — infos client, articles et paiement"
+    },
+    "orderStatusTimeline": {
+      "title": "Chronologie du statut",
+      "description": "Suivez la progression de la commande de sa création à la livraison"
+    },
+    "orderItemsPayment": {
+      "title": "Articles et paiement",
+      "description": "Vérifiez les articles commandés et le récapitulatif du paiement"
+    },
+    "navigateToOrders": {
+      "title": "Onglet Commandes",
+      "description": "Appuyez ici pour gérer vos commandes entrantes et actives"
+    },
+    "swipeActions": {
+      "title": "Gestes de glissement",
+      "description": "Glissez les cartes de commande pour accepter, refuser ou mettre à jour le statut"
+    },
+    "orderActions": {
+      "title": "Mettre à jour le statut",
+      "description": "Glissez les commandes pour changer rapidement leur statut"
+    },
+    "activeOrders": {
+      "title": "Commandes actives",
+      "description": "Suivez les commandes en cours de préparation ou de livraison"
+    },
+    "createOrderButton": {
+      "title": "Créer une commande",
+      "description": "Appuyez sur + pour créer une commande pour les clients par téléphone ou en personne"
+    },
+    "createOrderForm": {
+      "title": "Formulaire de commande",
+      "description": "Saisissez les infos client, ajoutez des articles, définissez l'adresse et le paiement"
+    },
+    "aiScanCard": {
+      "title": "Scan IA de commande",
+      "description": "Prenez une photo d'une commande papier et laissez l'IA extraire tous les détails"
+    },
+    "navigateToMenu": {
+      "title": "Onglet Menu",
+      "description": "Appuyez ici pour gérer votre menu — ajouter, modifier et organiser les articles"
+    },
+    "menuTab": {
+      "title": "Gestion du menu",
+      "description": "Accédez à l'écran du menu pour gérer vos offres"
+    },
+    "menuItems": {
+      "title": "Votre menu",
+      "description": "Affichez et organisez tous vos articles de menu ici"
+    },
+    "itemAvailability": {
+      "title": "Basculement rapide",
+      "description": "Glissez les articles pour les marquer disponibles ou indisponibles instantanément"
+    },
+    "menuItemDetail": {
+      "title": "Modifier l'article",
+      "description": "Ouvrez un article pour modifier le nom, la description et les ingrédients"
+    },
+    "menuItemForm": {
+      "title": "Détails de l'article",
+      "description": "Modifiez le nom, la description et les informations de base de l'article"
+    },
+    "menuItemPricing": {
+      "title": "Prix et préparation",
+      "description": "Définissez le prix de l'article et le temps de préparation estimé"
+    },
+    "menuCategories": {
+      "title": "Catégories",
+      "description": "Organisez les articles par catégories pour une meilleure structure de menu"
+    },
+    "navigateToProfile": {
+      "title": "Onglet Profil",
+      "description": "Appuyez ici pour accéder au profil, aux paramètres et aux analyses"
+    },
+    "profileTab": {
+      "title": "Profil et paramètres",
+      "description": "Accédez au profil de votre restaurant et aux paramètres de l'application"
+    },
+    "quickStats": {
+      "title": "Statistiques rapides",
+      "description": "Consultez vos performances quotidiennes et accédez aux analyses détaillées"
+    },
+    "statistics": {
+      "title": "Analyses",
+      "description": "Approfondissez vos métriques de ventes et de performance"
+    },
+    "settingsOptions": {
+      "title": "Paramètres et plus",
+      "description": "Accédez aux notifications, langue, coupons, paramètres du restaurant et plus"
+    },
+    "themeCustomization": {
+      "title": "Personnaliser le thème",
+      "description": "Basculez le mode sombre et choisissez votre couleur d'accentuation préférée"
+    },
+    "languageSettings": {
+      "title": "Changer la langue",
+      "description": "L'application prend en charge l'anglais, l'arabe, l'allemand et le français"
+    },
+    "knowledgeBase": {
+      "title": "Base de connaissances",
+      "description": "Trouvez des guides détaillés pour chaque fonctionnalité — et relancez cette visite à tout moment"
+    },
+    "ordersWelcome": {
+      "title": "Aperçu des commandes",
+      "description": "Découvrons comment gérer vos commandes entrantes"
+    },
+    "ordersPending": {
+      "title": "Commandes en attente",
+      "description": "Les nouvelles commandes en attente de votre réponse apparaissent ici"
+    },
+    "ordersCard": {
+      "title": "Carte de commande",
+      "description": "Chaque carte affiche les détails — appuyez pour voir ou glissez pour agir"
+    },
+    "ordersActive": {
+      "title": "Commandes actives",
+      "description": "Les commandes en préparation ou en livraison sont suivies ici"
+    },
+    "ordersComplete": {
+      "title": "Visite commandes terminée !",
+      "description": "Vous savez maintenant gérer les commandes. Créez-en une ou explorez davantage !"
+    },
+    "menuWelcome": {
+      "title": "Aperçu du menu",
+      "description": "Découvrons comment gérer le menu de votre restaurant"
+    },
+    "menuList": {
+      "title": "Articles du menu",
+      "description": "Tous vos articles sont listés ici — faites défiler pour les voir tous"
+    },
+    "menuToggle": {
+      "title": "Basculer la disponibilité",
+      "description": "Glissez un article pour le marquer disponible ou indisponible rapidement"
+    },
+    "menuComplete": {
+      "title": "Visite menu terminée !",
+      "description": "Vous savez maintenant gérer votre menu. Essayez d'ajouter un nouvel article !"
+    },
+    "tourComplete": {
+      "title": "Vous êtes prêt !",
+      "description": "Vous pouvez relancer cette visite à tout moment depuis les paramètres. Bonnes ventes !"
+    }
+  },
+  "welcomeTour": {
+    "title": "Bienvenue sur TybeToGo Vendeur",
+    "description": "Faites une visite rapide pour découvrir comment gérer les commandes, mettre à jour votre menu et suivre vos performances.",
+    "benefit1": "Apprenez les fonctionnalités clés en moins de 5 minutes",
+    "benefit2": "Découvrez comment gérer les commandes efficacement",
+    "benefit3": "Trouvez des astuces pour de meilleures ventes",
+    "dontShowAgain": "Ne plus afficher",
+    "skipForNow": "Passer pour l'instant",
+    "startTour": "Commencer la visite"
   }
 }

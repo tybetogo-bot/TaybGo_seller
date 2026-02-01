@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
@@ -27,16 +28,25 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   final _searchController = TextEditingController();
   bool _isRefreshing = false;
   Timer? _searchDebounce;
+  OrdersPollingNotifier? _pollingNotifier;
 
   @override
   void initState() {
     super.initState();
+    debugPrint('🎯 [OrdersScreen] initState() called');
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addObserver(this);
 
-    // Start polling when screen is initialized
+    // Start polling when screen is initialized (skip during tour)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(ordersPollingProvider.notifier).start();
+      final tourActive = ref.read(tourProvider).isActive;
+      if (!tourActive) {
+        debugPrint('🎯 [OrdersScreen] starting ordersPollingProvider');
+        _pollingNotifier = ref.read(ordersPollingProvider.notifier);
+        _pollingNotifier!.start();
+      } else {
+        debugPrint('🎯 [OrdersScreen] skipping polling — tour is active');
+      }
     });
   }
 
@@ -56,8 +66,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
 
   @override
   void dispose() {
-    // Stop polling when screen is disposed
-    ref.read(ordersPollingProvider.notifier).stop();
+    debugPrint('🎯 [OrdersScreen] dispose() called');
+    // Stop polling using saved reference (safe to call after unmount)
+    _pollingNotifier?.stop();
     WidgetsBinding.instance.removeObserver(this);
     _searchDebounce?.cancel();
     _tabController.dispose();
@@ -83,6 +94,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     final primaryColor = Theme.of(context).colorScheme.primary;
     final ordersState = ref.watch(ordersProvider);
 
+    debugPrint('🎯 [OrdersScreen] build() → '
+        'isLoading=${ordersState.isLoading}, '
+        'orders=${ordersState.orders.length}, '
+        'pending=${ordersState.pendingOrders.length}, '
+        'active=${ordersState.activeOrders.length}, '
+        'error=${ordersState.error}');
+
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
@@ -107,6 +125,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
             onPressed: _isRefreshing ? null : _handleRefresh,
           ),
           IconButton(
+            key: TourKeys.createOrderButtonKey,
             icon: const Icon(Icons.add),
             onPressed: () => context.push(Routes.createOrder),
           ),

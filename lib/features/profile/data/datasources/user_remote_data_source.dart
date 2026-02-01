@@ -16,6 +16,9 @@ abstract class UserDataSource {
 
   /// Update seller profile
   Future<BasicProfile> updateSellerProfile(Map<String, dynamic> data);
+
+  /// Delete user account
+  Future<void> deleteAccount();
 }
 
 /// Remote data source implementation using UserApi
@@ -42,5 +45,10 @@ class UserRemoteDataSource implements UserDataSource {
   @override
   Future<BasicProfile> updateSellerProfile(Map<String, dynamic> data) async {
     return await _api.updateSellerProfile(data);
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    await _api.deleteAccount();
   }
 }

@@ -64,12 +64,14 @@ class _WelcomeTourDialogState extends ConsumerState<WelcomeTourDialog>
 
     // Inject router for navigation
     final router = GoRouter.of(context);
+    debugPrint('🎯 [WelcomeTourDialog] setting router and starting tour');
     ref.read(tourProvider.notifier).setRouter(router);
 
     // Start the full app tour
     ref.read(tourProvider.notifier).startTour(TourType.fullApp);
 
     // Close dialog
+    debugPrint('🎯 [WelcomeTourDialog] closing dialog, tour should be active now');
     Navigator.of(context).pop();
   }
 

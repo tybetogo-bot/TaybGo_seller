@@ -88,11 +88,17 @@ class Routes {
   static const String currency = '/profile/currency';
   static const String currencyName = 'currency';
 
+  static const String knowledgeBase = '/profile/knowledge-base';
+  static const String knowledgeBaseName = 'knowledgeBase';
+
   static const String help = '/profile/help';
   static const String helpName = 'help';
 
   static const String about = '/profile/about';
   static const String aboutName = 'about';
+
+  static const String deleteAccount = '/profile/delete-account';
+  static const String deleteAccountName = 'deleteAccount';
 
   // ============ Public Menu ============
   static const String publicMenu = '/public-menu/:restaurantId';

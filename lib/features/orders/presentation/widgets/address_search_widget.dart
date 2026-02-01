@@ -6,10 +6,226 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
+import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../data/models/order_model.dart';
+
+/// Supported countries for address search
+class _SupportedCountry {
+  final String code;
+  final String name;
+
+  const _SupportedCountry({
+    required this.code,
+    required this.name,
+  });
+
+  /// Generate flag emoji from ISO country code
+  String get flag {
+    final codePoints = code.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 0x41);
+    return String.fromCharCodes(codePoints);
+  }
+}
+
+const List<_SupportedCountry> _supportedCountries = [
+  _SupportedCountry(code: 'af', name: 'Afghanistan'),
+  _SupportedCountry(code: 'al', name: 'Albania'),
+  _SupportedCountry(code: 'dz', name: 'Algeria'),
+  _SupportedCountry(code: 'ad', name: 'Andorra'),
+  _SupportedCountry(code: 'ao', name: 'Angola'),
+  _SupportedCountry(code: 'ag', name: 'Antigua and Barbuda'),
+  _SupportedCountry(code: 'ar', name: 'Argentina'),
+  _SupportedCountry(code: 'am', name: 'Armenia'),
+  _SupportedCountry(code: 'au', name: 'Australia'),
+  _SupportedCountry(code: 'at', name: 'Austria'),
+  _SupportedCountry(code: 'az', name: 'Azerbaijan'),
+  _SupportedCountry(code: 'bs', name: 'Bahamas'),
+  _SupportedCountry(code: 'bh', name: 'Bahrain'),
+  _SupportedCountry(code: 'bd', name: 'Bangladesh'),
+  _SupportedCountry(code: 'bb', name: 'Barbados'),
+  _SupportedCountry(code: 'by', name: 'Belarus'),
+  _SupportedCountry(code: 'be', name: 'Belgium'),
+  _SupportedCountry(code: 'bz', name: 'Belize'),
+  _SupportedCountry(code: 'bj', name: 'Benin'),
+  _SupportedCountry(code: 'bt', name: 'Bhutan'),
+  _SupportedCountry(code: 'bo', name: 'Bolivia'),
+  _SupportedCountry(code: 'ba', name: 'Bosnia and Herzegovina'),
+  _SupportedCountry(code: 'bw', name: 'Botswana'),
+  _SupportedCountry(code: 'br', name: 'Brazil'),
+  _SupportedCountry(code: 'bn', name: 'Brunei'),
+  _SupportedCountry(code: 'bg', name: 'Bulgaria'),
+  _SupportedCountry(code: 'bf', name: 'Burkina Faso'),
+  _SupportedCountry(code: 'bi', name: 'Burundi'),
+  _SupportedCountry(code: 'kh', name: 'Cambodia'),
+  _SupportedCountry(code: 'cm', name: 'Cameroon'),
+  _SupportedCountry(code: 'ca', name: 'Canada'),
+  _SupportedCountry(code: 'cv', name: 'Cape Verde'),
+  _SupportedCountry(code: 'cf', name: 'Central African Republic'),
+  _SupportedCountry(code: 'td', name: 'Chad'),
+  _SupportedCountry(code: 'cl', name: 'Chile'),
+  _SupportedCountry(code: 'cn', name: 'China'),
+  _SupportedCountry(code: 'co', name: 'Colombia'),
+  _SupportedCountry(code: 'km', name: 'Comoros'),
+  _SupportedCountry(code: 'cg', name: 'Congo'),
+  _SupportedCountry(code: 'cd', name: 'Congo (DRC)'),
+  _SupportedCountry(code: 'cr', name: 'Costa Rica'),
+  _SupportedCountry(code: 'ci', name: "Cote d'Ivoire"),
+  _SupportedCountry(code: 'hr', name: 'Croatia'),
+  _SupportedCountry(code: 'cu', name: 'Cuba'),
+  _SupportedCountry(code: 'cy', name: 'Cyprus'),
+  _SupportedCountry(code: 'cz', name: 'Czech Republic'),
+  _SupportedCountry(code: 'dk', name: 'Denmark'),
+  _SupportedCountry(code: 'dj', name: 'Djibouti'),
+  _SupportedCountry(code: 'dm', name: 'Dominica'),
+  _SupportedCountry(code: 'do', name: 'Dominican Republic'),
+  _SupportedCountry(code: 'ec', name: 'Ecuador'),
+  _SupportedCountry(code: 'eg', name: 'Egypt'),
+  _SupportedCountry(code: 'sv', name: 'El Salvador'),
+  _SupportedCountry(code: 'gq', name: 'Equatorial Guinea'),
+  _SupportedCountry(code: 'er', name: 'Eritrea'),
+  _SupportedCountry(code: 'ee', name: 'Estonia'),
+  _SupportedCountry(code: 'sz', name: 'Eswatini'),
+  _SupportedCountry(code: 'et', name: 'Ethiopia'),
+  _SupportedCountry(code: 'fj', name: 'Fiji'),
+  _SupportedCountry(code: 'fi', name: 'Finland'),
+  _SupportedCountry(code: 'fr', name: 'France'),
+  _SupportedCountry(code: 'ga', name: 'Gabon'),
+  _SupportedCountry(code: 'gm', name: 'Gambia'),
+  _SupportedCountry(code: 'ge', name: 'Georgia'),
+  _SupportedCountry(code: 'de', name: 'Germany'),
+  _SupportedCountry(code: 'gh', name: 'Ghana'),
+  _SupportedCountry(code: 'gr', name: 'Greece'),
+  _SupportedCountry(code: 'gd', name: 'Grenada'),
+  _SupportedCountry(code: 'gt', name: 'Guatemala'),
+  _SupportedCountry(code: 'gn', name: 'Guinea'),
+  _SupportedCountry(code: 'gw', name: 'Guinea-Bissau'),
+  _SupportedCountry(code: 'gy', name: 'Guyana'),
+  _SupportedCountry(code: 'ht', name: 'Haiti'),
+  _SupportedCountry(code: 'hn', name: 'Honduras'),
+  _SupportedCountry(code: 'hu', name: 'Hungary'),
+  _SupportedCountry(code: 'is', name: 'Iceland'),
+  _SupportedCountry(code: 'in', name: 'India'),
+  _SupportedCountry(code: 'id', name: 'Indonesia'),
+  _SupportedCountry(code: 'ir', name: 'Iran'),
+  _SupportedCountry(code: 'iq', name: 'Iraq'),
+  _SupportedCountry(code: 'ie', name: 'Ireland'),
+  _SupportedCountry(code: 'il', name: 'Israel'),
+  _SupportedCountry(code: 'it', name: 'Italy'),
+  _SupportedCountry(code: 'jm', name: 'Jamaica'),
+  _SupportedCountry(code: 'jp', name: 'Japan'),
+  _SupportedCountry(code: 'jo', name: 'Jordan'),
+  _SupportedCountry(code: 'kz', name: 'Kazakhstan'),
+  _SupportedCountry(code: 'ke', name: 'Kenya'),
+  _SupportedCountry(code: 'ki', name: 'Kiribati'),
+  _SupportedCountry(code: 'kw', name: 'Kuwait'),
+  _SupportedCountry(code: 'kg', name: 'Kyrgyzstan'),
+  _SupportedCountry(code: 'la', name: 'Laos'),
+  _SupportedCountry(code: 'lv', name: 'Latvia'),
+  _SupportedCountry(code: 'lb', name: 'Lebanon'),
+  _SupportedCountry(code: 'ls', name: 'Lesotho'),
+  _SupportedCountry(code: 'lr', name: 'Liberia'),
+  _SupportedCountry(code: 'ly', name: 'Libya'),
+  _SupportedCountry(code: 'li', name: 'Liechtenstein'),
+  _SupportedCountry(code: 'lt', name: 'Lithuania'),
+  _SupportedCountry(code: 'lu', name: 'Luxembourg'),
+  _SupportedCountry(code: 'mg', name: 'Madagascar'),
+  _SupportedCountry(code: 'mw', name: 'Malawi'),
+  _SupportedCountry(code: 'my', name: 'Malaysia'),
+  _SupportedCountry(code: 'mv', name: 'Maldives'),
+  _SupportedCountry(code: 'ml', name: 'Mali'),
+  _SupportedCountry(code: 'mt', name: 'Malta'),
+  _SupportedCountry(code: 'mh', name: 'Marshall Islands'),
+  _SupportedCountry(code: 'mr', name: 'Mauritania'),
+  _SupportedCountry(code: 'mu', name: 'Mauritius'),
+  _SupportedCountry(code: 'mx', name: 'Mexico'),
+  _SupportedCountry(code: 'fm', name: 'Micronesia'),
+  _SupportedCountry(code: 'md', name: 'Moldova'),
+  _SupportedCountry(code: 'mc', name: 'Monaco'),
+  _SupportedCountry(code: 'mn', name: 'Mongolia'),
+  _SupportedCountry(code: 'me', name: 'Montenegro'),
+  _SupportedCountry(code: 'ma', name: 'Morocco'),
+  _SupportedCountry(code: 'mz', name: 'Mozambique'),
+  _SupportedCountry(code: 'mm', name: 'Myanmar'),
+  _SupportedCountry(code: 'na', name: 'Namibia'),
+  _SupportedCountry(code: 'nr', name: 'Nauru'),
+  _SupportedCountry(code: 'np', name: 'Nepal'),
+  _SupportedCountry(code: 'nl', name: 'Netherlands'),
+  _SupportedCountry(code: 'nz', name: 'New Zealand'),
+  _SupportedCountry(code: 'ni', name: 'Nicaragua'),
+  _SupportedCountry(code: 'ne', name: 'Niger'),
+  _SupportedCountry(code: 'ng', name: 'Nigeria'),
+  _SupportedCountry(code: 'kp', name: 'North Korea'),
+  _SupportedCountry(code: 'mk', name: 'North Macedonia'),
+  _SupportedCountry(code: 'no', name: 'Norway'),
+  _SupportedCountry(code: 'om', name: 'Oman'),
+  _SupportedCountry(code: 'pk', name: 'Pakistan'),
+  _SupportedCountry(code: 'pw', name: 'Palau'),
+  _SupportedCountry(code: 'ps', name: 'Palestine'),
+  _SupportedCountry(code: 'pa', name: 'Panama'),
+  _SupportedCountry(code: 'pg', name: 'Papua New Guinea'),
+  _SupportedCountry(code: 'py', name: 'Paraguay'),
+  _SupportedCountry(code: 'pe', name: 'Peru'),
+  _SupportedCountry(code: 'ph', name: 'Philippines'),
+  _SupportedCountry(code: 'pl', name: 'Poland'),
+  _SupportedCountry(code: 'pt', name: 'Portugal'),
+  _SupportedCountry(code: 'qa', name: 'Qatar'),
+  _SupportedCountry(code: 'ro', name: 'Romania'),
+  _SupportedCountry(code: 'ru', name: 'Russia'),
+  _SupportedCountry(code: 'rw', name: 'Rwanda'),
+  _SupportedCountry(code: 'kn', name: 'Saint Kitts and Nevis'),
+  _SupportedCountry(code: 'lc', name: 'Saint Lucia'),
+  _SupportedCountry(code: 'vc', name: 'Saint Vincent and the Grenadines'),
+  _SupportedCountry(code: 'ws', name: 'Samoa'),
+  _SupportedCountry(code: 'sm', name: 'San Marino'),
+  _SupportedCountry(code: 'st', name: 'Sao Tome and Principe'),
+  _SupportedCountry(code: 'sa', name: 'Saudi Arabia'),
+  _SupportedCountry(code: 'sn', name: 'Senegal'),
+  _SupportedCountry(code: 'rs', name: 'Serbia'),
+  _SupportedCountry(code: 'sc', name: 'Seychelles'),
+  _SupportedCountry(code: 'sl', name: 'Sierra Leone'),
+  _SupportedCountry(code: 'sg', name: 'Singapore'),
+  _SupportedCountry(code: 'sk', name: 'Slovakia'),
+  _SupportedCountry(code: 'si', name: 'Slovenia'),
+  _SupportedCountry(code: 'sb', name: 'Solomon Islands'),
+  _SupportedCountry(code: 'so', name: 'Somalia'),
+  _SupportedCountry(code: 'za', name: 'South Africa'),
+  _SupportedCountry(code: 'kr', name: 'South Korea'),
+  _SupportedCountry(code: 'ss', name: 'South Sudan'),
+  _SupportedCountry(code: 'es', name: 'Spain'),
+  _SupportedCountry(code: 'lk', name: 'Sri Lanka'),
+  _SupportedCountry(code: 'sd', name: 'Sudan'),
+  _SupportedCountry(code: 'sr', name: 'Suriname'),
+  _SupportedCountry(code: 'se', name: 'Sweden'),
+  _SupportedCountry(code: 'ch', name: 'Switzerland'),
+  _SupportedCountry(code: 'sy', name: 'Syria'),
+  _SupportedCountry(code: 'tw', name: 'Taiwan'),
+  _SupportedCountry(code: 'tj', name: 'Tajikistan'),
+  _SupportedCountry(code: 'tz', name: 'Tanzania'),
+  _SupportedCountry(code: 'th', name: 'Thailand'),
+  _SupportedCountry(code: 'tl', name: 'Timor-Leste'),
+  _SupportedCountry(code: 'tg', name: 'Togo'),
+  _SupportedCountry(code: 'to', name: 'Tonga'),
+  _SupportedCountry(code: 'tt', name: 'Trinidad and Tobago'),
+  _SupportedCountry(code: 'tn', name: 'Tunisia'),
+  _SupportedCountry(code: 'tr', name: 'Turkey'),
+  _SupportedCountry(code: 'tm', name: 'Turkmenistan'),
+  _SupportedCountry(code: 'tv', name: 'Tuvalu'),
+  _SupportedCountry(code: 'ug', name: 'Uganda'),
+  _SupportedCountry(code: 'ua', name: 'Ukraine'),
+  _SupportedCountry(code: 'ae', name: 'United Arab Emirates'),
+  _SupportedCountry(code: 'gb', name: 'United Kingdom'),
+  _SupportedCountry(code: 'us', name: 'United States'),
+  _SupportedCountry(code: 'uy', name: 'Uruguay'),
+  _SupportedCountry(code: 'uz', name: 'Uzbekistan'),
+  _SupportedCountry(code: 'vu', name: 'Vanuatu'),
+  _SupportedCountry(code: 've', name: 'Venezuela'),
+  _SupportedCountry(code: 'vn', name: 'Vietnam'),
+  _SupportedCountry(code: 'ye', name: 'Yemen'),
+  _SupportedCountry(code: 'zm', name: 'Zambia'),
+  _SupportedCountry(code: 'zw', name: 'Zimbabwe'),
+];
 
 /// Google Places API key
 const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
@@ -28,7 +244,7 @@ class _PlacesApiService {
   static bool get _isWeb => kIsWeb;
 
   /// Search for place predictions (autocomplete)
-  static Future<List<_PlacePrediction>> getAutocomplete(String query) async {
+  static Future<List<_PlacePrediction>> getAutocomplete(String query, {String? countryCode}) async {
     try {
       final baseUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
       final params = {
@@ -36,7 +252,7 @@ class _PlacesApiService {
         'key': _placesApiKey,
         'types': 'address',
         'language': 'en',
-        'components': 'country:nl|country:at|country:de',
+        if (countryCode != null) 'components': 'country:$countryCode',
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
@@ -230,6 +446,14 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   bool _showManualEntry = false;
   Timer? _debounce;
 
+  // Flag to prevent didUpdateWidget from re-triggering search
+  // when the parent updates initialAddress from our own selection
+  bool _selfUpdated = false;
+
+  // Country selector state
+  String _selectedCountryCode = 'nl';
+  bool _detectingLocation = false;
+
   // Store coordinates and country from Places API
   double? _latitude;
   double? _longitude;
@@ -250,12 +474,61 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       _populateFields(widget.initialAddress!);
       _showManualEntry = true;
     }
+    _detectUserCountry();
+  }
+
+  Future<void> _detectUserCountry() async {
+    if (kIsWeb) return; // Geolocator not reliable on web
+    setState(() => _detectingLocation = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _log('Location permission denied');
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      final placemarks = await geocoding.placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final isoCode = placemarks.first.isoCountryCode?.toLowerCase();
+        _log('Detected country: $isoCode');
+        if (isoCode != null && mounted) {
+          final exists = _supportedCountries.any((c) => c.code == isoCode);
+          if (exists) {
+            setState(() => _selectedCountryCode = isoCode);
+          }
+        }
+      }
+    } catch (e) {
+      _log('Country detection error: $e');
+    } finally {
+      if (mounted) setState(() => _detectingLocation = false);
+    }
   }
 
   @override
   void didUpdateWidget(covariant AddressSearchWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If initialAddress changed and has data, trigger search
+    // If the update came from our own selection, skip re-triggering search
+    if (_selfUpdated) {
+      _selfUpdated = false;
+      return;
+    }
+    // If initialAddress changed and has data, trigger search (e.g. from scan)
     if (widget.initialAddress != null &&
         widget.initialAddress != oldWidget.initialAddress) {
       final newAddress = widget.initialAddress!;
@@ -334,8 +607,11 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
     _log('Searching places for: $query');
 
-    // Use Google Places API for autocomplete
-    final predictions = await _PlacesApiService.getAutocomplete(query);
+    // Use Google Places API for autocomplete, filtered by selected country
+    final predictions = await _PlacesApiService.getAutocomplete(
+      query,
+      countryCode: _selectedCountryCode,
+    );
 
     _log('Got ${predictions.length} predictions');
 
@@ -389,6 +665,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
   void _notifyAddressChanged() {
     _log('Notifying address change - lat: $_latitude, lng: $_longitude');
+    // Mark that this update originated from within the widget,
+    // so didUpdateWidget won't re-trigger a search.
+    _selfUpdated = true;
     final address = AddressModel(
       street: _streetController.text,
       building: _buildingController.text,
@@ -441,6 +720,65 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Country selector
+        InputDecorator(
+          decoration: InputDecoration(
+            labelText: 'Country',
+            isDense: true,
+            filled: true,
+            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(
+                color: isDark ? DarkColors.border : LightColors.border,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(
+                color: isDark ? DarkColors.border : LightColors.border,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedCountryCode,
+              isExpanded: true,
+              icon: _detectingLocation
+                  ? SizedBox(
+                      width: 16.w,
+                      height: 16.w,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.arrow_drop_down),
+              items: _supportedCountries.map((country) {
+                return DropdownMenuItem<String>(
+                  value: country.code,
+                  child: Text(
+                    '${country.flag}  ${country.name}',
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedCountryCode = value;
+                    _predictions = [];
+                  });
+                  // Re-search if there's text in the search field
+                  if (_searchController.text.length >= 3) {
+                    _searchPlaces(_searchController.text);
+                  }
+                }
+              },
+            ),
+          ),
+        ),
+
+        SizedBox(height: 12.h),
+
         // Search field
         TextField(
           controller: _searchController,

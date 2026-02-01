@@ -10,6 +10,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
+import '../../../auth/presentation/widgets/language_selector.dart';
 import '../../application/restaurant_state.dart';
 import '../../data/models/restaurant_model.dart';
 
@@ -44,9 +45,7 @@ class RestaurantSelectionScreen extends ConsumerWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: SafeArea(
-        child: _buildBody(context, ref, restaurantState, theme),
-      ),
+      body: SafeArea(child: _buildBody(context, ref, restaurantState, theme)),
     );
   }
 
@@ -67,11 +66,7 @@ class RestaurantSelectionScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64.w,
-                color: AppColors.error,
-              ),
+              Icon(Icons.error_outline, size: 64.w, color: AppColors.error),
               SizedBox(height: 16.h),
               Text(
                 state.message,
@@ -186,56 +181,55 @@ class _NoRestaurantView extends StatelessWidget {
     final primaryColor = theme.colorScheme.primary;
     final isDark = theme.brightness == Brightness.dark;
 
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: 24.h),
-
           // Illustration circle
           Container(
-            width: 120.w,
-            height: 120.w,
+            width: 80.w,
+            height: 80.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: primaryColor.withValues(alpha: 0.1),
             ),
             child: Icon(
               Icons.storefront_outlined,
-              size: 56.w,
+              size: 36.w,
               color: primaryColor,
             ),
           ),
 
-          SizedBox(height: 32.h),
+          SizedBox(height: 20.h),
 
           // Welcome title
           Text(
             'restaurant.noRestaurantWelcome'.tr,
-            style: theme.textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
 
           // Explanation
           Text(
             'restaurant.noRestaurantMessage'.tr,
-            style: theme.textTheme.bodyLarge?.copyWith(
+            style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.disabledColor,
-              height: 1.5,
+              height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
 
-          SizedBox(height: 32.h),
+          SizedBox(height: 20.h),
 
           // Contact card
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             decoration: BoxDecoration(
               color: isDark
                   ? DarkColors.surfaceElevated
@@ -249,12 +243,12 @@ class _NoRestaurantView extends StatelessWidget {
               children: [
                 Text(
                   'restaurant.contactUsTitle'.tr,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 10.h),
 
                 // Email row
                 _ContactRow(
@@ -275,7 +269,7 @@ class _NoRestaurantView extends StatelessWidget {
                   },
                 ),
 
-                SizedBox(height: 12.h),
+                SizedBox(height: 6.h),
 
                 // Phone row
                 _ContactRow(
@@ -283,9 +277,7 @@ class _NoRestaurantView extends StatelessWidget {
                   label: '+1234567890',
                   onTap: _launchPhone,
                   onLongPress: () {
-                    Clipboard.setData(
-                      const ClipboardData(text: '+1234567890'),
-                    );
+                    Clipboard.setData(const ClipboardData(text: '+1234567890'));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('restaurant.phoneCopied'.tr),
@@ -299,19 +291,7 @@ class _NoRestaurantView extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 24.h),
-
-          // Thank you message
-          Text(
-            'restaurant.thankYou'.tr,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.disabledColor,
-              fontStyle: FontStyle.italic,
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          SizedBox(height: 32.h),
+          SizedBox(height: 20.h),
 
           // Retry button
           AppButton(
@@ -323,7 +303,7 @@ class _NoRestaurantView extends StatelessWidget {
             },
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
 
           // Logout button
           AppButton(
@@ -333,7 +313,10 @@ class _NoRestaurantView extends StatelessWidget {
             onPressed: () => _logout(context),
           ),
 
-          SizedBox(height: 24.h),
+          SizedBox(height: 12.h),
+
+          // Language selector
+          const LanguageSelector(),
         ],
       ),
     );
@@ -399,10 +382,7 @@ class _ContactRow extends StatelessWidget {
 
 /// Restaurant card widget
 class _RestaurantCard extends StatelessWidget {
-  const _RestaurantCard({
-    required this.restaurant,
-    required this.onTap,
-  });
+  const _RestaurantCard({required this.restaurant, required this.onTap});
 
   final RestaurantModel restaurant;
   final VoidCallback onTap;
@@ -419,10 +399,7 @@ class _RestaurantCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         side: restaurant.status == RestaurantStatus.active
             ? BorderSide.none
-            : BorderSide(
-                color: AppColors.warning,
-                width: 1,
-              ),
+            : BorderSide(color: AppColors.warning, width: 1),
       ),
       child: InkWell(
         onTap: restaurant.status == RestaurantStatus.active ? onTap : null,
@@ -441,7 +418,9 @@ class _RestaurantCard extends StatelessWidget {
                     height: 56.w,
                     decoration: BoxDecoration(
                       color: restaurant.status == RestaurantStatus.active
-                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1)
                           : AppColors.warningLight,
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -524,7 +503,9 @@ class _RestaurantCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDark
                         ? DarkColors.backgroundTertiary
-                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        : Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Row(
@@ -533,7 +514,8 @@ class _RestaurantCard extends StatelessWidget {
                         child: _StatItem(
                           icon: Icons.pending_actions,
                           label: 'orders.status.pending'.tr,
-                          value: restaurant.todayStats!.pendingOrders.toString(),
+                          value: restaurant.todayStats!.pendingOrders
+                              .toString(),
                           color: AppColors.warning,
                         ),
                       ),
@@ -570,9 +552,7 @@ class _RestaurantCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.warningLight,
                     borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(
-                      color: AppColors.warning,
-                    ),
+                    border: Border.all(color: AppColors.warning),
                   ),
                   child: Row(
                     children: [
@@ -637,10 +617,7 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-        vertical: 4.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(6.r),
@@ -676,11 +653,7 @@ class _StatItem extends StatelessWidget {
 
     return Column(
       children: [
-        Icon(
-          icon,
-          size: 20.w,
-          color: color,
-        ),
+        Icon(icon, size: 20.w, color: color),
         SizedBox(height: 4.h),
         Text(
           value,

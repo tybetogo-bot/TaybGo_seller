@@ -48,7 +48,9 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget build(BuildContext context) {
     // Watch the FCM token provider to trigger token retrieval & backend
     // registration whenever the main shell is active.
-    ref.watch(fcmTokenProvider);
+    final fcmState = ref.watch(fcmTokenProvider);
+    debugPrint('🎯 [MainShell] build() → fcmToken state: '
+        '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}');
 
     return Scaffold(
       body: widget.child,

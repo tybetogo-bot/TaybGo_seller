@@ -9,7 +9,6 @@ import '../../../../core/theme/theme.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/menu_notifier.dart';
-import '../widgets/public_menu_share_card.dart';
 import '../widgets/swipeable_menu_item_card.dart';
 
 /// Menu management screen - connected to API
@@ -155,14 +154,14 @@ class MenuScreen extends ConsumerWidget {
               SizedBox(height: 12.h),
             ],
 
-            // Public menu share card
-            if (selectedRestaurant != null) ...[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: PublicMenuShareCard(restaurantId: selectedRestaurant.id),
-              ),
-              SizedBox(height: 12.h),
-            ],
+            // Public menu share card (hidden)
+            // if (selectedRestaurant != null) ...[
+            //   Padding(
+            //     padding: EdgeInsets.symmetric(horizontal: 16.w),
+            //     child: PublicMenuShareCard(restaurantId: selectedRestaurant.id),
+            //   ),
+            //   SizedBox(height: 12.h),
+            // ],
 
             // Loading state
             if (menuState.isLoading && items.isEmpty)

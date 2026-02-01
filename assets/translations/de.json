@@ -459,6 +459,23 @@
     "today": "Heute",
     "viewStats": "Statistiken"
   },
+  "deleteAccount": {
+    "title": "Konto löschen",
+    "warningTitle": "Diese Aktion ist unwiderruflich",
+    "warningDescription": "Das Löschen Ihres Kontos entfernt alle Ihre Daten dauerhaft. Dies kann nicht rückgängig gemacht werden.",
+    "consequencesTitle": "Was passieren wird:",
+    "consequence1": "Ihr Konto und Ihre persönlichen Daten werden dauerhaft gelöscht",
+    "consequence2": "Alle Ihre Restaurants und Menüeinträge werden entfernt",
+    "consequence3": "Alle Bestellhistorien und Statistiken gehen verloren",
+    "consequence4": "Sie können diese Daten nicht wiederherstellen",
+    "acknowledgment": "Ich verstehe, dass diese Aktion dauerhaft ist und alle meine Daten unwiderruflich gelöscht werden",
+    "typeConfirmation": "Geben Sie DELETE ein, um zu bestätigen:",
+    "deleteButton": "Mein Konto löschen",
+    "deleting": "Ihr Konto wird gelöscht...",
+    "finalConfirmTitle": "Sind Sie absolut sicher?",
+    "finalConfirmMessage": "Dies ist Ihre letzte Chance zum Abbrechen. Nach der Bestätigung werden Ihr Konto und alle zugehörigen Daten dauerhaft gelöscht.",
+    "error": "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+  },
   "notifications": {
     "title": "Benachrichtigungen",
     "settings": "Einstellungen",
@@ -653,5 +670,390 @@
     "copyLink": "Link kopieren",
     "linkCopied": "Link kopiert!",
     "previewMenu": "Öffentliches Menü Vorschau"
+  },
+  "kb": {
+    "categories": {
+      "gettingStarted": "Erste Schritte",
+      "orders": "Bestellungen",
+      "menu": "Menü",
+      "coupons": "Gutscheine",
+      "settings": "Einstellungen",
+      "statistics": "Statistiken",
+      "tips": "Tipps & Tricks"
+    },
+    "gsWelcome": {
+      "title": "Willkommen bei TybeToGo Verkäufer",
+      "description": "Ein Überblick über die App und was Sie damit tun können.",
+      "s1Title": "Was ist TybeToGo Verkäufer?",
+      "s1Body": "TybeToGo Verkäufer ist Ihre All-in-One-App zur Restaurantverwaltung. Sie können Bestellungen empfangen und verwalten, Ihr Menü in Echtzeit aktualisieren, Werbegutscheine erstellen und Ihre Geschäftsleistung verfolgen — alles von Ihrem Handy aus.",
+      "s2Title": "Hauptfunktionen",
+      "s2Body": "• Echtzeit-Bestellverwaltung mit Statusverfolgung\n• Vollständige Menübearbeitung mit Kategorien, Bildern und Anpassungen\n• Gutscheinerstellung und Rabattverwaltung\n• Geschäftsanalysen und Umsatzverfolgung\n• KI-gestütztes Scannen für manuelle Bestellungen\n• Push-Benachrichtigungen für neue Bestellungen\n• Dunkelmodus und Designanpassung\n• Mehrsprachige Unterstützung (Englisch, Arabisch, Deutsch, Französisch)",
+      "s3Title": "Hilfe erhalten",
+      "s3Body": "Sie können diese Wissensdatenbank jederzeit über Profil > Wissensdatenbank aufrufen. Für eine praktische Anleitung tippen Sie auf die Schaltfläche \"Interaktive Tour starten\" oben auf dieser Seite."
+    },
+    "gsNav": {
+      "title": "Navigation in der App",
+      "description": "Erfahren Sie mehr über die Hauptbildschirme und wie Sie zwischen ihnen wechseln.",
+      "s1Title": "Untere Navigationsleiste",
+      "s1Body": "Die App hat vier Haupttabs am unteren Bildschirmrand:\n\n• Startseite — Ihr Dashboard mit den heutigen Statistiken und ausstehenden Bestellungen\n• Bestellungen — Alle eingehenden, aktiven und abgeschlossenen Bestellungen verwalten\n• Menü — Menüpunkte Ihres Restaurants anzeigen und bearbeiten\n• Profil — Zugriff auf Einstellungen, Statistiken, Gutscheine und mehr",
+      "s2Title": "Startseiten-Dashboard",
+      "s2Body": "Die Startseite gibt Ihnen einen schnellen Überblick über Ihren Tag. Sie sehen die Anzahl ausstehender Bestellungen, den heutigen Umsatz und die Gesamtbestellungen. Tippen Sie auf \"Alle anzeigen\", um zur vollständigen Bestellliste zu gelangen.",
+      "s3Title": "Zurück navigieren",
+      "s3Body": "Wenn Sie einen Detailbildschirm öffnen (wie Bestelldetails oder Menüpunktbearbeitung), verwenden Sie den Zurückpfeil oben links, um zum vorherigen Bildschirm zurückzukehren."
+    },
+    "ordersManaging": {
+      "title": "Bestellungen anzeigen und verwalten",
+      "description": "So zeigen Sie Bestellungen an, suchen und verfolgen sie.",
+      "s1Title": "Bestelltabs",
+      "s1Body": "Der Bestellbildschirm hat drei Tabs:\n\n• Neu — Bestellungen, die auf Ihre Antwort warten (annehmen oder ablehnen)\n• Aktiv — Bestellungen, die Sie angenommen haben und die zubereitet oder geliefert werden\n• Erledigt — Abgeschlossene, gelieferte, abgelehnte oder stornierte Bestellungen",
+      "s2Title": "Bestellungen suchen",
+      "s2Body": "Verwenden Sie die Suchleiste oben auf dem Bestellbildschirm, um bestimmte Bestellungen zu finden. Sie können nach Bestell-ID, Kundenname, Telefonnummer oder Artikelnamen suchen.",
+      "s3Title": "Automatische Aktualisierung",
+      "s3Body": "Bestellungen werden alle 30 Sekunden automatisch aktualisiert. Sie können auch nach unten ziehen, um die Liste jederzeit manuell zu aktualisieren.",
+      "s4Title": "Bestelldetails",
+      "s4Body": "Tippen Sie auf eine Bestellkarte, um die vollständigen Details zu öffnen. Sie sehen:\n\n• Kundenname, Telefon und Lieferadresse\n• Alle bestellten Artikel mit Mengen und Anpassungen\n• Zahlungsstatus und Bestellsummen\n• Eine visuelle Zeitleiste des Bestellstatus\n• Aktionsschaltflächen zur Statusaktualisierung"
+    },
+    "ordersStatus": {
+      "title": "Bestellstatus annehmen und aktualisieren",
+      "description": "So nehmen Sie Bestellungen an, lehnen sie ab und führen sie durch jede Phase.",
+      "s1Title": "Annehmen oder Ablehnen",
+      "s1Body": "Wenn eine neue Bestellung eingeht, haben Sie zwei Möglichkeiten:\n\n• Annehmen — Die Bestellung wird in Ihren Aktiv-Tab verschoben und das System sucht nach einem Fahrer\n• Ablehnen — Die Bestellung wird abgelehnt (dies kann nicht rückgängig gemacht werden)\n\nSie erhalten eine Push-Benachrichtigung bei neuen Bestellungen.",
+      "s2Title": "Bestellstatus-Ablauf",
+      "s2Body": "Nach der Annahme durchläuft eine Bestellung diese Phasen:\n\n1. Angenommen — Sie bereiten die Bestellung vor\n2. Fahrer wird gesucht — Das System sucht einen Fahrer\n3. Fahrer benachrichtigt — Ein Fahrer wurde zugewiesen\n4. Bereit zur Lieferung — Essen ist abholbereit\n5. Unterwegs — Fahrer liefert an den Kunden\n6. Geliefert / Abgeschlossen — Bestellung ist erledigt",
+      "s3Title": "Statusänderungen rückgängig machen",
+      "s3Body": "Wenn Sie versehentlich den Status einer Bestellung aktualisieren, erscheint kurz eine \"Rückgängig\"-Option als Snackbar am unteren Bildschirmrand."
+    },
+    "ordersCreate": {
+      "title": "Manuelle Bestellungen erstellen",
+      "description": "So erstellen Sie Bestellungen manuell für Telefon- oder Laufkunden.",
+      "s1Title": "Wann manuelle Bestellungen verwenden",
+      "s1Body": "Verwenden Sie die Funktion \"Bestellung erstellen\", wenn ein Kunde per Telefon, persönlich oder über einen anderen Kanal bestellt.",
+      "s2Title": "Eine Bestellung erstellen",
+      "s2Body": "Tippen Sie auf dem Bestellbildschirm oder der Startseite auf \"Bestellung erstellen\". Füllen Sie aus:\n\n1. Kundenname und Telefonnummer\n2. Lieferadresse (nutzen Sie die Adresssuche für Autovervollständigung)\n3. Fügen Sie Artikel aus Ihrem Menü hinzu\n4. Optional einen Gutschein, Liefergebühr oder Trinkgeld hinzufügen\n5. Zahlungsstatus und Bestellnotizen festlegen\n6. Auf Absenden tippen",
+      "s3Title": "Adresssuche",
+      "s3Body": "Bei der Eingabe einer Lieferadresse verwendet die App die Google Places Autovervollständigung. Geben Sie mindestens 3 Zeichen ein und Vorschläge erscheinen."
+    },
+    "ordersScan": {
+      "title": "KI-Bestellungsscan",
+      "description": "Verwenden Sie KI, um Papierbestellungen zu scannen und Details automatisch zu extrahieren.",
+      "s1Title": "Wie der KI-Scan funktioniert",
+      "s1Body": "Die KI-Scan-Funktion verwendet Gemini AI, um Bestellformulare aus Fotos zu lesen. Fotografieren Sie eine handschriftliche oder gedruckte Bestellung, und die KI extrahiert automatisch Kundendaten, Artikel, Mengen und Adressen.",
+      "s2Title": "Tipps für beste Ergebnisse",
+      "s2Body": "• Legen Sie das Bestellformular auf eine flache Oberfläche\n• Sorgen Sie für gute Beleuchtung ohne Schatten\n• Halten Sie den Text scharf und lesbar\n• Machen Sie bei mehrseitigen Bestellungen mehrere Fotos\n• Sie können die Kamera oder Bilder aus der Galerie verwenden",
+      "s3Title": "Gescannte Daten überprüfen",
+      "s3Body": "Nach dem Scannen sehen Sie einen Überprüfungsbildschirm mit allen extrahierten Daten. Felder mit niedriger Konfidenz werden hervorgehoben. Korrigieren Sie Fehler und senden Sie die Bestellung ab."
+    },
+    "menuItems": {
+      "title": "Menüpunkte verwalten",
+      "description": "Fügen Sie Menüpunkte hinzu, bearbeiten und organisieren Sie sie.",
+      "s1Title": "Ihr Menü anzeigen",
+      "s1Body": "Der Menübildschirm zeigt alle Ihre Artikel nach Kategorien geordnet. Verwenden Sie die horizontalen Kategorie-Tabs oben zum Filtern oder die Suchleiste zum Finden bestimmter Artikel.",
+      "s2Title": "Neuen Artikel hinzufügen",
+      "s2Body": "Tippen Sie auf dem Menübildschirm auf \"+\", um einen neuen Artikel hinzuzufügen. Füllen Sie aus:\n\n• Artikelname und Beschreibung\n• Preis\n• Kategorie (aus vorhandenen wählen oder neue erstellen)\n• Zutatenliste\n• Artikelbild (von Kamera oder Galerie)\n• Zubereitungszeit\n• Verfügbarkeitsstatus",
+      "s3Title": "Artikel bearbeiten",
+      "s3Body": "Tippen Sie auf eine Menüpunkt-Karte, um die Detailansicht zu öffnen, dann auf \"Artikel bearbeiten\". Änderungen werden beim Tippen auf \"Speichern\" gespeichert.",
+      "s4Title": "Schnelle Verfügbarkeitsumschaltung",
+      "s4Body": "Wischen Sie eine Menüpunkt-Karte, um die Verfügbarkeit schnell umzuschalten. Nicht verfügbare Artikel werden vor Kunden verborgen.",
+      "s5Title": "Artikel löschen",
+      "s5Body": "Wischen Sie einen Menüpunkt, um die Löschoption anzuzeigen. Sie werden zur Bestätigung aufgefordert, bevor der Artikel endgültig entfernt wird."
+    },
+    "menuCats": {
+      "title": "Menükategorien",
+      "description": "Organisieren Sie Ihr Menü mit Kategorien für eine bessere Struktur.",
+      "s1Title": "Was sind Kategorien?",
+      "s1Body": "Kategorien helfen, Ihr Menü in logische Abschnitte zu unterteilen wie \"Burger\", \"Pizza\", \"Getränke\", \"Desserts\" usw.",
+      "s2Title": "Kategorien verwalten",
+      "s2Body": "Gehen Sie zu Menü > Kategorien, um:\n\n• Neue Kategorien mit einem Namen hinzuzufügen\n• Vorhandene Kategorienamen zu bearbeiten\n• Kategorien zu löschen (Artikel in der Kategorie werden ebenfalls betroffen)\n\nJede Kategorie zeigt die Anzahl der enthaltenen Artikel.",
+      "s3Title": "Nach Kategorie filtern",
+      "s3Body": "Auf dem Hauptmenübildschirm können Sie mit den horizontalen Kategorie-Tabs schnell filtern. Tippen Sie auf \"Alle\" für alles oder auf eine bestimmte Kategorie."
+    },
+    "menuCustom": {
+      "title": "Artikelanpassungen & Extras",
+      "description": "Richten Sie Extras und Entfernungsoptionen für Menüpunkte ein.",
+      "s1Title": "Was sind Anpassungen?",
+      "s1Body": "Anpassungen ermöglichen es Kunden, ihre Bestellartikel zu modifizieren. Es gibt zwei Typen:\n\n• Extras (Zusätze) — Optionen, die Zutaten mit zusätzlichen Kosten hinzufügen (z.B. \"Extra Käse +1,50€\")\n• Entfernungen — Zutaten, die Kunden entfernen lassen können (z.B. \"Ohne Zwiebeln\")",
+      "s2Title": "Extras hinzufügen",
+      "s2Body": "Beim Bearbeiten eines Menüpunkts scrollen Sie zum Abschnitt Anpassungen und tippen auf \"Extra hinzufügen\". Geben Sie den Namen und Zusatzpreis ein.",
+      "s3Title": "Entfernungsoptionen hinzufügen",
+      "s3Body": "Im selben Abschnitt tippen Sie auf \"Entfernungsoption hinzufügen\", damit Kunden Zutatenentfernungen anfordern können. Diese haben keine Preisänderung — sie sind einfach Anweisungen für die Küche."
+    },
+    "couponsCreate": {
+      "title": "Gutscheine erstellen",
+      "description": "Richten Sie Werberabattcodes für Ihre Kunden ein.",
+      "s1Title": "Einen Gutschein erstellen",
+      "s1Body": "Gehen Sie zu Profil > Gutscheine und tippen Sie auf \"+\". Füllen Sie aus:\n\n• Gutscheintitel und Beschreibung\n• Einzigartiger Gutscheincode (oder auf \"Generieren\" tippen)\n• Rabattprozentsatz\n• Mindestbestellwert\n• Maximale Nutzungsgrenzen\n• Start- und Enddatum",
+      "s2Title": "Wie Rabatte funktionieren",
+      "s2Body": "Wenn ein Gutschein auf eine Bestellung angewendet wird, wird der Rabattprozentsatz auf die Zwischensumme berechnet. Der Gutschein funktioniert nur, wenn die Bestellung den von Ihnen festgelegten Mindestpreis erreicht.",
+      "s3Title": "Gutscheine in Bestellungen verwenden",
+      "s3Body": "Beim Erstellen einer manuellen Bestellung können Sie einen aktiven Gutschein auswählen. Der Rabatt wird automatisch berechnet und in der Bestellübersicht angezeigt."
+    },
+    "couponsManage": {
+      "title": "Gutscheine verwalten",
+      "description": "Bearbeiten, aktivieren, deaktivieren und verfolgen Sie Ihre Gutscheine.",
+      "s1Title": "Gutscheinliste",
+      "s1Body": "Der Gutscheinbildschirm zeigt alle Ihre Gutscheine mit Filtertabs:\n\n• Alle — Jeder Gutschein\n• Aktiv — Derzeit verwendbare Gutscheine\n• Abgelaufen — Über das Enddatum hinaus",
+      "s2Title": "Bearbeiten & Löschen",
+      "s2Body": "Tippen Sie auf einen Gutschein, um seine Details zu bearbeiten. Sie können jedes Feld außer dem Code aktualisieren. Zum Löschen verwenden Sie die Löschoption auf der Gutscheinkarte.",
+      "s3Title": "Aktivstatus umschalten",
+      "s3Body": "Sie können einen Gutschein schnell aktivieren oder deaktivieren, ohne ihn zu löschen. Deaktivierte Gutscheine funktionieren nicht für Kunden, bleiben aber in Ihrer Liste."
+    },
+    "settingsTheme": {
+      "title": "Design & Erscheinungsbild",
+      "description": "Dunkelmodus und Akzentfarben anpassen.",
+      "s1Title": "Dunkelmodus",
+      "s1Body": "Schalten Sie den Dunkelmodus im Profil mit dem Schalter um. Der Dunkelmodus reduziert die Augenbelastung bei schwachen Lichtverhältnissen und kann bei OLED-Bildschirmen Akku sparen.",
+      "s2Title": "Akzentfarbe",
+      "s2Body": "Tippen Sie im Profil auf \"Akzentfarbe\", um aus 8 Farboptionen zu wählen:\n\nGrün, Blau, Lila, Orange, Rot, Türkis, Pink und Indigo.\n\nDie Akzentfarbe wird für Schaltflächen, Hervorhebungen und aktive Navigationselemente verwendet."
+    },
+    "settingsLang": {
+      "title": "Spracheinstellungen",
+      "description": "App-Sprache ändern.",
+      "s1Title": "Unterstützte Sprachen",
+      "s1Body": "Die App unterstützt mehrere Sprachen: Englisch, Arabisch, Deutsch und Französisch. Sie können Ihre Sprache auch auf dem Anmeldebildschirm auswählen.",
+      "s2Title": "Sprache ändern",
+      "s2Body": "Gehen Sie zu Profil > Sprache und wählen Sie Ihre bevorzugte Sprache. Die App wechselt sofort alle Texte. Ihre Sprachpräferenz wird gespeichert und bleibt über App-Neustarts erhalten."
+    },
+    "settingsNotif": {
+      "title": "Benachrichtigungseinstellungen",
+      "description": "Konfigurieren Sie, welche Benachrichtigungen Sie erhalten.",
+      "s1Title": "Benachrichtigungstypen",
+      "s1Body": "Sie können Benachrichtigungen konfigurieren für:\n\n• Neue Bestellungen — Benachrichtigung bei neuen Bestellungen\n• Bestellaktualisierungen — Statusänderungen Ihrer Bestellungen\n• Aktionen — Neuigkeiten und Sonderangebote von TybeToGo",
+      "s2Title": "Ton & Haptik",
+      "s2Body": "In den Benachrichtigungseinstellungen können Sie auch steuern:\n\n• Ton — Benachrichtigungstöne aktivieren oder deaktivieren\n• Vibration — Haptisches Feedback aktivieren oder deaktivieren",
+      "s3Title": "Benachrichtigungen anzeigen",
+      "s3Body": "Tippen Sie auf das Glockensymbol auf der Startseite, um Ihren Benachrichtigungsverlauf zu sehen. Ungelesene Benachrichtigungen zeigen ein Zählabzeichen. Verwenden Sie \"Alle als gelesen markieren\"."
+    },
+    "statsOverview": {
+      "title": "Ihre Analysen verstehen",
+      "description": "Umsatz, Bestellungen und Leistungskennzahlen verfolgen.",
+      "s1Title": "Auf Statistiken zugreifen",
+      "s1Body": "Sie können Ihre Analysen auf zwei Arten anzeigen:\n\n• Schnellstatistiken auf dem Profilbildschirm (heutiger Umsatz und Bestellanzahl)\n• Detailansicht über Profil > Schaltfläche \"Statistiken anzeigen\"",
+      "s2Title": "Zeiträume",
+      "s2Body": "Der Statistikbildschirm zeigt Daten für verschiedene Zeiträume:\n\n• Heute — Tagesleistung\n• Woche — Letzte 7 Tage\n• Monat — Letzte 30 Tage\n• Jahr — Letzte 12 Monate",
+      "s3Title": "Wichtige Kennzahlen",
+      "s3Body": "• Gesamtbestellungen — Anzahl der Bestellungen im gewählten Zeitraum\n• Umsatz — Gesamteinnahmen aus allen Bestellungen\n• Durchschnittliche Bestellung — Mittlerer Bestellwert\n• Kunden — Eindeutige bediente Kunden\n• Bestseller — Ihre beliebtesten Menüpunkte"
+    },
+    "tipsGestures": {
+      "title": "Wischaktionen & Gesten",
+      "description": "Beschleunigen Sie Ihren Arbeitsablauf mit Wischgesten.",
+      "s1Title": "Bestell-Wischaktionen",
+      "s1Body": "Auf dem Bestellbildschirm wischen Sie Bestellkarten, um:\n\n• Ausstehende Bestellungen schnell anzunehmen\n• Den Bestellstatus zur nächsten Phase zu aktualisieren\n• Das spart Zeit im Vergleich zum einzelnen Öffnen jeder Bestellung",
+      "s2Title": "Menüpunkt-Wischaktionen",
+      "s2Body": "Auf dem Menübildschirm wischen Sie Artikelkarten, um:\n\n• Verfügbarkeit umzuschalten (verfügbar/nicht verfügbar markieren)\n• Artikel zu löschen\n\nWischaktionen zeigen farbige Indikatoren, damit Sie wissen, welche Aktion ausgeführt wird.",
+      "s3Title": "Zum Aktualisieren ziehen",
+      "s3Body": "Ziehen Sie auf jedem Listenbildschirm (Bestellungen, Menü, Benachrichtigungen) nach unten, um die Daten manuell zu aktualisieren."
+    },
+    "tipsBest": {
+      "title": "Best Practices",
+      "description": "Tipps, um das Beste aus der App herauszuholen.",
+      "s1Title": "Halten Sie Ihr Menü aktuell",
+      "s1Body": "• Markieren Sie Artikel als nicht verfügbar, sobald sie ausgehen\n• Aktualisieren Sie Preise regelmäßig\n• Fügen Sie klare Beschreibungen und Bilder hinzu\n• Verwenden Sie Kategorien für eine gute Organisation",
+      "s2Title": "Reagieren Sie schnell auf Bestellungen",
+      "s2Body": "• Aktivieren Sie Push-Benachrichtigungen\n• Nehmen Sie neue Bestellungen so schnell wie möglich an oder lehnen Sie sie ab\n• Halten Sie Bestellstatus aktuell\n• Verwenden Sie die Suchfunktion zum schnellen Finden von Bestellungen",
+      "s3Title": "Gutscheine strategisch einsetzen",
+      "s3Body": "• Erstellen Sie zeitlich begrenzte Gutscheine für Dringlichkeit\n• Setzen Sie Mindestbestellwerte zur Erhöhung der durchschnittlichen Bestellgröße\n• Verwenden Sie Gutscheine in ruhigen Zeiten zur Umsatzsteigerung\n• Verfolgen Sie die Gutscheinnutzung",
+      "s4Title": "Überwachen Sie Ihre Statistiken",
+      "s4Body": "• Überprüfen Sie regelmäßig Ihre täglichen Statistiken auf der Startseite\n• Überprüfen Sie wöchentliche und monatliche Trends im Statistikbereich\n• Achten Sie auf Ihre Bestseller\n• Nutzen Sie Erkenntnisse zur Anpassung Ihrer Menü- und Preisstrategie"
+    }
+  },
+  "knowledgeBase": {
+    "title": "Wissensdatenbank",
+    "subtitle": "Erfahren Sie, wie Sie jede Funktion nutzen",
+    "searchHint": "Artikel suchen...",
+    "startTour": "Interaktive Tour starten",
+    "tourDescription": "Schritt für Schritt durch die App gehen",
+    "fullTour": "Volle Tour",
+    "ordersTour": "Bestellungen",
+    "menuTour": "Menü",
+    "allCategories": "Alle",
+    "noResults": "Keine Artikel gefunden"
+  },
+  "tour": {
+    "step": "Schritt",
+    "of": "von",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "finish": "Fertig",
+    "actionHint": {
+      "tap": "Tippen zum Fortfahren",
+      "swipe": "Wischen zum Interagieren",
+      "navigate": "Hierhin navigieren",
+      "observe": "Schauen Sie sich um",
+      "interact": "Probieren Sie es aus"
+    },
+    "welcome": {
+      "title": "Willkommen!",
+      "description": "Sehen wir uns die heutige Übersicht an"
+    },
+    "homeStats": {
+      "title": "Tagesleistung",
+      "description": "Verfolgen Sie Ihren täglichen Umsatz und die Bestellanzahl auf einen Blick"
+    },
+    "ordersTab": {
+      "title": "Bestellverwaltung",
+      "description": "Navigieren Sie zum Bestellbildschirm, um eingehende Anfragen zu verwalten"
+    },
+    "pendingOrders": {
+      "title": "Neue Bestellungen",
+      "description": "Diese warten auf Ihre Antwort. Wischen Sie zum Annehmen oder Ablehnen"
+    },
+    "orderDetails": {
+      "title": "Bestelldetails",
+      "description": "Tippen Sie auf eine Bestellung, um Details und Kundeninformationen anzuzeigen"
+    },
+    "orderDetailView": {
+      "title": "Bestelldetailansicht",
+      "description": "Hier sehen Sie alle Details einer Bestellung — Kundeninfo, Artikel und Zahlung"
+    },
+    "orderStatusTimeline": {
+      "title": "Status-Zeitleiste",
+      "description": "Verfolgen Sie den Fortschritt der Bestellung von der Erstellung bis zur Lieferung"
+    },
+    "orderItemsPayment": {
+      "title": "Artikel & Zahlung",
+      "description": "Überprüfen Sie die bestellten Artikel und die Zahlungszusammenfassung"
+    },
+    "navigateToOrders": {
+      "title": "Bestellungen-Tab",
+      "description": "Tippen Sie hier, um Ihre Bestellungen zu verwalten"
+    },
+    "swipeActions": {
+      "title": "Wischgesten",
+      "description": "Wischen Sie Bestellkarten, um schnell zu akzeptieren, abzulehnen oder den Status zu ändern"
+    },
+    "orderActions": {
+      "title": "Status aktualisieren",
+      "description": "Wischen Sie Bestellungen, um den Status schnell zu ändern"
+    },
+    "activeOrders": {
+      "title": "Aktive Bestellungen",
+      "description": "Verfolgen Sie Bestellungen, die gerade vorbereitet oder geliefert werden"
+    },
+    "createOrderButton": {
+      "title": "Bestellung erstellen",
+      "description": "Tippen Sie auf +, um eine Bestellung für Telefon- oder Laufkunden zu erstellen"
+    },
+    "createOrderForm": {
+      "title": "Bestellformular",
+      "description": "Kundendaten eingeben, Menüartikel hinzufügen, Lieferadresse und Zahlungsinfo festlegen"
+    },
+    "aiScanCard": {
+      "title": "KI-Bestellscan",
+      "description": "Fotografieren Sie eine Papierbestellung und lassen Sie die KI alle Details extrahieren"
+    },
+    "navigateToMenu": {
+      "title": "Menü-Tab",
+      "description": "Tippen Sie hier, um Ihr Menü zu verwalten — Artikel hinzufügen, bearbeiten und organisieren"
+    },
+    "menuTab": {
+      "title": "Menüverwaltung",
+      "description": "Navigieren Sie zum Menübildschirm, um Ihr Angebot zu verwalten"
+    },
+    "menuItems": {
+      "title": "Ihr Menü",
+      "description": "Alle Ihre Menüpunkte hier anzeigen und organisieren"
+    },
+    "itemAvailability": {
+      "title": "Schnellumschaltung",
+      "description": "Wischen Sie Artikel, um sie sofort als verfügbar oder nicht verfügbar zu markieren"
+    },
+    "menuItemDetail": {
+      "title": "Menüartikel bearbeiten",
+      "description": "Öffnen Sie einen Artikel, um Name, Beschreibung und Zutaten zu bearbeiten"
+    },
+    "menuItemForm": {
+      "title": "Artikeldetails",
+      "description": "Bearbeiten Sie den Artikelnamen, die Beschreibung und die Grundinformationen"
+    },
+    "menuItemPricing": {
+      "title": "Preis & Zubereitung",
+      "description": "Legen Sie den Artikelpreis und die geschätzte Zubereitungszeit fest"
+    },
+    "menuCategories": {
+      "title": "Kategorien",
+      "description": "Organisieren Sie Artikel nach Kategorien für eine bessere Menüstruktur"
+    },
+    "navigateToProfile": {
+      "title": "Profil-Tab",
+      "description": "Tippen Sie hier für Restaurantprofil, Einstellungen und Analysen"
+    },
+    "profileTab": {
+      "title": "Profil & Einstellungen",
+      "description": "Zugriff auf Ihr Restaurantprofil und App-Einstellungen"
+    },
+    "quickStats": {
+      "title": "Schnellstatistiken",
+      "description": "Tägliche Leistung anzeigen und detaillierte Analysen aufrufen"
+    },
+    "statistics": {
+      "title": "Analysen",
+      "description": "Vertiefen Sie sich in Ihre Verkaufs- und Leistungskennzahlen"
+    },
+    "settingsOptions": {
+      "title": "Einstellungen & Mehr",
+      "description": "Zugriff auf Benachrichtigungen, Sprache, Gutscheine, Restauranteinstellungen und mehr"
+    },
+    "themeCustomization": {
+      "title": "Design anpassen",
+      "description": "Dunkelmodus umschalten und Ihre bevorzugte Akzentfarbe wählen"
+    },
+    "languageSettings": {
+      "title": "Sprache ändern",
+      "description": "Die App unterstützt Englisch, Arabisch, Deutsch und Französisch"
+    },
+    "knowledgeBase": {
+      "title": "Wissensdatenbank",
+      "description": "Detaillierte Anleitungen für jede Funktion — und starten Sie diese Tour jederzeit neu"
+    },
+    "ordersWelcome": {
+      "title": "Bestellungsübersicht",
+      "description": "Lassen Sie uns erkunden, wie Sie Ihre eingehenden Bestellungen verwalten"
+    },
+    "ordersPending": {
+      "title": "Ausstehende Bestellungen",
+      "description": "Neue Bestellungen, die auf Ihre Antwort warten, erscheinen hier"
+    },
+    "ordersCard": {
+      "title": "Bestellkarte",
+      "description": "Jede Karte zeigt Bestelldetails — tippen zum Anzeigen oder wischen für Aktionen"
+    },
+    "ordersActive": {
+      "title": "Aktive Bestellungen",
+      "description": "Bestellungen in Vorbereitung oder Lieferung werden hier verfolgt"
+    },
+    "ordersComplete": {
+      "title": "Bestellungstour fertig!",
+      "description": "Sie wissen jetzt, wie Bestellungen verwaltet werden. Erstellen Sie eine oder erkunden Sie mehr!"
+    },
+    "menuWelcome": {
+      "title": "Menüübersicht",
+      "description": "Lassen Sie uns erkunden, wie Sie Ihr Restaurantmenü verwalten"
+    },
+    "menuList": {
+      "title": "Menüpunkte",
+      "description": "Alle Ihre Artikel sind hier aufgelistet — scrollen Sie, um sie alle anzuzeigen"
+    },
+    "menuToggle": {
+      "title": "Verfügbarkeit umschalten",
+      "description": "Wischen Sie einen Artikel, um ihn schnell als verfügbar oder nicht verfügbar zu markieren"
+    },
+    "menuComplete": {
+      "title": "Menütour fertig!",
+      "description": "Sie wissen jetzt, wie Sie Ihr Menü verwalten. Fügen Sie einen neuen Artikel hinzu!"
+    },
+    "tourComplete": {
+      "title": "Sie sind bereit!",
+      "description": "Sie können diese Tour jederzeit in den Einstellungen neu starten. Viel Erfolg beim Verkaufen!"
+    }
+  },
+  "welcomeTour": {
+    "title": "Willkommen bei TybeToGo Verkäufer",
+    "description": "Machen Sie eine kurze Tour, um zu erfahren, wie Sie Bestellungen verwalten, Ihr Menü aktualisieren und Ihre Leistung verfolgen.",
+    "benefit1": "Lernen Sie die wichtigsten Funktionen in unter 5 Minuten",
+    "benefit2": "Sehen Sie, wie Sie Bestellungen effizient bearbeiten",
+    "benefit3": "Entdecken Sie Tipps für bessere Verkäufe",
+    "dontShowAgain": "Nicht mehr anzeigen",
+    "skipForNow": "Vorerst überspringen",
+    "startTour": "Tour starten"
   }
 }

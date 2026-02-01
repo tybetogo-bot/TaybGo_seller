@@ -485,6 +485,23 @@
     "today": "Today",
     "viewStats": "View Stats"
   },
+  "deleteAccount": {
+    "title": "Delete Account",
+    "warningTitle": "This Action Is Irreversible",
+    "warningDescription": "Deleting your account will permanently remove all your data. This cannot be undone.",
+    "consequencesTitle": "What will happen:",
+    "consequence1": "Your account and personal data will be permanently deleted",
+    "consequence2": "All your restaurants and menu items will be removed",
+    "consequence3": "All order history and statistics will be lost",
+    "consequence4": "You will not be able to recover any of this data",
+    "acknowledgment": "I understand that this action is permanent and all my data will be irreversibly deleted",
+    "typeConfirmation": "Type DELETE below to confirm:",
+    "deleteButton": "Delete My Account",
+    "deleting": "Deleting your account...",
+    "finalConfirmTitle": "Are you absolutely sure?",
+    "finalConfirmMessage": "This is your last chance to cancel. Once confirmed, your account and all associated data will be permanently deleted.",
+    "error": "Failed to delete account. Please try again."
+  },
   "notifications": {
     "title": "Notifications",
     "settings": "Notification Settings",
@@ -680,6 +697,203 @@
     "linkCopied": "Link copied to clipboard!",
     "previewMenu": "Preview Public Menu"
   },
+  "kb": {
+    "categories": {
+      "gettingStarted": "Getting Started",
+      "orders": "Orders",
+      "menu": "Menu",
+      "coupons": "Coupons",
+      "settings": "Settings",
+      "statistics": "Statistics",
+      "tips": "Tips & Tricks"
+    },
+    "gsWelcome": {
+      "title": "Welcome to TybeToGo Seller",
+      "description": "An overview of the app and what you can do with it.",
+      "s1Title": "What is TybeToGo Seller?",
+      "s1Body": "TybeToGo Seller is your all-in-one restaurant management app. It lets you receive and manage orders, update your menu in real time, create promotional coupons, and track your business performance — all from your phone.",
+      "s2Title": "Key Features",
+      "s2Body": "• Real-time order management with status tracking\n• Full menu editing with categories, images, and customizations\n• Coupon creation and discount management\n• Business analytics and revenue tracking\n• AI-powered order scanning for manual orders\n• Push notifications for new orders\n• Dark mode and theme customization\n• Multi-language support (English, Arabic, German, French)",
+      "s3Title": "Getting Help",
+      "s3Body": "You can access this Knowledge Base anytime from Profile > Knowledge Base. For hands-on guidance, tap the \"Start Interactive Tour\" button at the top of this page to walk through the app step by step."
+    },
+    "gsNav": {
+      "title": "Navigating the App",
+      "description": "Learn about the main screens and how to move between them.",
+      "s1Title": "Bottom Navigation Bar",
+      "s1Body": "The app has four main tabs at the bottom of the screen:\n\n• Home — Your dashboard showing today's stats and pending orders\n• Orders — Manage all incoming, active, and completed orders\n• Menu — View and edit your restaurant's menu items\n• Profile — Access settings, statistics, coupons, and more",
+      "s2Title": "Home Dashboard",
+      "s2Body": "The Home screen gives you a quick overview of your day. You'll see your pending order count, today's revenue, and total orders. Tap \"See all\" to jump to the full orders list, or use the quick action buttons to create an order or start the app tour.",
+      "s3Title": "Navigating Back",
+      "s3Body": "When you open a detail screen (like order details or menu item editing), use the back arrow at the top-left to return to the previous screen. The bottom navigation bar is always visible on the main tabs."
+    },
+    "ordersManaging": {
+      "title": "Viewing & Managing Orders",
+      "description": "How to view, search, and track your orders.",
+      "s1Title": "Order Tabs",
+      "s1Body": "The Orders screen has three tabs:\n\n• New — Orders waiting for your response (accept or reject)\n• Active — Orders you've accepted that are being prepared or delivered\n• Done — Completed, delivered, rejected, or cancelled orders",
+      "s2Title": "Searching Orders",
+      "s2Body": "Use the search bar at the top of the Orders screen to find specific orders. You can search by order ID, customer name, phone number, or item names. Search works across all three tabs simultaneously.",
+      "s3Title": "Auto-Refresh",
+      "s3Body": "Orders automatically refresh every 30 seconds to keep you up to date. You can also pull down to manually refresh the list at any time. The app pauses automatic refresh when running in the background to save battery.",
+      "s4Title": "Order Details",
+      "s4Body": "Tap any order card to open its full details. You'll see:\n\n• Customer name, phone, and delivery address\n• All ordered items with quantities and customizations\n• Payment status and order totals\n• A visual timeline showing the order's status progression\n• Action buttons to update the order status"
+    },
+    "ordersStatus": {
+      "title": "Accepting & Updating Order Status",
+      "description": "How to accept, reject, and move orders through each stage.",
+      "s1Title": "Accepting or Rejecting",
+      "s1Body": "When a new order arrives, you have two options:\n\n• Accept — The order moves to your Active tab and the system searches for a delivery driver\n• Reject — The order is declined (this cannot be undone)\n\nYou'll receive a push notification whenever a new order comes in.",
+      "s2Title": "Order Status Flow",
+      "s2Body": "After accepting, an order progresses through these stages:\n\n1. Accepted — You're preparing the order\n2. Searching for Driver — The system is finding a driver\n3. Driver Notified — A driver has been assigned\n4. Ready for Delivery — Food is ready for pickup\n5. On the Way — Driver is delivering to customer\n6. Delivered / Completed — Order is done\n\nUse the status buttons on the order detail screen to advance through stages.",
+      "s3Title": "Undo Status Changes",
+      "s3Body": "If you accidentally update an order's status, you'll see a brief \"Undo\" option appear as a snackbar at the bottom of the screen. Tap it quickly to revert the change."
+    },
+    "ordersCreate": {
+      "title": "Creating Manual Orders",
+      "description": "How to create orders manually for phone or walk-in customers.",
+      "s1Title": "When to Use Manual Orders",
+      "s1Body": "Use the Create Order feature when a customer places an order by phone, in person, or through a channel outside the app. This lets you log the order in the system for tracking and delivery.",
+      "s2Title": "Creating an Order",
+      "s2Body": "From the Orders screen or Home, tap \"Create Order\". Fill in:\n\n1. Customer name and phone number\n2. Delivery address (use the address search for autocomplete)\n3. Add items from your menu\n4. Optionally add a coupon, delivery fee, or tips\n5. Set payment status and any order notes\n6. Tap Submit to create the order",
+      "s3Title": "Address Search",
+      "s3Body": "When entering a delivery address, the app uses Google Places autocomplete. Start typing at least 3 characters and suggestions will appear. Select a suggestion to auto-fill the full address with coordinates."
+    },
+    "ordersScan": {
+      "title": "AI Order Scanning",
+      "description": "Use AI to scan paper orders and extract details automatically.",
+      "s1Title": "How AI Scanning Works",
+      "s1Body": "The AI Scan feature uses Gemini AI to read order forms from photos. Take a picture of a handwritten or printed order, and the AI will extract customer details, items, quantities, and addresses automatically.",
+      "s2Title": "Tips for Best Results",
+      "s2Body": "• Place the order form on a flat surface\n• Ensure good lighting without shadows\n• Keep the text in focus and readable\n• For multi-page orders, take multiple photos\n• You can use the camera or pick images from your gallery",
+      "s3Title": "Verifying Scanned Data",
+      "s3Body": "After scanning, you'll see a verification screen showing all extracted data. Fields with low confidence are highlighted so you can review them. Correct any mistakes, fill in missing fields, then submit the order."
+    },
+    "menuItems": {
+      "title": "Managing Menu Items",
+      "description": "Add, edit, and organize your restaurant's menu.",
+      "s1Title": "Viewing Your Menu",
+      "s1Body": "The Menu screen shows all your items organized by category. Use the horizontal category tabs at the top to filter by category, or use the search bar to find specific items by name, description, or ingredients.",
+      "s2Title": "Adding a New Item",
+      "s2Body": "Tap the \"+\" button on the Menu screen to add a new item. Fill in:\n\n• Item name and description\n• Price\n• Category (select from existing or create new)\n• Ingredients list\n• Item image (from camera or gallery)\n• Preparation time\n• Availability status",
+      "s3Title": "Editing an Item",
+      "s3Body": "Tap any menu item card to open its detail view, then tap \"Edit Item\" to modify its details. Changes are saved when you tap \"Save\".",
+      "s4Title": "Quick Availability Toggle",
+      "s4Body": "Swipe a menu item card to quickly toggle its availability. When an item is marked unavailable, it's hidden from customers. This is useful when you run out of an ingredient temporarily.",
+      "s5Title": "Deleting Items",
+      "s5Body": "Swipe a menu item to reveal the delete option. You'll be asked to confirm before the item is permanently removed."
+    },
+    "menuCats": {
+      "title": "Menu Categories",
+      "description": "Organize your menu with categories for better structure.",
+      "s1Title": "What Are Categories?",
+      "s1Body": "Categories help organize your menu into logical sections like \"Burgers\", \"Pizza\", \"Drinks\", \"Desserts\", etc. Customers see these categories when browsing your public menu.",
+      "s2Title": "Managing Categories",
+      "s2Body": "Go to Menu > Categories (via the categories icon) to:\n\n• Add new categories with a name\n• Edit existing category names\n• Delete categories (items in the category will also be affected)\n\nEach category shows how many items it contains.",
+      "s3Title": "Filtering by Category",
+      "s3Body": "On the main Menu screen, the horizontal category tabs let you quickly filter your view. Tap \"All\" to see everything, or tap a specific category to show only items in that group."
+    },
+    "menuCustom": {
+      "title": "Item Customizations & Extras",
+      "description": "Set up extras and removal options for menu items.",
+      "s1Title": "What Are Customizations?",
+      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
+      "s2Title": "Adding Extras",
+      "s2Body": "When editing a menu item, scroll to the Customizations section and tap \"Add Extra\". Enter the extra's name and additional price. You can add as many extras as needed.",
+      "s3Title": "Adding Removal Options",
+      "s3Body": "In the same Customizations section, tap \"Add Removal Option\" to let customers request ingredient removals. These have no price change — they're simply instructions for the kitchen."
+    },
+    "couponsCreate": {
+      "title": "Creating Coupons",
+      "description": "Set up promotional discount codes for your customers.",
+      "s1Title": "Creating a Coupon",
+      "s1Body": "Go to Profile > Coupons and tap the \"+\" button. Fill in:\n\n• Coupon title and description\n• Unique coupon code (or tap \"Generate\" for a random code)\n• Discount percentage\n• Minimum order price requirement\n• Maximum usage limits\n• Start and end dates",
+      "s2Title": "How Discounts Work",
+      "s2Body": "When a coupon is applied to an order, the discount percentage is calculated on the order subtotal. The coupon will only work if the order meets the minimum price requirement you set.",
+      "s3Title": "Using Coupons in Orders",
+      "s3Body": "When creating a manual order, you can select an active coupon to apply. The discount will be automatically calculated and shown in the order summary."
+    },
+    "couponsManage": {
+      "title": "Managing Coupons",
+      "description": "Edit, activate, deactivate, and track your coupons.",
+      "s1Title": "Coupon List",
+      "s1Body": "The Coupons screen shows all your coupons with filter tabs:\n\n• All — Every coupon\n• Active — Currently usable coupons\n• Expired — Past their end date\n\nEach coupon card shows its code, discount, and current status.",
+      "s2Title": "Editing & Deleting",
+      "s2Body": "Tap a coupon to edit its details. You can update any field except the code. To delete a coupon, use the delete option on the coupon card. Deleted coupons cannot be recovered.",
+      "s3Title": "Toggling Active Status",
+      "s3Body": "You can quickly activate or deactivate a coupon without deleting it. Deactivated coupons won't work for customers but remain in your list so you can re-enable them later."
+    },
+    "settingsTheme": {
+      "title": "Theme & Appearance",
+      "description": "Customize dark mode and accent colors.",
+      "s1Title": "Dark Mode",
+      "s1Body": "Toggle dark mode from Profile using the dark mode switch. Dark mode reduces eye strain in low-light environments and can save battery on OLED screens.",
+      "s2Title": "Accent Color",
+      "s2Body": "Tap \"Accent Color\" in Profile to choose from 8 color options:\n\nGreen, Blue, Purple, Orange, Red, Teal, Pink, and Indigo.\n\nThe accent color is used for buttons, highlights, active navigation items, and other interactive elements throughout the app."
+    },
+    "settingsLang": {
+      "title": "Language Settings",
+      "description": "Change the app language.",
+      "s1Title": "Supported Languages",
+      "s1Body": "The app supports multiple languages including English, Arabic, German, and French. You can also select your language on the login screen.",
+      "s2Title": "Changing Language",
+      "s2Body": "Go to Profile > Language and select your preferred language. The app will immediately switch all text to the selected language. Your language preference is saved and persists across app restarts."
+    },
+    "settingsNotif": {
+      "title": "Notification Preferences",
+      "description": "Configure which notifications you receive.",
+      "s1Title": "Notification Types",
+      "s1Body": "You can configure notifications for:\n\n• New Orders — Get alerted when a new order arrives\n• Order Updates — Status changes on your orders\n• Promotions — News and special offers from TybeToGo",
+      "s2Title": "Sound & Haptics",
+      "s2Body": "In the notification settings, you can also control:\n\n• Sound — Enable or disable notification sounds\n• Vibration — Enable or disable haptic feedback\n\nThese settings are independent of your device's system notification settings.",
+      "s3Title": "Viewing Notifications",
+      "s3Body": "Tap the bell icon on the Home screen to see your notification history. Unread notifications show a count badge. Use \"Mark all read\" to clear the unread count."
+    },
+    "statsOverview": {
+      "title": "Understanding Your Analytics",
+      "description": "Track revenue, orders, and performance metrics.",
+      "s1Title": "Accessing Statistics",
+      "s1Body": "You can view your analytics in two ways:\n\n• Quick stats on the Profile screen (today's revenue and order count)\n• Detailed view via Profile > \"View Stats\" button",
+      "s2Title": "Time Periods",
+      "s2Body": "The Statistics screen lets you view data for different time periods:\n\n• Today — Current day's performance\n• Week — Last 7 days\n• Month — Last 30 days\n• Year — Last 12 months",
+      "s3Title": "Key Metrics",
+      "s3Body": "• Total Orders — Number of orders in the selected period\n• Revenue — Total income from all orders\n• Average Order — Mean order value\n• Customers — Unique customers served\n• Top Selling Items — Your most popular menu items"
+    },
+    "tipsGestures": {
+      "title": "Swipe Actions & Gestures",
+      "description": "Speed up your workflow with swipe gestures.",
+      "s1Title": "Order Swipe Actions",
+      "s1Body": "On the Orders screen, swipe order cards to quickly:\n\n• Accept pending orders\n• Update order status to the next stage\n• This saves time compared to opening each order individually",
+      "s2Title": "Menu Item Swipe Actions",
+      "s2Body": "On the Menu screen, swipe item cards to:\n\n• Toggle availability (mark available/unavailable)\n• Delete items\n\nSwipe actions show colored indicators so you know what action will be taken.",
+      "s3Title": "Pull to Refresh",
+      "s3Body": "Pull down on any list screen (Orders, Menu, Notifications) to manually refresh the data. This is useful if you want to check for updates immediately instead of waiting for the auto-refresh."
+    },
+    "tipsBest": {
+      "title": "Best Practices",
+      "description": "Tips to get the most out of the app.",
+      "s1Title": "Keep Your Menu Updated",
+      "s1Body": "• Mark items as unavailable as soon as you run out\n• Update prices regularly to reflect current costs\n• Add clear descriptions and images to attract customers\n• Use categories to keep your menu well-organized",
+      "s2Title": "Respond to Orders Quickly",
+      "s2Body": "• Enable push notifications so you never miss an order\n• Accept or reject new orders as soon as possible\n• Keep order statuses updated so customers and drivers know what's happening\n• Use the search feature to quickly find specific orders",
+      "s3Title": "Use Coupons Strategically",
+      "s3Body": "• Create time-limited coupons to drive urgency\n• Set minimum order values to increase average order size\n• Use coupons during slow periods to boost sales\n• Track coupon usage to see which promotions work best",
+      "s4Title": "Monitor Your Stats",
+      "s4Body": "• Check your daily stats on the Home screen regularly\n• Review weekly and monthly trends in the Statistics section\n• Pay attention to your top-selling items\n• Use insights to adjust your menu and pricing strategy"
+    }
+  },
+  "knowledgeBase": {
+    "title": "Knowledge Base",
+    "subtitle": "Learn how to use every feature",
+    "searchHint": "Search articles...",
+    "startTour": "Start Interactive Tour",
+    "tourDescription": "Walk through the app step by step",
+    "fullTour": "Full Tour",
+    "ordersTour": "Orders",
+    "menuTour": "Menu",
+    "allCategories": "All",
+    "noResults": "No articles found"
+  },
   "tour": {
     "step": "Step",
     "of": "of",
@@ -713,6 +927,26 @@
       "title": "Order Details",
       "description": "Tap any order to view full details and customer information"
     },
+    "orderDetailView": {
+      "title": "Order Detail View",
+      "description": "This is the full order detail page with status tracking, items, and payment info"
+    },
+    "orderStatusTimeline": {
+      "title": "Status Timeline",
+      "description": "Track order progress from pending to delivered. Update status with one tap"
+    },
+    "orderItemsPayment": {
+      "title": "Items & Payment",
+      "description": "View ordered items, quantities, prices, and the full payment breakdown"
+    },
+    "navigateToOrders": {
+      "title": "Orders Tab",
+      "description": "Tap here to go to your orders — manage all incoming and active requests"
+    },
+    "swipeActions": {
+      "title": "Swipe Actions",
+      "description": "Swipe order cards left or right to quickly accept, reject, or update status"
+    },
     "orderActions": {
       "title": "Update Status",
       "description": "Swipe orders to quickly change status as you prepare and deliver"
@@ -720,6 +954,22 @@
     "activeOrders": {
       "title": "Active Orders",
       "description": "Track orders currently being prepared or delivered"
+    },
+    "createOrderButton": {
+      "title": "Create Manual Order",
+      "description": "Tap the + button to create an order for phone or walk-in customers"
+    },
+    "createOrderForm": {
+      "title": "Order Form",
+      "description": "Fill in customer details, add menu items, set delivery address and payment info"
+    },
+    "aiScanCard": {
+      "title": "AI Order Scanning",
+      "description": "Take a photo of a paper order and let AI extract all the details automatically"
+    },
+    "navigateToMenu": {
+      "title": "Menu Tab",
+      "description": "Tap here to manage your restaurant menu — add, edit, and organize items"
     },
     "menuTab": {
       "title": "Menu Management",
@@ -733,9 +983,25 @@
       "title": "Quick Toggle",
       "description": "Swipe items to mark them available or unavailable instantly"
     },
+    "menuItemDetail": {
+      "title": "Edit Menu Item",
+      "description": "This is the item editor where you can update name, description, price, and more"
+    },
+    "menuItemForm": {
+      "title": "Item Details",
+      "description": "Edit the item name and description. These are shown to customers in your menu"
+    },
+    "menuItemPricing": {
+      "title": "Pricing & Prep Time",
+      "description": "Set the price and estimated preparation time for this item"
+    },
     "menuCategories": {
       "title": "Categories",
       "description": "Organize items by categories for better menu structure"
+    },
+    "navigateToProfile": {
+      "title": "Profile Tab",
+      "description": "Tap here to access your restaurant profile, settings, and analytics"
     },
     "profileTab": {
       "title": "Profile & Settings",
@@ -749,6 +1015,10 @@
       "title": "Analytics",
       "description": "Dive deeper into your sales and performance metrics"
     },
+    "settingsOptions": {
+      "title": "Settings & More",
+      "description": "Access notifications, language, coupons, restaurant settings, and more"
+    },
     "themeCustomization": {
       "title": "Customize Theme",
       "description": "Toggle dark mode and choose your preferred accent color"
@@ -756,6 +1026,46 @@
     "languageSettings": {
       "title": "Change Language",
       "description": "App supports English, Arabic, German, and French"
+    },
+    "knowledgeBase": {
+      "title": "Knowledge Base",
+      "description": "Find detailed guides for every feature — and restart this tour anytime from here"
+    },
+    "ordersWelcome": {
+      "title": "Orders Overview",
+      "description": "Let's explore how to manage your incoming orders"
+    },
+    "ordersPending": {
+      "title": "Pending Orders",
+      "description": "New orders waiting for your response appear here"
+    },
+    "ordersCard": {
+      "title": "Order Card",
+      "description": "Each card shows order details — tap to view or swipe to take action"
+    },
+    "ordersActive": {
+      "title": "Active Orders",
+      "description": "Orders being prepared or delivered are tracked here"
+    },
+    "ordersComplete": {
+      "title": "Orders Tour Done!",
+      "description": "You now know how to manage orders. Try creating one or explore more features!"
+    },
+    "menuWelcome": {
+      "title": "Menu Overview",
+      "description": "Let's explore how to manage your restaurant menu"
+    },
+    "menuList": {
+      "title": "Menu Items",
+      "description": "All your items are listed here — scroll through to view them all"
+    },
+    "menuToggle": {
+      "title": "Toggle Availability",
+      "description": "Swipe an item to quickly mark it available or unavailable"
+    },
+    "menuComplete": {
+      "title": "Menu Tour Done!",
+      "description": "You now know how to manage your menu. Try adding a new item!"
     },
     "tourComplete": {
       "title": "You're All Set!",

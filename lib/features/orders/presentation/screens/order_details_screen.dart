@@ -8,6 +8,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 // TODO: Re-enable when print button is enabled
@@ -319,7 +320,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Status timeline
-              _OrderStatusTimeline(order: order, isDark: isDark),
+              KeyedSubtree(
+                key: TourKeys.orderStatusTimelineKey,
+                child: _OrderStatusTimeline(order: order, isDark: isDark),
+              ),
               SizedBox(height: 24.h),
 
               // Order info (type, manual indicator)
@@ -349,9 +353,17 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               ],
 
               // Order items
-              _SectionTitle(title: 'orders.orderItems'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-              _OrderItemsCard(order: order, isDark: isDark),
+              KeyedSubtree(
+                key: TourKeys.orderItemsSectionKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle(title: 'orders.orderItems'.tr, isDark: isDark),
+                    SizedBox(height: 12.h),
+                    _OrderItemsCard(order: order, isDark: isDark),
+                  ],
+                ),
+              ),
               SizedBox(height: 20.h),
 
               // Coupon info (if applied)
@@ -363,9 +375,17 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               ],
 
               // Payment summary
-              _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-              _PaymentSummaryCard(order: order, isDark: isDark),
+              KeyedSubtree(
+                key: TourKeys.orderPaymentSummaryKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
+                    SizedBox(height: 12.h),
+                    _PaymentSummaryCard(order: order, isDark: isDark),
+                  ],
+                ),
+              ),
               SizedBox(height: 24.h),
 
               // Action buttons based on status

@@ -15,6 +15,24 @@ class TourKeys {
   static final GlobalKey activeOrdersListKey = GlobalKey(debugLabel: 'activeOrdersList');
   static final GlobalKey firstOrderCardKey = GlobalKey(debugLabel: 'firstOrderCard');
 
+  // Create Order Screen Keys
+  static final GlobalKey createOrderButtonKey = GlobalKey(debugLabel: 'createOrderButton');
+  static final GlobalKey scanOrderCardKey = GlobalKey(debugLabel: 'scanOrderCard');
+  static final GlobalKey createOrderFormKey = GlobalKey(debugLabel: 'createOrderForm');
+
+  // Knowledge Base Screen Keys
+  static final GlobalKey knowledgeBaseRowKey = GlobalKey(debugLabel: 'knowledgeBaseRow');
+  static final GlobalKey knowledgeBaseTourSectionKey = GlobalKey(debugLabel: 'knowledgeBaseTourSection');
+
+  // Order Details Screen Keys
+  static final GlobalKey orderStatusTimelineKey = GlobalKey(debugLabel: 'orderStatusTimeline');
+  static final GlobalKey orderItemsSectionKey = GlobalKey(debugLabel: 'orderItemsSection');
+  static final GlobalKey orderPaymentSummaryKey = GlobalKey(debugLabel: 'orderPaymentSummary');
+
+  // Menu Item Detail Screen Keys
+  static final GlobalKey menuItemFormKey = GlobalKey(debugLabel: 'menuItemForm');
+  static final GlobalKey menuItemPricingKey = GlobalKey(debugLabel: 'menuItemPricing');
+
   // Menu Screen Keys
   static final GlobalKey menuTabKey = GlobalKey(debugLabel: 'menuTab');
   static final GlobalKey menuItemsListKey = GlobalKey(debugLabel: 'menuItemsList');

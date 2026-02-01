@@ -157,6 +157,32 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     }
   }
 
+  /// Delete user account and all related data
+  Future<bool> deleteAccount() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final result = await _repository.deleteAccount();
+
+      if (result.failure != null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: result.failure!.message,
+        );
+        return false;
+      }
+
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to delete account: $e',
+      );
+      return false;
+    }
+  }
+
   /// Refresh profile
   Future<void> refresh() async {
     await loadProfile();

@@ -77,7 +77,7 @@ class PlacesSearchService {
   static bool get _isWeb => kIsWeb;
 
   /// Search for place predictions (autocomplete)
-  static Future<List<PlacePrediction>> searchAddress(String query) async {
+  static Future<List<PlacePrediction>> searchAddress(String query, {String? countryCode}) async {
     if (query.trim().length < 3) {
       if (kDebugMode) {
         print('[PlacesAPI] Query too short: ${query.trim().length} chars');
@@ -94,8 +94,7 @@ class PlacesSearchService {
         'key': _placesApiKey,
         'types': 'address',
         'language': 'en',
-        // Bias towards Netherlands, Austria, and Germany
-        'components': 'country:nl|country:at|country:de',
+        if (countryCode != null) 'components': 'country:$countryCode',
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
@@ -207,7 +206,7 @@ class PlacesSearchService {
 
   /// Search and get full details for the best matching address
   /// This combines autocomplete + details in one call
-  static Future<AddressModel?> searchAndGetAddress(String addressQuery) async {
+  static Future<AddressModel?> searchAndGetAddress(String addressQuery, {String? countryCode}) async {
     if (kDebugMode) {
       print('[PlacesAPI] ===== searchAndGetAddress START =====');
       print('[PlacesAPI] Query: $addressQuery');
@@ -227,7 +226,7 @@ class PlacesSearchService {
 
     try {
       // First, search for matching addresses
-      final predictions = await searchAddress(addressQuery);
+      final predictions = await searchAddress(addressQuery, countryCode: countryCode);
 
       if (kDebugMode) {
         print('[PlacesAPI] Got ${predictions.length} predictions');

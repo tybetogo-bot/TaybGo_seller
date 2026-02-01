@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
 import '../widgets/ingredient_chips.dart';
@@ -145,68 +146,79 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
             SizedBox(height: 24.h),
 
             // Basic info section
-            _buildSectionTitle('menu.basicInfo'.tr, Icons.info_outline, isDark),
-            SizedBox(height: 12.h),
+            KeyedSubtree(
+              key: TourKeys.menuItemFormKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle('menu.basicInfo'.tr, Icons.info_outline, isDark),
+                  SizedBox(height: 12.h),
 
-            // Name field
-            TextFormField(
-              controller: _nameController,
-              decoration: _inputDecoration('menu.itemName'.tr, isDark),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'validation.required'.tr;
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 16.h),
-
-            // Description field
-            TextFormField(
-              controller: _descriptionController,
-              maxLines: 3,
-              decoration: _inputDecoration('menu.description'.tr, isDark),
-            ),
-            SizedBox(height: 16.h),
-
-            // Price and Prep Time row
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _priceController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: _inputDecoration(
-                      'menu.price'.tr,
-                      isDark,
-                      prefix: '€ ',
-                    ),
+                  // Name field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: _inputDecoration('menu.itemName'.tr, isDark),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'validation.required'.tr;
                       }
-                      if (double.tryParse(value) == null) {
-                        return 'validation.invalidPrice'.tr;
-                      }
                       return null;
                     },
                   ),
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: TextFormField(
-                    controller: _prepTimeController,
-                    keyboardType: TextInputType.number,
-                    decoration: _inputDecoration(
-                      'menu.preparationTime'.tr,
-                      isDark,
-                      suffix: ' min',
+                  SizedBox(height: 16.h),
+
+                  // Description field
+                  TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 3,
+                    decoration: _inputDecoration('menu.description'.tr, isDark),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+
+            // Price and Prep Time row
+            KeyedSubtree(
+              key: TourKeys.menuItemPricingKey,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _priceController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: _inputDecoration(
+                        'menu.price'.tr,
+                        isDark,
+                        prefix: '€ ',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'validation.required'.tr;
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'validation.invalidPrice'.tr;
+                        }
+                        return null;
+                      },
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _prepTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration(
+                        'menu.preparationTime'.tr,
+                        isDark,
+                        suffix: ' min',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 16.h),
 

@@ -8,7 +8,9 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
+import '../../../orders/application/orders_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../tour/presentation/widgets/tour_section_widget.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/user_profile_notifier.dart';
 
@@ -26,6 +28,7 @@ class ProfileScreen extends ConsumerWidget {
     // Get user profile and restaurant data
     final userProfileState = ref.watch(userProfileProvider);
     final selectedRestaurant = ref.watch(selectedRestaurantProvider);
+    final ordersState = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -128,6 +131,20 @@ class ProfileScreen extends ConsumerWidget {
           Divider(color: isDark ? DarkColors.border : LightColors.border),
           SizedBox(height: 8.h),
 
+          KeyedSubtree(
+            key: TourKeys.knowledgeBaseRowKey,
+            child: _SettingRow(
+              icon: Icons.menu_book_outlined,
+              label: 'knowledgeBase.title'.tr,
+              isDark: isDark,
+              onTap: () => context.push(Routes.knowledgeBase),
+            ),
+          ),
+          if (ordersState.completedOrders.length >= 3) ...[
+            SizedBox(height: 12.h),
+            const TourSectionWidget(),
+            SizedBox(height: 12.h),
+          ],
           _SettingRow(
             icon: Icons.help_outline,
             label: 'settings.help'.tr,
@@ -139,6 +156,17 @@ class ProfileScreen extends ConsumerWidget {
             label: 'settings.about'.tr,
             isDark: isDark,
             onTap: () => context.push(Routes.about),
+          ),
+
+          SizedBox(height: 16.h),
+          Divider(color: isDark ? DarkColors.border : LightColors.border),
+          SizedBox(height: 8.h),
+
+          _SettingRow(
+            icon: Icons.delete_forever_outlined,
+            label: 'deleteAccount.title'.tr,
+            isDark: isDark,
+            onTap: () => context.push(Routes.deleteAccount),
           ),
 
           SizedBox(height: 24.h),

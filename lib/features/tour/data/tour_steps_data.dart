@@ -16,7 +16,7 @@ class TourSteps {
     }
   }
 
-  /// Full app tour - comprehensive walkthrough (16 steps)
+  /// Full app tour - comprehensive walkthrough (22 steps)
   static final List<TourStepModel> fullAppTour = [
     // Step 1: Welcome
     const TourStepModel(
@@ -83,7 +83,45 @@ class TourSteps {
       estimatedDuration: const Duration(seconds: 8),
     ),
 
-    // Step 6: Swipe Actions
+    // Step 6: Order Detail View — navigate into the first order
+    const TourStepModel(
+      id: 'order_detail_view',
+      titleKey: 'tour.orderDetailView.title',
+      descriptionKey: 'tour.orderDetailView.description',
+      targetScreen: '/orders/details/DEMO-001',
+      highlightArea: HighlightArea.fullScreen,
+      tooltipPosition: TooltipPosition.auto,
+      actions: [TourAction.observe],
+      estimatedDuration: Duration(seconds: 8),
+    ),
+
+    // Step 7: Order Status Timeline
+    TourStepModel(
+      id: 'order_status_timeline',
+      titleKey: 'tour.orderStatusTimeline.title',
+      descriptionKey: 'tour.orderStatusTimeline.description',
+      targetScreen: '/orders/details/DEMO-001',
+      targetWidgetKey: TourKeys.orderStatusTimelineKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Step 8: Order Items & Payment
+    TourStepModel(
+      id: 'order_items_payment',
+      titleKey: 'tour.orderItemsPayment.title',
+      descriptionKey: 'tour.orderItemsPayment.description',
+      targetScreen: '/orders/details/DEMO-001',
+      targetWidgetKey: TourKeys.orderItemsSectionKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Swipe Actions
     const TourStepModel(
       id: 'swipe_actions',
       titleKey: 'tour.swipeActions.title',
@@ -95,20 +133,58 @@ class TourSteps {
       estimatedDuration: Duration(seconds: 10),
     ),
 
-    // Step 7: Active Orders
+    // Active Orders (target the tab, not the list — list is off-screen)
     TourStepModel(
       id: 'active_orders',
       titleKey: 'tour.activeOrders.title',
       descriptionKey: 'tour.activeOrders.description',
       targetScreen: Routes.orders,
-      targetWidgetKey: TourKeys.activeOrdersListKey,
+      targetWidgetKey: TourKeys.activeOrdersTabKey,
       highlightArea: HighlightArea.rectangle,
       tooltipPosition: TooltipPosition.bottom,
       actions: const [TourAction.observe],
       estimatedDuration: const Duration(seconds: 8),
     ),
 
-    // Step 8: Navigate to Menu
+    // Create Order button
+    TourStepModel(
+      id: 'create_order_button',
+      titleKey: 'tour.createOrderButton.title',
+      descriptionKey: 'tour.createOrderButton.description',
+      targetScreen: Routes.orders,
+      targetWidgetKey: TourKeys.createOrderButtonKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.tap],
+      estimatedDuration: const Duration(seconds: 6),
+    ),
+
+    // Create Order screen overview
+    const TourStepModel(
+      id: 'create_order_form',
+      titleKey: 'tour.createOrderForm.title',
+      descriptionKey: 'tour.createOrderForm.description',
+      targetScreen: Routes.createOrder,
+      highlightArea: HighlightArea.fullScreen,
+      tooltipPosition: TooltipPosition.auto,
+      actions: [TourAction.observe],
+      estimatedDuration: Duration(seconds: 8),
+    ),
+
+    // AI Scan card on create order screen
+    TourStepModel(
+      id: 'ai_scan_card',
+      titleKey: 'tour.aiScanCard.title',
+      descriptionKey: 'tour.aiScanCard.description',
+      targetScreen: Routes.createOrder,
+      targetWidgetKey: TourKeys.scanOrderCardKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.tap],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Navigate to Menu
     TourStepModel(
       id: 'navigate_to_menu',
       titleKey: 'tour.navigateToMenu.title',
@@ -134,7 +210,7 @@ class TourSteps {
       estimatedDuration: const Duration(seconds: 10),
     ),
 
-    // Step 10: Item Availability Toggle
+    // Step 11: Item Availability Toggle
     TourStepModel(
       id: 'item_availability',
       titleKey: 'tour.itemAvailability.title',
@@ -147,7 +223,45 @@ class TourSteps {
       estimatedDuration: const Duration(seconds: 8),
     ),
 
-    // Step 11: Menu Categories
+    // Menu Item Detail — navigate into the first menu item
+    const TourStepModel(
+      id: 'menu_item_detail',
+      titleKey: 'tour.menuItemDetail.title',
+      descriptionKey: 'tour.menuItemDetail.description',
+      targetScreen: '/menu/item/demo-menu-1',
+      highlightArea: HighlightArea.fullScreen,
+      tooltipPosition: TooltipPosition.auto,
+      actions: [TourAction.observe],
+      estimatedDuration: Duration(seconds: 8),
+    ),
+
+    // Menu Item Form — name, description fields
+    TourStepModel(
+      id: 'menu_item_form',
+      titleKey: 'tour.menuItemForm.title',
+      descriptionKey: 'tour.menuItemForm.description',
+      targetScreen: '/menu/item/demo-menu-1',
+      targetWidgetKey: TourKeys.menuItemFormKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Menu Item Pricing — price, prep time
+    TourStepModel(
+      id: 'menu_item_pricing',
+      titleKey: 'tour.menuItemPricing.title',
+      descriptionKey: 'tour.menuItemPricing.description',
+      targetScreen: '/menu/item/demo-menu-1',
+      targetWidgetKey: TourKeys.menuItemPricingKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Menu Categories
     TourStepModel(
       id: 'menu_categories',
       titleKey: 'tour.menuCategories.title',
@@ -212,11 +326,24 @@ class TourSteps {
       estimatedDuration: const Duration(seconds: 8),
     ),
 
-    // Step 16: Tour Complete
+    // Knowledge Base
+    TourStepModel(
+      id: 'knowledge_base',
+      titleKey: 'tour.knowledgeBase.title',
+      descriptionKey: 'tour.knowledgeBase.description',
+      targetScreen: Routes.profile,
+      targetWidgetKey: TourKeys.knowledgeBaseRowKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.top,
+      actions: const [TourAction.tap],
+      estimatedDuration: const Duration(seconds: 8),
+    ),
+
+    // Tour Complete
     const TourStepModel(
       id: 'tour_complete',
-      titleKey: 'tour.complete.title',
-      descriptionKey: 'tour.complete.description',
+      titleKey: 'tour.tourComplete.title',
+      descriptionKey: 'tour.tourComplete.description',
       targetScreen: Routes.profile,
       highlightArea: HighlightArea.fullScreen,
       tooltipPosition: TooltipPosition.auto,
@@ -261,12 +388,35 @@ class TourSteps {
       actions: const [TourAction.tap, TourAction.swipe],
     ),
 
+    // Order detail view in quick tour
+    const TourStepModel(
+      id: 'orders_detail_view',
+      titleKey: 'tour.orderDetailView.title',
+      descriptionKey: 'tour.orderDetailView.description',
+      targetScreen: '/orders/details/DEMO-001',
+      highlightArea: HighlightArea.fullScreen,
+      tooltipPosition: TooltipPosition.auto,
+      actions: [TourAction.observe],
+    ),
+
+    // Order status in quick tour
+    TourStepModel(
+      id: 'orders_status_view',
+      titleKey: 'tour.orderStatusTimeline.title',
+      descriptionKey: 'tour.orderStatusTimeline.description',
+      targetScreen: '/orders/details/DEMO-001',
+      targetWidgetKey: TourKeys.orderStatusTimelineKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
+    ),
+
     TourStepModel(
       id: 'orders_active',
       titleKey: 'tour.ordersActive.title',
       descriptionKey: 'tour.ordersActive.description',
       targetScreen: Routes.orders,
-      targetWidgetKey: TourKeys.activeOrdersListKey,
+      targetWidgetKey: TourKeys.activeOrdersTabKey,
       highlightArea: HighlightArea.rectangle,
       tooltipPosition: TooltipPosition.bottom,
       actions: const [TourAction.observe],
@@ -317,6 +467,29 @@ class TourSteps {
       highlightArea: HighlightArea.rectangle,
       tooltipPosition: TooltipPosition.bottom,
       actions: const [TourAction.interact],
+    ),
+
+    // Menu item detail view in quick tour
+    const TourStepModel(
+      id: 'menu_item_detail_view',
+      titleKey: 'tour.menuItemDetail.title',
+      descriptionKey: 'tour.menuItemDetail.description',
+      targetScreen: '/menu/item/demo-menu-1',
+      highlightArea: HighlightArea.fullScreen,
+      tooltipPosition: TooltipPosition.auto,
+      actions: [TourAction.observe],
+    ),
+
+    // Menu item form in quick tour
+    TourStepModel(
+      id: 'menu_item_form_view',
+      titleKey: 'tour.menuItemForm.title',
+      descriptionKey: 'tour.menuItemForm.description',
+      targetScreen: '/menu/item/demo-menu-1',
+      targetWidgetKey: TourKeys.menuItemFormKey,
+      highlightArea: HighlightArea.rectangle,
+      tooltipPosition: TooltipPosition.bottom,
+      actions: const [TourAction.observe],
     ),
 
     const TourStepModel(

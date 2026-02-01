@@ -1,18 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:teybatseller/core/network/user_api.dart';
 import 'package:teybatseller/features/menu/application/menu_notifier.dart';
 import 'package:teybatseller/features/orders/application/orders_notifier.dart';
 import 'package:teybatseller/features/orders/data/models/order_model.dart';
+import 'package:teybatseller/features/profile/application/user_profile_notifier.dart';
 import 'package:teybatseller/features/restaurant/application/restaurant_state.dart';
 import 'package:teybatseller/features/restaurant/data/models/restaurant_model.dart';
 import 'package:teybatseller/features/tour/data/mock_data_generator.dart';
+
+void _mockLog(String message) {
+  if (kDebugMode) {
+    debugPrint('🎯 [MockProvider] $message');
+  }
+}
 
 /// Mock Orders Notifier for tour demonstration
 /// Returns mock data and simulates state changes without API calls
 class MockOrdersNotifier extends OrdersNotifier {
   @override
   OrdersState build() {
+    _mockLog('MockOrdersNotifier.build() called');
     // Generate mock orders immediately
     final mockOrders = MockDataGenerator.generateMockOrders(12);
+    _mockLog('MockOrdersNotifier.build() → generated ${mockOrders.length} mock orders');
     return OrdersState(
       orders: mockOrders,
       isLoading: false,
@@ -20,7 +31,9 @@ class MockOrdersNotifier extends OrdersNotifier {
   }
 
   /// Refresh orders - simulate loading
+  @override
   Future<void> refreshOrders() async {
+    _mockLog('MockOrdersNotifier.refreshOrders() called');
     state = state.copyWith(isLoading: true);
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -33,7 +46,9 @@ class MockOrdersNotifier extends OrdersNotifier {
   }
 
   /// Silent refresh - used by polling
+  @override
   Future<bool> silentRefresh() async {
+    _mockLog('MockOrdersNotifier.silentRefresh() called');
     await Future.delayed(const Duration(milliseconds: 300));
     return false; // No changes in mock mode
   }
@@ -146,6 +161,7 @@ class MockOrdersNotifier extends OrdersNotifier {
 class MockMenuNotifier extends MenuNotifier {
   @override
   MenuState build() {
+    _mockLog('MockMenuNotifier.build() called');
     final mockItems = MockDataGenerator.generateMockMenuItems(20);
     final mockCategories = MockDataGenerator.generateMockCategories();
 
@@ -205,6 +221,7 @@ class MockMenuNotifier extends MenuNotifier {
 class MockRestaurantNotifier extends RestaurantNotifier {
   @override
   RestaurantState build() {
+    _mockLog('MockRestaurantNotifier.build() called');
     final mockRestaurant = MockDataGenerator.generateMockRestaurant();
     return RestaurantLoaded(
       restaurants: [mockRestaurant],
@@ -264,6 +281,36 @@ class MockRestaurantNotifier extends RestaurantNotifier {
         selectedRestaurant: loaded.selectedRestaurant,
       );
     }
+  }
+}
+
+/// Mock User Profile Notifier for tour demonstration
+/// Returns mock profile data without API calls
+class MockUserProfileNotifier extends UserProfileNotifier {
+  @override
+  UserProfileState build() {
+    _mockLog('MockUserProfileNotifier.build() called');
+    return UserProfileState(
+      profile: UserProfile(
+        id: 'mock-user-1',
+        name: 'Demo Restaurant Owner',
+        email: 'demo@restaurant.com',
+        phone: '+1234567890',
+        roles: const ['seller'],
+        createdAt: DateTime.now(),
+      ),
+      isLoading: false,
+    );
+  }
+
+  @override
+  Future<void> loadProfile() async {
+    _mockLog('MockUserProfileNotifier.loadProfile() — no-op in tour');
+  }
+
+  @override
+  Future<void> refresh() async {
+    _mockLog('MockUserProfileNotifier.refresh() — no-op in tour');
   }
 }
 

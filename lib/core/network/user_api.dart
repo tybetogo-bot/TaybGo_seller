@@ -148,4 +148,10 @@ class UserApi {
   Future<void> deleteSellerProfile() async {
     await _dio.delete('/api/seller/profile/');
   }
+
+  /// Delete authenticated user's account and all related data
+  /// DELETE /api/me/
+  Future<void> deleteAccount() async {
+    await _dio.delete('/api/me/');
+  }
 }

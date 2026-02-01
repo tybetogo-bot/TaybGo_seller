@@ -47,6 +47,11 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final response = await _remoteDataSource.getRestaurants(page: page);
       return (failure: null, data: response.results);
     } on DioException catch (e) {
+      // 403 means the user has no restaurants assigned — treat as empty list
+      if (e.response?.statusCode == 403) {
+        return (failure: null, data: <RestaurantModel>[]);
+      }
+
       // Check if it's a 401 Unauthorized error
       if (e.response?.statusCode == 401) {
         // AuthInterceptor will handle logout, just return auth failure

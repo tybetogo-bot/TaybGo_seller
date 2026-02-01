@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'notification_model.freezed.dart';
@@ -9,18 +11,30 @@ sealed class NotificationModel with _$NotificationModel {
     required int id,
     required String title,
     required String body,
-    String? data,
+    Map<String, dynamic>? data,
     @Default(false) bool isRead,
     DateTime? readAt,
     required DateTime createdAt,
   }) = _NotificationModel;
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? parsedData;
+    final rawData = json['data'];
+    if (rawData is Map<String, dynamic>) {
+      parsedData = rawData;
+    } else if (rawData is String && rawData.isNotEmpty) {
+      try {
+        parsedData = jsonDecode(rawData) as Map<String, dynamic>?;
+      } catch (_) {
+        parsedData = null;
+      }
+    }
+
     return NotificationModel(
       id: json['id'] as int? ?? 0,
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
-      data: json['data'] as String?,
+      data: parsedData,
       isRead: json['is_read'] as bool? ?? false,
       readAt: json['read_at'] != null
           ? DateTime.tryParse(json['read_at'].toString())
@@ -49,14 +63,9 @@ extension NotificationModelExtension on NotificationModel {
     }
   }
 
-  /// Parse data field as JSON if possible
-  Map<String, dynamic>? get parsedData {
-    if (data == null || data!.isEmpty) return null;
-    try {
-      // Simple parsing for key-value pairs if it's JSON-like
-      return null; // Return null for now, can be enhanced if needed
-    } catch (_) {
-      return null;
-    }
-  }
+  /// Get notification type from data
+  String? get notificationType => data?['type'] as String?;
+
+  /// Get related order ID from data
+  int? get orderId => data?['order_id'] as int?;
 }

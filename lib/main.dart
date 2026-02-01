@@ -13,6 +13,7 @@ import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/theme/theme.dart';
+import 'features/tour/application/tour_notifier.dart';
 import 'features/tour/presentation/widgets/tour_overlay.dart';
 
 void main() async {
@@ -72,6 +73,14 @@ class TybeToGoApp extends ConsumerWidget {
       if (currentLocation.startsWith('/public-menu')) {
         print('🟡 [UnauthorizedCallback] On public route, skipping login redirect');
         return;
+      }
+
+      // Check if tour is active — log this prominently so we can catch it
+      final tourState = ref.read(tourProvider);
+      if (tourState.isActive) {
+        print('🔴🎯 [UnauthorizedCallback] 401 fired DURING ACTIVE TOUR! '
+            'step=${tourState.currentStepIndex}, route=$currentLocation. '
+            'This will KILL the tour!');
       }
 
       // Navigate to login screen when token is invalid (only for protected routes)

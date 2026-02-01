@@ -16,9 +16,11 @@ import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/orders_screen.dart';
 import '../../features/orders/presentation/screens/scan_order_screen.dart';
 import '../../features/profile/presentation/screens/about_screen.dart';
+import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
+import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
 import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
@@ -276,6 +278,11 @@ class AppRouter {
                 builder: (context, state) => const CurrencyScreen(),
               ),
               GoRoute(
+                path: 'knowledge-base',
+                name: Routes.knowledgeBaseName,
+                builder: (context, state) => const KnowledgeBaseScreen(),
+              ),
+              GoRoute(
                 path: 'help',
                 name: Routes.helpName,
                 builder: (context, state) => const HelpScreen(),
@@ -284,6 +291,11 @@ class AppRouter {
                 path: 'about',
                 name: Routes.aboutName,
                 builder: (context, state) => const AboutScreen(),
+              ),
+              GoRoute(
+                path: 'delete-account',
+                name: Routes.deleteAccountName,
+                builder: (context, state) => const DeleteAccountScreen(),
               ),
             ],
           ),

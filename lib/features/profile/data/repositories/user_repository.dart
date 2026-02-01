@@ -26,6 +26,9 @@ abstract class UserRepository {
   Future<UserResult<BasicProfile>> updateSellerProfile(
     Map<String, dynamic> data,
   );
+
+  /// Delete user account and all related data
+  Future<UserResult<void>> deleteAccount();
 }
 
 /// Implementation of user repository
@@ -129,6 +132,31 @@ class UserRepositoryImpl implements UserRepository {
       if (apiError is ApiException) {
         return (
           failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<UserResult<void>> deleteAccount() async {
+    try {
+      await _remoteDataSource.deleteAccount();
+      return (failure: null, data: null);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ServerFailure(message: apiError.message),
           data: null,
         );
       }

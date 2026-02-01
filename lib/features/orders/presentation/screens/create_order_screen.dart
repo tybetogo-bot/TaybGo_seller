@@ -9,6 +9,7 @@ import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
+import '../../../tour/utils/tour_keys.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
 import '../../../coupons/application/coupons_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -417,18 +418,21 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Prominent Scan Card
-              _ScanOrderCard(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScanOrderScreen(
-                        onDataScanned: _fillWithScannedData,
+              KeyedSubtree(
+                key: TourKeys.scanOrderCardKey,
+                child: _ScanOrderCard(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScanOrderScreen(
+                          onDataScanned: _fillWithScannedData,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                isDark: isDark,
+                    );
+                  },
+                  isDark: isDark,
+                ),
               ),
               SizedBox(height: 24.h),
 
