@@ -24,7 +24,12 @@
       "Bash(cd:*)",
       "Bash(flutter clean:*)",
       "Bash(flutter build:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(flutter pub run build_runner clean:*)",
+      "Bash(flutterfire configure:*)",
+      "Bash(dart pub global activate:*)",
+      "Bash(dart pub global run:*)",
+      "Bash(dir:*)"
     ]
   }
 }

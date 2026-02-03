@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/user_api.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/polling_service.dart';
 import '../data/datasources/user_remote_data_source.dart';
 import '../data/repositories/user_repository.dart';
 
@@ -188,6 +189,48 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     await loadProfile();
   }
 
+  /// Silent refresh - only updates UI if data has changed
+  /// Used by polling to avoid unnecessary rebuilds
+  Future<bool> silentRefresh() async {
+    try {
+      final result = await _repository.getProfile();
+
+      if (result.failure != null || result.data == null) {
+        return false;
+      }
+
+      final newProfile = result.data!;
+
+      // Check if data has actually changed
+      if (_hasProfileChanged(newProfile)) {
+        state = state.copyWith(
+          profile: newProfile,
+          clearError: true,
+        );
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Compare profile to detect changes
+  bool _hasProfileChanged(UserProfile newProfile) {
+    if (state.profile == null) return true;
+
+    final oldProfile = state.profile!;
+
+    // Check key fields for changes
+    return oldProfile.id != newProfile.id ||
+        oldProfile.name != newProfile.name ||
+        oldProfile.email != newProfile.email ||
+        oldProfile.phone != newProfile.phone ||
+        oldProfile.age != newProfile.age ||
+        oldProfile.updatedAt != newProfile.updatedAt;
+  }
+
   /// Clear error
   void clearError() {
     state = state.copyWith(clearError: true);
@@ -210,3 +253,101 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 final userProfileProvider = NotifierProvider<UserProfileNotifier, UserProfileState>(
   UserProfileNotifier.new,
 );
+
+/// Provider for profile polling service
+///
+/// This provider creates a polling service that refreshes user profile every 5 seconds.
+/// Only updates UI when there's new data to avoid unnecessary rebuilds.
+/// Usage:
+/// ```dart
+/// // In a widget or notifier:
+/// final pollingNotifier = ref.read(userProfilePollingProvider.notifier);
+/// pollingNotifier.start(); // Start polling
+/// pollingNotifier.stop();  // Stop polling
+/// ```
+final userProfilePollingProvider =
+    NotifierProvider<UserProfilePollingNotifier, PollingState>(
+  UserProfilePollingNotifier.new,
+);
+
+/// Notifier for user profile polling
+class UserProfilePollingNotifier extends Notifier<PollingState> {
+  PollingService? _service;
+  static const _defaultInterval = Duration(seconds: 5);
+
+  @override
+  PollingState build() {
+    ref.onDispose(() {
+      _service?.dispose();
+    });
+
+    // Initialize the polling service
+    Future.microtask(() => _initializeService());
+
+    return const PollingState(interval: _defaultInterval);
+  }
+
+  void _initializeService() {
+    _service?.dispose();
+    _service = PollingService(
+      onPoll: () async {
+        // Use silentRefresh to only update UI when data changes
+        await ref.read(userProfileProvider.notifier).silentRefresh();
+      },
+      interval: state.interval,
+      debugLabel: 'UserProfilePolling',
+    );
+  }
+
+  /// Start polling for profile updates
+  void start() {
+    if (_service == null) {
+      _initializeService();
+    }
+    state = state.copyWith(isEnabled: true);
+    _service?.start();
+  }
+
+  /// Stop polling
+  void stop() {
+    state = state.copyWith(isEnabled: false);
+    _service?.stop();
+  }
+
+  /// Toggle polling on/off
+  void toggle() {
+    if (state.isEnabled) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
+  /// Update the polling interval
+  void setInterval(Duration interval) {
+    state = state.copyWith(interval: interval);
+    if (_service != null) {
+      final wasPolling = _service!.isPolling;
+      _service?.dispose();
+      _service = PollingService(
+        onPoll: () async {
+          // Use silentRefresh to only update UI when data changes
+          await ref.read(userProfileProvider.notifier).silentRefresh();
+        },
+        interval: interval,
+        debugLabel: 'UserProfilePolling',
+      );
+      if (wasPolling) {
+        _service?.start();
+      }
+    }
+  }
+
+  /// Trigger an immediate poll
+  Future<void> pollNow() async {
+    await _service?.pollNow();
+  }
+
+  /// Whether polling is currently active
+  bool get isPolling => _service?.isPolling ?? false;
+}

@@ -450,7 +450,7 @@ final ordersPollingProvider =
 /// Notifier for orders polling
 class OrdersPollingNotifier extends Notifier<PollingState> {
   PollingService? _service;
-  static const _defaultInterval = Duration(seconds: 30);
+  static const _defaultInterval = Duration(seconds: 5);
 
   @override
   PollingState build() {

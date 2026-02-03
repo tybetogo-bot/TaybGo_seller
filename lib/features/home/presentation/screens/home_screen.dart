@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../features/tour/application/tour_notifier.dart';
 import '../../../../features/tour/presentation/widgets/tour_section_widget.dart';
 import '../../../../features/tour/utils/tour_keys.dart';
 import '../../../notifications/application/notifications_notifier.dart';
@@ -147,8 +148,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Tour section - only show when completed orders < 3
-              if (ordersState.completedOrders.length < 3)
+              // Tour section - only show when completed orders < 3 and tour not dismissed
+              if (ordersState.completedOrders.length < 3 &&
+                  !ref.watch(tourProvider).isDismissedFromHome)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),

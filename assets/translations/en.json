@@ -900,6 +900,9 @@
     "skip": "Skip",
     "next": "Next",
     "finish": "Finish",
+    "dismissedTitle": "Tour Hidden from Home",
+    "dismissedMessage": "You can always access the tour anytime from the Knowledge Base in your Profile section.",
+    "goToKnowledgeBase": "Go to Knowledge Base",
     "actionHint": {
       "tap": "Tap to continue",
       "swipe": "Swipe to interact",

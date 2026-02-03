@@ -225,69 +225,46 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white, size: 20.w),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                'orders.statusUpdatedTo'.tr.replaceAll(
-                  '{status}',
-                  _getStatusLabel(newStatus),
-                ),
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5),
-        margin: EdgeInsets.all(16.w),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        action: SnackBarAction(
-          label: 'common.undo'.tr,
-          textColor: Colors.white,
-          onPressed: () async {
-            // Undo: revert to previous status
-            HapticFeedback.lightImpact();
-            final success = await ref
-                .read(ordersProvider.notifier)
-                .updateToStatus(orderId, previousStatus);
+      _CountdownSnackBar(
+        orderId: orderId,
+        previousStatus: previousStatus,
+        newStatus: newStatus,
+        getStatusLabel: _getStatusLabel,
+        onUndo: (orderId, previousStatus) async {
+          HapticFeedback.lightImpact();
+          final success = await ref
+              .read(ordersProvider.notifier)
+              .updateToStatus(orderId, previousStatus);
 
-            if (success && mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.undo_rounded, color: Colors.white, size: 20.w),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Text(
-                          'orders.statusReverted'.tr,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
+          if (success && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.undo_rounded, color: Colors.white, size: 20.w),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        'orders.statusReverted'.tr,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
-                  ),
-                  backgroundColor: AppColors.info,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-                  margin: EdgeInsets.all(16.w),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            }
-          },
-        ),
+                backgroundColor: AppColors.info,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+                margin: EdgeInsets.all(16.w),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -994,6 +971,150 @@ class _MiniProgressBar extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// Countdown snackbar with undo functionality
+class _CountdownSnackBar extends SnackBar {
+  _CountdownSnackBar({
+    required String orderId,
+    required OrderStatusEnum previousStatus,
+    required OrderStatusEnum newStatus,
+    required String Function(OrderStatusEnum) getStatusLabel,
+    required Future<void> Function(String, OrderStatusEnum) onUndo,
+  }) : super(
+          content: _CountdownSnackBarContent(
+            orderId: orderId,
+            previousStatus: previousStatus,
+            newStatus: newStatus,
+            getStatusLabel: getStatusLabel,
+            onUndo: onUndo,
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+          margin: EdgeInsets.all(16.w),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        );
+}
+
+/// Content widget for countdown snackbar
+class _CountdownSnackBarContent extends StatefulWidget {
+  const _CountdownSnackBarContent({
+    required this.orderId,
+    required this.previousStatus,
+    required this.newStatus,
+    required this.getStatusLabel,
+    required this.onUndo,
+  });
+
+  final String orderId;
+  final OrderStatusEnum previousStatus;
+  final OrderStatusEnum newStatus;
+  final String Function(OrderStatusEnum) getStatusLabel;
+  final Future<void> Function(String, OrderStatusEnum) onUndo;
+
+  @override
+  State<_CountdownSnackBarContent> createState() =>
+      _CountdownSnackBarContentState();
+}
+
+class _CountdownSnackBarContentState extends State<_CountdownSnackBarContent> {
+  late int _countdown;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _countdown = 3;
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _countdown--;
+          if (_countdown <= 0) {
+            _timer?.cancel();
+          }
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.check_circle_rounded, color: Colors.white, size: 20.w),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Text(
+            'orders.statusUpdatedTo'.tr.replaceAll(
+              '{status}',
+              widget.getStatusLabel(widget.newStatus),
+            ),
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            widget.onUndo(widget.orderId, widget.previousStatus);
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'common.undo'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Container(
+                  width: 20.w,
+                  height: 20.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$_countdown',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

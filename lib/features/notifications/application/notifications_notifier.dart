@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/notifications_api.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/polling_service.dart';
 import '../data/datasources/notifications_remote_data_source.dart';
 import '../data/models/notification_model.dart';
 import '../data/repositories/notifications_repository.dart';
@@ -85,6 +86,52 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
   /// Refresh notifications
   Future<void> refresh() async {
     await loadNotifications();
+  }
+
+  /// Silent refresh - only updates UI if data has changed
+  /// Used by polling to avoid unnecessary rebuilds
+  Future<bool> silentRefresh() async {
+    try {
+      final result = await _repository.getNotifications();
+
+      if (result.failure != null || result.data == null) {
+        return false;
+      }
+
+      final newNotifications = result.data!;
+
+      // Check if data has actually changed
+      if (_hasNotificationsChanged(newNotifications)) {
+        state = state.copyWith(
+          notifications: newNotifications,
+          clearError: true,
+        );
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Compare notifications to detect changes
+  bool _hasNotificationsChanged(List<NotificationModel> newNotifications) {
+    if (newNotifications.length != state.notifications.length) return true;
+
+    for (final newNotif in newNotifications) {
+      final oldNotif = state.notifications.firstWhere(
+        (n) => n.id == newNotif.id,
+        orElse: () => newNotif,
+      );
+
+      // Check if notification exists and has same read state
+      if (oldNotif.id != newNotif.id || oldNotif.isRead != newNotif.isRead) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// Mark a single notification as read
@@ -199,3 +246,101 @@ final unreadNotificationsCountProvider = Provider<int>((ref) {
   final notificationsState = ref.watch(notificationsProvider);
   return notificationsState.unreadCount;
 });
+
+/// Provider for notifications polling service
+///
+/// This provider creates a polling service that refreshes notifications every 5 seconds.
+/// Only updates UI when there's new data to avoid unnecessary rebuilds.
+/// Usage:
+/// ```dart
+/// // In a widget or notifier:
+/// final pollingNotifier = ref.read(notificationsPollingProvider.notifier);
+/// pollingNotifier.start(); // Start polling
+/// pollingNotifier.stop();  // Stop polling
+/// ```
+final notificationsPollingProvider =
+    NotifierProvider<NotificationsPollingNotifier, PollingState>(
+  NotificationsPollingNotifier.new,
+);
+
+/// Notifier for notifications polling
+class NotificationsPollingNotifier extends Notifier<PollingState> {
+  PollingService? _service;
+  static const _defaultInterval = Duration(seconds: 5);
+
+  @override
+  PollingState build() {
+    ref.onDispose(() {
+      _service?.dispose();
+    });
+
+    // Initialize the polling service
+    Future.microtask(() => _initializeService());
+
+    return const PollingState(interval: _defaultInterval);
+  }
+
+  void _initializeService() {
+    _service?.dispose();
+    _service = PollingService(
+      onPoll: () async {
+        // Use silentRefresh to only update UI when data changes
+        await ref.read(notificationsProvider.notifier).silentRefresh();
+      },
+      interval: state.interval,
+      debugLabel: 'NotificationsPolling',
+    );
+  }
+
+  /// Start polling for new notifications
+  void start() {
+    if (_service == null) {
+      _initializeService();
+    }
+    state = state.copyWith(isEnabled: true);
+    _service?.start();
+  }
+
+  /// Stop polling
+  void stop() {
+    state = state.copyWith(isEnabled: false);
+    _service?.stop();
+  }
+
+  /// Toggle polling on/off
+  void toggle() {
+    if (state.isEnabled) {
+      stop();
+    } else {
+      start();
+    }
+  }
+
+  /// Update the polling interval
+  void setInterval(Duration interval) {
+    state = state.copyWith(interval: interval);
+    if (_service != null) {
+      final wasPolling = _service!.isPolling;
+      _service?.dispose();
+      _service = PollingService(
+        onPoll: () async {
+          // Use silentRefresh to only update UI when data changes
+          await ref.read(notificationsProvider.notifier).silentRefresh();
+        },
+        interval: interval,
+        debugLabel: 'NotificationsPolling',
+      );
+      if (wasPolling) {
+        _service?.start();
+      }
+    }
+  }
+
+  /// Trigger an immediate poll
+  Future<void> pollNow() async {
+    await _service?.pollNow();
+  }
+
+  /// Whether polling is currently active
+  bool get isPolling => _service?.isPolling ?? false;
+}

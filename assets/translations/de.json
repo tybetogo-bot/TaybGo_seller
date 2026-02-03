@@ -874,6 +874,9 @@
     "skip": "Überspringen",
     "next": "Weiter",
     "finish": "Fertig",
+    "dismissedTitle": "Tour von Startseite ausgeblendet",
+    "dismissedMessage": "Sie können jederzeit über die Wissensdatenbank in Ihrem Profilbereich auf die Tour zugreifen.",
+    "goToKnowledgeBase": "Zur Wissensdatenbank",
     "actionHint": {
       "tap": "Tippen zum Fortfahren",
       "swipe": "Wischen zum Interagieren",

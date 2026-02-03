@@ -173,12 +173,7 @@ class ProfileScreen extends ConsumerWidget {
 
           // Logout
           GestureDetector(
-            onTap: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go(Routes.login);
-              }
-            },
+            onTap: () => _showLogoutConfirmation(context, ref),
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 14.h),
               decoration: BoxDecoration(
@@ -206,6 +201,49 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('auth.logout'.tr),
+          content: Text('auth.logoutConfirm'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'common.cancel'.tr,
+                style: TextStyle(
+                  color: Theme.of(dialogContext).brightness == Brightness.dark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Pop the dialog first using dialog context
+                Navigator.of(dialogContext).pop();
+
+                // Perform logout
+                await ref.read(authProvider.notifier).logout();
+
+                // Navigate using the original context (screen context, not dialog context)
+                if (context.mounted) {
+                  context.go(Routes.login);
+                }
+              },
+              child: Text(
+                'auth.logout'.tr,
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -114,7 +114,17 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Verify OTP code
   Future<void> verifyOtp(String code) async {
     final currentState = state;
-    if (currentState is! AuthOtpSent) {
+
+    // Get the OTP state - either from current state or from error's previous state
+    AuthOtpSent? otpState;
+    if (currentState is AuthOtpSent) {
+      otpState = currentState;
+    } else if (currentState is AuthError && currentState.previousState is AuthOtpSent) {
+      // Allow retry after error by using the previous OTP state
+      otpState = currentState.previousState as AuthOtpSent;
+    }
+
+    if (otpState == null) {
       state = const AuthError(
         message: 'Invalid state for OTP verification',
       );
@@ -124,17 +134,17 @@ class AuthNotifier extends Notifier<AuthState> {
     state = const AuthLoading();
 
     final result = await _repository.verifyOtp(
-      phone: currentState.phone,
+      phone: otpState.phone,
       code: code,
     );
 
     if (result.failure != null) {
       state = AuthError(
         message: result.failure!.message,
-        previousState: currentState,
+        previousState: otpState,
       );
     } else {
-      state = AuthAuthenticated(phone: currentState.phone);
+      state = AuthAuthenticated(phone: otpState.phone);
 
       // Trigger restaurant fetch after successful login
       ref.read(restaurantProvider.notifier).fetchRestaurants();

@@ -15,12 +15,15 @@ import 'core/services/push_notification_service.dart';
 import 'core/theme/theme.dart';
 import 'features/tour/application/tour_notifier.dart';
 import 'features/tour/presentation/widgets/tour_overlay.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize push notification service
   await PushNotificationService.instance.initialize();

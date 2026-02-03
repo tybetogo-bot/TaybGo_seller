@@ -19,6 +19,7 @@ sealed class TourState with _$TourState {
     DateTime? lastCompletedAt,
     DateTime? lastShownAt,
     @Default(0) int skipCount,
+    @Default(false) bool isDismissedFromHome,
   }) = _TourState;
 
   const TourState._();

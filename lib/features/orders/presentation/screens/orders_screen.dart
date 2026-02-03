@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../notifications/application/notifications_notifier.dart';
+import '../../../profile/application/user_profile_notifier.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
@@ -28,7 +30,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   final _searchController = TextEditingController();
   bool _isRefreshing = false;
   Timer? _searchDebounce;
-  OrdersPollingNotifier? _pollingNotifier;
+  OrdersPollingNotifier? _ordersPollingNotifier;
+  NotificationsPollingNotifier? _notificationsPollingNotifier;
+  UserProfilePollingNotifier? _profilePollingNotifier;
 
   @override
   void initState() {
@@ -41,9 +45,19 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final tourActive = ref.read(tourProvider).isActive;
       if (!tourActive) {
-        debugPrint('🎯 [OrdersScreen] starting ordersPollingProvider');
-        _pollingNotifier = ref.read(ordersPollingProvider.notifier);
-        _pollingNotifier!.start();
+        debugPrint('🎯 [OrdersScreen] starting all polling services');
+
+        // Start orders polling
+        _ordersPollingNotifier = ref.read(ordersPollingProvider.notifier);
+        _ordersPollingNotifier!.start();
+
+        // Start notifications polling
+        _notificationsPollingNotifier = ref.read(notificationsPollingProvider.notifier);
+        _notificationsPollingNotifier!.start();
+
+        // Start profile polling
+        _profilePollingNotifier = ref.read(userProfilePollingProvider.notifier);
+        _profilePollingNotifier!.start();
       } else {
         debugPrint('🎯 [OrdersScreen] skipping polling — tour is active');
       }
@@ -67,8 +81,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   @override
   void dispose() {
     debugPrint('🎯 [OrdersScreen] dispose() called');
-    // Stop polling using saved reference (safe to call after unmount)
-    _pollingNotifier?.stop();
+    // Stop all polling services using saved references (safe to call after unmount)
+    _ordersPollingNotifier?.stop();
+    _notificationsPollingNotifier?.stop();
+    _profilePollingNotifier?.stop();
     WidgetsBinding.instance.removeObserver(this);
     _searchDebounce?.cancel();
     _tabController.dispose();
@@ -78,12 +94,15 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Pause polling when app is in background, resume when in foreground
-    final pollingNotifier = ref.read(ordersPollingProvider.notifier);
+    // Pause all polling when app is in background, resume when in foreground
     if (state == AppLifecycleState.resumed) {
-      pollingNotifier.start();
+      ref.read(ordersPollingProvider.notifier).start();
+      ref.read(notificationsPollingProvider.notifier).start();
+      ref.read(userProfilePollingProvider.notifier).start();
     } else if (state == AppLifecycleState.paused) {
-      pollingNotifier.stop();
+      ref.read(ordersPollingProvider.notifier).stop();
+      ref.read(notificationsPollingProvider.notifier).stop();
+      ref.read(userProfilePollingProvider.notifier).stop();
     }
   }
 

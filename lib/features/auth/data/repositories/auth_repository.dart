@@ -219,6 +219,23 @@ class AuthRepositoryImpl implements AuthRepository {
     final message = error.message.toLowerCase();
     final statusCode = error.statusCode;
 
+    // Prioritize context-specific errors first
+    // For OTP verification context, any 400-level error is likely an invalid OTP
+    if (context == 'otp_verify' && (statusCode == 400 || statusCode == 401)) {
+      if (message.contains('expired')) {
+        return AuthFailure(message: 'errors.auth.otpExpired'.tr);
+      }
+      // Any other 400/401 error during OTP verification is treated as invalid OTP
+      return AuthFailure(message: 'errors.auth.invalidOtp'.tr);
+    }
+
+    // For OTP request context, handle phone-specific errors
+    if (context == 'otp_request' && statusCode == 400) {
+      if (message.contains('invalid') && message.contains('phone')) {
+        return ValidationFailure(message: 'errors.auth.invalidPhone'.tr);
+      }
+    }
+
     // Handle specific error messages from API
     if (message.contains('invalid') && message.contains('otp')) {
       return AuthFailure(message: 'errors.auth.invalidOtp'.tr);
@@ -235,16 +252,10 @@ class AuthRepositoryImpl implements AuthRepository {
     if (message.contains('too many') || statusCode == 429) {
       return AuthFailure(message: 'errors.auth.tooManyAttempts'.tr);
     }
-    if (message.contains('invalid') && message.contains('phone')) {
-      return ValidationFailure(message: 'errors.auth.invalidPhone'.tr);
-    }
 
     // Handle by status code
     switch (statusCode) {
       case 400:
-        if (context == 'otp_verify') {
-          return AuthFailure(message: 'errors.auth.invalidOtp'.tr);
-        }
         return ValidationFailure(message: 'errors.auth.invalidPhone'.tr);
       case 401:
         return AuthFailure(message: 'errors.auth.unauthorized'.tr);

@@ -5,6 +5,7 @@ class TourPersistence {
   static const String _tourLastShownKey = 'tour_last_shown';
   static const String _tourPromptShownKey = 'tour_prompt_shown';
   static const String _tourSkipCountKey = 'tour_skip_count';
+  static const String _tourDismissedFromHomeKey = 'tour_dismissed_from_home';
 
   static Future<bool> hasTourPromptBeenShown() async {
     final prefs = await SharedPreferences.getInstance();
@@ -47,11 +48,22 @@ class TourPersistence {
     await prefs.setInt(_tourSkipCountKey, currentCount + 1);
   }
 
+  static Future<bool> isTourDismissedFromHome() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_tourDismissedFromHomeKey) ?? false;
+  }
+
+  static Future<void> markTourAsDismissedFromHome() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_tourDismissedFromHomeKey, true);
+  }
+
   static Future<void> resetTourData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tourCompletedKey);
     await prefs.remove(_tourLastShownKey);
     await prefs.remove(_tourSkipCountKey);
+    await prefs.remove(_tourDismissedFromHomeKey);
     // Keep tour_prompt_shown so we don't spam users
   }
 }

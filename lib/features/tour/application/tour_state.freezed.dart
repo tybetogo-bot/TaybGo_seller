@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TourState {
 
- bool get isActive; int get currentStepIndex; int get totalSteps; TourType get tourType; bool get hasCompletedBefore; DateTime? get lastCompletedAt; DateTime? get lastShownAt; int get skipCount;
+ bool get isActive; int get currentStepIndex; int get totalSteps; TourType get tourType; bool get hasCompletedBefore; DateTime? get lastCompletedAt; DateTime? get lastShownAt; int get skipCount; bool get isDismissedFromHome;
 /// Create a copy of TourState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $TourStateCopyWith<TourState> get copyWith => _$TourStateCopyWithImpl<TourState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TourState&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex)&&(identical(other.totalSteps, totalSteps) || other.totalSteps == totalSteps)&&(identical(other.tourType, tourType) || other.tourType == tourType)&&(identical(other.hasCompletedBefore, hasCompletedBefore) || other.hasCompletedBefore == hasCompletedBefore)&&(identical(other.lastCompletedAt, lastCompletedAt) || other.lastCompletedAt == lastCompletedAt)&&(identical(other.lastShownAt, lastShownAt) || other.lastShownAt == lastShownAt)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TourState&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex)&&(identical(other.totalSteps, totalSteps) || other.totalSteps == totalSteps)&&(identical(other.tourType, tourType) || other.tourType == tourType)&&(identical(other.hasCompletedBefore, hasCompletedBefore) || other.hasCompletedBefore == hasCompletedBefore)&&(identical(other.lastCompletedAt, lastCompletedAt) || other.lastCompletedAt == lastCompletedAt)&&(identical(other.lastShownAt, lastShownAt) || other.lastShownAt == lastShownAt)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount)&&(identical(other.isDismissedFromHome, isDismissedFromHome) || other.isDismissedFromHome == isDismissedFromHome));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isActive,currentStepIndex,totalSteps,tourType,hasCompletedBefore,lastCompletedAt,lastShownAt,skipCount);
+int get hashCode => Object.hash(runtimeType,isActive,currentStepIndex,totalSteps,tourType,hasCompletedBefore,lastCompletedAt,lastShownAt,skipCount,isDismissedFromHome);
 
 @override
 String toString() {
-  return 'TourState(isActive: $isActive, currentStepIndex: $currentStepIndex, totalSteps: $totalSteps, tourType: $tourType, hasCompletedBefore: $hasCompletedBefore, lastCompletedAt: $lastCompletedAt, lastShownAt: $lastShownAt, skipCount: $skipCount)';
+  return 'TourState(isActive: $isActive, currentStepIndex: $currentStepIndex, totalSteps: $totalSteps, tourType: $tourType, hasCompletedBefore: $hasCompletedBefore, lastCompletedAt: $lastCompletedAt, lastShownAt: $lastShownAt, skipCount: $skipCount, isDismissedFromHome: $isDismissedFromHome)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $TourStateCopyWith<$Res>  {
   factory $TourStateCopyWith(TourState value, $Res Function(TourState) _then) = _$TourStateCopyWithImpl;
 @useResult
 $Res call({
- bool isActive, int currentStepIndex, int totalSteps, TourType tourType, bool hasCompletedBefore, DateTime? lastCompletedAt, DateTime? lastShownAt, int skipCount
+ bool isActive, int currentStepIndex, int totalSteps, TourType tourType, bool hasCompletedBefore, DateTime? lastCompletedAt, DateTime? lastShownAt, int skipCount, bool isDismissedFromHome
 });
 
 
@@ -62,7 +62,7 @@ class _$TourStateCopyWithImpl<$Res>
 
 /// Create a copy of TourState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isActive = null,Object? currentStepIndex = null,Object? totalSteps = null,Object? tourType = null,Object? hasCompletedBefore = null,Object? lastCompletedAt = freezed,Object? lastShownAt = freezed,Object? skipCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isActive = null,Object? currentStepIndex = null,Object? totalSteps = null,Object? tourType = null,Object? hasCompletedBefore = null,Object? lastCompletedAt = freezed,Object? lastShownAt = freezed,Object? skipCount = null,Object? isDismissedFromHome = null,}) {
   return _then(_self.copyWith(
 isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,currentStepIndex: null == currentStepIndex ? _self.currentStepIndex : currentStepIndex // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,8 @@ as TourType,hasCompletedBefore: null == hasCompletedBefore ? _self.hasCompletedB
 as bool,lastCompletedAt: freezed == lastCompletedAt ? _self.lastCompletedAt : lastCompletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastShownAt: freezed == lastShownAt ? _self.lastShownAt : lastShownAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,skipCount: null == skipCount ? _self.skipCount : skipCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,isDismissedFromHome: null == isDismissedFromHome ? _self.isDismissedFromHome : isDismissedFromHome // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount,  bool isDismissedFromHome)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TourState() when $default != null:
-return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount);case _:
+return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount,_that.isDismissedFromHome);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount,  bool isDismissedFromHome)  $default,) {final _that = this;
 switch (_that) {
 case _TourState():
-return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount);}
+return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount,_that.isDismissedFromHome);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -192,10 +193,10 @@ return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isActive,  int currentStepIndex,  int totalSteps,  TourType tourType,  bool hasCompletedBefore,  DateTime? lastCompletedAt,  DateTime? lastShownAt,  int skipCount,  bool isDismissedFromHome)?  $default,) {final _that = this;
 switch (_that) {
 case _TourState() when $default != null:
-return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount);case _:
+return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tourType,_that.hasCompletedBefore,_that.lastCompletedAt,_that.lastShownAt,_that.skipCount,_that.isDismissedFromHome);case _:
   return null;
 
 }
@@ -207,7 +208,7 @@ return $default(_that.isActive,_that.currentStepIndex,_that.totalSteps,_that.tou
 
 
 class _TourState extends TourState {
-  const _TourState({this.isActive = false, this.currentStepIndex = 0, this.totalSteps = 0, this.tourType = TourType.fullApp, this.hasCompletedBefore = false, this.lastCompletedAt, this.lastShownAt, this.skipCount = 0}): super._();
+  const _TourState({this.isActive = false, this.currentStepIndex = 0, this.totalSteps = 0, this.tourType = TourType.fullApp, this.hasCompletedBefore = false, this.lastCompletedAt, this.lastShownAt, this.skipCount = 0, this.isDismissedFromHome = false}): super._();
   
 
 @override@JsonKey() final  bool isActive;
@@ -218,6 +219,7 @@ class _TourState extends TourState {
 @override final  DateTime? lastCompletedAt;
 @override final  DateTime? lastShownAt;
 @override@JsonKey() final  int skipCount;
+@override@JsonKey() final  bool isDismissedFromHome;
 
 /// Create a copy of TourState
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +231,16 @@ _$TourStateCopyWith<_TourState> get copyWith => __$TourStateCopyWithImpl<_TourSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TourState&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex)&&(identical(other.totalSteps, totalSteps) || other.totalSteps == totalSteps)&&(identical(other.tourType, tourType) || other.tourType == tourType)&&(identical(other.hasCompletedBefore, hasCompletedBefore) || other.hasCompletedBefore == hasCompletedBefore)&&(identical(other.lastCompletedAt, lastCompletedAt) || other.lastCompletedAt == lastCompletedAt)&&(identical(other.lastShownAt, lastShownAt) || other.lastShownAt == lastShownAt)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TourState&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.currentStepIndex, currentStepIndex) || other.currentStepIndex == currentStepIndex)&&(identical(other.totalSteps, totalSteps) || other.totalSteps == totalSteps)&&(identical(other.tourType, tourType) || other.tourType == tourType)&&(identical(other.hasCompletedBefore, hasCompletedBefore) || other.hasCompletedBefore == hasCompletedBefore)&&(identical(other.lastCompletedAt, lastCompletedAt) || other.lastCompletedAt == lastCompletedAt)&&(identical(other.lastShownAt, lastShownAt) || other.lastShownAt == lastShownAt)&&(identical(other.skipCount, skipCount) || other.skipCount == skipCount)&&(identical(other.isDismissedFromHome, isDismissedFromHome) || other.isDismissedFromHome == isDismissedFromHome));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isActive,currentStepIndex,totalSteps,tourType,hasCompletedBefore,lastCompletedAt,lastShownAt,skipCount);
+int get hashCode => Object.hash(runtimeType,isActive,currentStepIndex,totalSteps,tourType,hasCompletedBefore,lastCompletedAt,lastShownAt,skipCount,isDismissedFromHome);
 
 @override
 String toString() {
-  return 'TourState(isActive: $isActive, currentStepIndex: $currentStepIndex, totalSteps: $totalSteps, tourType: $tourType, hasCompletedBefore: $hasCompletedBefore, lastCompletedAt: $lastCompletedAt, lastShownAt: $lastShownAt, skipCount: $skipCount)';
+  return 'TourState(isActive: $isActive, currentStepIndex: $currentStepIndex, totalSteps: $totalSteps, tourType: $tourType, hasCompletedBefore: $hasCompletedBefore, lastCompletedAt: $lastCompletedAt, lastShownAt: $lastShownAt, skipCount: $skipCount, isDismissedFromHome: $isDismissedFromHome)';
 }
 
 
@@ -249,7 +251,7 @@ abstract mixin class _$TourStateCopyWith<$Res> implements $TourStateCopyWith<$Re
   factory _$TourStateCopyWith(_TourState value, $Res Function(_TourState) _then) = __$TourStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isActive, int currentStepIndex, int totalSteps, TourType tourType, bool hasCompletedBefore, DateTime? lastCompletedAt, DateTime? lastShownAt, int skipCount
+ bool isActive, int currentStepIndex, int totalSteps, TourType tourType, bool hasCompletedBefore, DateTime? lastCompletedAt, DateTime? lastShownAt, int skipCount, bool isDismissedFromHome
 });
 
 
@@ -266,7 +268,7 @@ class __$TourStateCopyWithImpl<$Res>
 
 /// Create a copy of TourState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isActive = null,Object? currentStepIndex = null,Object? totalSteps = null,Object? tourType = null,Object? hasCompletedBefore = null,Object? lastCompletedAt = freezed,Object? lastShownAt = freezed,Object? skipCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isActive = null,Object? currentStepIndex = null,Object? totalSteps = null,Object? tourType = null,Object? hasCompletedBefore = null,Object? lastCompletedAt = freezed,Object? lastShownAt = freezed,Object? skipCount = null,Object? isDismissedFromHome = null,}) {
   return _then(_TourState(
 isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,currentStepIndex: null == currentStepIndex ? _self.currentStepIndex : currentStepIndex // ignore: cast_nullable_to_non_nullable
@@ -276,7 +278,8 @@ as TourType,hasCompletedBefore: null == hasCompletedBefore ? _self.hasCompletedB
 as bool,lastCompletedAt: freezed == lastCompletedAt ? _self.lastCompletedAt : lastCompletedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastShownAt: freezed == lastShownAt ? _self.lastShownAt : lastShownAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,skipCount: null == skipCount ? _self.skipCount : skipCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,isDismissedFromHome: null == isDismissedFromHome ? _self.isDismissedFromHome : isDismissedFromHome // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

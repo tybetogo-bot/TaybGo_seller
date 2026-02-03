@@ -874,6 +874,9 @@
     "skip": "Passer",
     "next": "Suivant",
     "finish": "Terminer",
+    "dismissedTitle": "Visite masquée de l'accueil",
+    "dismissedMessage": "Vous pouvez toujours accéder à la visite à tout moment depuis la Base de Connaissances dans votre section Profil.",
+    "goToKnowledgeBase": "Aller à la Base de Connaissances",
     "actionHint": {
       "tap": "Appuyez pour continuer",
       "swipe": "Glissez pour interagir",

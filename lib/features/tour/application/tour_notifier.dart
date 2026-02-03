@@ -30,14 +30,17 @@ class TourNotifier extends Notifier<TourState> {
     final hasCompleted = await TourPersistence.hasTourBeenCompleted();
     final lastShown = await TourPersistence.getLastTourShownDate();
     final skipCount = await TourPersistence.getTourSkipCount();
+    final isDismissedFromHome = await TourPersistence.isTourDismissedFromHome();
 
     _tourLog('_loadSavedState() → hasCompleted=$hasCompleted, '
-        'lastShown=$lastShown, skipCount=$skipCount');
+        'lastShown=$lastShown, skipCount=$skipCount, '
+        'isDismissedFromHome=$isDismissedFromHome');
 
     state = state.copyWith(
       hasCompletedBefore: hasCompleted,
       lastShownAt: lastShown,
       skipCount: skipCount,
+      isDismissedFromHome: isDismissedFromHome,
     );
   }
 
@@ -146,23 +149,28 @@ class TourNotifier extends Notifier<TourState> {
   Future<void> completeTour() async {
     _tourLog('completeTour() called');
     await TourPersistence.markTourAsCompleted();
+    await TourPersistence.markTourAsDismissedFromHome();
 
     state = state.copyWith(
       isActive: false,
       hasCompletedBefore: true,
       lastCompletedAt: DateTime.now(),
       currentStepIndex: 0,
+      isDismissedFromHome: true,
     );
-    _tourLog('completeTour() → tour marked as completed, isActive=false');
+    _tourLog('completeTour() → tour marked as completed and dismissed from home, isActive=false');
   }
 
-  void exitTour() {
+  Future<void> exitTour() async {
     _tourLog('exitTour() called');
+    await TourPersistence.markTourAsDismissedFromHome();
+
     state = state.copyWith(
       isActive: false,
       currentStepIndex: 0,
+      isDismissedFromHome: true,
     );
-    _tourLog('exitTour() → tour deactivated');
+    _tourLog('exitTour() → tour deactivated and dismissed from home');
   }
 
   Future<void> resetTour() async {

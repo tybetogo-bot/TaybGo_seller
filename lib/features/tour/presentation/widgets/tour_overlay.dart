@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:teybatseller/app/router/routes.dart';
 import 'package:teybatseller/core/i18n/i18n.dart';
 import 'package:teybatseller/core/theme/theme.dart';
 import 'package:teybatseller/features/menu/application/menu_notifier.dart';
@@ -16,6 +18,72 @@ void _tourLog(String message) {
   if (kDebugMode) {
     debugPrint('🎯 [Tour] $message');
   }
+}
+
+/// Show a dialog informing the user that the tour is accessible from the knowledge base
+void _showTourDismissedDialog(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final primaryColor = Theme.of(context).colorScheme.primary;
+
+  showDialog(
+    context: context,
+    useRootNavigator: true,
+    builder: (dialogContext) => Material(
+      type: MaterialType.transparency,
+      child: AlertDialog(
+        backgroundColor: isDark ? DarkColors.surface : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        icon: Icon(
+          Icons.info_outline,
+          color: primaryColor,
+          size: 48.w,
+        ),
+        title: Text(
+          'tour.dismissedTitle'.tr,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'tour.dismissedMessage'.tr,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+            child: Text(
+              'common.close'.tr,
+              style: TextStyle(
+                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+              context.push(Routes.knowledgeBase);
+            },
+            child: Text(
+              'tour.goToKnowledgeBase'.tr,
+              style: TextStyle(
+                color: primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Professional tour overlay with clear highlighting and readable tooltips
@@ -548,9 +616,18 @@ class _TooltipCard extends ConsumerWidget {
             children: [
               // Skip button
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   _tourLog('SKIP TOUR tapped');
-                  ref.read(tourProvider.notifier).exitTour();
+                  // Exit tour first
+                  await ref.read(tourProvider.notifier).exitTour();
+                  // Show dialog after frame to ensure overlay is dismissed
+                  if (context.mounted) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (context.mounted) {
+                        _showTourDismissedDialog(context);
+                      }
+                    });
+                  }
                 },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
@@ -587,10 +664,19 @@ class _TooltipCard extends ConsumerWidget {
                 label: isLastStep ? 'tour.finish'.tr : 'tour.next'.tr,
                 icon: isLastStep ? Icons.check_rounded : Icons.arrow_forward_rounded,
                 primaryColor: primaryColor,
-                onPressed: () {
+                onPressed: () async {
                   if (isLastStep) {
                     _tourLog('FINISH button tapped (last step)');
-                    ref.read(tourProvider.notifier).completeTour();
+                    // Complete tour first
+                    await ref.read(tourProvider.notifier).completeTour();
+                    // Show dialog after frame to ensure overlay is dismissed
+                    if (context.mounted) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) {
+                          _showTourDismissedDialog(context);
+                        }
+                      });
+                    }
                   } else {
                     _tourLog('NEXT button tapped → advancing from '
                         'step $currentIndex to ${currentIndex + 1}');
