@@ -206,6 +206,7 @@
       "cancelled": "Commande annulée"
     },
     "paid": "Payé",
+    "unpaid": "Impayé",
     "paidOnline": "Payé en ligne",
     "tip": "Pourboire",
     "orderRejected": "Cette commande a été refusée",

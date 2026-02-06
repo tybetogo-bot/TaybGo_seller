@@ -206,6 +206,7 @@
       "cancelled": "Bestellung wurde storniert"
     },
     "paid": "Bezahlt",
+    "unpaid": "Unbezahlt",
     "paidOnline": "Online bezahlt",
     "tip": "Trinkgeld",
     "orderRejected": "Diese Bestellung wurde abgelehnt",

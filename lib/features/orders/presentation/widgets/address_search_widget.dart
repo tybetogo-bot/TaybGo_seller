@@ -231,7 +231,7 @@ const List<_SupportedCountry> _supportedCountries = [
 const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
 
 /// CORS proxy for web platform
-const String _corsProxy = 'https://corsproxy.io/?';
+const String _corsProxy = 'https://api.allorigins.win/raw?url=';
 
 /// Google Places API service
 class _PlacesApiService {
@@ -256,7 +256,7 @@ class _PlacesApiService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${uri.toString()}' : uri.toString();
+      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
 
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Searching for: $query');
@@ -317,7 +317,7 @@ class _PlacesApiService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${uri.toString()}' : uri.toString();
+      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
 
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Getting details for placeId: $placeId');

@@ -209,6 +209,7 @@
       "cancelled": "Order was cancelled"
     },
     "paid": "Paid",
+    "unpaid": "Unpaid",
     "paidOnline": "Paid Online",
     "tip": "Tip",
     "orderRejected": "This order was rejected",

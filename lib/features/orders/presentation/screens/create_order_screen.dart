@@ -330,6 +330,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         tip: _tips > 0 ? _tips.toStringAsFixed(2) : null,
         totalAmount: _total.toStringAsFixed(2),
         isManual: true,
+        isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedDeliveryType,
         pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
@@ -1310,7 +1311,7 @@ class _EmptyItemsCard extends StatelessWidget {
   }
 }
 
-class _OrderItemCard extends StatelessWidget {
+class _OrderItemCard extends StatefulWidget {
   const _OrderItemCard({
     required this.item,
     required this.onRemove,
@@ -1326,7 +1327,28 @@ class _OrderItemCard extends StatelessWidget {
   final bool isDark;
 
   @override
+  State<_OrderItemCard> createState() => _OrderItemCardState();
+}
+
+class _OrderItemCardState extends State<_OrderItemCard> {
+  late final TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: widget.item.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+    final isDark = widget.isDark;
     final itemTotal =
         (item.unitPrice +
             item.customizations.fold<double>(
@@ -1367,7 +1389,7 @@ class _OrderItemCard extends StatelessWidget {
                   color: AppColors.error,
                   size: 20.w,
                 ),
-                onPressed: onRemove,
+                onPressed: widget.onRemove,
                 padding: EdgeInsets.zero,
                 constraints: BoxConstraints(minWidth: 32.w),
               ),
@@ -1407,7 +1429,7 @@ class _OrderItemCard extends StatelessWidget {
           SizedBox(height: 8.h),
           // Notes text field
           TextField(
-            controller: TextEditingController(text: item.notes ?? ''),
+            controller: _notesController,
             maxLines: 2,
             style: TextStyle(fontSize: 12.sp),
             decoration: InputDecoration(
@@ -1434,7 +1456,7 @@ class _OrderItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            onChanged: (value) => onNotesChanged(value.isNotEmpty ? value : null),
+            onChanged: (value) => widget.onNotesChanged(value.isNotEmpty ? value : null),
           ),
           SizedBox(height: 8.h),
           Row(
@@ -1461,7 +1483,7 @@ class _OrderItemCard extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(Icons.remove, size: 18.w),
-                      onPressed: () => onQuantityChanged(-1),
+                      onPressed: () => widget.onQuantityChanged(-1),
                       padding: EdgeInsets.all(4.w),
                       constraints: BoxConstraints(
                         minWidth: 32.w,
@@ -1483,7 +1505,7 @@ class _OrderItemCard extends StatelessWidget {
                     ),
                     IconButton(
                       icon: Icon(Icons.add, size: 18.w),
-                      onPressed: () => onQuantityChanged(1),
+                      onPressed: () => widget.onQuantityChanged(1),
                       padding: EdgeInsets.all(4.w),
                       constraints: BoxConstraints(
                         minWidth: 32.w,

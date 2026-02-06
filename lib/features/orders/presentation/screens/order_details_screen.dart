@@ -1301,31 +1301,73 @@ class _OrderInfoCard extends StatelessWidget {
               ],
             ),
           ),
-          // Manual order indicator
-          if (order.isManual)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6.r),
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.edit_note, color: AppColors.warning, size: 16.w),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'orders.manualOrder'.tr,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.warning,
-                    ),
+          // Badges column
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Payment status indicator (always visible)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: order.isPaid
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : AppColors.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                  border: Border.all(
+                    color: order.isPaid
+                        ? AppColors.success.withValues(alpha: 0.3)
+                        : AppColors.warning.withValues(alpha: 0.3),
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      order.isPaid ? Icons.check_circle : Icons.pending,
+                      color: order.isPaid ? AppColors.success : AppColors.warning,
+                      size: 16.w,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      order.isPaid ? 'orders.paid'.tr : 'orders.unpaid'.tr,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                        color: order.isPaid ? AppColors.success : AppColors.warning,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              // Manual order indicator
+              if (order.isManual) ...[
+                SizedBox(height: 6.h),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6.r),
+                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit_note, color: AppColors.warning, size: 16.w),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'orders.manualOrder'.tr,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

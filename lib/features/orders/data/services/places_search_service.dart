@@ -10,7 +10,7 @@ import '../models/order_model.dart';
 const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
 /// CORS proxy for web platform (only for development/testing)
-const String _corsProxy = 'https://corsproxy.io/?';
+const String _corsProxy = 'https://api.allorigins.win/raw?url=';
 
 /// Place prediction from autocomplete
 class PlacePrediction {
@@ -99,7 +99,7 @@ class PlacesSearchService {
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
       final requestUrl = _isWeb
-          ? '$_corsProxy${uri.toString()}'
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
           : uri.toString();
 
       if (kDebugMode) {
@@ -170,7 +170,7 @@ class PlacesSearchService {
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
       final requestUrl = _isWeb
-          ? '$_corsProxy${uri.toString()}'
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
           : uri.toString();
 
       if (kDebugMode) {

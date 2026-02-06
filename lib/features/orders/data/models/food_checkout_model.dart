@@ -206,6 +206,7 @@ class FoodCheckoutRequest {
   final String? couponCode;
   final String? notes;
   final int? paymentMethodId;
+  final bool isPaid;
 
   const FoodCheckoutRequest({
     this.orderType = OrderType.food,
@@ -220,6 +221,7 @@ class FoodCheckoutRequest {
     this.requestedDeliveryType,
     this.driverId,
     this.isManual = false,
+    this.isPaid = false,
     this.pickupAddressId,
     this.dropoffAddressId,
     this.pickupAddressData,
@@ -247,6 +249,7 @@ class FoodCheckoutRequest {
         'requested_delivery_type': requestedDeliveryType!.value,
       if (driverId != null) 'driver': driverId,
       'is_manual': isManual,
+      'is_paid': isPaid,
       // Use address IDs if provided, otherwise use embedded data
       if (pickupAddressId != null) 'pickup_address': pickupAddressId,
       if (dropoffAddressId != null) 'dropoff_address': dropoffAddressId,
