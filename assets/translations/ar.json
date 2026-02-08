@@ -162,6 +162,7 @@
       "rejected": "مرفوض",
       "cancelled": "ملغي"
     },
+    "requestDriver": "طلب سائق",
     "waitingForDriver": "في انتظار السائق...",
     "orderRejectedByRestaurant": "تم رفض هذا الطلب من قبل المطعم",
     "orderWasCancelled": "تم إلغاء هذا الطلب",

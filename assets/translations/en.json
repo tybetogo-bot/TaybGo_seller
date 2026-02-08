@@ -165,6 +165,7 @@
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
+    "requestDriver": "Request Driver",
     "waitingForDriver": "Waiting for driver...",
     "orderRejectedByRestaurant": "This order was rejected by the restaurant",
     "orderWasCancelled": "This order was cancelled",

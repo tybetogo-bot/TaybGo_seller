@@ -162,6 +162,7 @@
       "rejected": "Abgelehnt",
       "cancelled": "Storniert"
     },
+    "requestDriver": "Fahrer anfordern",
     "waitingForDriver": "Warte auf Fahrer...",
     "orderRejectedByRestaurant": "Diese Bestellung wurde vom Restaurant abgelehnt",
     "orderWasCancelled": "Diese Bestellung wurde storniert",

@@ -84,7 +84,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final previousExtent = _dragExtent;
     final newExtent = _dragExtent + (details.primaryDelta ?? 0);
     final maxDrag = maxWidth * _maxSwipeRatio;
-    final clampedExtent = newExtent.clamp(-maxDrag, maxDrag);
+    // Only allow left-swipe (negative) for PENDING orders; others can only swipe right
+    final minDrag = widget.order.status == OrderStatusEnum.pending ? -maxDrag : 0.0;
+    final clampedExtent = newExtent.clamp(minDrag, maxDrag);
 
     // Check if we're crossing the threshold
     final previousRatio = (previousExtent / maxWidth).abs();
@@ -112,14 +114,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
     final swipeRatio = _dragExtent / maxWidth;
     final status = widget.order.status;
-    final isTerminal =
-        status == OrderStatusEnum.completed ||
-        status == OrderStatusEnum.rejected ||
-        status == OrderStatusEnum.cancelled;
     final nextStatus = status.nextStatus;
 
-    // Swipe left threshold reached - update status
-    if (swipeRatio < -_swipeThreshold && !isTerminal && nextStatus != null) {
+    // Swipe left threshold reached - update status (only for PENDING orders)
+    if (swipeRatio < -_swipeThreshold && status == OrderStatusEnum.pending && nextStatus != null) {
       await _handleSwipeToUpdateStatus();
     }
     // Swipe right threshold reached - open details
@@ -194,6 +192,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
   Future<void> _handleMoveToNextStatus() async {
     if (_isProcessing) return;
+    // Seller can only advance PENDING orders
+    if (widget.order.status != OrderStatusEnum.pending) return;
 
     final previousStatus = widget.order.status;
     final nextStatus = previousStatus.nextStatus;
@@ -658,15 +658,13 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                   ],
                                 ),
 
-                                // Action button for non-terminal statuses
-                                if (!isTerminal && nextStatus != null) ...[
+                                // Action button only for PENDING orders
+                                if (status == OrderStatusEnum.pending && nextStatus != null) ...[
                                   SizedBox(height: 14.h),
                                   _StatusActionButton(
                                     onTap: _handleMoveToNextStatus,
                                     isLoading: _isProcessing,
-                                    nextStatusLabel: _getStatusLabel(
-                                      nextStatus,
-                                    ),
+                                    nextStatusLabel: 'orders.requestDriver'.tr,
                                     nextStatusIcon: _getStatusIcon(nextStatus),
                                   ),
                                 ],
@@ -731,7 +729,7 @@ class _SwipeBackground extends StatelessWidget {
           ? AppColors.success
           : AppColors.success.withValues(alpha: 0.7);
       icon = getStatusIcon(nextStatus!);
-      label = getStatusLabel(nextStatus!);
+      label = 'orders.requestDriver'.tr;
     } else {
       // Swiping right - view details
       backgroundColor = hasReachedThreshold

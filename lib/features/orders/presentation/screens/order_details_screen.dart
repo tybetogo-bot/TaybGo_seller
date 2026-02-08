@@ -79,21 +79,11 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   }
 
   OrderStatusEnum? _getTargetStatus(OrderStatusEnum currentStatus) {
-    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
-    // Each status moves to the next one in sequence
+    // Seller can only accept orders (move PENDING → SEARCHING_FOR_DRIVER)
+    // All subsequent status transitions are handled by the backend/driver
     switch (currentStatus) {
       case OrderStatusEnum.pending:
         return OrderStatusEnum.searchingForDriver;
-      case OrderStatusEnum.searchingForDriver:
-        return OrderStatusEnum.driverNotificationSent;
-      case OrderStatusEnum.driverNotificationSent:
-        return OrderStatusEnum.accepted;
-      case OrderStatusEnum.accepted:
-        return OrderStatusEnum.onTheWay;
-      case OrderStatusEnum.onTheWay:
-        return OrderStatusEnum.delivered;
-      case OrderStatusEnum.delivered:
-        return OrderStatusEnum.completed;
       default:
         return null;
     }
@@ -413,9 +403,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     final targetStatus = _getTargetStatus(status);
     if (targetStatus == null) return const SizedBox.shrink();
 
-    // Show button with next status name
+    // Show button with action label
     return AppButton(
-      label: _getStatusDisplayName(targetStatus),
+      label: 'orders.requestDriver'.tr,
       icon: _getStatusIcon(targetStatus),
       isLoading: _isProcessing,
       onPressed: () => _handleStatusAction(order),

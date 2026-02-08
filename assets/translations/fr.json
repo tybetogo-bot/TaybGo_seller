@@ -162,6 +162,7 @@
       "rejected": "Refusée",
       "cancelled": "Annulée"
     },
+    "requestDriver": "Demander un livreur",
     "waitingForDriver": "En attente du livreur...",
     "orderRejectedByRestaurant": "Cette commande a été refusée par le restaurant",
     "orderWasCancelled": "Cette commande a été annulée",
