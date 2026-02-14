@@ -321,7 +321,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         );
       }).toList();
 
-      // Build the checkout request with embedded address data
+      // Build the checkout request with address IDs
       final request = FoodCheckoutRequest(
         restaurantId: int.tryParse(restaurant.id) ?? 0,
         subtotalAmount: _subtotal.toStringAsFixed(2),
@@ -333,6 +333,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedDeliveryType,
+        pickupAddressId: restaurant.addressData?.id != null
+            ? int.tryParse(restaurant.addressData!.id!)
+            : null,
         pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
@@ -340,6 +343,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         ),
         items: cartItems,
         couponId: _selectedCouponId != null ? int.tryParse(_selectedCouponId!) : null,
+        customerName: _customerNameController.text.trim(),
+        customerPhoneNumber: _phoneController.text.trim(),
         notes: 'Customer: ${_customerNameController.text.trim()}, '
             'Phone: ${_phoneController.text.trim()}',
       );

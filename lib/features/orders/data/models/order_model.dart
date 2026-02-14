@@ -175,13 +175,25 @@ class OrderRestaurantModel {
   });
 
   factory OrderRestaurantModel.fromJson(Map<String, dynamic> json) {
+    // Address can be a string or a full object
+    String? address;
+    double? lat = _parseDouble(json['lat']);
+    double? lng = _parseDouble(json['lng']);
+    if (json['address'] is Map<String, dynamic>) {
+      final addr = json['address'] as Map<String, dynamic>;
+      address = addr['full_address'] as String?;
+      lat ??= _parseDouble(addr['lat']);
+      lng ??= _parseDouble(addr['lng']);
+    } else {
+      address = json['address'] as String?;
+    }
     return OrderRestaurantModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '',
       logo: json['logo'] as String?,
-      address: json['address'] as String?,
-      lat: _parseDouble(json['lat']),
-      lng: _parseDouble(json['lng']),
+      address: address,
+      lat: lat,
+      lng: lng,
       phone: json['phone'] as String?,
       status: json['status'] as String?,
       createdAt: json['created_at'] != null
@@ -637,32 +649,26 @@ sealed class OrderModel with _$OrderModel {
       return const AddressModel(street: 'N/A', building: 'N/A');
     }
 
-    // Parse customer name - from dropoff_address label or nested customer object
+    // Parse customer name - from direct field or nested customer object
     String parseCustomerName(Map<String, dynamic> json) {
-      // Try dropoff_address label first (new API format: "Customer: abdulelah")
-      if (json['dropoff_address'] is Map<String, dynamic>) {
-        final dropoff = json['dropoff_address'] as Map<String, dynamic>;
-        final label = dropoff['label'] as String?;
-        if (label != null && label.startsWith('Customer: ')) {
-          return label.replaceFirst('Customer: ', '');
-        }
-      }
       if (json['customer_name'] != null) return json['customer_name'] as String;
-      if (json['customerName'] != null) return json['customerName'] as String;
-      // Handle nested customer object
       if (json['customer'] is Map<String, dynamic>) {
         final customer = json['customer'] as Map<String, dynamic>;
         return customer['name'] ?? customer['full_name'] ?? customer['first_name'] ?? 'Customer';
       }
+      // Fallback: old orders store name in dropoff_address label as "Customer: {name}"
+      if (json['dropoff_address'] is Map<String, dynamic>) {
+        final label = json['dropoff_address']['label'] as String?;
+        if (label != null && label.startsWith('Customer: ')) {
+          return label.replaceFirst('Customer: ', '');
+        }
+      }
       return 'Customer';
     }
 
-    // Parse phone number - could be direct field or nested
+    // Parse phone number - from direct field or nested customer object
     String parsePhoneNumber(Map<String, dynamic> json) {
-      if (json['phone_number'] != null) return json['phone_number'].toString();
-      if (json['phoneNumber'] != null) return json['phoneNumber'].toString();
-      if (json['phone'] != null) return json['phone'].toString();
-      // Handle nested customer object
+      if (json['customer_phone_number'] != null) return json['customer_phone_number'].toString();
       if (json['customer'] is Map<String, dynamic>) {
         final customer = json['customer'] as Map<String, dynamic>;
         return customer['phone_number']?.toString() ?? customer['phone']?.toString() ?? '';

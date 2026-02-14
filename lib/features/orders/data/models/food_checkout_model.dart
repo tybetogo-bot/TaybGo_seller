@@ -207,6 +207,8 @@ class FoodCheckoutRequest {
   final String? notes;
   final int? paymentMethodId;
   final bool isPaid;
+  final String? customerName;
+  final String? customerPhoneNumber;
 
   const FoodCheckoutRequest({
     this.orderType = OrderType.food,
@@ -231,6 +233,8 @@ class FoodCheckoutRequest {
     this.couponCode,
     this.notes,
     this.paymentMethodId,
+    this.customerName,
+    this.customerPhoneNumber,
   });
 
   Map<String, dynamic> toJson() {
@@ -250,12 +254,11 @@ class FoodCheckoutRequest {
       if (driverId != null) 'driver': driverId,
       'is_manual': isManual,
       'is_paid': isPaid,
-      // Use address IDs if provided, otherwise use embedded data
       if (pickupAddressId != null) 'pickup_address': pickupAddressId,
       if (dropoffAddressId != null) 'dropoff_address': dropoffAddressId,
-      if (pickupAddressData != null && pickupAddressId == null)
+      if (pickupAddressData != null)
         'pickup_address_data': pickupAddressData!.toJson(),
-      if (dropoffAddressData != null && dropoffAddressId == null)
+      if (dropoffAddressData != null)
         'dropoff_address_data': dropoffAddressData!.toJson(),
       if (items != null && items!.isNotEmpty)
         'items': items!.map((item) => item.toJson()).toList(),
@@ -264,6 +267,10 @@ class FoodCheckoutRequest {
         'coupon_code': couponCode,
       if (notes != null && notes!.isNotEmpty) 'notes': notes,
       if (paymentMethodId != null) 'payment_method': paymentMethodId,
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
     };
   }
 }
