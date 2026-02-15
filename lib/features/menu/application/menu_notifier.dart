@@ -91,10 +91,14 @@ class MenuState {
 /// Menu state notifier for managing menu items and categories (Riverpod 3.x)
 class MenuNotifier extends Notifier<MenuState> {
   late final MenuRepository _repository;
+  bool _isLoadingData = false;
+  String? _lastLoadedRestaurantId;
 
   @override
   MenuState build() {
     _repository = ref.watch(menuRepositoryProvider);
+    _isLoadingData = false;
+    _lastLoadedRestaurantId = null;
 
     // Watch for restaurant state changes (loading -> loaded)
     ref.listen(restaurantProvider, (previous, next) {
@@ -103,7 +107,7 @@ class MenuNotifier extends Notifier<MenuState> {
       }
     });
 
-    // Watch for restaurant selection changes
+    // Watch for restaurant selection changes (different restaurant selected)
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
       if (next != null && previous != next) {
         Future.microtask(() => _loadInitialData());
@@ -115,8 +119,11 @@ class MenuNotifier extends Notifier<MenuState> {
     return MenuState();
   }
 
-  /// Load initial data from API
-  Future<void> _loadInitialData() async {
+  /// Load initial data from API with concurrency guard
+  Future<void> _loadInitialData({bool isRetry = false}) async {
+    // Prevent concurrent loads - if already loading, skip
+    if (_isLoadingData && !isRetry) return;
+
     final restaurantState = ref.read(restaurantProvider);
 
     // If restaurant state is still loading, keep menu in loading state
@@ -127,25 +134,41 @@ class MenuNotifier extends Notifier<MenuState> {
 
     final restaurantId = ref.read(selectedRestaurantIdProvider);
     if (restaurantId == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'No restaurant selected',
-      );
+      // Don't set error if we already have data (restaurant might be momentarily refreshing)
+      if (state.categories.isEmpty && state.items.isEmpty) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'No restaurant selected',
+        );
+      }
       return;
     }
 
+    // Skip reload if data is already loaded for this restaurant and not a manual refresh
+    if (!isRetry && _lastLoadedRestaurantId == restaurantId && 
+        state.categories.isNotEmpty && !state.isLoading) {
+      return;
+    }
+
+    _isLoadingData = true;
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // Load categories and items in parallel
-      final categoriesResult = await _repository.getCategories(restaurantId);
-      final itemsResult = await _repository.getMenuItems(restaurantId);
+      // Load categories and items truly in parallel
+      final results = await Future.wait([
+        _repository.getCategories(restaurantId),
+        _repository.getMenuItems(restaurantId),
+      ]);
+
+      final categoriesResult = results[0] as MenuResult<List<CategoryModel>>;
+      final itemsResult = results[1] as MenuResult<List<MenuItemModel>>;
 
       if (categoriesResult.failure != null) {
         state = state.copyWith(
           isLoading: false,
           error: categoriesResult.failure!.message,
         );
+        _scheduleRetryIfNeeded(restaurantId);
         return;
       }
 
@@ -154,9 +177,11 @@ class MenuNotifier extends Notifier<MenuState> {
           isLoading: false,
           error: itemsResult.failure!.message,
         );
+        _scheduleRetryIfNeeded(restaurantId);
         return;
       }
 
+      _lastLoadedRestaurantId = restaurantId;
       state = state.copyWith(
         items: itemsResult.data ?? [],
         categories: categoriesResult.data ?? [],
@@ -167,12 +192,29 @@ class MenuNotifier extends Notifier<MenuState> {
         isLoading: false,
         error: 'Failed to load menu: $e',
       );
+      _scheduleRetryIfNeeded(restaurantId);
+    } finally {
+      _isLoadingData = false;
     }
   }
 
-  /// Refresh menu data
+  /// Schedule a retry if data is empty (first load failed)
+  void _scheduleRetryIfNeeded(String restaurantId) {
+    if (state.categories.isEmpty && state.items.isEmpty) {
+      Future.delayed(const Duration(seconds: 3), () {
+        // Only retry if still empty and same restaurant
+        if (state.categories.isEmpty && state.items.isEmpty &&
+            ref.read(selectedRestaurantIdProvider) == restaurantId) {
+          _loadInitialData(isRetry: true);
+        }
+      });
+    }
+  }
+
+  /// Refresh menu data (manual pull-to-refresh)
   Future<void> refresh() async {
-    await _loadInitialData();
+    _lastLoadedRestaurantId = null; // Force reload
+    await _loadInitialData(isRetry: true);
   }
 
   /// Select a category

@@ -110,19 +110,27 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Fetch restaurant by ID with today's stats
   Future<void> fetchRestaurantById(String id) async {
-    state = const RestaurantLoading();
+    // Preserve current loaded state during refresh to keep selectedRestaurantId available
+    final previousState = state;
+    if (previousState is! RestaurantLoaded) {
+      state = const RestaurantLoading();
+    }
 
     final result = await _repository.getRestaurantById(id);
 
     if (result.failure != null) {
-      state = RestaurantError(
-        message: result.failure!.message,
-        previousState: const RestaurantInitial(),
-      );
+      // On failure, restore previous state if it was loaded, otherwise show error
+      if (previousState is RestaurantLoaded) {
+        state = previousState;
+      } else {
+        state = RestaurantError(
+          message: result.failure!.message,
+          previousState: previousState,
+        );
+      }
     } else if (result.data != null) {
-      final currentState = state;
-      final restaurants = currentState is RestaurantLoaded
-          ? currentState.restaurants
+      final restaurants = previousState is RestaurantLoaded
+          ? previousState.restaurants
           : [result.data!];
 
       state = RestaurantLoaded(
