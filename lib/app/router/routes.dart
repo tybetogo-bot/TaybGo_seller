@@ -94,6 +94,16 @@ class Routes {
   static const String help = '/profile/help';
   static const String helpName = 'help';
 
+  // ============ Support ============
+  static const String support = '/profile/support';
+  static const String supportName = 'support';
+
+  static const String supportTicketDetail = '/profile/support/ticket/:ticketId';
+  static const String supportTicketDetailName = 'supportTicketDetail';
+
+  static const String createSupportTicket = '/profile/support/create';
+  static const String createSupportTicketName = 'createSupportTicket';
+
   static const String about = '/profile/about';
   static const String aboutName = 'about';
 
@@ -115,4 +125,8 @@ class Routes {
   /// Get public menu path with restaurant id
   static String publicMenuPath(String restaurantId) =>
       '/public-menu/$restaurantId';
+
+  /// Get support ticket detail path with id
+  static String supportTicketDetailPath(String ticketId) =>
+      '/profile/support/ticket/$ticketId';
 }

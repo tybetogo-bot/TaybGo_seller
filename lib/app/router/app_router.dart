@@ -22,6 +22,9 @@ import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
 import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
 import '../../features/profile/presentation/screens/help_screen.dart';
+import '../../features/support/presentation/screens/support_tickets_screen.dart';
+import '../../features/support/presentation/screens/ticket_detail_screen.dart';
+import '../../features/support/presentation/screens/create_ticket_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -286,6 +289,26 @@ class AppRouter {
                 path: 'help',
                 name: Routes.helpName,
                 builder: (context, state) => const HelpScreen(),
+              ),
+              GoRoute(
+                path: 'support',
+                name: Routes.supportName,
+                builder: (context, state) => const SupportTicketsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'ticket/:ticketId',
+                    name: Routes.supportTicketDetailName,
+                    builder: (context, state) {
+                      final ticketId = state.pathParameters['ticketId']!;
+                      return TicketDetailScreen(ticketId: int.parse(ticketId));
+                    },
+                  ),
+                  GoRoute(
+                    path: 'create',
+                    name: Routes.createSupportTicketName,
+                    builder: (context, state) => const CreateTicketScreen(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'about',

@@ -6,13 +6,13 @@ class AppConfig {
   AppConfig._();
 
   // App Info
-  static const String appName = 'TybeToGo Seller';
-  static const String appNameAr = 'تايب تو جو البائع';
+  static const String appName = 'TaybGo Seller';
+  static const String appNameAr = 'تايب جو البائع';
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://taybat-backend-dev.onrender.com';
-  static const String stagingUrl = 'https://taybat-backend-dev.onrender.com';
+  static const String baseUrl = 'https://taybgo.com';
+  static const String stagingUrl = 'https://taybgo.com';
   static const Duration apiTimeout = Duration(seconds: 15);
 
   // Pagination

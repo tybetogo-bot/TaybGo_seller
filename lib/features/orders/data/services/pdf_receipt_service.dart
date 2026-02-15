@@ -84,7 +84,7 @@ class PdfReceiptService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // Header
-              _buildHeader(restaurantName ?? 'TybeToGo', restaurantAddress, restaurantPhone),
+              _buildHeader(restaurantName ?? 'TaybGo', restaurantAddress, restaurantPhone),
               pw.SizedBox(height: 24),
 
               // Receipt title

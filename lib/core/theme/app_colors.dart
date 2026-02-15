@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Dynamic color palette for the application
-/// Based on the TybeToGo design system (green primary color)
+/// Based on the TaybGo design system (green primary color)
 class AppColors {
   AppColors._();
 

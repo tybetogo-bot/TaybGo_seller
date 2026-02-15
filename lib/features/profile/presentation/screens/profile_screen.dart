@@ -146,6 +146,12 @@ class ProfileScreen extends ConsumerWidget {
             SizedBox(height: 12.h),
           ],
           _SettingRow(
+            icon: Icons.support_agent_outlined,
+            label: 'support.title'.tr,
+            isDark: isDark,
+            onTap: () => context.push(Routes.support),
+          ),
+          _SettingRow(
             icon: Icons.help_outline,
             label: 'settings.help'.tr,
             isDark: isDark,

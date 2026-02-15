@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Hungry? Running late? Forgot something? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Hungry? Running late? Forgot something? TaybGo!"
   },
   "common": {
     "save": "Save",
@@ -563,7 +563,7 @@
     "title": "About",
     "version": "Version {version}",
     "description": "Manage your restaurant orders, menu, and customers all in one place.",
-    "copyright": "© 2024 TybeToGo. All rights reserved."
+    "copyright": "© 2024 TaybGo. All rights reserved."
   },
   "validation": {
     "required": "This field is required",
@@ -594,10 +594,10 @@
     "noRestaurants": "No restaurants found",
     "contactSupport": "Please contact support to set up your restaurant",
     "retry": "Retry",
-    "noRestaurantWelcome": "Welcome to TybeToGo!",
+    "noRestaurantWelcome": "Welcome to TaybGo!",
     "noRestaurantMessage": "Your account doesn't currently have any restaurants linked to it. Please reach out to our team so we can get your restaurant set up and ready to go.",
     "contactUsTitle": "Contact Us",
-    "thankYou": "Thank you for choosing TybeToGo. We look forward to working with you!",
+    "thankYou": "Thank you for choosing TaybGo. We look forward to working with you!",
     "emailCopied": "Email copied to clipboard",
     "phoneCopied": "Phone number copied to clipboard"
   },
@@ -710,10 +710,10 @@
       "tips": "Tips & Tricks"
     },
     "gsWelcome": {
-      "title": "Welcome to TybeToGo Seller",
+      "title": "Welcome to TaybGo Seller",
       "description": "An overview of the app and what you can do with it.",
-      "s1Title": "What is TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller is your all-in-one restaurant management app. It lets you receive and manage orders, update your menu in real time, create promotional coupons, and track your business performance — all from your phone.",
+      "s1Title": "What is TaybGo Seller?",
+      "s1Body": "TaybGo Seller is your all-in-one restaurant management app. It lets you receive and manage orders, update your menu in real time, create promotional coupons, and track your business performance — all from your phone.",
       "s2Title": "Key Features",
       "s2Body": "• Real-time order management with status tracking\n• Full menu editing with categories, images, and customizations\n• Coupon creation and discount management\n• Business analytics and revenue tracking\n• AI-powered order scanning for manual orders\n• Push notifications for new orders\n• Dark mode and theme customization\n• Multi-language support (English, Arabic, German, French)",
       "s3Title": "Getting Help",
@@ -845,7 +845,7 @@
       "title": "Notification Preferences",
       "description": "Configure which notifications you receive.",
       "s1Title": "Notification Types",
-      "s1Body": "You can configure notifications for:\n\n• New Orders — Get alerted when a new order arrives\n• Order Updates — Status changes on your orders\n• Promotions — News and special offers from TybeToGo",
+      "s1Body": "You can configure notifications for:\n\n• New Orders — Get alerted when a new order arrives\n• Order Updates — Status changes on your orders\n• Promotions — News and special offers from TaybGo",
       "s2Title": "Sound & Haptics",
       "s2Body": "In the notification settings, you can also control:\n\n• Sound — Enable or disable notification sounds\n• Vibration — Enable or disable haptic feedback\n\nThese settings are independent of your device's system notification settings.",
       "s3Title": "Viewing Notifications",
@@ -1077,8 +1077,48 @@
       "description": "You can restart this tour anytime from Settings. Happy selling!"
     }
   },
+  "support": {
+    "title": "Support",
+    "createTicket": "Create Ticket",
+    "noTickets": "No support tickets yet",
+    "noTicketsDesc": "Create a ticket if you need help",
+    "subject": "Subject",
+    "subjectHint": "Brief description of your issue",
+    "category": "Category",
+    "priority": "Priority",
+    "status": "Status",
+    "message": "Message",
+    "messageHint": "Type your message...",
+    "send": "Send",
+    "sendMessage": "Send Message",
+    "ticketCreated": "Ticket created successfully",
+    "messageSent": "Message sent",
+    "initialMessage": "Describe your issue",
+    "initialMessageHint": "Please describe your issue in detail...",
+    "ticketInfo": "Ticket Information",
+    "assignedTo": "Assigned To",
+    "unassigned": "Unassigned",
+    "createdAt": "Created",
+    "lastActivity": "Last Activity",
+    "relatedOrder": "Related Order",
+    "all": "All",
+    "filterByStatus": "Filter by status",
+    "categoryOrder": "Order",
+    "categoryRestaurant": "Restaurant",
+    "categoryDriver": "Driver",
+    "categoryOther": "Other",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "statusOpen": "Open",
+    "statusInProgress": "In Progress",
+    "statusClosed": "Closed",
+    "you": "You",
+    "supportAgent": "Support",
+    "selectOrder": "Select an order"
+  },
   "welcomeTour": {
-    "title": "Welcome to TybeToGo Seller",
+    "title": "Welcome to TaybGo Seller",
     "description": "Take a quick tour to discover how to manage orders, update your menu, and track your performance.",
     "benefit1": "Learn key features in under 5 minutes",
     "benefit2": "See how to handle orders efficiently",

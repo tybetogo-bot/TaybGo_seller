@@ -6,16 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../network/api_client.dart';
+import '../network/addresses_api.dart';
 import '../network/auth_api.dart';
 import '../network/restaurant_api.dart';
 import '../network/menu_api.dart';
 import '../network/orders_api.dart';
 import '../network/coupons_api.dart';
 import '../network/user_api.dart';
+import '../network/support_api.dart';
 import '../services/cloudinary_service.dart';
 import '../../features/auth/data/datasources/auth_data_source.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
+import '../../features/support/data/repositories/support_repository.dart';
 
 /// Provider for SharedPreferences
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
@@ -91,6 +94,12 @@ final userApiProvider = Provider<UserApi>((ref) {
   return UserApi(dio);
 });
 
+/// Provider for AddressesApi
+final addressesApiProvider = Provider<AddressesApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return AddressesApi(dio);
+});
+
 /// Provider for dedicated Cloudinary Dio instance (no auth interceptor)
 final cloudinaryDioProvider = Provider<Dio>((ref) {
   return Dio(
@@ -138,4 +147,16 @@ final publicMenuApiProvider = Provider<MenuApi>((ref) {
 final publicRestaurantApiProvider = Provider<RestaurantApi>((ref) {
   final dio = ref.watch(publicDioProvider);
   return RestaurantApi(dio);
+});
+
+/// Provider for SupportApi
+final supportApiProvider = Provider<SupportApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return SupportApi(dio);
+});
+
+/// Provider for SupportRepository
+final supportRepositoryProvider = Provider<SupportRepository>((ref) {
+  final api = ref.watch(supportApiProvider);
+  return SupportRepositoryImpl(api: api);
 });

@@ -29,7 +29,9 @@
       "Bash(flutterfire configure:*)",
       "Bash(dart pub global activate:*)",
       "Bash(dart pub global run:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git config:*)",
+      "Bash(GRADLE_OPTS=\"-Xmx1024m -XX:MaxMetaspaceSize=256m\" flutter build:*)"
     ]
   }
 }

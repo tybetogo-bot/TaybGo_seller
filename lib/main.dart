@@ -49,14 +49,14 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
-      child: const TybeToGoApp(),
+      child: const TaybGoApp(),
     ),
   );
 }
 
 /// Main application widget
-class TybeToGoApp extends ConsumerWidget {
-  const TybeToGoApp({super.key});
+class TaybGoApp extends ConsumerWidget {
+  const TaybGoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,7 +98,7 @@ class TybeToGoApp extends ConsumerWidget {
       builder: (context, child) {
         return TourOverlay(
           child: MaterialApp.router(
-          title: 'TybeToGo Seller',
+          title: 'TaybGo Seller',
           debugShowCheckedModeBanner: false,
 
           // Theme with dynamic accent color

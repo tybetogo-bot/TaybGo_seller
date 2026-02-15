@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Vendeur",
-    "tagline": "Affamé? En retard? Oublié quelque chose? TybeToGo!"
+    "name": "TaybGo Vendeur",
+    "tagline": "Affamé? En retard? Oublié quelque chose? TaybGo!"
   },
   "common": {
     "save": "Enregistrer",
@@ -537,7 +537,7 @@
     "title": "À propos",
     "version": "Version {version}",
     "description": "Gérez vos commandes, menu et clients en un seul endroit.",
-    "copyright": "© 2024 TybeToGo. Tous droits réservés."
+    "copyright": "© 2024 TaybGo. Tous droits réservés."
   },
   "validation": {
     "required": "Champ requis",
@@ -568,10 +568,10 @@
     "noRestaurants": "Aucun restaurant trouvé",
     "contactSupport": "Veuillez contacter le support pour configurer votre restaurant",
     "retry": "Réessayer",
-    "noRestaurantWelcome": "Bienvenue chez TybeToGo !",
+    "noRestaurantWelcome": "Bienvenue chez TaybGo !",
     "noRestaurantMessage": "Votre compte n'a actuellement aucun restaurant associé. Veuillez contacter notre équipe pour que nous puissions configurer votre restaurant.",
     "contactUsTitle": "Contactez-nous",
-    "thankYou": "Merci d'avoir choisi TybeToGo. Nous avons hâte de travailler avec vous !",
+    "thankYou": "Merci d'avoir choisi TaybGo. Nous avons hâte de travailler avec vous !",
     "emailCopied": "E-mail copié dans le presse-papiers",
     "phoneCopied": "Numéro de téléphone copié dans le presse-papiers"
   },
@@ -684,10 +684,10 @@
       "tips": "Astuces"
     },
     "gsWelcome": {
-      "title": "Bienvenue sur TybeToGo Vendeur",
+      "title": "Bienvenue sur TaybGo Vendeur",
       "description": "Un aperçu de l'application et de ce que vous pouvez faire.",
-      "s1Title": "Qu'est-ce que TybeToGo Vendeur ?",
-      "s1Body": "TybeToGo Vendeur est votre application tout-en-un de gestion de restaurant. Recevez et gérez les commandes, mettez à jour votre menu en temps réel, créez des coupons promotionnels et suivez les performances de votre entreprise — le tout depuis votre téléphone.",
+      "s1Title": "Qu'est-ce que TaybGo Vendeur ?",
+      "s1Body": "TaybGo Vendeur est votre application tout-en-un de gestion de restaurant. Recevez et gérez les commandes, mettez à jour votre menu en temps réel, créez des coupons promotionnels et suivez les performances de votre entreprise — le tout depuis votre téléphone.",
       "s2Title": "Fonctionnalités clés",
       "s2Body": "• Gestion des commandes en temps réel avec suivi du statut\n• Édition complète du menu avec catégories, images et personnalisations\n• Création de coupons et gestion des réductions\n• Analyses commerciales et suivi des revenus\n• Scan de commandes par IA pour les commandes manuelles\n• Notifications push pour les nouvelles commandes\n• Mode sombre et personnalisation du thème\n• Support multilingue (anglais, arabe, allemand, français)",
       "s3Title": "Obtenir de l'aide",
@@ -819,7 +819,7 @@
       "title": "Préférences de notifications",
       "description": "Configurez les notifications que vous recevez.",
       "s1Title": "Types de notifications",
-      "s1Body": "Vous pouvez configurer les notifications pour :\n\n• Nouvelles commandes — Alerte quand une nouvelle commande arrive\n• Mises à jour des commandes — Changements de statut de vos commandes\n• Promotions — Nouvelles et offres spéciales de TybeToGo",
+      "s1Body": "Vous pouvez configurer les notifications pour :\n\n• Nouvelles commandes — Alerte quand une nouvelle commande arrive\n• Mises à jour des commandes — Changements de statut de vos commandes\n• Promotions — Nouvelles et offres spéciales de TaybGo",
       "s2Title": "Son et haptique",
       "s2Body": "Dans les paramètres de notifications, vous pouvez aussi contrôler :\n\n• Son — Activer ou désactiver les sons de notification\n• Vibration — Activer ou désactiver le retour haptique",
       "s3Title": "Voir les notifications",
@@ -1051,8 +1051,48 @@
       "description": "Vous pouvez relancer cette visite à tout moment depuis les paramètres. Bonnes ventes !"
     }
   },
+  "support": {
+    "title": "Support",
+    "createTicket": "Créer un ticket",
+    "noTickets": "Aucun ticket de support",
+    "noTicketsDesc": "Créez un ticket si vous avez besoin d'aide",
+    "subject": "Sujet",
+    "subjectHint": "Brève description de votre problème",
+    "category": "Catégorie",
+    "priority": "Priorité",
+    "status": "Statut",
+    "message": "Message",
+    "messageHint": "Tapez votre message...",
+    "send": "Envoyer",
+    "sendMessage": "Envoyer le message",
+    "ticketCreated": "Ticket créé avec succès",
+    "messageSent": "Message envoyé",
+    "initialMessage": "Décrivez votre problème",
+    "initialMessageHint": "Veuillez décrire votre problème en détail...",
+    "ticketInfo": "Informations du ticket",
+    "assignedTo": "Assigné à",
+    "unassigned": "Non assigné",
+    "createdAt": "Créé le",
+    "lastActivity": "Dernière activité",
+    "relatedOrder": "Commande associée",
+    "all": "Tous",
+    "filterByStatus": "Filtrer par statut",
+    "categoryOrder": "Commande",
+    "categoryRestaurant": "Restaurant",
+    "categoryDriver": "Chauffeur",
+    "categoryOther": "Autre",
+    "priorityLow": "Basse",
+    "priorityMedium": "Moyenne",
+    "priorityHigh": "Haute",
+    "statusOpen": "Ouvert",
+    "statusInProgress": "En cours",
+    "statusClosed": "Fermé",
+    "you": "Vous",
+    "supportAgent": "Support",
+    "selectOrder": "Sélectionner une commande"
+  },
   "welcomeTour": {
-    "title": "Bienvenue sur TybeToGo Vendeur",
+    "title": "Bienvenue sur TaybGo Vendeur",
     "description": "Faites une visite rapide pour découvrir comment gérer les commandes, mettre à jour votre menu et suivre vos performances.",
     "benefit1": "Apprenez les fonctionnalités clés en moins de 5 minutes",
     "benefit2": "Découvrez comment gérer les commandes efficacement",

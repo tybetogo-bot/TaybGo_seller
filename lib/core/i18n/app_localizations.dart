@@ -53,8 +53,8 @@ class AppStrings {
   AppStrings._();
 
   // ============ Common ============
-  static const String appName = 'TybeToGo Seller';
-  static const String appNameAr = 'تايب تو جو البائع';
+  static const String appName = 'TaybGo Seller';
+  static const String appNameAr = 'تايب جو البائع';
 
   // ============ Auth ============
   static const String login = 'Login';
