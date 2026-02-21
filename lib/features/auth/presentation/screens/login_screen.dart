@@ -33,7 +33,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleRequestOtp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final fullPhone = '${_selectedCountry.dialCode}${_phoneController.text.trim()}';
+    final fullPhone =
+        '${_selectedCountry.dialCode}${_phoneController.text.trim()}';
     ref.read(authProvider.notifier).requestOtp(phone: fullPhone);
   }
 
@@ -77,9 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: const [
-                  LanguageSelector(),
-                ],
+                children: const [LanguageSelector()],
               ),
             ),
 
@@ -103,7 +102,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             borderRadius: BorderRadius.circular(18.r),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.2),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -112,7 +113,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18.r),
                             child: Image.asset(
-                              'assets/icons/newLogo.jpg',
+                              'assets/icons/logo.jpg',
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -186,9 +187,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: ElevatedButton(
                           onPressed: isLoading ? null : _handleRequestOtp,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                            disabledBackgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.5),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.r),
@@ -200,7 +205,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   height: 22.w,
                                   child: const CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : Text(

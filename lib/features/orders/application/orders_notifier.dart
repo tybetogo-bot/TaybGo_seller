@@ -57,7 +57,6 @@ class OrdersState {
         case OrderStatusEnum.onTheWay:
           active.add(order);
         case OrderStatusEnum.delivered:
-        case OrderStatusEnum.completed:
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           completed.add(order);
@@ -291,11 +290,6 @@ class OrdersNotifier extends Notifier<OrdersState> {
     return _updateStatus(orderId, 'DELIVERED');
   }
 
-  /// Mark order as completed
-  Future<bool> markCompleted(String orderId) async {
-    return _updateStatus(orderId, 'COMPLETED');
-  }
-
   /// Accept an order
   Future<bool> acceptOrder(String orderId) async {
     return _updateStatus(orderId, 'ACCEPTED');
@@ -338,7 +332,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   /// Move order to next status in the flow
-  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED → COMPLETED
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED
   Future<bool> moveToNextStatus(String orderId) async {
     final order = getOrder(orderId);
     if (order == null) return false;
@@ -372,8 +366,6 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return 'ON_THE_WAY';
       case OrderStatusEnum.delivered:
         return 'DELIVERED';
-      case OrderStatusEnum.completed:
-        return 'COMPLETED';
       case OrderStatusEnum.rejected:
         return 'REJECTED';
       case OrderStatusEnum.cancelled:

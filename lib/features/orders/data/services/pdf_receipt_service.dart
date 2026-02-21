@@ -484,7 +484,6 @@ class PdfReceiptService {
       case OrderStatusEnum.onTheWay:
         return PdfColors.purple;
       case OrderStatusEnum.delivered:
-      case OrderStatusEnum.completed:
         return PdfColors.green;
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:

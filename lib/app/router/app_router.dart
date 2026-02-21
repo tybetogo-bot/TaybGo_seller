@@ -6,6 +6,8 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../../features/onboarding/presentation/screens/pending_review_screen.dart';
 import '../../features/restaurant/presentation/screens/restaurant_selection_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/menu/presentation/screens/add_menu_item_screen.dart';
@@ -22,9 +24,6 @@ import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
 import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
 import '../../features/profile/presentation/screens/help_screen.dart';
-import '../../features/support/presentation/screens/support_tickets_screen.dart';
-import '../../features/support/presentation/screens/ticket_detail_screen.dart';
-import '../../features/support/presentation/screens/create_ticket_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -33,6 +32,9 @@ import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
 import '../../features/public_menu/presentation/screens/public_menu_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/support/presentation/screens/support_tickets_screen.dart';
+import '../../features/support/presentation/screens/ticket_detail_screen.dart';
+import '../../features/support/presentation/screens/create_ticket_screen.dart';
 import '../shell/main_shell.dart';
 import 'routes.dart';
 
@@ -55,10 +57,11 @@ class AppRouter {
     redirect: (context, state) {
       final currentPath = state.uri.path;
       final isPublicMenuRoute = currentPath.startsWith('/public-menu');
-      final isAuthRoute = currentPath == Routes.login ||
-                          currentPath == Routes.register ||
-                          currentPath == Routes.forgotPassword ||
-                          currentPath == Routes.otp;
+      final isAuthRoute =
+          currentPath == Routes.login ||
+          currentPath == Routes.register ||
+          currentPath == Routes.forgotPassword ||
+          currentPath == Routes.otp;
       final isSplash = currentPath == Routes.splash;
       final isRoot = currentPath == '/';
 
@@ -88,8 +91,10 @@ class AppRouter {
         return Routes.splash;
       }
 
-      // Restaurant selection and coupon routes are also public-ish
+      // Restaurant selection, onboarding, and coupon routes
       if (currentPath == Routes.restaurantSelection ||
+          currentPath == Routes.onboarding ||
+          currentPath == Routes.pendingReview ||
           currentPath == Routes.addCoupon ||
           currentPath.startsWith(Routes.editCoupon.split(':').first)) {
         return null;
@@ -97,7 +102,9 @@ class AppRouter {
 
       // Allow all other routes - splash screen handles auth/restaurant checks
       // Don't redirect protected routes here to avoid redirect loops
-      print('🟢 [Router] Protected route - allowing (auth check handled by splash)');
+      print(
+        '🟢 [Router] Protected route - allowing (auth check handled by splash)',
+      );
       return null;
     },
     routes: [
@@ -148,6 +155,20 @@ class AppRouter {
         builder: (context, state) => const OtpScreen(),
       ),
 
+      // Onboarding (outside shell)
+      GoRoute(
+        path: Routes.onboarding,
+        name: Routes.onboardingName,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+
+      // Pending review (outside shell)
+      GoRoute(
+        path: Routes.pendingReview,
+        name: Routes.pendingReviewName,
+        builder: (context, state) => const PendingReviewScreen(),
+      ),
+
       // Restaurant selection (outside shell)
       GoRoute(
         path: Routes.restaurantSelection,
@@ -174,18 +195,16 @@ class AppRouter {
           GoRoute(
             path: Routes.home,
             name: Routes.homeName,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: HomeScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HomeScreen()),
           ),
 
           // Orders tab
           GoRoute(
             path: Routes.orders,
             name: Routes.ordersName,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: OrdersScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: OrdersScreen()),
             routes: [
               GoRoute(
                 path: 'details/:orderId',
@@ -212,9 +231,8 @@ class AppRouter {
           GoRoute(
             path: Routes.menu,
             name: Routes.menuName,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: MenuScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: MenuScreen()),
             routes: [
               GoRoute(
                 path: 'item/:itemId',
@@ -241,9 +259,8 @@ class AppRouter {
           GoRoute(
             path: Routes.profile,
             name: Routes.profileName,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProfileScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfileScreen()),
             routes: [
               GoRoute(
                 path: 'settings',
@@ -286,29 +303,30 @@ class AppRouter {
                 builder: (context, state) => const KnowledgeBaseScreen(),
               ),
               GoRoute(
-                path: 'help',
-                name: Routes.helpName,
-                builder: (context, state) => const HelpScreen(),
-              ),
-              GoRoute(
                 path: 'support',
                 name: Routes.supportName,
                 builder: (context, state) => const SupportTicketsScreen(),
                 routes: [
                   GoRoute(
-                    path: 'ticket/:ticketId',
-                    name: Routes.supportTicketDetailName,
-                    builder: (context, state) {
-                      final ticketId = state.pathParameters['ticketId']!;
-                      return TicketDetailScreen(ticketId: int.parse(ticketId));
-                    },
-                  ),
-                  GoRoute(
                     path: 'create',
                     name: Routes.createSupportTicketName,
                     builder: (context, state) => const CreateTicketScreen(),
                   ),
+                  GoRoute(
+                    path: ':ticketId',
+                    name: Routes.supportTicketDetailName,
+                    builder: (context, state) {
+                      final ticketId = state.pathParameters['ticketId']!;
+                      return TicketDetailScreen(
+                          ticketId: int.parse(ticketId));
+                    },
+                  ),
                 ],
+              ),
+              GoRoute(
+                path: 'help',
+                name: Routes.helpName,
+                builder: (context, state) => const HelpScreen(),
               ),
               GoRoute(
                 path: 'about',

@@ -118,9 +118,8 @@ class MockOrdersNotifier extends OrdersNotifier {
       case 'ON_THE_WAY':
         parsedStatus = OrderStatusEnum.onTheWay;
       case 'DELIVERED':
-        parsedStatus = OrderStatusEnum.delivered;
       case 'COMPLETED':
-        parsedStatus = OrderStatusEnum.completed;
+        parsedStatus = OrderStatusEnum.delivered;
       case 'CANCELLED':
         parsedStatus = OrderStatusEnum.cancelled;
       default:

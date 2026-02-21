@@ -4,9 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
-import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 
 /// Splash screen shown on app launch
 class SplashScreen extends ConsumerStatefulWidget {
@@ -123,7 +123,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
       // Wait for restaurant state to finish loading (but not indefinitely)
-      if (restaurantState is RestaurantInitial || restaurantState is RestaurantLoading) {
+      if (restaurantState is RestaurantInitial ||
+          restaurantState is RestaurantLoading) {
         print('🟡 [SplashScreen] Restaurant still loading, waiting...');
         return; // Will be called again when state changes via listener
       }
@@ -138,11 +139,32 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return;
       }
 
-      // Check if restaurant is selected
-      if (restaurantState is RestaurantLoaded &&
-          restaurantState.selectedRestaurant != null) {
-        print('🟢 [SplashScreen] -> Going to home');
-        context.go(Routes.home);
+      if (restaurantState is RestaurantLoaded) {
+        // No restaurants -> onboarding
+        if (restaurantState.restaurants.isEmpty) {
+          print('🟢 [SplashScreen] -> No restaurants, going to onboarding');
+          context.go(Routes.onboarding);
+          return;
+        }
+
+        // All restaurants pending -> pending review
+        final allPending = restaurantState.restaurants.every(
+          (r) => r.status == RestaurantStatus.pending,
+        );
+        if (allPending) {
+          print('🟢 [SplashScreen] -> All restaurants pending, going to pending review');
+          context.go(Routes.pendingReview);
+          return;
+        }
+
+        // Has a selected active restaurant -> home
+        if (restaurantState.selectedRestaurant != null) {
+          print('🟢 [SplashScreen] -> Going to home');
+          context.go(Routes.home);
+        } else {
+          print('🟢 [SplashScreen] -> Going to restaurant selection');
+          context.go(Routes.restaurantSelection);
+        }
       } else {
         print('🟢 [SplashScreen] -> Going to restaurant selection');
         context.go(Routes.restaurantSelection);
@@ -183,10 +205,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFFFFF),
-              Color(0xFFF5F5F5),
-            ],
+            colors: [Color(0xFFFFFFFF), Color(0xFFF5F5F5)],
           ),
         ),
         child: Stack(
@@ -215,7 +234,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       },
                       child: RepaintBoundary(
                         child: Image.asset(
-                          'assets/icons/newLogo.jpg',
+                          'assets/icons/logo.jpg',
                           width: 280.w,
                           height: 140.w,
                           fit: BoxFit.contain,
@@ -240,10 +259,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           vertical: 10.h,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(30.r),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.3),
                             width: 1.5,
                           ),
                         ),
@@ -299,7 +322,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 height: 300.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.05),
                 ),
               ),
             );
@@ -319,7 +344,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 height: 400.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.03),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.03),
                 ),
               ),
             );
@@ -334,7 +361,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           height: 150.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.04),
           ),
         ),
       ),
@@ -356,7 +385,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                    Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -366,7 +397,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.6),
                   letterSpacing: 1,
                 ),
               ),

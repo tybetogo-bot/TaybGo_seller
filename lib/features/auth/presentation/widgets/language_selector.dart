@@ -14,6 +14,13 @@ class LanguageSelector extends ConsumerWidget {
     _Language('DE', 'de', 'DE', '🇩🇪'),
     _Language('FR', 'fr', 'FR', '🇫🇷'),
     _Language('عربي', 'ar', 'SA', '🇸🇦'),
+    _Language('LB', 'lb', 'LU', '🇱🇺'),
+    _Language('IT', 'it', 'IT', '🇮🇹'),
+    _Language('NL', 'nl', 'NL', '🇳🇱'),
+    _Language('SV', 'sv', 'SE', '🇸🇪'),
+    _Language('NO', 'no', 'NO', '🇳🇴'),
+    _Language('DA', 'da', 'DK', '🇩🇰'),
+    _Language('FI', 'fi', 'FI', '🇫🇮'),
   ];
 
   @override

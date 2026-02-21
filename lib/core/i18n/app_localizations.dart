@@ -8,12 +8,26 @@ class AppLocales {
   static const Locale arabic = Locale('ar', 'SA');
   static const Locale german = Locale('de', 'DE');
   static const Locale french = Locale('fr', 'FR');
+  static const Locale luxembourgish = Locale('lb', 'LU');
+  static const Locale italian = Locale('it', 'IT');
+  static const Locale dutch = Locale('nl', 'NL');
+  static const Locale swedish = Locale('sv', 'SE');
+  static const Locale norwegian = Locale('no', 'NO');
+  static const Locale danish = Locale('da', 'DK');
+  static const Locale finnish = Locale('fi', 'FI');
 
   static const List<Locale> supportedLocales = [
     english,
     arabic,
     german,
     french,
+    luxembourgish,
+    italian,
+    dutch,
+    swedish,
+    norwegian,
+    danish,
+    finnish,
   ];
 
   static const Locale defaultLocale = english;
@@ -32,6 +46,20 @@ class AppLocales {
         return 'Deutsch';
       case 'fr':
         return 'Français';
+      case 'lb':
+        return 'Lëtzebuergesch';
+      case 'it':
+        return 'Italiano';
+      case 'nl':
+        return 'Nederlands';
+      case 'sv':
+        return 'Svenska';
+      case 'no':
+        return 'Norsk';
+      case 'da':
+        return 'Dansk';
+      case 'fi':
+        return 'Suomi';
       case 'en':
       default:
         return 'English';
@@ -89,8 +117,8 @@ class AppStrings {
   static const String newOrdersAr = 'طلبات جديدة';
   static const String activeOrders = 'Active Orders';
   static const String activeOrdersAr = 'طلبات نشطة';
-  static const String completedOrders = 'Completed';
-  static const String completedOrdersAr = 'مكتملة';
+  static const String completedOrders = 'Done';
+  static const String completedOrdersAr = 'منتهية';
   static const String acceptOrder = 'Accept';
   static const String acceptOrderAr = 'قبول';
   static const String rejectOrder = 'Reject';

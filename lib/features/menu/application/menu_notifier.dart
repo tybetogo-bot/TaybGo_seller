@@ -53,7 +53,8 @@ class MenuState {
   bool _matchesSearch(MenuItemModel item, String query) {
     if (item.name.toLowerCase().contains(query)) return true;
     if (item.description?.toLowerCase().contains(query) ?? false) return true;
-    if (item.ingredients.any((i) => i.toLowerCase().contains(query))) return true;
+    if (item.ingredients.any((i) => i.toLowerCase().contains(query)))
+      return true;
     return false;
   }
 
@@ -71,7 +72,9 @@ class MenuState {
     return MenuState(
       items: items ?? this.items,
       categories: categories ?? this.categories,
-      selectedCategoryId: clearSelectedCategory ? null : (selectedCategoryId ?? this.selectedCategoryId),
+      selectedCategoryId: clearSelectedCategory
+          ? null
+          : (selectedCategoryId ?? this.selectedCategoryId),
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
@@ -91,14 +94,10 @@ class MenuState {
 /// Menu state notifier for managing menu items and categories (Riverpod 3.x)
 class MenuNotifier extends Notifier<MenuState> {
   late final MenuRepository _repository;
-  bool _isLoadingData = false;
-  String? _lastLoadedRestaurantId;
 
   @override
   MenuState build() {
     _repository = ref.watch(menuRepositoryProvider);
-    _isLoadingData = false;
-    _lastLoadedRestaurantId = null;
 
     // Watch for restaurant state changes (loading -> loaded)
     ref.listen(restaurantProvider, (previous, next) {
@@ -107,7 +106,7 @@ class MenuNotifier extends Notifier<MenuState> {
       }
     });
 
-    // Watch for restaurant selection changes (different restaurant selected)
+    // Watch for restaurant selection changes
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
       if (next != null && previous != next) {
         Future.microtask(() => _loadInitialData());
@@ -119,56 +118,35 @@ class MenuNotifier extends Notifier<MenuState> {
     return MenuState();
   }
 
-  /// Load initial data from API with concurrency guard
-  Future<void> _loadInitialData({bool isRetry = false}) async {
-    // Prevent concurrent loads - if already loading, skip
-    if (_isLoadingData && !isRetry) return;
-
+  /// Load initial data from API
+  Future<void> _loadInitialData() async {
     final restaurantState = ref.read(restaurantProvider);
 
     // If restaurant state is still loading, keep menu in loading state
-    if (restaurantState is RestaurantInitial || restaurantState is RestaurantLoading) {
+    if (restaurantState is RestaurantInitial ||
+        restaurantState is RestaurantLoading) {
       state = state.copyWith(isLoading: true, clearError: true);
       return;
     }
 
     final restaurantId = ref.read(selectedRestaurantIdProvider);
     if (restaurantId == null) {
-      // Don't set error if we already have data (restaurant might be momentarily refreshing)
-      if (state.categories.isEmpty && state.items.isEmpty) {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'No restaurant selected',
-        );
-      }
+      state = state.copyWith(isLoading: false, error: 'No restaurant selected');
       return;
     }
 
-    // Skip reload if data is already loaded for this restaurant and not a manual refresh
-    if (!isRetry && _lastLoadedRestaurantId == restaurantId && 
-        state.categories.isNotEmpty && !state.isLoading) {
-      return;
-    }
-
-    _isLoadingData = true;
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      // Load categories and items truly in parallel
-      final results = await Future.wait([
-        _repository.getCategories(restaurantId),
-        _repository.getMenuItems(restaurantId),
-      ]);
-
-      final categoriesResult = results[0] as MenuResult<List<CategoryModel>>;
-      final itemsResult = results[1] as MenuResult<List<MenuItemModel>>;
+      // Load categories and items in parallel
+      final categoriesResult = await _repository.getCategories(restaurantId);
+      final itemsResult = await _repository.getMenuItems(restaurantId);
 
       if (categoriesResult.failure != null) {
         state = state.copyWith(
           isLoading: false,
           error: categoriesResult.failure!.message,
         );
-        _scheduleRetryIfNeeded(restaurantId);
         return;
       }
 
@@ -177,11 +155,9 @@ class MenuNotifier extends Notifier<MenuState> {
           isLoading: false,
           error: itemsResult.failure!.message,
         );
-        _scheduleRetryIfNeeded(restaurantId);
         return;
       }
 
-      _lastLoadedRestaurantId = restaurantId;
       state = state.copyWith(
         items: itemsResult.data ?? [],
         categories: categoriesResult.data ?? [],
@@ -192,29 +168,12 @@ class MenuNotifier extends Notifier<MenuState> {
         isLoading: false,
         error: 'Failed to load menu: $e',
       );
-      _scheduleRetryIfNeeded(restaurantId);
-    } finally {
-      _isLoadingData = false;
     }
   }
 
-  /// Schedule a retry if data is empty (first load failed)
-  void _scheduleRetryIfNeeded(String restaurantId) {
-    if (state.categories.isEmpty && state.items.isEmpty) {
-      Future.delayed(const Duration(seconds: 3), () {
-        // Only retry if still empty and same restaurant
-        if (state.categories.isEmpty && state.items.isEmpty &&
-            ref.read(selectedRestaurantIdProvider) == restaurantId) {
-          _loadInitialData(isRetry: true);
-        }
-      });
-    }
-  }
-
-  /// Refresh menu data (manual pull-to-refresh)
+  /// Refresh menu data
   Future<void> refresh() async {
-    _lastLoadedRestaurantId = null; // Force reload
-    await _loadInitialData(isRetry: true);
+    await _loadInitialData();
   }
 
   /// Select a category
@@ -260,12 +219,16 @@ class MenuNotifier extends Notifier<MenuState> {
         'preparation_time': item.preparationTime,
         if (item.customizations.isNotEmpty)
           'customizations': item.customizations
-              .map((c) => {
-                    'name': c.name,
-                    'type': c.type == CustomizationType.addition ? 'addition' : 'removal',
-                    'price_modifier': c.priceModifier,
-                    'is_available': c.isAvailable,
-                  })
+              .map(
+                (c) => {
+                  'name': c.name,
+                  'type': c.type == CustomizationType.addition
+                      ? 'addition'
+                      : 'removal',
+                  'price_modifier': c.priceModifier,
+                  'is_available': c.isAvailable,
+                },
+              )
               .toList(),
       };
 
@@ -287,10 +250,7 @@ class MenuNotifier extends Notifier<MenuState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Failed to add item: $e',
-      );
+      state = state.copyWith(isLoading: false, error: 'Failed to add item: $e');
     }
   }
 
@@ -312,13 +272,17 @@ class MenuNotifier extends Notifier<MenuState> {
         'preparation_time': item.preparationTime,
         if (item.customizations.isNotEmpty)
           'customizations': item.customizations
-              .map((c) => {
-                    'id': c.id,
-                    'name': c.name,
-                    'type': c.type == CustomizationType.addition ? 'addition' : 'removal',
-                    'price_modifier': c.priceModifier,
-                    'is_available': c.isAvailable,
-                  })
+              .map(
+                (c) => {
+                  'id': c.id,
+                  'name': c.name,
+                  'type': c.type == CustomizationType.addition
+                      ? 'addition'
+                      : 'removal',
+                  'price_modifier': c.priceModifier,
+                  'is_available': c.isAvailable,
+                },
+              )
               .toList(),
       };
 
@@ -336,10 +300,7 @@ class MenuNotifier extends Notifier<MenuState> {
           .map((i) => i.id == item.id ? result.data! : i)
           .toList();
 
-      state = state.copyWith(
-        items: updatedItems,
-        isLoading: false,
-      );
+      state = state.copyWith(items: updatedItems, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -365,10 +326,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
       final updatedItems = state.items.where((i) => i.id != itemId).toList();
 
-      state = state.copyWith(
-        items: updatedItems,
-        isLoading: false,
-      );
+      state = state.copyWith(items: updatedItems, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -420,10 +378,7 @@ class MenuNotifier extends Notifier<MenuState> {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final data = {
-        'name': name,
-        'view_order': state.categories.length + 1,
-      };
+      final data = {'name': name, 'view_order': state.categories.length + 1};
 
       final result = await _repository.createCategory(
         restaurantId: restaurantId,
@@ -473,10 +428,7 @@ class MenuNotifier extends Notifier<MenuState> {
           .map((c) => c.id == categoryId ? result.data! : c)
           .toList();
 
-      state = state.copyWith(
-        categories: updatedCategories,
-        isLoading: false,
-      );
+      state = state.copyWith(categories: updatedCategories, isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(

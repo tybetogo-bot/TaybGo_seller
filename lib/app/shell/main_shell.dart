@@ -8,6 +8,7 @@ import '../../core/services/push_notification_service.dart';
 import '../../core/theme/theme.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
 import '../../features/tour/utils/tour_keys.dart';
+import '../../shared/widgets/location_warning_banner.dart';
 import '../router/routes.dart';
 
 /// Main shell with bottom navigation
@@ -53,7 +54,12 @@ class _MainShellState extends ConsumerState<MainShell> {
         '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}');
 
     return Scaffold(
-      body: widget.child,
+      body: Column(
+        children: [
+          const LocationWarningBanner(),
+          Expanded(child: widget.child),
+        ],
+      ),
       bottomNavigationBar: const AppBottomNavBar(),
     );
   }

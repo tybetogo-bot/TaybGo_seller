@@ -17,8 +17,6 @@ enum OrderStatusEnum {
   onTheWay,
   @JsonValue('DELIVERED')
   delivered,
-  @JsonValue('COMPLETED')
-  completed,
   @JsonValue('REJECTED')
   rejected,
   @JsonValue('CANCELLED')
@@ -41,8 +39,6 @@ extension OrderStatusExtension on OrderStatusEnum {
         return 'On the Way';
       case OrderStatusEnum.delivered:
         return 'Delivered';
-      case OrderStatusEnum.completed:
-        return 'Completed';
       case OrderStatusEnum.rejected:
         return 'Rejected';
       case OrderStatusEnum.cancelled:
@@ -51,7 +47,7 @@ extension OrderStatusExtension on OrderStatusEnum {
   }
 
   /// Check if order can transition to a new status
-  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED/REJECTED → ON_THE_WAY → DELIVERED → COMPLETED
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED/REJECTED → ON_THE_WAY → DELIVERED
   bool canTransitionTo(OrderStatusEnum newStatus) {
     switch (this) {
       case OrderStatusEnum.pending:
@@ -70,8 +66,6 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return newStatus == OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
-        return newStatus == OrderStatusEnum.completed;
-      case OrderStatusEnum.completed:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return false;
@@ -79,7 +73,7 @@ extension OrderStatusExtension on OrderStatusEnum {
   }
 
   /// Get the next status in the flow
-  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED → COMPLETED
+  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED
   OrderStatusEnum? get nextStatus {
     switch (this) {
       case OrderStatusEnum.pending:
@@ -93,8 +87,6 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
-        return OrderStatusEnum.completed;
-      case OrderStatusEnum.completed:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return null;
@@ -102,11 +94,9 @@ extension OrderStatusExtension on OrderStatusEnum {
   }
 
   /// Get the previous status in the flow (for undo functionality)
-  /// Flow: COMPLETED → DELIVERED → ON_THE_WAY → ACCEPTED → DRIVER_NOTIFICATION_SENT → SEARCHING_FOR_DRIVER → PENDING
+  /// Flow: DELIVERED → ON_THE_WAY → ACCEPTED → DRIVER_NOTIFICATION_SENT → SEARCHING_FOR_DRIVER → PENDING
   OrderStatusEnum? get previousStatus {
     switch (this) {
-      case OrderStatusEnum.completed:
-        return OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
         return OrderStatusEnum.onTheWay;
       case OrderStatusEnum.onTheWay:
@@ -175,25 +165,13 @@ class OrderRestaurantModel {
   });
 
   factory OrderRestaurantModel.fromJson(Map<String, dynamic> json) {
-    // Address can be a string or a full object
-    String? address;
-    double? lat = _parseDouble(json['lat']);
-    double? lng = _parseDouble(json['lng']);
-    if (json['address'] is Map<String, dynamic>) {
-      final addr = json['address'] as Map<String, dynamic>;
-      address = addr['full_address'] as String?;
-      lat ??= _parseDouble(addr['lat']);
-      lng ??= _parseDouble(addr['lng']);
-    } else {
-      address = json['address'] as String?;
-    }
     return OrderRestaurantModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '',
       logo: json['logo'] as String?,
-      address: address,
-      lat: lat,
-      lng: lng,
+      address: json['address'] as String?,
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
       phone: json['phone'] as String?,
       status: json['status'] as String?,
       createdAt: json['created_at'] != null
@@ -293,9 +271,9 @@ class OrderDriverModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
-      roles: (json['roles'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
+      roles:
+          (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          [],
     );
   }
 }
@@ -472,6 +450,7 @@ sealed class OrderItemModel with _$OrderItemModel {
     required double unitPrice,
     String? notes,
     @Default([]) List<CustomizationSelection> customizations,
+
     /// Raw customizations text from API (e.g., "no sauce")
     String? customizationsText,
   }) = _OrderItemModel;
@@ -493,7 +472,12 @@ sealed class OrderItemModel with _$OrderItemModel {
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     // Handle API response format: {id: 1, item: 1, item_name: Classic Burger, quantity: 1, price: 10.99, customizations: null}
     // Try multiple field names for price: price, unit_price, unitPrice, item_price
-    final priceValue = json['price'] ?? json['unit_price'] ?? json['unitPrice'] ?? json['item_price'] ?? 0;
+    final priceValue =
+        json['price'] ??
+        json['unit_price'] ??
+        json['unitPrice'] ??
+        json['item_price'] ??
+        0;
 
     // Handle customizations - can be a string (from API) or a list of objects
     final customizationsRaw = json['customizations'];
@@ -506,16 +490,23 @@ sealed class OrderItemModel with _$OrderItemModel {
     } else if (customizationsRaw is List) {
       // Structured customizations list
       customizationsList = customizationsRaw
-          .map((c) => CustomizationSelection.fromJson(c as Map<String, dynamic>))
+          .map(
+            (c) => CustomizationSelection.fromJson(c as Map<String, dynamic>),
+          )
           .toList();
     }
 
     return OrderItemModel(
       id: json['id']?.toString() ?? '',
-      menuItemId: (json['item'] ?? json['menuItemId'] ?? json['menu_item_id'])?.toString() ?? '',
+      menuItemId:
+          (json['item'] ?? json['menuItemId'] ?? json['menu_item_id'])
+              ?.toString() ??
+          '',
       name: json['item_name'] ?? json['name'] ?? '',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
-      unitPrice: (priceValue is num) ? priceValue.toDouble() : (double.tryParse(priceValue.toString()) ?? 0.0),
+      unitPrice: (priceValue is num)
+          ? priceValue.toDouble()
+          : (double.tryParse(priceValue.toString()) ?? 0.0),
       notes: json['notes'] as String?,
       customizations: customizationsList,
       customizationsText: customizationsText,
@@ -592,7 +583,8 @@ sealed class OrderModel with _$OrderModel {
         case 'DELIVERED':
           return OrderStatusEnum.delivered;
         case 'COMPLETED':
-          return OrderStatusEnum.completed;
+          // Map legacy COMPLETED to DELIVERED since completed status was removed
+          return OrderStatusEnum.delivered;
         case 'REJECTED':
           return OrderStatusEnum.rejected;
         case 'CANCELLED':
@@ -640,38 +632,53 @@ sealed class OrderModel with _$OrderModel {
           apartment: addressJson['apartment'] as String?,
           floor: addressJson['floor'] as String?,
           city: addressJson['city'] as String?,
-          postalCode: addressJson['postal_code'] ?? addressJson['postalCode'] as String?,
+          postalCode:
+              addressJson['postal_code'] ??
+              addressJson['postalCode'] as String?,
           latitude: _parseDouble(addressJson['lat'] ?? addressJson['latitude']),
-          longitude: _parseDouble(addressJson['lng'] ?? addressJson['longitude']),
+          longitude: _parseDouble(
+            addressJson['lng'] ?? addressJson['longitude'],
+          ),
         );
       }
       // If address is just an ID, return empty address
       return const AddressModel(street: 'N/A', building: 'N/A');
     }
 
-    // Parse customer name - from direct field or nested customer object
+    // Parse customer name - from dropoff_address label or nested customer object
     String parseCustomerName(Map<String, dynamic> json) {
-      if (json['customer_name'] != null) return json['customer_name'] as String;
-      if (json['customer'] is Map<String, dynamic>) {
-        final customer = json['customer'] as Map<String, dynamic>;
-        return customer['name'] ?? customer['full_name'] ?? customer['first_name'] ?? 'Customer';
-      }
-      // Fallback: old orders store name in dropoff_address label as "Customer: {name}"
+      // Try dropoff_address label first (new API format: "Customer: abdulelah")
       if (json['dropoff_address'] is Map<String, dynamic>) {
-        final label = json['dropoff_address']['label'] as String?;
+        final dropoff = json['dropoff_address'] as Map<String, dynamic>;
+        final label = dropoff['label'] as String?;
         if (label != null && label.startsWith('Customer: ')) {
           return label.replaceFirst('Customer: ', '');
         }
       }
+      if (json['customer_name'] != null) return json['customer_name'] as String;
+      if (json['customerName'] != null) return json['customerName'] as String;
+      // Handle nested customer object
+      if (json['customer'] is Map<String, dynamic>) {
+        final customer = json['customer'] as Map<String, dynamic>;
+        return customer['name'] ??
+            customer['full_name'] ??
+            customer['first_name'] ??
+            'Customer';
+      }
       return 'Customer';
     }
 
-    // Parse phone number - from direct field or nested customer object
+    // Parse phone number - could be direct field or nested
     String parsePhoneNumber(Map<String, dynamic> json) {
-      if (json['customer_phone_number'] != null) return json['customer_phone_number'].toString();
+      if (json['phone_number'] != null) return json['phone_number'].toString();
+      if (json['phoneNumber'] != null) return json['phoneNumber'].toString();
+      if (json['phone'] != null) return json['phone'].toString();
+      // Handle nested customer object
       if (json['customer'] is Map<String, dynamic>) {
         final customer = json['customer'] as Map<String, dynamic>;
-        return customer['phone_number']?.toString() ?? customer['phone']?.toString() ?? '';
+        return customer['phone_number']?.toString() ??
+            customer['phone']?.toString() ??
+            '';
       }
       return '';
     }
@@ -717,7 +724,10 @@ sealed class OrderModel with _$OrderModel {
       if (json['restaurant'] is Map<String, dynamic>) {
         return (json['restaurant'] as Map<String, dynamic>)['id']?.toString();
       }
-      return (json['restaurant'] ?? json['restaurant_id'] ?? json['restaurantId'])?.toString();
+      return (json['restaurant'] ??
+              json['restaurant_id'] ??
+              json['restaurantId'])
+          ?.toString();
     }
 
     // Get driver ID from nested object or direct field
@@ -725,7 +735,8 @@ sealed class OrderModel with _$OrderModel {
       if (json['driver'] is Map<String, dynamic>) {
         return (json['driver'] as Map<String, dynamic>)['id']?.toString();
       }
-      return json['assigned_driver_id']?.toString() ?? json['assignedDriverId']?.toString();
+      return json['assigned_driver_id']?.toString() ??
+          json['assignedDriverId']?.toString();
     }
 
     return OrderModel(
@@ -733,24 +744,65 @@ sealed class OrderModel with _$OrderModel {
       customerName: parseCustomerName(json),
       phoneNumber: parsePhoneNumber(json),
       countryCode: parseCountryCode(json),
-      address: parseAddress(json['dropoff_address'] ?? json['delivery_address'] ?? json['address']),
+      address: parseAddress(
+        json['dropoff_address'] ?? json['delivery_address'] ?? json['address'],
+      ),
       items: parseItems(json['items'] ?? json['order_items']),
-      subtotal: double.tryParse(json['subtotal_amount']?.toString() ?? json['subtotal']?.toString() ?? '0') ?? 0.0,
-      deliveryFee: double.tryParse(json['delivery_fee']?.toString() ?? json['deliveryFee']?.toString() ?? '0') ?? 0.0,
-      discountAmount: double.tryParse(json['discount_amount']?.toString() ?? json['discountAmount']?.toString() ?? '0') ?? 0.0,
-      tips: double.tryParse(json['tip']?.toString() ?? json['tips']?.toString() ?? '0') ?? 0.0,
-      total: double.tryParse(json['total_amount']?.toString() ?? json['total']?.toString() ?? '0') ?? 0.0,
+      subtotal:
+          double.tryParse(
+            json['subtotal_amount']?.toString() ??
+                json['subtotal']?.toString() ??
+                '0',
+          ) ??
+          0.0,
+      deliveryFee:
+          double.tryParse(
+            json['delivery_fee']?.toString() ??
+                json['deliveryFee']?.toString() ??
+                '0',
+          ) ??
+          0.0,
+      discountAmount:
+          double.tryParse(
+            json['discount_amount']?.toString() ??
+                json['discountAmount']?.toString() ??
+                '0',
+          ) ??
+          0.0,
+      tips:
+          double.tryParse(
+            json['tip']?.toString() ?? json['tips']?.toString() ?? '0',
+          ) ??
+          0.0,
+      total:
+          double.tryParse(
+            json['total_amount']?.toString() ??
+                json['total']?.toString() ??
+                '0',
+          ) ??
+          0.0,
       isPaid: json['is_paid'] ?? json['isPaid'] ?? json['paid'] ?? false,
       status: parseStatus(json['status'] as String?),
       notes: json['notes'] as String?,
-      rejectionReason: json['rejection_reason'] ?? json['rejectionReason'] as String?,
+      rejectionReason:
+          json['rejection_reason'] ?? json['rejectionReason'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
-          : (json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : DateTime.now()),
-      acceptedAt: json['accepted_at'] != null ? DateTime.parse(json['accepted_at'] as String) : null,
-      readyAt: json['ready_at'] != null ? DateTime.parse(json['ready_at'] as String) : null,
-      outForDeliveryAt: json['out_for_delivery_at'] != null ? DateTime.parse(json['out_for_delivery_at'] as String) : null,
-      deliveredAt: json['delivered_at'] != null ? DateTime.parse(json['delivered_at'] as String) : null,
+          : (json['createdAt'] != null
+                ? DateTime.parse(json['createdAt'] as String)
+                : DateTime.now()),
+      acceptedAt: json['accepted_at'] != null
+          ? DateTime.parse(json['accepted_at'] as String)
+          : null,
+      readyAt: json['ready_at'] != null
+          ? DateTime.parse(json['ready_at'] as String)
+          : null,
+      outForDeliveryAt: json['out_for_delivery_at'] != null
+          ? DateTime.parse(json['out_for_delivery_at'] as String)
+          : null,
+      deliveredAt: json['delivered_at'] != null
+          ? DateTime.parse(json['delivered_at'] as String)
+          : null,
       restaurantId: getRestaurantId(json),
       assignedDriverId: getDriverId(json),
       // New fields

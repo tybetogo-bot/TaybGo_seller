@@ -72,7 +72,6 @@ class CustomerOrdersState {
   List<OrderModel> get completedOrders => orders
       .where((o) =>
           o.status == OrderStatusEnum.delivered ||
-          o.status == OrderStatusEnum.completed ||
           o.status == OrderStatusEnum.rejected ||
           o.status == OrderStatusEnum.cancelled)
       .toList();

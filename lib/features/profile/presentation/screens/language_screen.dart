@@ -20,6 +20,13 @@ class LanguageScreen extends ConsumerWidget {
       _Language('Deutsch', 'de', 'DE', '🇩🇪'),
       _Language('Français', 'fr', 'FR', '🇫🇷'),
       _Language('العربية', 'ar', 'SA', '🇸🇦'),
+      _Language('Lëtzebuergesch', 'lb', 'LU', '🇱🇺'),
+      _Language('Italiano', 'it', 'IT', '🇮🇹'),
+      _Language('Nederlands', 'nl', 'NL', '🇳🇱'),
+      _Language('Svenska', 'sv', 'SE', '🇸🇪'),
+      _Language('Norsk', 'no', 'NO', '🇳🇴'),
+      _Language('Dansk', 'da', 'DK', '🇩🇰'),
+      _Language('Suomi', 'fi', 'FI', '🇫🇮'),
     ];
 
     return Scaffold(

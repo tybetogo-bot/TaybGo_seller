@@ -154,4 +154,11 @@ class UserApi {
   Future<void> deleteAccount() async {
     await _dio.delete('/api/me/');
   }
+
+  /// Create an address
+  /// POST /api/addresses/
+  Future<Map<String, dynamic>> createAddress(Map<String, dynamic> data) async {
+    final response = await _dio.post('/api/addresses/', data: data);
+    return response.data as Map<String, dynamic>;
+  }
 }

@@ -184,8 +184,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
             final menuName = m.name.toLowerCase().trim();
             // Check for exact match or if one contains the other
             return menuName == scannedName ||
-                   menuName.contains(scannedName) ||
-                   scannedName.contains(menuName);
+                menuName.contains(scannedName) ||
+                scannedName.contains(menuName);
           }).firstOrNull;
 
           if (matchedMenuItem != null) {
@@ -321,7 +321,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         );
       }).toList();
 
-      // Build the checkout request with address IDs
+      // Build the checkout request with embedded address data
       final request = FoodCheckoutRequest(
         restaurantId: int.tryParse(restaurant.id) ?? 0,
         subtotalAmount: _subtotal.toStringAsFixed(2),
@@ -333,19 +333,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedDeliveryType,
-        pickupAddressId: restaurant.addressData?.id != null
-            ? int.tryParse(restaurant.addressData!.id!)
-            : null,
         pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
           label: 'Customer: ${_customerNameController.text.trim()}',
         ),
         items: cartItems,
-        couponId: _selectedCouponId != null ? int.tryParse(_selectedCouponId!) : null,
-        customerName: _customerNameController.text.trim(),
-        customerPhoneNumber: _phoneController.text.trim(),
-        notes: 'Customer: ${_customerNameController.text.trim()}, '
+        couponId: _selectedCouponId != null
+            ? int.tryParse(_selectedCouponId!)
+            : null,
+        notes:
+            'Customer: ${_customerNameController.text.trim()}, '
             'Phone: ${_phoneController.text.trim()}',
       );
 
@@ -397,395 +395,410 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
     return buildWithUnsavedChangesGuard(
       child: AppScaffold(
-      appBar: AppAppBar(
-        title: 'orders.createOrder'.tr,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.document_scanner),
-            tooltip: 'orders.scan.title'.tr,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ScanOrderScreen(
-                    onDataScanned: _fillWithScannedData,
+        appBar: AppAppBar(
+          title: 'orders.createOrder'.tr,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.document_scanner),
+              tooltip: 'orders.scan.title'.tr,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ScanOrderScreen(onDataScanned: _fillWithScannedData),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: AppSpacing.screenPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Prominent Scan Card
+                KeyedSubtree(
+                  key: TourKeys.scanOrderCardKey,
+                  child: _ScanOrderCard(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScanOrderScreen(
+                            onDataScanned: _fillWithScannedData,
+                          ),
+                        ),
+                      );
+                    },
+                    isDark: isDark,
                   ),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Prominent Scan Card
-              KeyedSubtree(
-                key: TourKeys.scanOrderCardKey,
-                child: _ScanOrderCard(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ScanOrderScreen(
-                          onDataScanned: _fillWithScannedData,
-                        ),
-                      ),
-                    );
+                SizedBox(height: 24.h),
+
+                // Customer Information Section
+                _SectionTitle(title: 'orders.customerInfo'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+
+                // Customer Name
+                AppTextField(
+                  controller: _customerNameController,
+                  label: 'orders.customerName'.tr,
+                  hint: 'validation.enterCustomerName'.tr,
+                  prefixIcon: Icons.person_outline,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'validation.enterCustomerName'.tr;
+                    }
+                    return null;
                   },
+                ),
+                SizedBox(height: 12.h),
+
+                // Phone Number with Country Code
+                Text(
+                  'orders.phone'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'validation.phoneRequired'.tr;
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'auth.phoneNumber'.tr,
+                    prefixIcon: Icon(Icons.phone, size: 20.w),
+                    filled: true,
+                    fillColor: isDark
+                        ? DarkColors.inputBackground
+                        : LightColors.inputBackground,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: isDark ? DarkColors.border : LightColors.border,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: isDark ? DarkColors.border : LightColors.border,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: const BorderSide(color: AppColors.error),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 14.h,
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Delivery Address Section
+                _SectionTitle(
+                  title: 'orders.deliveryAddress'.tr,
                   isDark: isDark,
                 ),
-              ),
-              SizedBox(height: 24.h),
-
-              // Customer Information Section
-              _SectionTitle(title: 'orders.customerInfo'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-
-              // Customer Name
-              AppTextField(
-                controller: _customerNameController,
-                label: 'orders.customerName'.tr,
-                hint: 'validation.enterCustomerName'.tr,
-                prefixIcon: Icons.person_outline,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'validation.enterCustomerName'.tr;
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 12.h),
-
-              // Phone Number with Country Code
-              Text(
-                'orders.phone'.tr,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: isDark
-                      ? DarkColors.textPrimary
-                      : LightColors.textPrimary,
+                SizedBox(height: 4.h),
+                Text(
+                  'address.enterManually'.tr,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: isDark
+                        ? DarkColors.textTertiary
+                        : LightColors.textTertiary,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8.h),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'validation.phoneRequired'.tr;
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  hintText: 'auth.phoneNumber'.tr,
-                  prefixIcon: Icon(Icons.phone, size: 20.w),
-                  filled: true,
-                  fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(
-                      color: isDark ? DarkColors.border : LightColors.border,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(
-                      color: isDark ? DarkColors.border : LightColors.border,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(color: AppColors.error),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                ),
-              ),
+                SizedBox(height: 12.h),
 
-              SizedBox(height: 24.h),
-
-              // Delivery Address Section
-              _SectionTitle(title: 'orders.deliveryAddress'.tr, isDark: isDark),
-              SizedBox(height: 4.h),
-              Text(
-                'address.enterManually'.tr,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: isDark
-                      ? DarkColors.textTertiary
-                      : LightColors.textTertiary,
-                ),
-              ),
-              SizedBox(height: 12.h),
-
-              AddressSearchWidget(
-                initialAddress: _selectedAddress,
-                onAddressSelected: (address) {
-                  setState(() {
-                    _selectedAddress = address;
-                  });
-                  markAsChanged();
-                },
-              ),
-
-              SizedBox(height: 24.h),
-
-              // Order Items Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _SectionTitle(title: 'orders.orderItems'.tr, isDark: isDark),
-                  TextButton.icon(
-                    onPressed: _showAddItemDialog,
-                    icon: Icon(Icons.add, size: 18.w),
-                    label: Text('orders.addItem'.tr),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12.h),
-
-              if (_orderItems.isEmpty)
-                _EmptyItemsCard(isDark: isDark, onAddItem: _showAddItemDialog)
-              else
-                ...List.generate(_orderItems.length, (index) {
-                  final item = _orderItems[index];
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 12.h),
-                    child: _OrderItemCard(
-                      item: item,
-                      onRemove: () => _removeItem(index),
-                      onQuantityChanged: (delta) =>
-                          _updateItemQuantity(index, delta),
-                      onNotesChanged: (notes) =>
-                          _updateItemNotes(index, notes),
-                      isDark: isDark,
-                    ),
-                  );
-                }),
-
-              SizedBox(height: 24.h),
-
-              // Delivery Options Section
-              _SectionTitle(title: 'orders.deliveryOptions'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-
-              // Vehicle Type and Delivery Type dropdowns
-              Row(
-                children: [
-                  Expanded(
-                    child: _VehicleTypeDropdown(
-                      label: 'orders.requestedVehicleType'.tr,
-                      value: _selectedVehicleType,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedVehicleType = value;
-                        });
-                        markAsChanged();
-                      },
-                      isDark: isDark,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: _VehicleTypeDropdown(
-                      label: 'orders.requestedDeliveryType'.tr,
-                      value: _selectedDeliveryType,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDeliveryType = value;
-                        });
-                        markAsChanged();
-                      },
-                      isDark: isDark,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 24.h),
-
-              // Coupon Section
-              _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-
-              _CouponDropdown(
-                key: ValueKey('coupon_dropdown_$_subtotal'),
-                selectedCouponId: _selectedCouponId,
-                subtotal: _subtotal,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCouponId = value;
-                  });
-                  markAsChanged();
-                },
-                isDark: isDark,
-              ),
-
-              SizedBox(height: 24.h),
-
-              // Payment Section
-              _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      controller: _deliveryFeeController,
-                      label: 'orders.deliveryFee'.tr,
-                      hint: '0.00',
-                      prefixIcon: Icons.delivery_dining,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: AppTextField(
-                      controller: _tipsController,
-                      label: 'orders.tips'.tr,
-                      hint: '0.00',
-                      prefixIcon: Icons.volunteer_activism,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 16.h),
-
-              // Paid checkbox
-              AppCard(
-                child: CheckboxListTile(
-                  value: _isPaid,
-                  onChanged: (value) {
+                AddressSearchWidget(
+                  initialAddress: _selectedAddress,
+                  onAddressSelected: (address) {
                     setState(() {
-                      _isPaid = value ?? false;
+                      _selectedAddress = address;
                     });
                     markAsChanged();
                   },
-                  title: Text(
-                    'orders.isPaid'.tr,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                      color: isDark
-                          ? DarkColors.textPrimary
-                          : LightColors.textPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    _isPaid
-                        ? 'orders.paymentReceived'.tr
-                        : 'orders.paymentPending'.tr,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: _isPaid ? AppColors.success : AppColors.warning,
-                    ),
-                  ),
-                  secondary: Icon(
-                    _isPaid ? Icons.check_circle : Icons.pending,
-                    color: _isPaid ? AppColors.success : AppColors.warning,
-                  ),
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  contentPadding: EdgeInsets.zero,
                 ),
-              ),
 
-              SizedBox(height: 24.h),
+                SizedBox(height: 24.h),
 
-              // Order Summary
-              _SectionTitle(title: 'orders.orderSummary'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-
-              AppCard(
-                child: Column(
+                // Order Items Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _SummaryRow(
-                      label: 'orders.subtotal'.tr,
-                      value: _subtotal,
+                    _SectionTitle(
+                      title: 'orders.orderItems'.tr,
                       isDark: isDark,
                     ),
-                    SizedBox(height: 8.h),
-                    _SummaryRow(
-                      label: 'orders.deliveryFee'.tr,
-                      value: _deliveryFee,
-                      isDark: isDark,
-                    ),
-                    SizedBox(height: 8.h),
-                    _SummaryRow(
-                      label: 'orders.tips'.tr,
-                      value: _tips,
-                      isDark: isDark,
-                    ),
-                    // Show discount row if coupon is applied
-                    if (_discount > 0) ...[
-                      SizedBox(height: 8.h),
-                      _DiscountRow(
-                        label: 'orders.discount'.tr,
-                        value: _discount,
-                        isDark: isDark,
-                      ),
-                    ],
-                    Divider(
-                      height: 24.h,
-                      color: isDark ? DarkColors.border : LightColors.border,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'orders.total'.tr,
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? DarkColors.textPrimary
-                                : LightColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          '\u20AC${_total.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ],
+                    TextButton.icon(
+                      onPressed: _showAddItemDialog,
+                      icon: Icon(Icons.add, size: 18.w),
+                      label: Text('orders.addItem'.tr),
                     ),
                   ],
                 ),
-              ),
+                SizedBox(height: 12.h),
 
-              SizedBox(height: 24.h),
+                if (_orderItems.isEmpty)
+                  _EmptyItemsCard(isDark: isDark, onAddItem: _showAddItemDialog)
+                else
+                  ...List.generate(_orderItems.length, (index) {
+                    final item = _orderItems[index];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: 12.h),
+                      child: _OrderItemCard(
+                        item: item,
+                        onRemove: () => _removeItem(index),
+                        onQuantityChanged: (delta) =>
+                            _updateItemQuantity(index, delta),
+                        onNotesChanged: (notes) =>
+                            _updateItemNotes(index, notes),
+                        isDark: isDark,
+                      ),
+                    );
+                  }),
 
-              // Submit Button
-              AppButton(
-                label: 'orders.createOrder'.tr,
-                onPressed: _submitOrder,
-                isLoading: _isLoading,
-              ),
-              SizedBox(height: 24.h),
-            ],
+                SizedBox(height: 24.h),
+
+                // Delivery Options Section
+                _SectionTitle(
+                  title: 'orders.deliveryOptions'.tr,
+                  isDark: isDark,
+                ),
+                SizedBox(height: 12.h),
+
+                // Vehicle Type and Delivery Type dropdowns
+                Row(
+                  children: [
+                    Expanded(
+                      child: _VehicleTypeDropdown(
+                        label: 'orders.requestedVehicleType'.tr,
+                        value: _selectedVehicleType,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedVehicleType = value;
+                          });
+                          markAsChanged();
+                        },
+                        isDark: isDark,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: _VehicleTypeDropdown(
+                        label: 'orders.requestedDeliveryType'.tr,
+                        value: _selectedDeliveryType,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDeliveryType = value;
+                          });
+                          markAsChanged();
+                        },
+                        isDark: isDark,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Coupon Section
+                _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+
+                _CouponDropdown(
+                  key: ValueKey('coupon_dropdown_$_subtotal'),
+                  selectedCouponId: _selectedCouponId,
+                  subtotal: _subtotal,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCouponId = value;
+                    });
+                    markAsChanged();
+                  },
+                  isDark: isDark,
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Payment Section
+                _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppTextField(
+                        controller: _deliveryFeeController,
+                        label: 'orders.deliveryFee'.tr,
+                        hint: '0.00',
+                        prefixIcon: Icons.delivery_dining,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: AppTextField(
+                        controller: _tipsController,
+                        label: 'orders.tips'.tr,
+                        hint: '0.00',
+                        prefixIcon: Icons.volunteer_activism,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 16.h),
+
+                // Paid checkbox
+                AppCard(
+                  child: CheckboxListTile(
+                    value: _isPaid,
+                    onChanged: (value) {
+                      setState(() {
+                        _isPaid = value ?? false;
+                      });
+                      markAsChanged();
+                    },
+                    title: Text(
+                      'orders.isPaid'.tr,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      _isPaid
+                          ? 'orders.paymentReceived'.tr
+                          : 'orders.paymentPending'.tr,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: _isPaid ? AppColors.success : AppColors.warning,
+                      ),
+                    ),
+                    secondary: Icon(
+                      _isPaid ? Icons.check_circle : Icons.pending,
+                      color: _isPaid ? AppColors.success : AppColors.warning,
+                    ),
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Order Summary
+                _SectionTitle(title: 'orders.orderSummary'.tr, isDark: isDark),
+                SizedBox(height: 12.h),
+
+                AppCard(
+                  child: Column(
+                    children: [
+                      _SummaryRow(
+                        label: 'orders.subtotal'.tr,
+                        value: _subtotal,
+                        isDark: isDark,
+                      ),
+                      SizedBox(height: 8.h),
+                      _SummaryRow(
+                        label: 'orders.deliveryFee'.tr,
+                        value: _deliveryFee,
+                        isDark: isDark,
+                      ),
+                      SizedBox(height: 8.h),
+                      _SummaryRow(
+                        label: 'orders.tips'.tr,
+                        value: _tips,
+                        isDark: isDark,
+                      ),
+                      // Show discount row if coupon is applied
+                      if (_discount > 0) ...[
+                        SizedBox(height: 8.h),
+                        _DiscountRow(
+                          label: 'orders.discount'.tr,
+                          value: _discount,
+                          isDark: isDark,
+                        ),
+                      ],
+                      Divider(
+                        height: 24.h,
+                        color: isDark ? DarkColors.border : LightColors.border,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'orders.total'.tr,
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? DarkColors.textPrimary
+                                  : LightColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '\u20AC${_total.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Submit Button
+                AppButton(
+                  label: 'orders.createOrder'.tr,
+                  onPressed: _submitOrder,
+                  isLoading: _isLoading,
+                ),
+                SizedBox(height: 24.h),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -855,7 +868,9 @@ class _VehicleTypeDropdown extends StatelessWidget {
                   'orders.selectVehicleType'.tr,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                 ),
               ),
@@ -877,7 +892,9 @@ class _VehicleTypeDropdown extends StatelessWidget {
                         'orders.vehicleType.${type.name}'.tr,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                       ),
                     ],
@@ -908,10 +925,7 @@ class _VehicleTypeDropdown extends StatelessWidget {
 
 /// Prominent card for scanning orders with AI
 class _ScanOrderCard extends StatelessWidget {
-  const _ScanOrderCard({
-    required this.onTap,
-    required this.isDark,
-  });
+  const _ScanOrderCard({required this.onTap, required this.isDark});
 
   final VoidCallback onTap;
   final bool isDark;
@@ -934,7 +948,9 @@ class _ScanOrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -1015,8 +1031,8 @@ class _CouponDropdown extends ConsumerWidget {
     final isLoading = ref.watch(couponsProvider).isLoading;
 
     // If selected coupon is no longer applicable, treat as no selection
-    final effectiveSelectedId = selectedCouponId != null &&
-            coupons.any((c) => c.id == selectedCouponId)
+    final effectiveSelectedId =
+        selectedCouponId != null && coupons.any((c) => c.id == selectedCouponId)
         ? selectedCouponId
         : null;
 
@@ -1043,7 +1059,9 @@ class _CouponDropdown extends ConsumerWidget {
               'orders.loadingCoupons'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ],
@@ -1067,14 +1085,18 @@ class _CouponDropdown extends ConsumerWidget {
             Icon(
               Icons.discount_outlined,
               size: 20.w,
-              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              color: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
             ),
             SizedBox(width: 12.w),
             Text(
               'orders.noActiveCoupons'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ],
@@ -1101,14 +1123,18 @@ class _CouponDropdown extends ConsumerWidget {
                 Icon(
                   Icons.discount_outlined,
                   size: 20.w,
-                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
                 ),
                 SizedBox(width: 8.w),
                 Text(
                   'orders.selectCoupon'.tr,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                 ),
               ],
@@ -1126,14 +1152,18 @@ class _CouponDropdown extends ConsumerWidget {
                   Icon(
                     Icons.close,
                     size: 20.w,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     'orders.noCoupon'.tr,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1160,7 +1190,9 @@ class _CouponDropdown extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                              color: isDark
+                                  ? DarkColors.textPrimary
+                                  : LightColors.textPrimary,
                             ),
                           ),
                           Text(
@@ -1242,18 +1274,11 @@ class _DiscountRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.local_offer,
-              size: 16.w,
-              color: AppColors.success,
-            ),
+            Icon(Icons.local_offer, size: 16.w, color: AppColors.success),
             SizedBox(width: 4.w),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: AppColors.success,
-              ),
+              style: TextStyle(fontSize: 14.sp, color: AppColors.success),
             ),
           ],
         ),
@@ -1406,7 +1431,9 @@ class _OrderItemCardState extends State<_OrderItemCard> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Row(
@@ -1447,7 +1474,10 @@ class _OrderItemCardState extends State<_OrderItemCard> {
               ),
               prefixIcon: Icon(Icons.edit_note, size: 18.w),
               isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 8.w,
+                vertical: 8.h,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
                 borderSide: BorderSide(
@@ -1461,7 +1491,8 @@ class _OrderItemCardState extends State<_OrderItemCard> {
                 ),
               ),
             ),
-            onChanged: (value) => widget.onNotesChanged(value.isNotEmpty ? value : null),
+            onChanged: (value) =>
+                widget.onNotesChanged(value.isNotEmpty ? value : null),
           ),
           SizedBox(height: 8.h),
           Row(
@@ -1555,9 +1586,9 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
 
   void _addItem() {
     if (_selectedItem == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('orders.selectItemFromMenu'.tr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('orders.selectItemFromMenu'.tr)));
       return;
     }
 
@@ -1723,8 +1754,9 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                 padding: EdgeInsets.all(16.w),
                 child: AppButton(
                   label: 'createOrder.addToOrderWithPrice'.tr.replaceAll(
-                      '{price}',
-                      '€${(_selectedItem!.price * _quantity).toStringAsFixed(2)}'),
+                    '{price}',
+                    '€${(_selectedItem!.price * _quantity).toStringAsFixed(2)}',
+                  ),
                   onPressed: _addItem,
                 ),
               ),
@@ -1796,7 +1828,9 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                   : LightColors.backgroundSecondary,
               borderRadius: BorderRadius.circular(12.r),
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -1814,7 +1848,9 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                         width: 60.w,
                         height: 60.w,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(
@@ -1830,7 +1866,9 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                     width: 60.w,
                     height: 60.w,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(
@@ -1946,9 +1984,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
-              color: isDark
-                  ? DarkColors.textPrimary
-                  : LightColors.textPrimary,
+              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
             ),
           ),
           SizedBox(height: 8.h),
@@ -2006,7 +2042,9 @@ class _MenuItemTile extends StatelessWidget {
                     width: 50.w,
                     height: 50.w,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(
@@ -2021,7 +2059,9 @@ class _MenuItemTile extends StatelessWidget {
                 width: 50.w,
                 height: 50.w,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Icon(

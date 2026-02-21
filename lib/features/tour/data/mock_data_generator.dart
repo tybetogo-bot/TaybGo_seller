@@ -77,9 +77,8 @@ class MockDataGenerator {
       case 2:
         return OrderStatusEnum.onTheWay;
       case 3:
-        return OrderStatusEnum.delivered;
       case 4:
-        return OrderStatusEnum.completed;
+        return OrderStatusEnum.delivered;
       case 5:
         return OrderStatusEnum.searchingForDriver;
       default:

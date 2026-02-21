@@ -26,7 +26,7 @@ class OrderStatusTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Full order flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Full order flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
     final steps = [
       _TimelineStep(
         status: OrderStatusEnum.pending,
@@ -71,18 +71,10 @@ class OrderStatusTimeline extends StatelessWidget {
       _TimelineStep(
         status: OrderStatusEnum.delivered,
         label: 'orders.status.delivered'.tr,
-        icon: Icons.done_all,
+        icon: Icons.verified,
         isCompleted: _isCompleted(OrderStatusEnum.delivered),
         isCurrent: currentStatus == OrderStatusEnum.delivered,
         timestamp: deliveredAt,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.completed,
-        label: 'orders.status.completed'.tr,
-        icon: Icons.verified,
-        isCompleted: _isCompleted(OrderStatusEnum.completed),
-        isCurrent: currentStatus == OrderStatusEnum.completed,
-        timestamp: null,
       ),
     ];
 
@@ -187,7 +179,7 @@ class OrderStatusTimeline extends StatelessWidget {
   }
 
   bool _isCompleted(OrderStatusEnum status) {
-    // Full flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Full flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
     final statusOrder = [
       OrderStatusEnum.pending,
       OrderStatusEnum.searchingForDriver,
@@ -195,7 +187,6 @@ class OrderStatusTimeline extends StatelessWidget {
       OrderStatusEnum.accepted,
       OrderStatusEnum.onTheWay,
       OrderStatusEnum.delivered,
-      OrderStatusEnum.completed,
     ];
 
     // Get timeline index for any status
@@ -213,8 +204,6 @@ class OrderStatusTimeline extends StatelessWidget {
           return 4;
         case OrderStatusEnum.delivered:
           return 5;
-        case OrderStatusEnum.completed:
-          return 6;
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           return -1;
@@ -402,9 +391,9 @@ class OrderActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
+    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
     // Terminal statuses - no action buttons
-    if (currentStatus == OrderStatusEnum.completed ||
+    if (currentStatus == OrderStatusEnum.delivered ||
         currentStatus == OrderStatusEnum.rejected ||
         currentStatus == OrderStatusEnum.cancelled) {
       return const SizedBox.shrink();

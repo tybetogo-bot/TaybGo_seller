@@ -1,5 +1,5 @@
 name: teybatseller
-description: "TaybGo Seller - Restaurant management and order handling"
+description: "TybeToGo Vendor App - Restaurant management and order handling"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -105,10 +105,10 @@ flutter_launcher_icons:
   ios: true
   web:
     generate: true
-    image_path: "assets/icons/newLogo.jpg"
-  image_path: "assets/icons/newLogo.jpg"
+    image_path: "assets/icons/logo.jpg"
+  image_path: "assets/icons/logo.jpg"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/icons/newLogo.jpg"
+  adaptive_icon_foreground: "assets/icons/logo.jpg"
 
 flutter:
   uses-material-design: true

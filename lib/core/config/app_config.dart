@@ -6,13 +6,13 @@ class AppConfig {
   AppConfig._();
 
   // App Info
-  static const String appName = 'TaybGo Seller';
-  static const String appNameAr = 'تايب جو البائع';
+  static const String appName = 'TybeToGo Seller';
+  static const String appNameAr = 'تايب تو جو البائع';
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://taybgo.com';
-  static const String stagingUrl = 'https://taybgo.com';
+  static const String baseUrl = 'https://taybat-backend-dev.onrender.com';
+  static const String stagingUrl = 'https://taybat-backend-dev.onrender.com';
   static const Duration apiTimeout = Duration(seconds: 15);
 
   // Pagination
@@ -40,7 +40,12 @@ class AppConfig {
 
   // Image Upload
   static const int maxImageSize = 5 * 1024 * 1024; // 5MB
-  static const List<String> allowedImageFormats = ['jpg', 'jpeg', 'png', 'webp'];
+  static const List<String> allowedImageFormats = [
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+  ];
 
   // Animation Durations
   static const Duration shortAnimation = Duration(milliseconds: 200);
@@ -48,7 +53,8 @@ class AppConfig {
   static const Duration longAnimation = Duration(milliseconds: 500);
 
   // Environment
-  static bool get isProduction => const String.fromEnvironment('ENV') == 'production';
+  static bool get isProduction =>
+      const String.fromEnvironment('ENV') == 'production';
   static bool get isStaging => const String.fromEnvironment('ENV') == 'staging';
   static bool get isDevelopment => !isProduction && !isStaging;
 

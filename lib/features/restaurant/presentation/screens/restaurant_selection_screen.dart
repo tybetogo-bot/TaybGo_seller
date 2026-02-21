@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
-import '../../../auth/application/auth_state.dart';
-import '../../../auth/presentation/widgets/language_selector.dart';
 import '../../application/restaurant_state.dart';
 import '../../data/models/restaurant_model.dart';
 
@@ -88,7 +84,26 @@ class RestaurantSelectionScreen extends ConsumerWidget {
 
     if (state is RestaurantLoaded) {
       if (state.restaurants.isEmpty) {
-        return _NoRestaurantView(ref: ref);
+        // Redirect to onboarding for new users
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go(Routes.onboarding);
+          }
+        });
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // If all restaurants are pending, redirect to pending review
+      final allPending = state.restaurants.every(
+        (r) => r.status == RestaurantStatus.pending,
+      );
+      if (allPending) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go(Routes.pendingReview);
+          }
+        });
+        return const Center(child: CircularProgressIndicator());
       }
 
       return ListView(
@@ -125,258 +140,6 @@ class RestaurantSelectionScreen extends ConsumerWidget {
 
     // Initial or unknown state
     return const Center(child: CircularProgressIndicator());
-  }
-}
-
-/// Full-page view shown when user has no restaurants
-class _NoRestaurantView extends StatelessWidget {
-  const _NoRestaurantView({required this.ref});
-
-  final WidgetRef ref;
-
-  Future<void> _launchEmail() async {
-    final uri = Uri(scheme: 'mailto', path: 'support@tybetogo.com');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
-  }
-
-  Future<void> _launchPhone() async {
-    final uri = Uri(scheme: 'tel', path: '+1234567890');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
-  }
-
-  void _logout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('auth.logout'.tr),
-        content: Text('auth.logoutConfirm'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('common.cancel'.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ref.read(authProvider.notifier).logout();
-              context.go(Routes.login);
-            },
-            child: Text(
-              'auth.logout'.tr,
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Illustration circle
-          Container(
-            width: 80.w,
-            height: 80.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: primaryColor.withValues(alpha: 0.1),
-            ),
-            child: Icon(
-              Icons.storefront_outlined,
-              size: 36.w,
-              color: primaryColor,
-            ),
-          ),
-
-          SizedBox(height: 20.h),
-
-          // Welcome title
-          Text(
-            'restaurant.noRestaurantWelcome'.tr,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          SizedBox(height: 8.h),
-
-          // Explanation
-          Text(
-            'restaurant.noRestaurantMessage'.tr,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.disabledColor,
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          SizedBox(height: 20.h),
-
-          // Contact card
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? DarkColors.surfaceElevated
-                  : LightColors.backgroundSecondary,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-              border: Border.all(
-                color: isDark ? DarkColors.border : LightColors.border,
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'restaurant.contactUsTitle'.tr,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                SizedBox(height: 10.h),
-
-                // Email row
-                _ContactRow(
-                  icon: Icons.email_outlined,
-                  label: 'support@tybetogo.com',
-                  onTap: _launchEmail,
-                  onLongPress: () {
-                    Clipboard.setData(
-                      const ClipboardData(text: 'support@tybetogo.com'),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('restaurant.emailCopied'.tr),
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-
-                SizedBox(height: 6.h),
-
-                // Phone row
-                _ContactRow(
-                  icon: Icons.phone_outlined,
-                  label: '+1234567890',
-                  onTap: _launchPhone,
-                  onLongPress: () {
-                    Clipboard.setData(const ClipboardData(text: '+1234567890'));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('restaurant.phoneCopied'.tr),
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: 20.h),
-
-          // Retry button
-          AppButton(
-            label: 'restaurant.retry'.tr,
-            variant: AppButtonVariant.outline,
-            icon: Icons.refresh,
-            onPressed: () {
-              ref.read(restaurantProvider.notifier).fetchRestaurants();
-            },
-          ),
-
-          SizedBox(height: 8.h),
-
-          // Logout button
-          AppButton(
-            label: 'auth.logout'.tr,
-            variant: AppButtonVariant.text,
-            icon: Icons.logout,
-            onPressed: () => _logout(context),
-          ),
-
-          SizedBox(height: 12.h),
-
-          // Language selector
-          const LanguageSelector(),
-        ],
-      ),
-    );
-  }
-}
-
-/// Tappable contact row
-class _ContactRow extends StatelessWidget {
-  const _ContactRow({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.onLongPress,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final VoidCallback? onLongPress;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
-
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
-        child: Row(
-          children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-              ),
-              child: Icon(icon, size: 20.w, color: primaryColor),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Text(
-                label,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 14.w,
-              color: theme.disabledColor,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

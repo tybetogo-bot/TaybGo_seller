@@ -25,10 +25,7 @@ class RestaurantLoading extends RestaurantState {
 
 /// Loaded state with restaurants list
 class RestaurantLoaded extends RestaurantState {
-  const RestaurantLoaded({
-    required this.restaurants,
-    this.selectedRestaurant,
-  });
+  const RestaurantLoaded({required this.restaurants, this.selectedRestaurant});
 
   final List<RestaurantModel> restaurants;
   final RestaurantModel? selectedRestaurant;
@@ -46,10 +43,7 @@ class RestaurantLoaded extends RestaurantState {
 
 /// Error state
 class RestaurantError extends RestaurantState {
-  const RestaurantError({
-    required this.message,
-    this.previousState,
-  });
+  const RestaurantError({required this.message, this.previousState});
 
   final String message;
   final RestaurantState? previousState;
@@ -89,14 +83,18 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     final result = await _repository.getRestaurants();
 
     if (result.failure != null) {
-      print('🔴 [RestaurantNotifier] fetchRestaurants error: ${result.failure!.message}');
+      print(
+        '🔴 [RestaurantNotifier] fetchRestaurants error: ${result.failure!.message}',
+      );
       state = RestaurantError(
         message: result.failure!.message,
         previousState: const RestaurantInitial(),
       );
     } else if (result.data != null) {
       final restaurants = result.data!;
-      print('🟢 [RestaurantNotifier] Fetched ${restaurants.length} restaurants');
+      print(
+        '🟢 [RestaurantNotifier] Fetched ${restaurants.length} restaurants',
+      );
 
       // If only one restaurant, auto-select it
       if (restaurants.length == 1) {
@@ -110,27 +108,19 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Fetch restaurant by ID with today's stats
   Future<void> fetchRestaurantById(String id) async {
-    // Preserve current loaded state during refresh to keep selectedRestaurantId available
-    final previousState = state;
-    if (previousState is! RestaurantLoaded) {
-      state = const RestaurantLoading();
-    }
+    state = const RestaurantLoading();
 
     final result = await _repository.getRestaurantById(id);
 
     if (result.failure != null) {
-      // On failure, restore previous state if it was loaded, otherwise show error
-      if (previousState is RestaurantLoaded) {
-        state = previousState;
-      } else {
-        state = RestaurantError(
-          message: result.failure!.message,
-          previousState: previousState,
-        );
-      }
+      state = RestaurantError(
+        message: result.failure!.message,
+        previousState: const RestaurantInitial(),
+      );
     } else if (result.data != null) {
-      final restaurants = previousState is RestaurantLoaded
-          ? previousState.restaurants
+      final currentState = state;
+      final restaurants = currentState is RestaurantLoaded
+          ? currentState.restaurants
           : [result.data!];
 
       state = RestaurantLoaded(
@@ -142,7 +132,9 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Select a restaurant
   Future<void> selectRestaurant(RestaurantModel restaurant) async {
-    print('🟢 [RestaurantNotifier] selectRestaurant: ${restaurant.id} - ${restaurant.name}');
+    print(
+      '🟢 [RestaurantNotifier] selectRestaurant: ${restaurant.id} - ${restaurant.name}',
+    );
     await _repository.saveSelectedRestaurantId(restaurant.id);
 
     final currentState = state;
@@ -248,16 +240,14 @@ final restaurantDataSourceProvider = Provider<RestaurantDataSource>((ref) {
 final restaurantRepositoryProvider = Provider<RestaurantRepository>((ref) {
   final dataSource = ref.watch(restaurantDataSourceProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
-  return RestaurantRepositoryImpl(
-    remoteDataSource: dataSource,
-    prefs: prefs,
-  );
+  return RestaurantRepositoryImpl(remoteDataSource: dataSource, prefs: prefs);
 });
 
 /// Provider for restaurant state (Riverpod 3.x)
-final restaurantProvider = NotifierProvider<RestaurantNotifier, RestaurantState>(
-  RestaurantNotifier.new,
-);
+final restaurantProvider =
+    NotifierProvider<RestaurantNotifier, RestaurantState>(
+      RestaurantNotifier.new,
+    );
 
 /// Provider for selected restaurant
 final selectedRestaurantProvider = Provider<RestaurantModel?>((ref) {

@@ -91,24 +91,30 @@ class Routes {
   static const String knowledgeBase = '/profile/knowledge-base';
   static const String knowledgeBaseName = 'knowledgeBase';
 
-  static const String help = '/profile/help';
-  static const String helpName = 'help';
-
-  // ============ Support ============
   static const String support = '/profile/support';
   static const String supportName = 'support';
 
-  static const String supportTicketDetail = '/profile/support/ticket/:ticketId';
-  static const String supportTicketDetailName = 'supportTicketDetail';
-
   static const String createSupportTicket = '/profile/support/create';
   static const String createSupportTicketName = 'createSupportTicket';
+
+  static const String supportTicketDetail = '/profile/support/:ticketId';
+  static const String supportTicketDetailName = 'supportTicketDetail';
+
+  static const String help = '/profile/help';
+  static const String helpName = 'help';
 
   static const String about = '/profile/about';
   static const String aboutName = 'about';
 
   static const String deleteAccount = '/profile/delete-account';
   static const String deleteAccountName = 'deleteAccount';
+
+  // ============ Onboarding ============
+  static const String onboarding = '/onboarding';
+  static const String onboardingName = 'onboarding';
+
+  static const String pendingReview = '/pending-review';
+  static const String pendingReviewName = 'pendingReview';
 
   // ============ Public Menu ============
   static const String publicMenu = '/public-menu/:restaurantId';
@@ -122,11 +128,11 @@ class Routes {
   /// Get menu item path with id
   static String menuItemPath(String itemId) => '/menu/item/$itemId';
 
+  /// Get support ticket detail path with id
+  static String supportTicketDetailPath(String ticketId) =>
+      '/profile/support/$ticketId';
+
   /// Get public menu path with restaurant id
   static String publicMenuPath(String restaurantId) =>
       '/public-menu/$restaurantId';
-
-  /// Get support ticket detail path with id
-  static String supportTicketDetailPath(String ticketId) =>
-      '/profile/support/ticket/$ticketId';
 }

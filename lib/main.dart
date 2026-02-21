@@ -21,9 +21,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize push notification service
   await PushNotificationService.instance.initialize();
@@ -49,14 +47,14 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
-      child: const TaybGoApp(),
+      child: const TybeToGoApp(),
     ),
   );
 }
 
 /// Main application widget
-class TaybGoApp extends ConsumerWidget {
-  const TaybGoApp({super.key});
+class TybeToGoApp extends ConsumerWidget {
+  const TybeToGoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,22 +70,29 @@ class TaybGoApp extends ConsumerWidget {
     // This callback will be called by the AuthInterceptor when a 401 error occurs
     globalUnauthorizedCallback = () {
       // Check if we're on a public route - don't redirect if so
-      final currentLocation = router.routerDelegate.currentConfiguration.uri.path;
+      final currentLocation =
+          router.routerDelegate.currentConfiguration.uri.path;
       if (currentLocation.startsWith('/public-menu')) {
-        print('🟡 [UnauthorizedCallback] On public route, skipping login redirect');
+        print(
+          '🟡 [UnauthorizedCallback] On public route, skipping login redirect',
+        );
         return;
       }
 
       // Check if tour is active — log this prominently so we can catch it
       final tourState = ref.read(tourProvider);
       if (tourState.isActive) {
-        print('🔴🎯 [UnauthorizedCallback] 401 fired DURING ACTIVE TOUR! '
-            'step=${tourState.currentStepIndex}, route=$currentLocation. '
-            'This will KILL the tour!');
+        print(
+          '🔴🎯 [UnauthorizedCallback] 401 fired DURING ACTIVE TOUR! '
+          'step=${tourState.currentStepIndex}, route=$currentLocation. '
+          'This will KILL the tour!',
+        );
       }
 
       // Navigate to login screen when token is invalid (only for protected routes)
-      print('🔴 [UnauthorizedCallback] Unauthorized on protected route, redirecting to login');
+      print(
+        '🔴 [UnauthorizedCallback] Unauthorized on protected route, redirecting to login',
+      );
       router.go(Routes.login);
     };
 
@@ -98,47 +103,45 @@ class TaybGoApp extends ConsumerWidget {
       builder: (context, child) {
         return TourOverlay(
           child: MaterialApp.router(
-          title: 'TaybGo Seller',
-          debugShowCheckedModeBanner: false,
+            title: 'TybeToGo Seller',
+            debugShowCheckedModeBanner: false,
 
-          // Theme with dynamic accent color
-          theme: AppTheme.lightWithAccent(accentColor),
-          darkTheme: AppTheme.darkWithAccent(accentColor),
-          themeMode: themeMode,
+            // Theme with dynamic accent color
+            theme: AppTheme.lightWithAccent(accentColor),
+            darkTheme: AppTheme.darkWithAccent(accentColor),
+            themeMode: themeMode,
 
-          // Routing
-          routerConfig: router,
+            // Routing
+            routerConfig: router,
 
-          // Localization
-          locale: locale,
-          supportedLocales: AppLocales.supportedLocales,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+            // Localization
+            locale: locale,
+            supportedLocales: AppLocales.supportedLocales,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
 
-          // Builder for screen utils and text scaling
-          builder: (context, child) {
-            // Limit text scaling for accessibility
-            final mediaQueryData = MediaQuery.of(context);
-            final constrainedTextScaleFactor = mediaQueryData.textScaler.clamp(
-              minScaleFactor: 0.8,
-              maxScaleFactor: 1.2,
-            );
+            // Builder for screen utils and text scaling
+            builder: (context, child) {
+              // Limit text scaling for accessibility
+              final mediaQueryData = MediaQuery.of(context);
+              final constrainedTextScaleFactor = mediaQueryData.textScaler
+                  .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2);
 
-            return MediaQuery(
-              data: mediaQueryData.copyWith(
-                textScaler: constrainedTextScaleFactor,
-              ),
-              // Dismiss keyboard when tapping outside of input fields
-              child: GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: child ?? const SizedBox.shrink(),
-              ),
-            );
-          },
-        ),
+              return MediaQuery(
+                data: mediaQueryData.copyWith(
+                  textScaler: constrainedTextScaleFactor,
+                ),
+                // Dismiss keyboard when tapping outside of input fields
+                child: GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              );
+            },
+          ),
         );
       },
     );

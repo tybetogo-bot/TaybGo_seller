@@ -283,8 +283,6 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
-      case OrderStatusEnum.completed:
-        return 'orders.status.completed'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.status.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -322,8 +320,6 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return 0.75;
       case OrderStatusEnum.delivered:
-        return 0.9;
-      case OrderStatusEnum.completed:
         return 1.0;
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
@@ -344,9 +340,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
-        return const Color(0xFF8BC34A); // Light Green - Delivered
-      case OrderStatusEnum.completed:
-        return const Color(0xFF4CAF50); // Green - Completed
+        return const Color(0xFF4CAF50); // Green - Delivered (final success)
       case OrderStatusEnum.rejected:
         return const Color(0xFFF44336); // Red - Rejected
       case OrderStatusEnum.cancelled:
@@ -367,9 +361,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
-        return Icons.where_to_vote_rounded; // Arrived
-      case OrderStatusEnum.completed:
-        return Icons.check_circle_rounded; // Completed
+        return Icons.check_circle_rounded; // Delivered (final success)
       case OrderStatusEnum.rejected:
         return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
@@ -391,8 +383,6 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.statusDesc.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.statusDesc.delivered'.tr;
-      case OrderStatusEnum.completed:
-        return 'orders.statusDesc.completed'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.statusDesc.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -407,7 +397,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final status = order.status;
     final statusColor = _getStatusColor(status);
     final isTerminal =
-        status == OrderStatusEnum.completed ||
+        status == OrderStatusEnum.delivered ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled;
     final nextStatus = status.nextStatus;
