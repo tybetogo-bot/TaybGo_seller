@@ -4,6 +4,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/exceptions.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/network/user_api.dart';
 import '../../../core/network/restaurant_api.dart';
@@ -82,11 +83,11 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
         'street_name': streetName,
         'house_number': houseNumber,
         'city': city,
-        'postal_code': postalCode,
+        if (postalCode.isNotEmpty) 'postal_code': postalCode,
         'country': country,
         if (fullAddress != null) 'full_address': fullAddress,
-        if (lat != null) 'lat': lat.toString(),
-        if (lng != null) 'lng': lng.toString(),
+        if (lat != null) 'lat': double.parse(lat.toStringAsFixed(6)),
+        if (lng != null) 'lng': double.parse(lng.toStringAsFixed(6)),
       });
 
       final addressId = addressData['id'];
@@ -107,15 +108,15 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
 
       state = const OnboardingSuccess();
     } on DioException catch (e) {
-      final data = e.response?.data;
-      String errorMessage = 'Something went wrong. Please try again.';
-      if (data is Map<String, dynamic>) {
-        // Try common API error response formats
-        errorMessage = (data['message'] ?? data['detail'] ?? data['error'] ?? errorMessage).toString();
-      } else if (e.message != null) {
-        errorMessage = e.message!;
+      // The error interceptor wraps the error as an ApiException with extracted message
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        state = OnboardingError(message: apiError.message);
+      } else {
+        state = OnboardingError(
+          message: e.message ?? 'Something went wrong. Please try again.',
+        );
       }
-      state = OnboardingError(message: errorMessage);
     } catch (e) {
       state = OnboardingError(message: e.toString());
     }

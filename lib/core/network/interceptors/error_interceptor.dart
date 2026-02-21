@@ -13,6 +13,9 @@ class ErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     _logger.e('API Error: ${err.message}', error: err);
+    if (err.response?.data != null) {
+      _logger.e('Response body: ${err.response?.data}');
+    }
 
     // Convert DioException to custom ApiException
     final exception = _handleError(err);
