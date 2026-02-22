@@ -45,7 +45,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   // New fields for coupon and vehicle/delivery types
   String? _selectedCouponId;
   VehicleType? _selectedVehicleType = VehicleType.bike;
-  VehicleType? _selectedDeliveryType = VehicleType.bike;
 
   @override
   void initState() {
@@ -332,7 +331,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         isManual: true,
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
-        requestedDeliveryType: _selectedDeliveryType,
+        requestedDeliveryType: _selectedVehicleType,
         pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
@@ -591,37 +590,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                 ),
                 SizedBox(height: 12.h),
 
-                // Vehicle Type and Delivery Type dropdowns
-                Row(
-                  children: [
-                    Expanded(
-                      child: _VehicleTypeDropdown(
-                        label: 'orders.requestedVehicleType'.tr,
-                        value: _selectedVehicleType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedVehicleType = value;
-                          });
-                          markAsChanged();
-                        },
-                        isDark: isDark,
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: _VehicleTypeDropdown(
-                        label: 'orders.requestedDeliveryType'.tr,
-                        value: _selectedDeliveryType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDeliveryType = value;
-                          });
-                          markAsChanged();
-                        },
-                        isDark: isDark,
-                      ),
-                    ),
-                  ],
+                // Vehicle Type dropdown
+                _VehicleTypeDropdown(
+                  label: 'orders.requestedVehicleType'.tr,
+                  value: _selectedVehicleType,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedVehicleType = value;
+                    });
+                    markAsChanged();
+                  },
+                  isDark: isDark,
                 ),
 
                 SizedBox(height: 24.h),
@@ -877,7 +856,7 @@ class _VehicleTypeDropdown extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 12.w),
               borderRadius: BorderRadius.circular(12.r),
               dropdownColor: isDark ? DarkColors.surface : LightColors.surface,
-              items: VehicleType.values.map((type) {
+              items: [VehicleType.bike, VehicleType.car].map((type) {
                 return DropdownMenuItem<VehicleType>(
                   value: type,
                   child: Row(
