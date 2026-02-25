@@ -234,7 +234,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       },
                       child: RepaintBoundary(
                         child: Image.asset(
-                          'assets/icons/logo.jpg',
+                          'assets/icons/TaybGo_green.png',
                           width: 280.w,
                           height: 140.w,
                           fit: BoxFit.contain,

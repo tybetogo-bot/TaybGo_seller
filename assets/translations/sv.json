@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Hungrig? Sent ute? Glömt något? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Hungrig? Sent ute? Glömt något? TaybGo!"
   },
   "common": {
     "save": "Spara",
@@ -560,7 +560,7 @@
     "title": "Om",
     "version": "Version {version}",
     "description": "Hantera din restaurangs beställningar, meny och kunder – allt på ett ställe.",
-    "copyright": "© 2024 TybeToGo. Alla rättigheter förbehållna."
+    "copyright": "© 2024 TaybGo. Alla rättigheter förbehållna."
   },
   "validation": {
     "required": "Det här fältet är obligatoriskt",
@@ -591,10 +591,10 @@
     "noRestaurants": "Inga restauranger hittades",
     "contactSupport": "Kontakta support för att konfigurera din restaurang",
     "retry": "Försök igen",
-    "noRestaurantWelcome": "Välkommen till TybeToGo!",
+    "noRestaurantWelcome": "Välkommen till TaybGo!",
     "noRestaurantMessage": "Ditt konto har för närvarande inga restauranger kopplade till sig. Kontakta vårt team så hjälper vi dig att sätta upp din restaurang.",
     "contactUsTitle": "Kontakta oss",
-    "thankYou": "Tack för att du väljer TybeToGo. Vi ser fram emot att arbeta med dig!",
+    "thankYou": "Tack för att du väljer TaybGo. Vi ser fram emot att arbeta med dig!",
     "emailCopied": "E-post kopierad till urklipp",
     "phoneCopied": "Telefonnummer kopierat till urklipp"
   },
@@ -707,10 +707,10 @@
       "tips": "Tips och tricks"
     },
     "gsWelcome": {
-      "title": "Välkommen till TybeToGo Seller",
+      "title": "Välkommen till TaybGo Seller",
       "description": "En översikt av appen och vad du kan göra med den.",
-      "s1Title": "Vad är TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller är din allt-i-ett-app för restauranghantering. Med den kan du ta emot och hantera beställningar, uppdatera din meny i realtid, skapa kampanjkuponger och följa din affärsutveckling – allt från din telefon.",
+      "s1Title": "Vad är TaybGo Seller?",
+      "s1Body": "TaybGo Seller är din allt-i-ett-app för restauranghantering. Med den kan du ta emot och hantera beställningar, uppdatera din meny i realtid, skapa kampanjkuponger och följa din affärsutveckling – allt från din telefon.",
       "s2Title": "Viktiga funktioner",
       "s2Body": "• Realtidshantering av beställningar med statusspårning\n• Fullständig menyredigering med kategorier, bilder och anpassningar\n• Skapande av kuponger och rabatthantering\n• Affärsanalys och intäktsspårning\n• AI-driven beställningsskanning för manuella beställningar\n• Push-aviseringar för nya beställningar\n• Mörkt läge och temananpassning\n• Flerspråksstöd (engelska, arabiska, tyska, franska)",
       "s3Title": "Få hjälp",
@@ -842,7 +842,7 @@
       "title": "Aviseringsinställningar",
       "description": "Konfigurera vilka aviseringar du får.",
       "s1Title": "Aviseringstyper",
-      "s1Body": "Du kan konfigurera aviseringar för:\n\n• Nya beställningar – Bli aviserad när en ny beställning anländer\n• Beställningsuppdateringar – Statusändringar för dina beställningar\n• Kampanjer – Nyheter och specialerbjudanden från TybeToGo",
+      "s1Body": "Du kan konfigurera aviseringar för:\n\n• Nya beställningar – Bli aviserad när en ny beställning anländer\n• Beställningsuppdateringar – Statusändringar för dina beställningar\n• Kampanjer – Nyheter och specialerbjudanden från TaybGo",
       "s2Title": "Ljud och haptik",
       "s2Body": "I aviseringsinställningarna kan du även styra:\n\n• Ljud – Aktivera eller inaktivera aviseringsljud\n• Vibration – Aktivera eller inaktivera haptisk återkoppling\n\nDessa inställningar är oberoende av enhetens systeminställningar för aviseringar.",
       "s3Title": "Visa aviseringar",
@@ -1075,7 +1075,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Välkommen till TybeToGo Seller",
+    "title": "Välkommen till TaybGo Seller",
     "description": "Ta en snabb rundtur för att upptäcka hur du hanterar beställningar, uppdaterar din meny och spårar din prestanda.",
     "benefit1": "Lär dig viktiga funktioner på under 5 minuter",
     "benefit2": "Se hur du hanterar beställningar effektivt",

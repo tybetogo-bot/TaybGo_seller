@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/network/user_api.dart';
-import '../../../core/network/restaurant_api.dart';
 
 /// Onboarding state
 sealed class OnboardingState {
@@ -32,22 +31,18 @@ class OnboardingError extends OnboardingState {
   final String message;
 }
 
-/// Onboarding notifier handles the full onboarding flow:
-/// 1. Create seller profile
-/// 2. Create address
-/// 3. Create restaurant
+/// Onboarding notifier handles the full onboarding flow
+/// using the single POST /api/seller/onboarding/ endpoint.
 class OnboardingNotifier extends Notifier<OnboardingState> {
   late final UserApi _userApi;
-  late final RestaurantApi _restaurantApi;
 
   @override
   OnboardingState build() {
     _userApi = ref.watch(userApiProvider);
-    _restaurantApi = ref.watch(restaurantApiProvider);
     return const OnboardingInitial();
   }
 
-  /// Submit the full onboarding flow
+  /// Submit the full onboarding flow in a single API call
   Future<void> submitOnboarding({
     // Profile fields
     required String name,
@@ -67,48 +62,34 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     double? lng,
   }) async {
     try {
-      // Step 1: Create seller profile
-      state = const OnboardingLoading(step: 'profile');
-      await _userApi.createSellerProfile({
-        'name': name,
-        'phone': phone,
-        if (age != null) 'age': age,
-      });
+      state = const OnboardingLoading();
 
-      // Step 2: Create address
-      state = const OnboardingLoading(step: 'address');
-      final addressData = await _userApi.createAddress({
-        'label': restaurantName,
-        'is_default': true,
-        'street_name': streetName,
-        'house_number': houseNumber,
-        'city': city,
-        if (postalCode.isNotEmpty) 'postal_code': postalCode,
-        'country': country,
-        if (fullAddress != null) 'full_address': fullAddress,
-        if (lat != null) 'lat': double.parse(lat.toStringAsFixed(6)),
-        if (lng != null) 'lng': double.parse(lng.toStringAsFixed(6)),
-      });
-
-      final addressId = addressData['id'];
-      if (addressId == null) {
-        state = const OnboardingError(
-          message: 'Failed to create address. Please try again.',
-        );
-        return;
-      }
-
-      // Step 3: Create restaurant
-      state = const OnboardingLoading(step: 'restaurant');
-      await _restaurantApi.createRestaurant({
-        'name': restaurantName,
-        'phone': restaurantPhone,
-        'address_id': addressId,
+      await _userApi.submitOnboarding({
+        'seller_profile': {
+          'name': name,
+          'phone': phone,
+          if (age != null) 'age': age,
+        },
+        'address': {
+          'label': restaurantName,
+          'is_default': true,
+          'street_name': streetName,
+          'house_number': houseNumber,
+          'city': city,
+          if (postalCode.isNotEmpty) 'postal_code': postalCode,
+          'country': country,
+          if (fullAddress != null) 'full_address': fullAddress,
+          if (lat != null) 'lat': lat.toStringAsFixed(6),
+          if (lng != null) 'lng': lng.toStringAsFixed(6),
+        },
+        'restaurant': {
+          'name': restaurantName,
+          'phone': restaurantPhone,
+        },
       });
 
       state = const OnboardingSuccess();
     } on DioException catch (e) {
-      // The error interceptor wraps the error as an ApiException with extracted message
       final apiError = e.error;
       if (apiError is ApiException) {
         state = OnboardingError(message: apiError.message);

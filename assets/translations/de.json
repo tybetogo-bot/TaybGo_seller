@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Verkäufer",
-    "tagline": "Hungrig? Zu spät? Etwas vergessen? TybeToGo!"
+    "name": "TaybGo Verkäufer",
+    "tagline": "Hungrig? Zu spät? Etwas vergessen? TaybGo!"
   },
   "common": {
     "save": "Speichern",
@@ -535,7 +535,7 @@
     "title": "Über",
     "version": "Version {version}",
     "description": "Verwalten Sie Bestellungen, Menü und Kunden an einem Ort.",
-    "copyright": "© 2024 TybeToGo. Alle Rechte vorbehalten."
+    "copyright": "© 2024 TaybGo. Alle Rechte vorbehalten."
   },
   "validation": {
     "required": "Pflichtfeld",
@@ -566,10 +566,10 @@
     "noRestaurants": "Keine Restaurants gefunden",
     "contactSupport": "Bitte kontaktieren Sie den Support, um Ihr Restaurant einzurichten",
     "retry": "Wiederholen",
-    "noRestaurantWelcome": "Willkommen bei TybeToGo!",
+    "noRestaurantWelcome": "Willkommen bei TaybGo!",
     "noRestaurantMessage": "Ihrem Konto sind derzeit keine Restaurants zugeordnet. Bitte kontaktieren Sie unser Team, damit wir Ihr Restaurant einrichten können.",
     "contactUsTitle": "Kontaktieren Sie uns",
-    "thankYou": "Vielen Dank, dass Sie sich für TybeToGo entschieden haben. Wir freuen uns auf die Zusammenarbeit!",
+    "thankYou": "Vielen Dank, dass Sie sich für TaybGo entschieden haben. Wir freuen uns auf die Zusammenarbeit!",
     "emailCopied": "E-Mail in die Zwischenablage kopiert",
     "phoneCopied": "Telefonnummer in die Zwischenablage kopiert"
   },
@@ -682,10 +682,10 @@
       "tips": "Tipps & Tricks"
     },
     "gsWelcome": {
-      "title": "Willkommen bei TybeToGo Verkäufer",
+      "title": "Willkommen bei TaybGo Verkäufer",
       "description": "Ein Überblick über die App und was Sie damit tun können.",
-      "s1Title": "Was ist TybeToGo Verkäufer?",
-      "s1Body": "TybeToGo Verkäufer ist Ihre All-in-One-App zur Restaurantverwaltung. Sie können Bestellungen empfangen und verwalten, Ihr Menü in Echtzeit aktualisieren, Werbegutscheine erstellen und Ihre Geschäftsleistung verfolgen — alles von Ihrem Handy aus.",
+      "s1Title": "Was ist TaybGo Verkäufer?",
+      "s1Body": "TaybGo Verkäufer ist Ihre All-in-One-App zur Restaurantverwaltung. Sie können Bestellungen empfangen und verwalten, Ihr Menü in Echtzeit aktualisieren, Werbegutscheine erstellen und Ihre Geschäftsleistung verfolgen — alles von Ihrem Handy aus.",
       "s2Title": "Hauptfunktionen",
       "s2Body": "• Echtzeit-Bestellverwaltung mit Statusverfolgung\n• Vollständige Menübearbeitung mit Kategorien, Bildern und Anpassungen\n• Gutscheinerstellung und Rabattverwaltung\n• Geschäftsanalysen und Umsatzverfolgung\n• KI-gestütztes Scannen für manuelle Bestellungen\n• Push-Benachrichtigungen für neue Bestellungen\n• Dunkelmodus und Designanpassung\n• Mehrsprachige Unterstützung (Englisch, Arabisch, Deutsch, Französisch)",
       "s3Title": "Hilfe erhalten",
@@ -817,7 +817,7 @@
       "title": "Benachrichtigungseinstellungen",
       "description": "Konfigurieren Sie, welche Benachrichtigungen Sie erhalten.",
       "s1Title": "Benachrichtigungstypen",
-      "s1Body": "Sie können Benachrichtigungen konfigurieren für:\n\n• Neue Bestellungen — Benachrichtigung bei neuen Bestellungen\n• Bestellaktualisierungen — Statusänderungen Ihrer Bestellungen\n• Aktionen — Neuigkeiten und Sonderangebote von TybeToGo",
+      "s1Body": "Sie können Benachrichtigungen konfigurieren für:\n\n• Neue Bestellungen — Benachrichtigung bei neuen Bestellungen\n• Bestellaktualisierungen — Statusänderungen Ihrer Bestellungen\n• Aktionen — Neuigkeiten und Sonderangebote von TaybGo",
       "s2Title": "Ton & Haptik",
       "s2Body": "In den Benachrichtigungseinstellungen können Sie auch steuern:\n\n• Ton — Benachrichtigungstöne aktivieren oder deaktivieren\n• Vibration — Haptisches Feedback aktivieren oder deaktivieren",
       "s3Title": "Benachrichtigungen anzeigen",
@@ -1050,7 +1050,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Willkommen bei TybeToGo Verkäufer",
+    "title": "Willkommen bei TaybGo Verkäufer",
     "description": "Machen Sie eine kurze Tour, um zu erfahren, wie Sie Bestellungen verwalten, Ihr Menü aktualisieren und Ihre Leistung verfolgen.",
     "benefit1": "Lernen Sie die wichtigsten Funktionen in unter 5 Minuten",
     "benefit2": "Sehen Sie, wie Sie Bestellungen effizient bearbeiten",

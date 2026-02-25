@@ -116,6 +116,10 @@ class Routes {
   static const String pendingReview = '/pending-review';
   static const String pendingReviewName = 'pendingReview';
 
+  // Standalone knowledge base (outside shell, for pending review)
+  static const String standaloneKnowledgeBase = '/knowledge-base';
+  static const String standaloneKnowledgeBaseName = 'standaloneKnowledgeBase';
+
   // ============ Public Menu ============
   static const String publicMenu = '/public-menu/:restaurantId';
   static const String publicMenuName = 'publicMenu';

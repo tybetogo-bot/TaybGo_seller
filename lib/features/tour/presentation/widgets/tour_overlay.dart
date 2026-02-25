@@ -10,6 +10,7 @@ import 'package:teybatseller/features/menu/application/menu_notifier.dart';
 import 'package:teybatseller/features/orders/application/orders_notifier.dart';
 import 'package:teybatseller/features/profile/application/user_profile_notifier.dart';
 import 'package:teybatseller/features/restaurant/application/restaurant_state.dart';
+import 'package:teybatseller/features/restaurant/data/models/restaurant_model.dart';
 import 'package:teybatseller/features/tour/application/mock_providers.dart';
 import 'package:teybatseller/features/tour/application/tour_notifier.dart';
 import 'package:teybatseller/features/tour/data/tour_steps_data.dart';
@@ -20,10 +21,23 @@ void _tourLog(String message) {
   }
 }
 
+/// Check if user has only pending restaurants (no active ones)
+bool _isPendingReview(WidgetRef ref) {
+  final restaurantState = ref.read(restaurantProvider);
+  if (restaurantState is RestaurantLoaded) {
+    return restaurantState.restaurants.isNotEmpty &&
+        restaurantState.restaurants.every(
+          (r) => r.status == RestaurantStatus.pending,
+        );
+  }
+  return false;
+}
+
 /// Show a dialog informing the user that the tour is accessible from the knowledge base
-void _showTourDismissedDialog(BuildContext context) {
+void _showTourDismissedDialog(BuildContext context, WidgetRef ref) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final primaryColor = Theme.of(context).colorScheme.primary;
+  final isPending = _isPendingReview(ref);
 
   showDialog(
     context: context,
@@ -59,7 +73,12 @@ void _showTourDismissedDialog(BuildContext context) {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+            onPressed: () {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+              if (isPending) {
+                context.go(Routes.pendingReview);
+              }
+            },
             child: Text(
               'common.close'.tr,
               style: TextStyle(
@@ -67,19 +86,20 @@ void _showTourDismissedDialog(BuildContext context) {
               ),
             ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext, rootNavigator: true).pop();
-              context.push(Routes.knowledgeBase);
-            },
-            child: Text(
-              'tour.goToKnowledgeBase'.tr,
-              style: TextStyle(
-                color: primaryColor,
-                fontWeight: FontWeight.w600,
+          if (!isPending)
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext, rootNavigator: true).pop();
+                context.push(Routes.knowledgeBase);
+              },
+              child: Text(
+                'tour.goToKnowledgeBase'.tr,
+                style: TextStyle(
+                  color: primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
         ],
       ),
     ),
@@ -624,7 +644,7 @@ class _TooltipCard extends ConsumerWidget {
                   if (context.mounted) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (context.mounted) {
-                        _showTourDismissedDialog(context);
+                        _showTourDismissedDialog(context, ref);
                       }
                     });
                   }
@@ -673,7 +693,7 @@ class _TooltipCard extends ConsumerWidget {
                     if (context.mounted) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (context.mounted) {
-                          _showTourDismissedDialog(context);
+                          _showTourDismissedDialog(context, ref);
                         }
                       });
                     }

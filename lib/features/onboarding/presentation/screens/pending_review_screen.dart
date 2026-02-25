@@ -174,16 +174,7 @@ class _PendingReviewScreenState extends ConsumerState<PendingReviewScreen> {
                       title: 'pendingReview.knowledgeBase'.tr,
                       subtitle: 'pendingReview.knowledgeBaseDesc'.tr,
                       isDark: isDark,
-                      onTap: () => context.push(Routes.knowledgeBase),
-                    ),
-                    SizedBox(height: 12.h),
-
-                    _ActionCard(
-                      icon: Icons.help_outline,
-                      title: 'pendingReview.helpSupport'.tr,
-                      subtitle: 'pendingReview.helpSupportDesc'.tr,
-                      isDark: isDark,
-                      onTap: () => context.push(Routes.help),
+                      onTap: () => context.push(Routes.standaloneKnowledgeBase),
                     ),
                     SizedBox(height: 32.h),
 

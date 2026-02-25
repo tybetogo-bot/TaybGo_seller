@@ -6,8 +6,8 @@ class AppConfig {
   AppConfig._();
 
   // App Info
-  static const String appName = 'TybeToGo Seller';
-  static const String appNameAr = 'تايب تو جو البائع';
+  static const String appName = 'TaybGo Seller';
+  static const String appNameAr = 'طيب قو البائع';
   static const String appVersion = '1.0.0';
 
   // API Configuration

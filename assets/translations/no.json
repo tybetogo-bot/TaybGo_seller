@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Sulten? Forsinket? Glemt noe? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Sulten? Forsinket? Glemt noe? TaybGo!"
   },
   "common": {
     "save": "Lagre",
@@ -560,7 +560,7 @@
     "title": "Om",
     "version": "Versjon {version}",
     "description": "Administrer restaurantbestillinger, meny og kunder på ett sted.",
-    "copyright": "© 2024 TybeToGo. Alle rettigheter forbeholdt."
+    "copyright": "© 2024 TaybGo. Alle rettigheter forbeholdt."
   },
   "validation": {
     "required": "Dette feltet er påkrevd",
@@ -591,10 +591,10 @@
     "noRestaurants": "Ingen restauranter funnet",
     "contactSupport": "Kontakt support for å sette opp restauranten din",
     "retry": "Prøv igjen",
-    "noRestaurantWelcome": "Velkommen til TybeToGo!",
+    "noRestaurantWelcome": "Velkommen til TaybGo!",
     "noRestaurantMessage": "Kontoen din har for øyeblikket ingen restauranter tilknyttet. Kontakt teamet vårt så vi kan sette opp restauranten din.",
     "contactUsTitle": "Kontakt oss",
-    "thankYou": "Takk for at du valgte TybeToGo. Vi ser frem til å samarbeide med deg!",
+    "thankYou": "Takk for at du valgte TaybGo. Vi ser frem til å samarbeide med deg!",
     "emailCopied": "E-post kopiert til utklippstavlen",
     "phoneCopied": "Telefonnummer kopiert til utklippstavlen"
   },
@@ -707,10 +707,10 @@
       "tips": "Tips og triks"
     },
     "gsWelcome": {
-      "title": "Velkommen til TybeToGo Seller",
+      "title": "Velkommen til TaybGo Seller",
       "description": "En oversikt over appen og hva du kan gjøre med den.",
-      "s1Title": "Hva er TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller er din alt-i-ett restaurantadministrasjonsapp. Den lar deg motta og administrere bestillinger, oppdatere menyen i sanntid, opprette kampanjekuponer og følge forretningsytelsen — alt fra telefonen.",
+      "s1Title": "Hva er TaybGo Seller?",
+      "s1Body": "TaybGo Seller er din alt-i-ett restaurantadministrasjonsapp. Den lar deg motta og administrere bestillinger, oppdatere menyen i sanntid, opprette kampanjekuponer og følge forretningsytelsen — alt fra telefonen.",
       "s2Title": "Nøkkelfunksjoner",
       "s2Body": "• Sanntids bestillingshåndtering med statussporing\n• Full menyredigering med kategorier, bilder og tilpasninger\n• Kuponger og rabattadministrasjon\n• Forretningsanalyse og inntektssporing\n• AI-drevet bestillingsskanning for manuelle bestillinger\n• Push-varsler for nye bestillinger\n• Mørkt modus og temapersonalisering\n• Flerspråklig støtte (engelsk, arabisk, tysk, fransk)",
       "s3Title": "Få hjelp",
@@ -842,7 +842,7 @@
       "title": "Varslingsinnstillinger",
       "description": "Konfigurer hvilke varsler du mottar.",
       "s1Title": "Varslingstyper",
-      "s1Body": "Du kan konfigurere varsler for:\n\n• Nye bestillinger — Bli varslet når en ny bestilling ankommer\n• Bestillingsoppdateringer — Statusendringer på bestillingene dine\n• Kampanjer — Nyheter og spesialtilbud fra TybeToGo",
+      "s1Body": "Du kan konfigurere varsler for:\n\n• Nye bestillinger — Bli varslet når en ny bestilling ankommer\n• Bestillingsoppdateringer — Statusendringer på bestillingene dine\n• Kampanjer — Nyheter og spesialtilbud fra TaybGo",
       "s2Title": "Lyd og haptikk",
       "s2Body": "I varslingsinnstillingene kan du også kontrollere:\n\n• Lyd — Aktiver eller deaktiver varslingslyder\n• Vibrasjon — Aktiver eller deaktiver haptisk tilbakemelding\n\nDisse innstillingene er uavhengige av enhetens systemvarslingsinnstillinger.",
       "s3Title": "Se varsler",
@@ -1075,7 +1075,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Velkommen til TybeToGo Seller",
+    "title": "Velkommen til TaybGo Seller",
     "description": "Ta en rask omvisning for å oppdage hvordan du administrerer bestillinger, oppdaterer menyen og sporer ytelsen din.",
     "benefit1": "Lær nøkkelfunksjoner på under 5 minutter",
     "benefit2": "Se hvordan du håndterer bestillinger effektivt",

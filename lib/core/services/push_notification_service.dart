@@ -57,51 +57,66 @@ class PushNotificationService {
     if (_initialized) return;
     _initialized = true;
 
-    // Register the background handler.
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    try {
+      // On web, only set up message listeners — skip native-only APIs.
+      if (kIsWeb) {
+        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+        // Don't request permission at startup on web — browsers block the
+        // dialog unless triggered by a user gesture. Permission will be
+        // requested later when the user interacts with notification settings.
+        print('🔔 [FCM] Web push listeners registered (permission deferred)');
+        return;
+      }
 
-    // Create the Android notification channel.
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_highImportanceChannel);
+      // Register the background handler (mobile only).
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // Initialize local notifications plugin.
-    await _localNotifications.initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
+      // Create the Android notification channel.
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_highImportanceChannel);
+
+      // Initialize local notifications plugin.
+      await _localNotifications.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          iOS: DarwinInitializationSettings(
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
+          ),
         ),
-      ),
-      onDidReceiveNotificationResponse: _onLocalNotificationTap,
-    );
+        onDidReceiveNotificationResponse: _onLocalNotificationTap,
+      );
 
-    // Request permission (shows the OS dialog on iOS / Android 13+).
-    await requestPermission();
+      // Request permission (shows the OS dialog on iOS / Android 13+).
+      await requestPermission();
 
-    // Listen for foreground messages.
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      // Listen for foreground messages.
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
-    // Listen for notification taps that open the app from background.
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      // Listen for notification taps that open the app from background.
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    // Check if the app was opened from a terminated-state notification.
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      _handleNotificationTap(initialMessage);
+      // Check if the app was opened from a terminated-state notification.
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        _handleNotificationTap(initialMessage);
+      }
+
+      // iOS foreground presentation options.
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      print('🔔 [FCM] Push notification service initialized');
+    } catch (e) {
+      print('🔴 [FCM] Initialization error (non-fatal): $e');
     }
-
-    // iOS foreground presentation options.
-    await _messaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    print('🔔 [FCM] Push notification service initialized');
   }
 
   // ---------------------------------------------------------------------------

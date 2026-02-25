@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Honger? Te laat? Iets vergeten? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Honger? Te laat? Iets vergeten? TaybGo!"
   },
   "common": {
     "save": "Opslaan",
@@ -560,7 +560,7 @@
     "title": "Over",
     "version": "Versie {version}",
     "description": "Beheer uw restaurantbestellingen, menu en klanten allemaal op één plek.",
-    "copyright": "© 2024 TybeToGo. Alle rechten voorbehouden."
+    "copyright": "© 2024 TaybGo. Alle rechten voorbehouden."
   },
   "validation": {
     "required": "Dit veld is verplicht",
@@ -591,10 +591,10 @@
     "noRestaurants": "Geen restaurants gevonden",
     "contactSupport": "Neem contact op met ondersteuning om uw restaurant in te stellen",
     "retry": "Opnieuw proberen",
-    "noRestaurantWelcome": "Welkom bij TybeToGo!",
+    "noRestaurantWelcome": "Welkom bij TaybGo!",
     "noRestaurantMessage": "Uw account heeft momenteel geen gekoppelde restaurants. Neem contact op met ons team zodat we uw restaurant kunnen instellen en klaar kunnen maken.",
     "contactUsTitle": "Neem contact op",
-    "thankYou": "Bedankt voor uw keuze voor TybeToGo. We kijken ernaar uit met u samen te werken!",
+    "thankYou": "Bedankt voor uw keuze voor TaybGo. We kijken ernaar uit met u samen te werken!",
     "emailCopied": "E-mail gekopieerd naar klembord",
     "phoneCopied": "Telefoonnummer gekopieerd naar klembord"
   },
@@ -707,10 +707,10 @@
       "tips": "Tips en trucs"
     },
     "gsWelcome": {
-      "title": "Welkom bij TybeToGo Seller",
+      "title": "Welkom bij TaybGo Seller",
       "description": "Een overzicht van de app en wat u ermee kunt doen.",
-      "s1Title": "Wat is TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller is uw alles-in-één restaurantbeheer-app. Hiermee kunt u bestellingen ontvangen en beheren, uw menu in realtime bijwerken, promotionele kortingsbonnen aanmaken en uw bedrijfsprestaties bijhouden — allemaal vanaf uw telefoon.",
+      "s1Title": "Wat is TaybGo Seller?",
+      "s1Body": "TaybGo Seller is uw alles-in-één restaurantbeheer-app. Hiermee kunt u bestellingen ontvangen en beheren, uw menu in realtime bijwerken, promotionele kortingsbonnen aanmaken en uw bedrijfsprestaties bijhouden — allemaal vanaf uw telefoon.",
       "s2Title": "Hoofdfuncties",
       "s2Body": "• Realtime bestelbeheer met statusregistratie\n• Volledig menubeheer met categorieën, afbeeldingen en aanpassingen\n• Aanmaken van kortingsbonnen en kortingsbeheer\n• Bedrijfsanalyses en omzetregistratie\n• AI-gestuurde bestelscan voor handmatige bestellingen\n• Pushmeldingen voor nieuwe bestellingen\n• Donkere modus en thema-aanpassing\n• Meertalige ondersteuning (Engels, Arabisch, Duits, Frans)",
       "s3Title": "Hulp krijgen",
@@ -842,7 +842,7 @@
       "title": "Meldingsvoorkeuren",
       "description": "Configureer welke meldingen u ontvangt.",
       "s1Title": "Meldingstypen",
-      "s1Body": "U kunt meldingen configureren voor:\n\n• Nieuwe bestellingen — Ontvang een waarschuwing wanneer een nieuwe bestelling binnenkomt\n• Bestelupdates — Statuswijzigingen van uw bestellingen\n• Promoties — Nieuws en speciale aanbiedingen van TybeToGo",
+      "s1Body": "U kunt meldingen configureren voor:\n\n• Nieuwe bestellingen — Ontvang een waarschuwing wanneer een nieuwe bestelling binnenkomt\n• Bestelupdates — Statuswijzigingen van uw bestellingen\n• Promoties — Nieuws en speciale aanbiedingen van TaybGo",
       "s2Title": "Geluid en trillingen",
       "s2Body": "In de meldingsinstellingen kunt u ook het volgende beheren:\n\n• Geluid — Meldingsgeluiden in- of uitschakelen\n• Trillen — Haptische feedback in- of uitschakelen\n\nDeze instellingen zijn onafhankelijk van de systeemmeldingsinstellingen van uw apparaat.",
       "s3Title": "Meldingen bekijken",
@@ -1075,7 +1075,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Welkom bij TybeToGo Seller",
+    "title": "Welkom bij TaybGo Seller",
     "description": "Maak een korte rondleiding om te ontdekken hoe u bestellingen beheert, uw menu bijwerkt en uw prestaties bijhoudt.",
     "benefit1": "Leer de belangrijkste functies in minder dan 5 minuten",
     "benefit2": "Bekijk hoe u bestellingen efficiënt verwerkt",

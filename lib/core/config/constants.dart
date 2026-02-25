@@ -105,8 +105,8 @@ abstract class AssetPaths {
   static const String translations = 'assets/translations';
 
   // Specific assets
-  static const String logo = '$images/logo.png';
-  static const String logoWhite = '$images/logo_white.png';
+  static const String logo = '$icons/TaybGo_green.png';
+  static const String logoWhite = '$icons/TaybGo_white.png';
   static const String placeholder = '$images/placeholder.png';
   static const String emptyOrders = '$images/empty_orders.png';
   static const String emptyMenu = '$images/empty_menu.png';

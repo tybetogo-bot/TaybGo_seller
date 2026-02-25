@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Hai fame? Sei in ritardo? Hai dimenticato qualcosa? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Hai fame? Sei in ritardo? Hai dimenticato qualcosa? TaybGo!"
   },
   "common": {
     "save": "Salva",
@@ -559,7 +559,7 @@
     "title": "Informazioni",
     "version": "Versione {version}",
     "description": "Gestisci gli ordini del tuo ristorante, il menu e i clienti tutto in un unico posto.",
-    "copyright": "© 2024 TybeToGo. Tutti i diritti riservati."
+    "copyright": "© 2024 TaybGo. Tutti i diritti riservati."
   },
   "validation": {
     "required": "Questo campo è obbligatorio",
@@ -590,10 +590,10 @@
     "noRestaurants": "Nessun ristorante trovato",
     "contactSupport": "Contatta il supporto per configurare il tuo ristorante",
     "retry": "Riprova",
-    "noRestaurantWelcome": "Benvenuto su TybeToGo!",
+    "noRestaurantWelcome": "Benvenuto su TaybGo!",
     "noRestaurantMessage": "Il tuo account non ha attualmente nessun ristorante collegato. Contatta il nostro team per configurare il tuo ristorante e renderlo operativo.",
     "contactUsTitle": "Contattaci",
-    "thankYou": "Grazie per aver scelto TybeToGo. Non vediamo l'ora di lavorare con te!",
+    "thankYou": "Grazie per aver scelto TaybGo. Non vediamo l'ora di lavorare con te!",
     "emailCopied": "Email copiata negli appunti",
     "phoneCopied": "Numero di telefono copiato negli appunti"
   },
@@ -706,10 +706,10 @@
       "tips": "Consigli e trucchi"
     },
     "gsWelcome": {
-      "title": "Benvenuto su TybeToGo Seller",
+      "title": "Benvenuto su TaybGo Seller",
       "description": "Una panoramica dell'app e di cosa puoi fare con essa.",
-      "s1Title": "Cos'è TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller è la tua app di gestione ristorante tutto-in-uno. Ti permette di ricevere e gestire gli ordini, aggiornare il menu in tempo reale, creare coupon promozionali e monitorare le prestazioni della tua attività — tutto dal tuo telefono.",
+      "s1Title": "Cos'è TaybGo Seller?",
+      "s1Body": "TaybGo Seller è la tua app di gestione ristorante tutto-in-uno. Ti permette di ricevere e gestire gli ordini, aggiornare il menu in tempo reale, creare coupon promozionali e monitorare le prestazioni della tua attività — tutto dal tuo telefono.",
       "s2Title": "Funzioni principali",
       "s2Body": "• Gestione ordini in tempo reale con tracciamento stato\n• Modifica completa del menu con categorie, immagini e personalizzazioni\n• Creazione coupon e gestione sconti\n• Analisi aziendale e tracciamento ricavi\n• Scansione ordini con AI per ordini manuali\n• Notifiche push per nuovi ordini\n• Modalità scura e personalizzazione del tema\n• Supporto multilingue (inglese, arabo, tedesco, francese)",
       "s3Title": "Ottenere aiuto",
@@ -841,7 +841,7 @@
       "title": "Preferenze notifiche",
       "description": "Configura quali notifiche ricevere.",
       "s1Title": "Tipi di notifica",
-      "s1Body": "Puoi configurare le notifiche per:\n\n• Nuovi ordini — Ricevi un avviso quando arriva un nuovo ordine\n• Aggiornamenti ordini — Modifiche di stato dei tuoi ordini\n• Promozioni — Notizie e offerte speciali da TybeToGo",
+      "s1Body": "Puoi configurare le notifiche per:\n\n• Nuovi ordini — Ricevi un avviso quando arriva un nuovo ordine\n• Aggiornamenti ordini — Modifiche di stato dei tuoi ordini\n• Promozioni — Notizie e offerte speciali da TaybGo",
       "s2Title": "Suono e vibrazione",
       "s2Body": "Nelle impostazioni delle notifiche, puoi anche controllare:\n\n• Suono — Attiva o disattiva i suoni delle notifiche\n• Vibrazione — Attiva o disattiva il feedback aptico\n\nQueste impostazioni sono indipendenti dalle impostazioni di notifica di sistema del tuo dispositivo.",
       "s3Title": "Visualizzare le notifiche",
@@ -1074,7 +1074,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Benvenuto su TybeToGo Seller",
+    "title": "Benvenuto su TaybGo Seller",
     "description": "Fai un tour rapido per scoprire come gestire gli ordini, aggiornare il menu e monitorare le tue prestazioni.",
     "benefit1": "Impara le funzioni chiave in meno di 5 minuti",
     "benefit2": "Scopri come gestire gli ordini in modo efficiente",

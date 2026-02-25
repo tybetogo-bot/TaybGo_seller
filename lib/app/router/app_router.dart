@@ -95,6 +95,7 @@ class AppRouter {
       if (currentPath == Routes.restaurantSelection ||
           currentPath == Routes.onboarding ||
           currentPath == Routes.pendingReview ||
+          currentPath == Routes.standaloneKnowledgeBase ||
           currentPath == Routes.addCoupon ||
           currentPath.startsWith(Routes.editCoupon.split(':').first)) {
         return null;
@@ -167,6 +168,13 @@ class AppRouter {
         path: Routes.pendingReview,
         name: Routes.pendingReviewName,
         builder: (context, state) => const PendingReviewScreen(),
+      ),
+
+      // Standalone knowledge base (outside shell, for pending review)
+      GoRoute(
+        path: Routes.standaloneKnowledgeBase,
+        name: Routes.standaloneKnowledgeBaseName,
+        builder: (context, state) => const KnowledgeBaseScreen(),
       ),
 
       // Restaurant selection (outside shell)

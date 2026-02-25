@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="TaybGo Seller - Restaurant Management App">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -56,6 +56,69 @@
   </script>
 </head>
 <body>
+  <!-- Loading screen shown while Flutter initializes -->
+  <style>
+    body {
+      margin: 0;
+      background: #FAFAFA;
+      overflow: hidden;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    #loading.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #loading svg {
+      width: 200px;
+      height: auto;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #E8F5E9;
+      border-top-color: #2E7D32;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <div id="loading">
+    <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <text x="512" y="540" text-anchor="middle" dominant-baseline="middle"
+            font-family="'Segoe UI', system-ui, -apple-system, sans-serif"
+            font-size="260" font-weight="700" fill="#2E7D32"
+            letter-spacing="-8">TaybGo</text>
+    </svg>
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('loading');
+      if (el) {
+        el.classList.add('fade-out');
+        setTimeout(function () { el.remove(); }, 300);
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

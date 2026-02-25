@@ -105,10 +105,10 @@ flutter_launcher_icons:
   ios: true
   web:
     generate: true
-    image_path: "assets/icons/logo.jpg"
-  image_path: "assets/icons/logo.jpg"
+    image_path: "assets/icons/TaybGo_green.png"
+  image_path: "assets/icons/TaybGo_green.png"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/icons/logo.jpg"
+  adaptive_icon_foreground: "assets/icons/TaybGo_green.png"
 
 flutter:
   uses-material-design: true

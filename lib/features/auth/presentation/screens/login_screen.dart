@@ -71,196 +71,223 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Top bar with language selector
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: const [LanguageSelector()],
-              ),
-            ),
-
-            // Main content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24.w),
-                child: Form(
-                  key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SizedBox(height: 40.h),
+                      // Top bar with language selector
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 20.w, vertical: 12.h),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: const [LanguageSelector()],
+                        ),
+                      ),
 
-                      // Logo
-                      Center(
-                        child: Container(
-                          width: 100.w,
-                          height: 100.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.2),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
+                      // Main content
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24.w),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(height: 40.h),
+
+                                // Logo
+                                Center(
+                                  child: Container(
+                                    width: 100.w,
+                                    height: 100.w,
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(18.r),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.2),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius:
+                                          BorderRadius.circular(18.r),
+                                      child: Image.asset(
+                                        'assets/icons/TaybGo_green.png',
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: 28.h),
+
+                                // App name
+                                Text(
+                                  'app.name'.tr,
+                                  style: TextStyle(
+                                    fontSize: 26.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? DarkColors.textPrimary
+                                        : LightColors.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+
+                                SizedBox(height: 8.h),
+
+                                // Tagline
+                                Text(
+                                  'app.tagline'.tr,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: isDark
+                                        ? DarkColors.textSecondary
+                                        : LightColors.textSecondary,
+                                    height: 1.4,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+
+                                SizedBox(height: 48.h),
+
+                                // Phone input section
+                                Text(
+                                  'auth.enterPhone'.tr,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark
+                                        ? DarkColors.textSecondary
+                                        : LightColors.textSecondary,
+                                  ),
+                                ),
+
+                                SizedBox(height: 12.h),
+
+                                // Phone input with country picker
+                                PhoneInputField(
+                                  controller: _phoneController,
+                                  selectedCountry: _selectedCountry,
+                                  onCountrySelected: (country) {
+                                    setState(() {
+                                      _selectedCountry = country;
+                                    });
+                                  },
+                                  enabled: !isLoading,
+                                ),
+
+                                SizedBox(height: 24.h),
+
+                                // Continue button
+                                SizedBox(
+                                  height: 52.h,
+                                  child: ElevatedButton(
+                                    onPressed:
+                                        isLoading ? null : _handleRequestOtp,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor: Theme.of(
+                                        context,
+                                      )
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.5),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.r),
+                                      ),
+                                    ),
+                                    child: isLoading
+                                        ? SizedBox(
+                                            width: 22.w,
+                                            height: 22.w,
+                                            child:
+                                                const CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<
+                                                    Color
+                                                  >(Colors.white),
+                                            ),
+                                          )
+                                        : Text(
+                                            'common.next'.tr,
+                                            style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+
+                                SizedBox(height: 32.h),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Terms at bottom
+                      Padding(
+                        padding:
+                            EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
+                        child: Text.rich(
+                          TextSpan(
+                            text: '${'auth.termsAgree'.tr} ',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: isDark
+                                  ? DarkColors.textTertiary
+                                  : LightColors.textTertiary,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: 'auth.termsOfService'.tr,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              TextSpan(text: ' ${'auth.and'.tr} '),
+                              TextSpan(
+                                text: 'auth.privacyPolicy'.tr,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18.r),
-                            child: Image.asset(
-                              'assets/icons/logo.jpg',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-
-                      SizedBox(height: 28.h),
-
-                      // App name
-                      Text(
-                        'app.name'.tr,
-                        style: TextStyle(
-                          fontSize: 26.sp,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? DarkColors.textPrimary
-                              : LightColors.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      SizedBox(height: 8.h),
-
-                      // Tagline
-                      Text(
-                        'app.tagline'.tr,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      SizedBox(height: 48.h),
-
-                      // Phone input section
-                      Text(
-                        'auth.enterPhone'.tr,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                        ),
-                      ),
-
-                      SizedBox(height: 12.h),
-
-                      // Phone input with country picker
-                      PhoneInputField(
-                        controller: _phoneController,
-                        selectedCountry: _selectedCountry,
-                        onCountrySelected: (country) {
-                          setState(() {
-                            _selectedCountry = country;
-                          });
-                        },
-                        enabled: !isLoading,
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Continue button
-                      SizedBox(
-                        height: 52.h,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : _handleRequestOtp,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.5),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                          ),
-                          child: isLoading
-                              ? SizedBox(
-                                  width: 22.w,
-                                  height: 22.w,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  'common.next'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                        ),
-                      ),
-
-                      SizedBox(height: 32.h),
                     ],
                   ),
                 ),
               ),
-            ),
-
-            // Terms at bottom
-            Padding(
-              padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
-              child: Text.rich(
-                TextSpan(
-                  text: '${'auth.termsAgree'.tr} ',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: isDark
-                        ? DarkColors.textTertiary
-                        : LightColors.textTertiary,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: 'auth.termsOfService'.tr,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    TextSpan(text: ' ${'auth.and'.tr} '),
-                    TextSpan(
-                      text: 'auth.privacyPolicy'.tr,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

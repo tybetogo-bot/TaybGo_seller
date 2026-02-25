@@ -161,4 +161,11 @@ class UserApi {
     final response = await _dio.post('/api/addresses/', data: data);
     return response.data as Map<String, dynamic>;
   }
+
+  /// Submit full onboarding (profile + address + restaurant) in one call
+  /// POST /api/seller/onboarding/
+  Future<Map<String, dynamic>> submitOnboarding(Map<String, dynamic> data) async {
+    final response = await _dio.post('/api/seller/onboarding/', data: data);
+    return response.data as Map<String, dynamic>;
+  }
 }

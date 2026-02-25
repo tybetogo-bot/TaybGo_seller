@@ -42,7 +42,7 @@ class HelpScreen extends ConsumerWidget {
             ),
             SizedBox(height: 16.h),
             Text(
-              'support@tybetogo.com',
+              'support@taybgo.com',
               style: TextStyle(
                 fontSize: 16.sp,
                 color: Theme.of(context).colorScheme.primary,

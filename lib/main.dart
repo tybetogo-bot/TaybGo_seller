@@ -23,8 +23,8 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize push notification service
-  await PushNotificationService.instance.initialize();
+  // Initialize push notification service (non-blocking so it doesn't stall the app)
+  PushNotificationService.instance.initialize();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -47,14 +47,14 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
       ],
-      child: const TybeToGoApp(),
+      child: const TaybGoApp(),
     ),
   );
 }
 
 /// Main application widget
-class TybeToGoApp extends ConsumerWidget {
-  const TybeToGoApp({super.key});
+class TaybGoApp extends ConsumerWidget {
+  const TaybGoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -103,7 +103,7 @@ class TybeToGoApp extends ConsumerWidget {
       builder: (context, child) {
         return TourOverlay(
           child: MaterialApp.router(
-            title: 'TybeToGo Seller',
+            title: 'TaybGo Seller',
             debugShowCheckedModeBanner: false,
 
             // Theme with dynamic accent color

@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Hongereg? Spéit drun? Eppes vergiess? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Hongereg? Spéit drun? Eppes vergiess? TaybGo!"
   },
   "common": {
     "save": "Späicheren",
@@ -560,7 +560,7 @@
     "title": "Iwwer",
     "version": "Versioun {version}",
     "description": "Verwaltet Är Restaurantbestellungen, Menü a Clienten alles op enger Plaz.",
-    "copyright": "© 2024 TybeToGo. All Rechter virbehal."
+    "copyright": "© 2024 TaybGo. All Rechter virbehal."
   },
   "validation": {
     "required": "Dëst Feld ass erfuerderlech",
@@ -591,10 +591,10 @@
     "noRestaurants": "Keng Restaurante fonnt",
     "contactSupport": "Kontaktéiert w.e.g. den Support fir Äre Restaurant anzeriichten",
     "retry": "Nees probéieren",
-    "noRestaurantWelcome": "Wëllkomm bei TybeToGo!",
+    "noRestaurantWelcome": "Wëllkomm bei TaybGo!",
     "noRestaurantMessage": "Äre Kont huet momentan keng Restaurante verlinkt. Kontaktéiert w.e.g. eise Team sou datt mir Äre Restaurant aariichten a fäerdeg kënne maachen.",
     "contactUsTitle": "Kontaktéiert eis",
-    "thankYou": "Merci datt Dir TybeToGo gewielt hutt. Mir freeën eis op d'Zesummenaarbecht mat Iech!",
+    "thankYou": "Merci datt Dir TaybGo gewielt hutt. Mir freeën eis op d'Zesummenaarbecht mat Iech!",
     "emailCopied": "E-Mail an d'Tëschespäicher kopéiert",
     "phoneCopied": "Telefonsnummer an d'Tëschespäicher kopéiert"
   },
@@ -707,10 +707,10 @@
       "tips": "Tipps & Tricken"
     },
     "gsWelcome": {
-      "title": "Wëllkomm bei TybeToGo Seller",
+      "title": "Wëllkomm bei TaybGo Seller",
       "description": "En Iwwerbléck vun der App a wat Dir domat maache kënnt.",
-      "s1Title": "Wat ass TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller ass Är alles-an-engem Restaurantverwaltungs-App. Si erlaabt Iech Bestellunge kréien a verwalten, Äre Menü a Echtzäit aktualiséieren, Promotiounscouponen erstellen a Är Geschäftsleeschtung verfollegen — alles vu Ärem Telefon.",
+      "s1Title": "Wat ass TaybGo Seller?",
+      "s1Body": "TaybGo Seller ass Är alles-an-engem Restaurantverwaltungs-App. Si erlaabt Iech Bestellunge kréien a verwalten, Äre Menü a Echtzäit aktualiséieren, Promotiounscouponen erstellen a Är Geschäftsleeschtung verfollegen — alles vu Ärem Telefon.",
       "s2Title": "Haaptfunktiounen",
       "s2Body": "• Echtzäit-Bestellungsverwaltung mat Statusverfolgung\n• Vollstänneg Menübeaarbechtung mat Kategorien, Biller a Personaliséierungen\n• Couponerstellung a Remiseverwaltung\n• Geschäftsanalytik a Akkommens-Tracking\n• KI-gestützt Bestellungsscannen fir manuell Bestellungen\n• Push-Notifikatiounen fir nei Bestellungen\n• Donkelmodus a Themapersonaliséierung\n• Méisproocheg Ënnerstëtzung (Englesch, Arabesch, Däitsch, Franséisch)",
       "s3Title": "Hëllef kréien",
@@ -842,7 +842,7 @@
       "title": "Notifikatiounspréferenzen",
       "description": "Konfiguréiert wéi eng Notifikatiounen Dir kritt.",
       "s1Title": "Notifikatiounsaarten",
-      "s1Body": "Dir kënnt Notifikatiounen konfiguréieren fir:\n\n• Nei Bestellungen — Alarmiert ginn wann eng nei Bestelling ukënnt\n• Bestellungsaktualiséierungen — Statusännerungen op Ären Bestellungen\n• Promotiounen — Neiegkeeten a Spezialaoffere vu TybeToGo",
+      "s1Body": "Dir kënnt Notifikatiounen konfiguréieren fir:\n\n• Nei Bestellungen — Alarmiert ginn wann eng nei Bestelling ukënnt\n• Bestellungsaktualiséierungen — Statusännerungen op Ären Bestellungen\n• Promotiounen — Neiegkeeten a Spezialaoffere vu TaybGo",
       "s2Title": "Toun & Haptik",
       "s2Body": "An den Notifikatiounsastellungen kënnt Dir och kontrolléieren:\n\n• Toun — Notifikatiounstoune aktivéieren oder deaktivéieren\n• Vibratioun — Haptescht Feedback aktivéieren oder deaktivéieren\n\nDës Astellungen si onofhängeg vun den Systemnotifikatiounsastellungen vun Ärem Apparat.",
       "s3Title": "Notifikatiounen gesinn",
@@ -1075,7 +1075,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Wëllkomm bei TybeToGo Seller",
+    "title": "Wëllkomm bei TaybGo Seller",
     "description": "Maacht eng séier Tour fir erauszerausfannen wéi Dir Bestellunge verwalten, Äre Menü aktualiséieren a Är Leeschtung verfollege kënnt.",
     "benefit1": "Haaptfunktiounen a manner wéi 5 Minutten léieren",
     "benefit2": "Gesinn wéi Dir Bestellungen effizient handhabt",

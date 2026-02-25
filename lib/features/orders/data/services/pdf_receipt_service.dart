@@ -464,7 +464,7 @@ class PdfReceiptService {
         pw.SizedBox(height: 4),
         pw.Center(
           child: pw.Text(
-            'Powered by TybeToGo',
+            'Powered by TaybGo',
             style: _style(fontSize: 9, color: PdfColors.grey500),
           ),
         ),

@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "TybeToGo Seller",
-    "tagline": "Nälkä? Myöhässä? Unohditko jotain? TybeToGo!"
+    "name": "TaybGo Seller",
+    "tagline": "Nälkä? Myöhässä? Unohditko jotain? TaybGo!"
   },
   "common": {
     "save": "Tallenna",
@@ -560,7 +560,7 @@
     "title": "Tietoja",
     "version": "Versio {version}",
     "description": "Hallitse ravintolasi tilauksia, menua ja asiakkaita kaikki yhdessä paikassa.",
-    "copyright": "© 2024 TybeToGo. Kaikki oikeudet pidätetään."
+    "copyright": "© 2024 TaybGo. Kaikki oikeudet pidätetään."
   },
   "validation": {
     "required": "Tämä kenttä on pakollinen",
@@ -591,10 +591,10 @@
     "noRestaurants": "Ravintoloita ei löydy",
     "contactSupport": "Ota yhteyttä tukeen ravintolan perustamiseksi",
     "retry": "Yritä uudelleen",
-    "noRestaurantWelcome": "Tervetuloa TybeToGo:hon!",
+    "noRestaurantWelcome": "Tervetuloa TaybGo:hon!",
     "noRestaurantMessage": "Tiliisi ei ole tällä hetkellä linkitetty ravintoloita. Ota yhteyttä tiimiimme, jotta voimme perustaa ravintolasi ja saada sen valmiiksi toimintaan.",
     "contactUsTitle": "Ota yhteyttä",
-    "thankYou": "Kiitos, että valitsit TybeToGo:n. Odotamme innolla yhteistyötä kanssasi!",
+    "thankYou": "Kiitos, että valitsit TaybGo:n. Odotamme innolla yhteistyötä kanssasi!",
     "emailCopied": "Sähköposti kopioitu leikepöydälle",
     "phoneCopied": "Puhelinnumero kopioitu leikepöydälle"
   },
@@ -707,10 +707,10 @@
       "tips": "Vinkit ja niksit"
     },
     "gsWelcome": {
-      "title": "Tervetuloa TybeToGo Selleriin",
+      "title": "Tervetuloa TaybGo Selleriin",
       "description": "Yleiskatsaus sovelluksesta ja sen mahdollisuuksista.",
-      "s1Title": "Mikä on TybeToGo Seller?",
-      "s1Body": "TybeToGo Seller on kaikenkattava ravintolanhallinasovelluksesi. Sen avulla voit vastaanottaa ja hallita tilauksia, päivittää menuasi reaaliajassa, luoda kampanjokuponkeja ja seurata liiketoimintasi suorituskykyä – kaiken puhelimestasi.",
+      "s1Title": "Mikä on TaybGo Seller?",
+      "s1Body": "TaybGo Seller on kaikenkattava ravintolanhallinasovelluksesi. Sen avulla voit vastaanottaa ja hallita tilauksia, päivittää menuasi reaaliajassa, luoda kampanjokuponkeja ja seurata liiketoimintasi suorituskykyä – kaiken puhelimestasi.",
       "s2Title": "Keskeiset ominaisuudet",
       "s2Body": "• Reaaliaikainen tilausten hallinta tilaustenseurannalla\n• Täydellinen menun muokkaaminen kategorioilla, kuvilla ja mukautuksilla\n• Kuponkien luominen ja alennusten hallinta\n• Liiketoiminnan analytiikka ja liikevaihdon seuranta\n• Tekoälypohjainen tilausten skannaus manuaalisille tilauksille\n• Push-ilmoitukset uusista tilauksista\n• Tumma tila ja teeman mukauttaminen\n• Monikielinen tuki (englanti, arabia, saksa, ranska)",
       "s3Title": "Avun saaminen",
@@ -842,7 +842,7 @@
       "title": "Ilmoitusasetukset",
       "description": "Määritä, mitkä ilmoitukset vastaanotat.",
       "s1Title": "Ilmoitustyypit",
-      "s1Body": "Voit määrittää ilmoitukset seuraaville:\n\n• Uudet tilaukset — Saat hälytyksen, kun uusi tilaus saapuu\n• Tilausten päivitykset — Tilaustesi tilamuutokset\n• Tarjoukset — Uutiset ja erikoistarjoukset TybeToGo:lta",
+      "s1Body": "Voit määrittää ilmoitukset seuraaville:\n\n• Uudet tilaukset — Saat hälytyksen, kun uusi tilaus saapuu\n• Tilausten päivitykset — Tilaustesi tilamuutokset\n• Tarjoukset — Uutiset ja erikoistarjoukset TaybGo:lta",
       "s2Title": "Ääni ja värinä",
       "s2Body": "Ilmoitusasetuksissa voit myös hallita:\n\n• Ääni — Ota ilmoitusäänet käyttöön tai poista käytöstä\n• Värinä — Ota haptinen palaute käyttöön tai poista käytöstä\n\nNämä asetukset ovat riippumattomia laitteesi järjestelmän ilmoitusasetuksista.",
       "s3Title": "Ilmoitusten tarkastelu",
@@ -1075,7 +1075,7 @@
     }
   },
   "welcomeTour": {
-    "title": "Tervetuloa TybeToGo Selleriin",
+    "title": "Tervetuloa TaybGo Selleriin",
     "description": "Tee nopea kierros löytääksesi, miten hallita tilauksia, päivittää menuasi ja seurata suorituskykyäsi.",
     "benefit1": "Opi tärkeimmät ominaisuudet alle 5 minuutissa",
     "benefit2": "Näe, miten käsitellä tilauksia tehokkaasti",
