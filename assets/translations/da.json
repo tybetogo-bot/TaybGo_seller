@@ -64,7 +64,8 @@
     "createAccount": "Opret konto",
     "forgotPassword": "Glemt adgangskode",
     "sendResetLink": "Send nulstillingslink",
-    "backToLogin": "Tilbage til login"
+    "backToLogin": "Tilbage til login",
+    "changePhone": "Skift telefonnummer"
   },
   "errors": {
     "unexpected": "Der opstod en uventet fejl. Prøv venligst igen.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Angiv venligst en fuldstændig adresse med mindst gade og by.",
     "creatingProfile": "Opretter din profil...",
     "creatingAddress": "Opsætter din adresse...",
-    "creatingRestaurant": "Opretter din restaurant..."
+    "creatingRestaurant": "Opretter din restaurant...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "Under gennemgang",

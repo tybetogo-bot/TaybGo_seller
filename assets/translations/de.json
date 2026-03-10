@@ -64,7 +64,8 @@
     "createAccount": "Konto erstellen",
     "forgotPassword": "Passwort vergessen",
     "sendResetLink": "Reset-Link senden",
-    "backToLogin": "Zurück zur Anmeldung"
+    "backToLogin": "Zurück zur Anmeldung",
+    "changePhone": "Telefonnummer ändern"
   },
   "errors": {
     "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
@@ -1120,7 +1121,8 @@
     "addressRequired": "Bitte geben Sie eine vollständige Adresse mit mindestens Straße und Stadt an.",
     "creatingProfile": "Profil wird erstellt...",
     "creatingAddress": "Adresse wird eingerichtet...",
-    "creatingRestaurant": "Restaurant wird erstellt..."
+    "creatingRestaurant": "Restaurant wird erstellt...",
+    "coordinatesRequired": "Bitte suchen Sie nach Ihrer Adresse oder tippen Sie auf 'Standortkoordinaten abrufen', um den Standort festzulegen."
   },
   "pendingReview": {
     "title": "In Prüfung",

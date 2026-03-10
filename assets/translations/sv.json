@@ -64,7 +64,8 @@
     "createAccount": "Skapa konto",
     "forgotPassword": "Glömt lösenord",
     "sendResetLink": "Skicka återställningslänk",
-    "backToLogin": "Tillbaka till inloggning"
+    "backToLogin": "Tillbaka till inloggning",
+    "changePhone": "Ändra telefonnummer"
   },
   "errors": {
     "unexpected": "Ett oväntat fel inträffade. Försök igen.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Ange en fullständig adress med minst gata och stad.",
     "creatingProfile": "Skapar din profil...",
     "creatingAddress": "Konfigurerar din adress...",
-    "creatingRestaurant": "Skapar din restaurang..."
+    "creatingRestaurant": "Skapar din restaurang...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "Under granskning",

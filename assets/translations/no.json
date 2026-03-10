@@ -64,7 +64,8 @@
     "createAccount": "Opprett konto",
     "forgotPassword": "Glemt passord",
     "sendResetLink": "Send tilbakestillingslenke",
-    "backToLogin": "Tilbake til innlogging"
+    "backToLogin": "Tilbake til innlogging",
+    "changePhone": "Endre telefonnummer"
   },
   "errors": {
     "unexpected": "En uventet feil oppstod. Vennligst prøv igjen.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Vennligst oppgi en fullstendig adresse med minst gate og by.",
     "creatingProfile": "Oppretter profilen din...",
     "creatingAddress": "Setter opp adressen din...",
-    "creatingRestaurant": "Oppretter restauranten din..."
+    "creatingRestaurant": "Oppretter restauranten din...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "Under vurdering",

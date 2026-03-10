@@ -64,7 +64,8 @@
     "createAccount": "Crea account",
     "forgotPassword": "Password dimenticata",
     "sendResetLink": "Invia link di ripristino",
-    "backToLogin": "Torna al login"
+    "backToLogin": "Torna al login",
+    "changePhone": "Cambia numero di telefono"
   },
   "errors": {
     "unexpected": "Si è verificato un errore imprevisto. Riprova.",
@@ -1144,7 +1145,8 @@
     "addressRequired": "Fornisci un indirizzo completo con almeno via e città.",
     "creatingProfile": "Creazione del profilo...",
     "creatingAddress": "Configurazione dell'indirizzo...",
-    "creatingRestaurant": "Creazione del ristorante..."
+    "creatingRestaurant": "Creazione del ristorante...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "In revisione",

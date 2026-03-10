@@ -64,7 +64,8 @@
     "createAccount": "Luo tili",
     "forgotPassword": "Unohditko salasanan",
     "sendResetLink": "Lähetä palautuslinkki",
-    "backToLogin": "Takaisin kirjautumiseen"
+    "backToLogin": "Takaisin kirjautumiseen",
+    "changePhone": "Vaihda puhelinnumero"
   },
   "errors": {
     "unexpected": "Odottamaton virhe tapahtui. Yritä uudelleen.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Anna täydellinen osoite, jossa on vähintään katu ja kaupunki.",
     "creatingProfile": "Luodaan profiiliasi...",
     "creatingAddress": "Määritetään osoitettasi...",
-    "creatingRestaurant": "Luodaan ravintolaasi..."
+    "creatingRestaurant": "Luodaan ravintolaasi...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "Tarkistettavana",

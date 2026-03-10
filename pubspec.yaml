@@ -80,6 +80,10 @@ dependencies:
   # Connectivity
   connectivity_plus: ^7.0.0
 
+  # Phone OTP Auth UI
+  phone_otp_auth_ui:
+    path: packages/phone_otp_auth_ui
+
   # PDF Generation
   pdf: ^3.10.8
   path_provider: ^2.1.2

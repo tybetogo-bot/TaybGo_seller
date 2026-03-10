@@ -2,44 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phone_otp_auth_ui/phone_otp_auth_ui.dart';
 
 import '../../../../app/router/routes.dart';
-import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/auth_state.dart';
-import '../widgets/country_picker_widget.dart';
 import '../widgets/language_selector.dart';
 
 /// Minimal login screen with phone number and OTP authentication
-class LoginScreen extends ConsumerStatefulWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _phoneController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  Country _selectedCountry = Countries.defaultCountry;
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleRequestOtp() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final fullPhone =
-        '${_selectedCountry.dialCode}${_phoneController.text.trim()}';
-    ref.read(authProvider.notifier).requestOtp(phone: fullPhone);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(translationsLoadedProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -95,10 +71,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 24.w),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                          child: PhoneSignInForm(
+                            isLoading: isLoading,
+                            strings: AuthUiStrings(
+                              phoneNumberLabel: 'auth.enterPhone'.tr,
+                              phoneHintText: 'auth.phoneNumber'.tr,
+                              enterPhoneError: 'Please enter phone number',
+                              sendOtpLabel: 'common.next'.tr,
+                              searchCountryHint: 'auth.searchCountry'.tr,
+                            ),
+                            title: Column(
                               children: [
                                 SizedBox(height: 40.h),
 
@@ -112,9 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           BorderRadius.circular(18.r),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary
+                                          color: theme.colorScheme.primary
                                               .withValues(alpha: 0.2),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
@@ -147,109 +127,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-
-                                SizedBox(height: 8.h),
-
-                                // Tagline
-                                Text(
-                                  'app.tagline'.tr,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: isDark
-                                        ? DarkColors.textSecondary
-                                        : LightColors.textSecondary,
-                                    height: 1.4,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-
-                                SizedBox(height: 48.h),
-
-                                // Phone input section
-                                Text(
-                                  'auth.enterPhone'.tr,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark
-                                        ? DarkColors.textSecondary
-                                        : LightColors.textSecondary,
-                                  ),
-                                ),
-
-                                SizedBox(height: 12.h),
-
-                                // Phone input with country picker
-                                PhoneInputField(
-                                  controller: _phoneController,
-                                  selectedCountry: _selectedCountry,
-                                  onCountrySelected: (country) {
-                                    setState(() {
-                                      _selectedCountry = country;
-                                    });
-                                  },
-                                  enabled: !isLoading,
-                                ),
-
-                                SizedBox(height: 24.h),
-
-                                // Continue button
-                                SizedBox(
-                                  height: 52.h,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        isLoading ? null : _handleRequestOtp,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                      foregroundColor: Colors.white,
-                                      disabledBackgroundColor: Theme.of(
-                                        context,
-                                      )
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.5),
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12.r),
-                                      ),
-                                    ),
-                                    child: isLoading
-                                        ? SizedBox(
-                                            width: 22.w,
-                                            height: 22.w,
-                                            child:
-                                                const CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<
-                                                    Color
-                                                  >(Colors.white),
-                                            ),
-                                          )
-                                        : Text(
-                                            'common.next'.tr,
-                                            style: TextStyle(
-                                              fontSize: 16.sp,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-
-                                SizedBox(height: 32.h),
                               ],
                             ),
+                            subtitle: Padding(
+                              padding: EdgeInsets.only(bottom: 24.h),
+                              child: Text(
+                                'app.tagline'.tr,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: isDark
+                                      ? DarkColors.textSecondary
+                                      : LightColors.textSecondary,
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            onSubmit: (value) {
+                              ref.read(authProvider.notifier).requestOtp(
+                                    phone: value.fullNumber,
+                                  );
+                            },
                           ),
                         ),
                       ),
 
                       // Terms at bottom
                       Padding(
-                        padding:
-                            EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
+                        padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
                         child: Text.rich(
                           TextSpan(
                             text: '${'auth.termsAgree'.tr} ',
@@ -263,8 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               TextSpan(
                                 text: 'auth.termsOfService'.tr,
                                 style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -272,8 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               TextSpan(
                                 text: 'auth.privacyPolicy'.tr,
                                 style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),

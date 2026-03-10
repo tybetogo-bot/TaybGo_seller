@@ -64,7 +64,8 @@
     "createAccount": "Create Account",
     "forgotPassword": "Forgot Password",
     "sendResetLink": "Send Reset Link",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "changePhone": "Change phone number"
   },
   "errors": {
     "unexpected": "An unexpected error occurred. Please try again.",
@@ -1146,7 +1147,8 @@
     "addressRequired": "Please provide a complete address with at least a street and city.",
     "creatingProfile": "Creating your profile...",
     "creatingAddress": "Setting up your address...",
-    "creatingRestaurant": "Creating your restaurant..."
+    "creatingRestaurant": "Creating your restaurant...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "Under Review",

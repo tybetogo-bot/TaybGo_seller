@@ -64,7 +64,8 @@
     "createAccount": "Créer un compte",
     "forgotPassword": "Mot de passe oublié",
     "sendResetLink": "Envoyer le lien de réinitialisation",
-    "backToLogin": "Retour à la connexion"
+    "backToLogin": "Retour à la connexion",
+    "changePhone": "Changer le numéro de téléphone"
   },
   "errors": {
     "unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer.",
@@ -1120,7 +1121,8 @@
     "addressRequired": "Veuillez fournir une adresse complète avec au moins une rue et une ville.",
     "creatingProfile": "Création de votre profil...",
     "creatingAddress": "Configuration de votre adresse...",
-    "creatingRestaurant": "Création de votre restaurant..."
+    "creatingRestaurant": "Création de votre restaurant...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "En cours d'examen",

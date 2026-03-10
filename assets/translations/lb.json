@@ -64,7 +64,8 @@
     "createAccount": "Kont erstellen",
     "forgotPassword": "Passwuert vergiess",
     "sendResetLink": "Reset-Link schécken",
-    "backToLogin": "Zréck zum Login"
+    "backToLogin": "Zréck zum Login",
+    "changePhone": "Telefonsnummer änneren"
   },
   "errors": {
     "unexpected": "E onerwartete Feeler ass opgetrueden. Probéiert et w.e.g. nach eng Kéier.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Gitt w.e.g. eng komplett Adress mat op d'mannst Strooss a Stad un.",
     "creatingProfile": "Äre Profil gëtt erstallt...",
     "creatingAddress": "Är Adress gëtt ageriicht...",
-    "creatingRestaurant": "Äre Restaurant gëtt erstallt..."
+    "creatingRestaurant": "Äre Restaurant gëtt erstallt...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "A Kontroll",

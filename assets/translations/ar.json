@@ -64,7 +64,8 @@
     "createAccount": "إنشاء حساب",
     "forgotPassword": "نسيت كلمة المرور",
     "sendResetLink": "إرسال رابط الاستعادة",
-    "backToLogin": "العودة لتسجيل الدخول"
+    "backToLogin": "العودة لتسجيل الدخول",
+    "changePhone": "تغيير رقم الهاتف"
   },
   "errors": {
     "unexpected": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
@@ -1132,7 +1133,8 @@
     "addressRequired": "يرجى تقديم عنوان كامل يتضمن الشارع والمدينة على الأقل.",
     "creatingProfile": "جاري إنشاء ملفك الشخصي...",
     "creatingAddress": "جاري إعداد عنوانك...",
-    "creatingRestaurant": "جاري إنشاء مطعمك..."
+    "creatingRestaurant": "جاري إنشاء مطعمك...",
+    "coordinatesRequired": "يرجى البحث عن عنوانك أو الضغط على 'الحصول على إحداثيات الموقع' لتحديد الموقع."
   },
   "pendingReview": {
     "title": "قيد المراجعة",

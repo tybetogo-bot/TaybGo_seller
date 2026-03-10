@@ -64,7 +64,8 @@
     "createAccount": "Account aanmaken",
     "forgotPassword": "Wachtwoord vergeten",
     "sendResetLink": "Resetlink verzenden",
-    "backToLogin": "Terug naar inloggen"
+    "backToLogin": "Terug naar inloggen",
+    "changePhone": "Telefoonnummer wijzigen"
   },
   "errors": {
     "unexpected": "Er is een onverwachte fout opgetreden. Probeer het opnieuw.",
@@ -1145,7 +1146,8 @@
     "addressRequired": "Geef een volledig adres op met minimaal een straat en stad.",
     "creatingProfile": "Profiel wordt aangemaakt...",
     "creatingAddress": "Adres wordt ingesteld...",
-    "creatingRestaurant": "Restaurant wordt aangemaakt..."
+    "creatingRestaurant": "Restaurant wordt aangemaakt...",
+    "coordinatesRequired": "Please search for your address or tap 'Get Location Coordinates' to set the location."
   },
   "pendingReview": {
     "title": "In beoordeling",
