@@ -54,11 +54,14 @@ class _MainShellState extends ConsumerState<MainShell> {
         '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}');
 
     return Scaffold(
-      body: Column(
-        children: [
-          const LocationWarningBanner(),
-          Expanded(child: widget.child),
-        ],
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const LocationWarningBanner(),
+            Expanded(child: widget.child),
+          ],
+        ),
       ),
       bottomNavigationBar: const AppBottomNavBar(),
     );

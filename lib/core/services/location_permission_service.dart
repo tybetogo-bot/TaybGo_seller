@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 /// State representing the current location permission status.
 enum LocationPermissionState {
@@ -60,21 +59,28 @@ class LocationPermissionNotifier extends Notifier<LocationPermissionState> {
   /// Checks the current location permission and service status and updates
   /// the state accordingly.
   Future<void> checkPermission() async {
-    // First check if location services are enabled at the OS level.
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      state = LocationPermissionState.serviceDisabled;
-      return;
-    }
+    try {
+      // First check if location services are enabled at the OS level.
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        state = LocationPermissionState.serviceDisabled;
+        return;
+      }
 
-    // Then check the app-level permission.
-    final permissionStatus = await Permission.location.status;
+      // Then check the app-level permission using Geolocator.
+      final permission = await Geolocator.checkPermission();
 
-    if (permissionStatus.isGranted || permissionStatus.isLimited) {
-      state = LocationPermissionState.granted;
-    } else if (permissionStatus.isPermanentlyDenied) {
-      state = LocationPermissionState.permanentlyDenied;
-    } else {
+      if (permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse) {
+        state = LocationPermissionState.granted;
+      } else if (permission == LocationPermission.deniedForever) {
+        state = LocationPermissionState.permanentlyDenied;
+      } else {
+        state = LocationPermissionState.denied;
+      }
+    } catch (e) {
+      debugPrint('⚠️ [LocationPermission] checkPermission error: $e');
+      // Default to denied so the banner shows and user can take action
       state = LocationPermissionState.denied;
     }
   }
@@ -83,11 +89,12 @@ class LocationPermissionNotifier extends Notifier<LocationPermissionState> {
   ///
   /// After the request completes the state is re-evaluated automatically.
   Future<void> requestPermission() async {
-    final permissionStatus = await Permission.location.request();
+    final permission = await Geolocator.requestPermission();
 
-    if (permissionStatus.isGranted || permissionStatus.isLimited) {
+    if (permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse) {
       state = LocationPermissionState.granted;
-    } else if (permissionStatus.isPermanentlyDenied) {
+    } else if (permission == LocationPermission.deniedForever) {
       state = LocationPermissionState.permanentlyDenied;
     } else {
       state = LocationPermissionState.denied;
@@ -97,7 +104,7 @@ class LocationPermissionNotifier extends Notifier<LocationPermissionState> {
   /// Opens the device's app settings so the user can manually grant
   /// location permission.
   Future<void> openSettings() async {
-    await openAppSettings();
+    await Geolocator.openAppSettings();
   }
 }
 

@@ -64,8 +64,7 @@
     "createAccount": "Konto erstellen",
     "forgotPassword": "Passwort vergessen",
     "sendResetLink": "Reset-Link senden",
-    "backToLogin": "Zurück zur Anmeldung",
-    "changePhone": "Telefonnummer ändern"
+    "backToLogin": "Zurück zur Anmeldung"
   },
   "errors": {
     "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",

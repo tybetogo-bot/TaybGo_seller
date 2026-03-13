@@ -250,7 +250,7 @@ class _PlacesApiService {
       final params = {
         'input': query,
         'key': _placesApiKey,
-        'types': 'address',
+        'types': 'geocode|establishment',
         'language': 'en',
         if (countryCode != null) 'components': 'country:$countryCode',
       };
@@ -303,6 +303,80 @@ class _PlacesApiService {
         print('[PlacesAPI-Widget] Autocomplete error: $e');
       }
       return [];
+    }
+  }
+
+  /// Reverse geocode coordinates to get country code (for web)
+  static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
+    try {
+      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
+      final params = {
+        'latlng': '$lat,$lng',
+        'key': _placesApiKey,
+        'result_type': 'country',
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+
+      final response = await _dio.get(requestUrl);
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final results = data['results'] as List<dynamic>? ?? [];
+        if (results.isNotEmpty) {
+          final components = results[0]['address_components'] as List<dynamic>? ?? [];
+          for (final component in components) {
+            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
+            if (types.contains('country')) {
+              return (component['short_name'] as String?)?.toLowerCase();
+            }
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI-Widget] Reverse geocode error: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Forward geocode an address string to coordinates (for web)
+  static Future<({double lat, double lng})?> geocodeAddress(String address) async {
+    try {
+      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
+      final params = {
+        'address': address,
+        'key': _placesApiKey,
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+
+      final response = await _dio.get(requestUrl);
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final results = data['results'] as List<dynamic>? ?? [];
+        if (results.isNotEmpty) {
+          final geometry = results[0]['geometry'] as Map<String, dynamic>?;
+          final location = geometry?['location'] as Map<String, dynamic>?;
+          if (location != null) {
+            return (
+              lat: (location['lat'] as num).toDouble(),
+              lng: (location['lng'] as num).toDouble(),
+            );
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI-Widget] Geocode error: $e');
+      }
+      return null;
     }
   }
 
@@ -451,7 +525,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   bool _selfUpdated = false;
 
   // Country selector state
-  String _selectedCountryCode = 'nl';
+  String _selectedCountryCode = 'at';
   bool _detectingLocation = false;
 
   // Store coordinates and country from Places API
@@ -470,6 +544,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   @override
   void initState() {
     super.initState();
+    // Set initial country name from default country code
+    final defaultCountry = _supportedCountries.firstWhere(
+      (c) => c.code == _selectedCountryCode,
+    );
+    _country = defaultCountry.name;
+
     if (widget.initialAddress != null) {
       _populateFields(widget.initialAddress!);
       _showManualEntry = true;
@@ -478,18 +558,22 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   Future<void> _detectUserCountry() async {
-    if (kIsWeb) return; // Geolocator not reliable on web
     setState(() => _detectingLocation = true);
     try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      if (!kIsWeb) {
+        // On native, check/request permission first
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          _log('Location permission denied');
+          return;
+        }
       }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _log('Location permission denied');
-        return;
-      }
+      // On web, just call getCurrentPosition directly —
+      // the browser will show its own permission prompt.
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -498,19 +582,33 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
         ),
       );
 
-      final placemarks = await geocoding.placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+      String? isoCode;
 
-      if (placemarks.isNotEmpty) {
-        final isoCode = placemarks.first.isoCountryCode?.toLowerCase();
-        _log('Detected country: $isoCode');
-        if (isoCode != null && mounted) {
-          final exists = _supportedCountries.any((c) => c.code == isoCode);
-          if (exists) {
-            setState(() => _selectedCountryCode = isoCode);
-          }
+      if (kIsWeb) {
+        // On web, use Google Geocoding API for reverse geocoding
+        isoCode = await _PlacesApiService.reverseGeocodeCountry(
+          position.latitude,
+          position.longitude,
+        );
+      } else {
+        // On native, use platform geocoding
+        final placemarks = await geocoding.placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+        if (placemarks.isNotEmpty) {
+          isoCode = placemarks.first.isoCountryCode?.toLowerCase();
+        }
+      }
+
+      _log('Detected country: $isoCode');
+      if (isoCode != null && mounted) {
+        final matchedCountry = _supportedCountries.where((c) => c.code == isoCode);
+        if (matchedCountry.isNotEmpty) {
+          setState(() {
+            _selectedCountryCode = isoCode!;
+            _country = matchedCountry.first.name;
+          });
         }
       }
     } catch (e) {
@@ -668,6 +766,11 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     // Mark that this update originated from within the widget,
     // so didUpdateWidget won't re-trigger a search.
     _selfUpdated = true;
+    // Use the selected country from dropdown as fallback
+    final countryName = _country ??
+        _supportedCountries
+            .firstWhere((c) => c.code == _selectedCountryCode)
+            .name;
     final address = AddressModel(
       street: _streetController.text,
       building: _buildingController.text,
@@ -675,7 +778,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       floor: _floorController.text.isNotEmpty ? _floorController.text : null,
       city: _cityController.text.isNotEmpty ? _cityController.text : null,
       postalCode: _postalCodeController.text.isNotEmpty ? _postalCodeController.text : null,
-      country: _country ?? '',
+      country: countryName,
       latitude: _latitude,
       longitude: _longitude,
     );
@@ -698,15 +801,29 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     _log('Geocoding address: $addressString');
 
     try {
-      final locations = await geocoding.locationFromAddress(addressString);
-      if (locations.isNotEmpty) {
-        final location = locations.first;
-        _log('Geocoded to: ${location.latitude}, ${location.longitude}');
-        setState(() {
-          _latitude = location.latitude;
-          _longitude = location.longitude;
-        });
-        _notifyAddressChanged();
+      if (kIsWeb) {
+        // On web, use Google Geocoding API
+        final result = await _PlacesApiService.geocodeAddress(addressString);
+        if (result != null) {
+          _log('Geocoded to: ${result.lat}, ${result.lng}');
+          setState(() {
+            _latitude = result.lat;
+            _longitude = result.lng;
+          });
+          _notifyAddressChanged();
+        }
+      } else {
+        // On native, use platform geocoding
+        final locations = await geocoding.locationFromAddress(addressString);
+        if (locations.isNotEmpty) {
+          final location = locations.first;
+          _log('Geocoded to: ${location.latitude}, ${location.longitude}');
+          setState(() {
+            _latitude = location.latitude;
+            _longitude = location.longitude;
+          });
+          _notifyAddressChanged();
+        }
       }
     } catch (e) {
       _log('Geocoding error: $e');
@@ -763,10 +880,15 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
+                  final selectedCountry = _supportedCountries.firstWhere(
+                    (c) => c.code == value,
+                  );
                   setState(() {
                     _selectedCountryCode = value;
+                    _country = selectedCountry.name;
                     _predictions = [];
                   });
+                  _notifyAddressChanged();
                   // Re-search if there's text in the search field
                   if (_searchController.text.length >= 3) {
                     _searchPlaces(_searchController.text);

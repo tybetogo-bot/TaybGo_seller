@@ -122,9 +122,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
-      // Wait for restaurant state to finish loading (but not indefinitely)
-      if (restaurantState is RestaurantInitial ||
-          restaurantState is RestaurantLoading) {
+      // Kick off restaurant initialization if not yet started
+      if (restaurantState is RestaurantInitial) {
+        print('🟡 [SplashScreen] Triggering restaurant initialization...');
+        ref.read(restaurantProvider.notifier).initialize();
+        return; // Will be called again when state changes via listener
+      }
+
+      // Wait for restaurant state to finish loading
+      if (restaurantState is RestaurantLoading) {
         print('🟡 [SplashScreen] Restaurant still loading, waiting...');
         return; // Will be called again when state changes via listener
       }
@@ -140,20 +146,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
 
       if (restaurantState is RestaurantLoaded) {
-        // No restaurants -> onboarding
+        // No restaurants or all pending -> restaurant selection
         if (restaurantState.restaurants.isEmpty) {
-          print('🟢 [SplashScreen] -> No restaurants, going to onboarding');
-          context.go(Routes.onboarding);
+          print('🟢 [SplashScreen] -> No restaurants, going to restaurant selection');
+          context.go(Routes.restaurantSelection);
           return;
         }
 
-        // All restaurants pending -> pending review
         final allPending = restaurantState.restaurants.every(
           (r) => r.status == RestaurantStatus.pending,
         );
         if (allPending) {
-          print('🟢 [SplashScreen] -> All restaurants pending, going to pending review');
-          context.go(Routes.pendingReview);
+          print('🟢 [SplashScreen] -> All restaurants pending, going to restaurant selection');
+          context.go(Routes.restaurantSelection);
           return;
         }
 

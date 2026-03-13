@@ -64,8 +64,7 @@
     "createAccount": "Créer un compte",
     "forgotPassword": "Mot de passe oublié",
     "sendResetLink": "Envoyer le lien de réinitialisation",
-    "backToLogin": "Retour à la connexion",
-    "changePhone": "Changer le numéro de téléphone"
+    "backToLogin": "Retour à la connexion"
   },
   "errors": {
     "unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer.",

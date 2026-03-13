@@ -4,10 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
+import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../auth/presentation/widgets/language_selector.dart';
 import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/address_search_widget.dart';
@@ -35,6 +37,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Restaurant fields
   final _restaurantNameController = TextEditingController();
   final _restaurantPhoneController = TextEditingController();
+  Country _restaurantPhoneCountry = Countries.austria;
 
   // Address data from AddressSearchWidget
   AddressModel? _selectedAddress;
@@ -102,7 +105,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return;
     }
 
+    if (_selectedAddress!.latitude == null ||
+        _selectedAddress!.longitude == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('onboarding.coordinatesRequired'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final address = _selectedAddress!;
+
+    final restaurantPhone =
+        '${_restaurantPhoneCountry.dialCode}${_restaurantPhoneController.text.trim()}';
 
     await ref.read(onboardingProvider.notifier).submitOnboarding(
       name: _nameController.text.trim(),
@@ -111,7 +128,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ? int.tryParse(_ageController.text.trim())
           : null,
       restaurantName: _restaurantNameController.text.trim(),
-      restaurantPhone: _restaurantPhoneController.text.trim(),
+      restaurantPhone: restaurantPhone,
       streetName: address.street,
       houseNumber: address.building,
       city: address.city!,
@@ -406,17 +423,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             SizedBox(height: 16.h),
 
             // Restaurant phone
-            AppTextField(
+            Text(
+              'onboarding.restaurantPhone'.tr,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            PhoneInputField(
               controller: _restaurantPhoneController,
-              label: 'onboarding.restaurantPhone'.tr,
-              hint: 'onboarding.enterRestaurantPhone'.tr,
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'validation.required'.tr;
-                }
-                return null;
+              selectedCountry: _restaurantPhoneCountry,
+              onCountrySelected: (country) {
+                setState(() => _restaurantPhoneCountry = country);
               },
             ),
             SizedBox(height: 24.h),

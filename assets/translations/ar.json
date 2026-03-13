@@ -64,8 +64,7 @@
     "createAccount": "إنشاء حساب",
     "forgotPassword": "نسيت كلمة المرور",
     "sendResetLink": "إرسال رابط الاستعادة",
-    "backToLogin": "العودة لتسجيل الدخول",
-    "changePhone": "تغيير رقم الهاتف"
+    "backToLogin": "العودة لتسجيل الدخول"
   },
   "errors": {
     "unexpected": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",

@@ -53,24 +53,28 @@ class RestaurantError extends RestaurantState {
 class RestaurantNotifier extends Notifier<RestaurantState> {
   late final RestaurantRepository _repository;
 
+  bool _initialized = false;
+
   @override
   RestaurantState build() {
     print('🟡 [RestaurantNotifier] build() called');
     _repository = ref.watch(restaurantRepositoryProvider);
-    _initializeRestaurant();
+    _initialized = false;
     return const RestaurantInitial();
   }
 
-  /// Initialize restaurant from storage or fetch from API
-  Future<void> _initializeRestaurant() async {
+  /// Must be called after build() completes to kick off restaurant loading.
+  /// The splash screen calls this explicitly to avoid circular state access.
+  Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
     final storedRestaurantId = _repository.getSelectedRestaurantId();
     print('🟡 [RestaurantNotifier] Stored restaurant ID: $storedRestaurantId');
 
     if (storedRestaurantId != null) {
-      // Fetch the stored restaurant details
       await fetchRestaurantById(storedRestaurantId);
     } else {
-      // Fetch all restaurants for selection
       await fetchRestaurants();
     }
   }

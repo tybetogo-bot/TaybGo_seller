@@ -165,27 +165,13 @@ class OrderRestaurantModel {
   });
 
   factory OrderRestaurantModel.fromJson(Map<String, dynamic> json) {
-    // address can be a String, a Map (nested object), or null
-    String? addressStr;
-    double? lat;
-    double? lng;
-    final rawAddress = json['address'];
-    if (rawAddress is String) {
-      addressStr = rawAddress;
-    } else if (rawAddress is Map<String, dynamic>) {
-      addressStr = rawAddress['full_address'] as String? ??
-          rawAddress['street_name'] as String?;
-      lat = _parseDouble(rawAddress['lat']);
-      lng = _parseDouble(rawAddress['lng']);
-    }
-
     return OrderRestaurantModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '',
       logo: json['logo'] as String?,
-      address: addressStr,
-      lat: lat ?? _parseDouble(json['lat']),
-      lng: lng ?? _parseDouble(json['lng']),
+      address: json['address'] as String?,
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
       phone: json['phone'] as String?,
       status: json['status'] as String?,
       createdAt: json['created_at'] != null
