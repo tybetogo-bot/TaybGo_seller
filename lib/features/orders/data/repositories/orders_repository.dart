@@ -74,9 +74,17 @@ class OrdersRepositoryImpl implements OrdersRepository {
       );
     } on NetworkException catch (e) {
       return (failure: NetworkFailure(message: e.message), data: null);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log the actual error for debugging
+      assert(() {
+        // ignore: avoid_print
+        print('[OrdersRepository] getOrders parse error: $e');
+        // ignore: avoid_print
+        print('[OrdersRepository] Stack: $stackTrace');
+        return true;
+      }());
       return (
-        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
         data: null,
       );
     }

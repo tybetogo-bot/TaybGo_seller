@@ -145,7 +145,7 @@ class OrderRestaurantModel {
   final int id;
   final String name;
   final String? logo;
-  final String? address;
+  final OrderAddressModel? addressObject;
   final double? lat;
   final double? lng;
   final String? phone;
@@ -156,7 +156,7 @@ class OrderRestaurantModel {
     required this.id,
     required this.name,
     this.logo,
-    this.address,
+    this.addressObject,
     this.lat,
     this.lng,
     this.phone,
@@ -164,14 +164,23 @@ class OrderRestaurantModel {
     this.createdAt,
   });
 
+  /// Get address as display string
+  String? get address => addressObject?.displayAddress;
+
   factory OrderRestaurantModel.fromJson(Map<String, dynamic> json) {
+    // Parse address - can be a nested object or a string
+    OrderAddressModel? parsedAddress;
+    if (json['address'] is Map<String, dynamic>) {
+      parsedAddress = OrderAddressModel.fromJson(json['address'] as Map<String, dynamic>);
+    }
+
     return OrderRestaurantModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '',
       logo: json['logo'] as String?,
-      address: json['address'] as String?,
-      lat: _parseDouble(json['lat']),
-      lng: _parseDouble(json['lng']),
+      addressObject: parsedAddress,
+      lat: parsedAddress?.lat ?? _parseDouble(json['lat']),
+      lng: parsedAddress?.lng ?? _parseDouble(json['lng']),
       phone: json['phone'] as String?,
       status: json['status'] as String?,
       createdAt: json['created_at'] != null

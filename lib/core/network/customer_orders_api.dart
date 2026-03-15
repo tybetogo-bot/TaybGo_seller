@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../features/addresses/data/models/address_model.dart';
 import '../../features/orders/data/models/food_checkout_model.dart';
 import '../../features/orders/data/models/order_model.dart';
 import 'restaurant_api.dart';
@@ -33,13 +34,45 @@ class CustomerOrdersApi {
     }
   }
 
+  /// Create an address via POST /api/addresses/
+  Future<CustomerAddressModel> _createAddress(OrderAddressData addressData) async {
+    final data = addressData.toJson();
+    _log('Creating address with data: $data');
+    final response = await _dio.post('/api/addresses/', data: data);
+    _log('Created address response: ${response.data}');
+    return CustomerAddressModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
   /// Create a food order
+  /// First creates pickup/dropoff addresses, then creates order with address IDs
   /// POST /api/orders/
   Future<OrderModel> createFoodOrder(FoodCheckoutRequest request) async {
-    final requestJson = request.toJson();
-    _log('Creating food order with data: $requestJson');
-
     try {
+      // Step 1: Create addresses and get their IDs
+      int? pickupId = request.pickupAddressId;
+      int? dropoffId = request.dropoffAddressId;
+
+      if (pickupId == null && request.pickupAddressData != null) {
+        _log('Creating pickup address...');
+        final pickupAddress = await _createAddress(request.pickupAddressData!);
+        pickupId = pickupAddress.id;
+        _log('Created pickup address with ID: $pickupId');
+      }
+
+      if (dropoffId == null && request.dropoffAddressData != null) {
+        _log('Creating dropoff address...');
+        final dropoffAddress = await _createAddress(request.dropoffAddressData!);
+        dropoffId = dropoffAddress.id;
+        _log('Created dropoff address with ID: $dropoffId');
+      }
+
+      // Step 2: Build order request with address IDs instead of nested data
+      final requestJson = request.toJsonWithAddressIds(
+        pickupId: pickupId,
+        dropoffId: dropoffId,
+      );
+      _log('Creating food order with data: $requestJson');
+
       final response = await _dio.post(
         '/api/orders/',
         data: requestJson,
@@ -60,7 +93,6 @@ class CustomerOrdersApi {
       );
       _log('Response status code: ${e.response?.statusCode}');
       _log('Response data: ${e.response?.data}');
-      _log('Request data sent: $requestJson');
       rethrow;
     } catch (e, stackTrace) {
       _log('Unexpected error creating food order', error: e, stackTrace: stackTrace);

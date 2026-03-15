@@ -273,6 +273,40 @@ class FoodCheckoutRequest {
         'customer_phone_number': customerPhoneNumber,
     };
   }
+
+  /// Build JSON with pre-created address IDs instead of nested address data
+  Map<String, dynamic> toJsonWithAddressIds({int? pickupId, int? dropoffId}) {
+    return {
+      'order_type': orderType.value,
+      'status': status,
+      'restaurant': restaurantId,
+      'subtotal_amount': subtotalAmount,
+      if (discountAmount != null) 'discount_amount': discountAmount,
+      'delivery_fee': deliveryFee,
+      if (tip != null) 'tip': tip,
+      'total_amount': totalAmount,
+      if (requestedVehicleType != null)
+        'requested_vehicle_type': requestedVehicleType!.value,
+      if (requestedDeliveryType != null)
+        'requested_delivery_type': requestedDeliveryType!.value,
+      if (driverId != null) 'driver': driverId,
+      'is_manual': isManual,
+      'is_paid': isPaid,
+      if (pickupId != null) 'pickup_address': pickupId,
+      if (dropoffId != null) 'dropoff_address': dropoffId,
+      if (items != null && items!.isNotEmpty)
+        'items': items!.map((item) => item.toJson()).toList(),
+      if (couponId != null) 'coupon': couponId,
+      if (couponCode != null && couponCode!.isNotEmpty && couponId == null)
+        'coupon_code': couponCode,
+      if (notes != null && notes!.isNotEmpty) 'notes': notes,
+      if (paymentMethodId != null) 'payment_method': paymentMethodId,
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
+    };
+  }
 }
 
 /// Order update request model for editing orders
