@@ -231,7 +231,7 @@ const List<_SupportedCountry> _supportedCountries = [
 const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
 
 /// CORS proxy for web platform
-const String _corsProxy = 'https://api.allorigins.win/raw?url=';
+const String _corsProxy = 'https://corsproxy.io/?';
 
 /// Google Places API service
 class _PlacesApiService {
