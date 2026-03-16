@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -248,7 +246,7 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
       final api = ref.watch(notificationsApiProvider);
       await api.registerDeviceToken(
         token: token,
-        deviceType: Platform.isIOS ? 'ios' : 'android',
+        deviceType: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       );
       print('🔔 [FCM] Token registered with backend');
     } catch (e) {
@@ -263,7 +261,7 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
       final api = ref.read(notificationsApiProvider);
       await api.registerDeviceToken(
         token: newToken,
-        deviceType: Platform.isIOS ? 'ios' : 'android',
+        deviceType: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       );
       print('🔔 [FCM] Refreshed token registered with backend');
     } catch (e) {

@@ -3,6 +3,7 @@
 library auth_api;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../features/auth/data/models/auth_model.dart';
 
@@ -19,6 +20,7 @@ class AuthApi {
       '/api/auth/otp/request/',
       data: request.toJson(),
     );
+    debugPrint('[requestOtp] response: ${response.data}');
     return OtpRequestResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
