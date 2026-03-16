@@ -7,6 +7,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_config.dart';
+import '../config/env_config.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
@@ -48,7 +49,7 @@ class ApiClient {
       AuthInterceptor(prefs, onUnauthorized: _onUnauthorized),
       RetryInterceptor(dio: _dio!, maxRetries: 2),
       ErrorInterceptor(),
-      if (AppConfig.isDevelopment)
+      if (EnvConfig.enableNetworkLogging)
         PrettyDioLogger(
           requestHeader: true,
           requestBody: true,

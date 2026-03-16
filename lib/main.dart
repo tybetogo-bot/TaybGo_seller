@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/router/app_router.dart';
 import 'app/router/routes.dart';
-import 'core/config/constants.dart';
+import 'core/config/config.dart';
 import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
 import 'core/services/push_notification_service.dart';
@@ -103,8 +103,8 @@ class TaybGoApp extends ConsumerWidget {
       builder: (context, child) {
         return TourOverlay(
           child: MaterialApp.router(
-            title: 'TaybGo Seller',
-            debugShowCheckedModeBanner: false,
+            title: EnvConfig.appName,
+            debugShowCheckedModeBanner: EnvConfig.showDebugBanner,
 
             // Theme with dynamic accent color
             theme: AppTheme.lightWithAccent(accentColor),

@@ -2,10 +2,12 @@
 /// Contains all constant values used throughout the app
 library;
 
+import 'env_config.dart';
+
 /// Deployment configuration constants
 abstract class DeploymentConfig {
   /// Base URL for web deployment (used for QR code generation)
-  static const String baseUrl = 'https://taybatseller.web.app';
+  static String get baseUrl => EnvConfig.webBaseUrl;
 }
 
 /// Storage keys for SharedPreferences/Hive

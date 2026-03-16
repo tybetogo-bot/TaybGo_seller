@@ -2,18 +2,23 @@
 /// Contains all app-wide configuration settings
 library;
 
+import 'env_config.dart';
+
 class AppConfig {
   AppConfig._();
 
-  // App Info
-  static const String appName = 'TaybGo Seller';
-  static const String appNameAr = 'طيب قو البائع';
+  // App Info (environment-aware)
+  static String get appName => EnvConfig.appName;
+  static String get appNameAr => EnvConfig.appNameAr;
   static const String appVersion = '1.0.0';
 
-  // API Configuration
-  static const String baseUrl = 'https://taybat-backend-dev.onrender.com';
-  static const String stagingUrl = 'https://taybat-backend-dev.onrender.com';
+  // API Configuration (environment-aware)
+  static String get apiBaseUrl => EnvConfig.apiBaseUrl;
   static const Duration apiTimeout = Duration(seconds: 15);
+
+  // Environment
+  static bool get isProduction => EnvConfig.isProd;
+  static bool get isDevelopment => EnvConfig.isDev;
 
   // Pagination
   static const int defaultPageSize = 20;
@@ -51,12 +56,4 @@ class AppConfig {
   static const Duration shortAnimation = Duration(milliseconds: 200);
   static const Duration mediumAnimation = Duration(milliseconds: 300);
   static const Duration longAnimation = Duration(milliseconds: 500);
-
-  // Environment
-  static bool get isProduction =>
-      const String.fromEnvironment('ENV') == 'production';
-  static bool get isStaging => const String.fromEnvironment('ENV') == 'staging';
-  static bool get isDevelopment => !isProduction && !isStaging;
-
-  static String get apiBaseUrl => isProduction ? baseUrl : stagingUrl;
 }

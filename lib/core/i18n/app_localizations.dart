@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_config.dart';
+
 /// Supported locales
 class AppLocales {
   AppLocales._();
@@ -81,8 +83,8 @@ class AppStrings {
   AppStrings._();
 
   // ============ Common ============
-  static const String appName = 'TaybGo Seller';
-  static const String appNameAr = 'تايب جو البائع';
+  static String get appName => AppConfig.appName;
+  static String get appNameAr => AppConfig.appNameAr;
 
   // ============ Auth ============
   static const String login = 'Login';
