@@ -1093,8 +1093,12 @@
   },
   "location": {
     "permissionRequired": "Standortberechtigung erforderlich",
-    "permissionMessage": "Der Standortzugriff wird für Lieferadress-Funktionen benötigt. Bitte aktivieren Sie ihn in den Einstellungen.",
-    "enable": "Aktivieren",
+    "permissionMessage": "Der Standortzugriff wird für Lieferadress-Funktionen benötigt. Tippen Sie unten, um die Berechtigung zu erteilen.",
+    "permissionDeniedMessage": "Die Standortberechtigung wurde verweigert. Bitte öffnen Sie die App-Einstellungen, um den Zugriff zu gewähren.",
+    "gpsDisabled": "Standortdienste deaktiviert",
+    "gpsDisabledMessage": "GPS ist auf Ihrem Gerät ausgeschaltet. Aktivieren Sie die Standortdienste, um Adressfunktionen zu nutzen.",
+    "enable": "Berechtigung erteilen",
+    "enableGps": "GPS aktivieren",
     "openSettings": "Einstellungen öffnen",
     "dismissed": "Standortwarnung ausgeblendet"
   },

@@ -13,7 +13,7 @@ enum LocationPermissionState {
   /// Permission has been permanently denied (user must go to settings).
   permanentlyDenied,
 
-  /// Location services are disabled on the device.
+  /// Location services (GPS) are disabled on the device.
   serviceDisabled,
 
   /// The permission status is still being determined.
@@ -103,8 +103,31 @@ class LocationPermissionNotifier extends Notifier<LocationPermissionState> {
 
   /// Opens the device's app settings so the user can manually grant
   /// location permission.
-  Future<void> openSettings() async {
+  Future<void> openAppSettings() async {
     await Geolocator.openAppSettings();
+  }
+
+  /// Opens the device's location/GPS settings so the user can enable
+  /// location services.
+  Future<void> openLocationSettings() async {
+    await Geolocator.openLocationSettings();
+  }
+
+  /// Performs the appropriate action based on the current state:
+  /// - serviceDisabled → open location settings
+  /// - permanentlyDenied → open app settings
+  /// - denied → request permission
+  Future<void> handleEnableAction() async {
+    switch (state) {
+      case LocationPermissionState.serviceDisabled:
+        await openLocationSettings();
+      case LocationPermissionState.permanentlyDenied:
+        await openAppSettings();
+      case LocationPermissionState.denied:
+        await requestPermission();
+      default:
+        break;
+    }
   }
 }
 

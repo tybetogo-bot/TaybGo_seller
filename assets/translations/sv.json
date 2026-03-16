@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Platsbehörighet krävs",
-    "permissionMessage": "Platsåtkomst behövs för leveransadressfunktioner. Aktivera det i inställningarna.",
-    "enable": "Aktivera",
+    "permissionMessage": "Platsåtkomst behövs för leveransadressfunktioner. Tryck nedan för att bevilja behörighet.",
+    "permissionDeniedMessage": "Platsbehörighet nekades. Öppna appinställningarna för att bevilja åtkomst.",
+    "gpsDisabled": "Platstjänster inaktiverade",
+    "gpsDisabledMessage": "GPS är avstängd på din enhet. Aktivera platstjänster för att använda adressfunktioner.",
+    "enable": "Bevilja behörighet",
+    "enableGps": "Aktivera GPS",
     "openSettings": "Öppna inställningar",
     "dismissed": "Platsvarning avfärdad"
   },

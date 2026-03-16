@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Location Permission Required",
-    "permissionMessage": "Location access is needed for delivery address features. Please enable it in settings.",
-    "enable": "Enable",
+    "permissionMessage": "Location access is needed for delivery address features. Tap below to grant permission.",
+    "permissionDeniedMessage": "Location permission was denied. Please open app settings to grant access.",
+    "gpsDisabled": "Location Services Disabled",
+    "gpsDisabledMessage": "GPS is turned off on your device. Enable location services to use address features.",
+    "enable": "Grant Permission",
+    "enableGps": "Enable GPS",
     "openSettings": "Open Settings",
     "dismissed": "Location warning dismissed"
   },

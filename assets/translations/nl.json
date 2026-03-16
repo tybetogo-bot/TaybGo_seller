@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Locatietoestemming vereist",
-    "permissionMessage": "Locatietoegang is nodig voor functies van het bezorgadres. Schakel dit in via de instellingen.",
-    "enable": "Inschakelen",
+    "permissionMessage": "Locatietoegang is nodig voor functies van het bezorgadres. Tik hieronder om toestemming te verlenen.",
+    "permissionDeniedMessage": "Locatietoestemming is geweigerd. Open de app-instellingen om toegang te verlenen.",
+    "gpsDisabled": "Locatieservices uitgeschakeld",
+    "gpsDisabledMessage": "GPS is uitgeschakeld op uw apparaat. Schakel locatieservices in om adresfuncties te gebruiken.",
+    "enable": "Toestemming verlenen",
+    "enableGps": "GPS inschakelen",
     "openSettings": "Instellingen openen",
     "dismissed": "Locatiewaarschuwing gesloten"
   },

@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Lokationstilladelse krævet",
-    "permissionMessage": "Adgang til lokation er nødvendig til leveringsadresse-funktioner. Aktiver det venligst i indstillingerne.",
-    "enable": "Aktiver",
+    "permissionMessage": "Adgang til lokation er nødvendig til leveringsadresse-funktioner. Tryk nedenfor for at give tilladelse.",
+    "permissionDeniedMessage": "Lokationstilladelse blev afvist. Åbn venligst appindstillingerne for at give adgang.",
+    "gpsDisabled": "Lokationstjenester deaktiveret",
+    "gpsDisabledMessage": "GPS er slået fra på din enhed. Aktiver lokationstjenester for at bruge adressefunktioner.",
+    "enable": "Giv tilladelse",
+    "enableGps": "Aktiver GPS",
     "openSettings": "Åbn indstillinger",
     "dismissed": "Lokationsadvarsel afvist"
   },

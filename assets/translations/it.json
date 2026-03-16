@@ -1118,8 +1118,12 @@
   },
   "location": {
     "permissionRequired": "Autorizzazione posizione richiesta",
-    "permissionMessage": "L'accesso alla posizione è necessario per le funzioni di indirizzo di consegna. Abilitalo nelle impostazioni.",
-    "enable": "Abilita",
+    "permissionMessage": "L'accesso alla posizione è necessario per le funzioni di indirizzo di consegna. Tocca qui sotto per concedere l'autorizzazione.",
+    "permissionDeniedMessage": "L'autorizzazione alla posizione è stata negata. Apri le impostazioni dell'app per concedere l'accesso.",
+    "gpsDisabled": "Servizi di localizzazione disabilitati",
+    "gpsDisabledMessage": "Il GPS è disattivato sul tuo dispositivo. Abilita i servizi di localizzazione per usare le funzioni di indirizzo.",
+    "enable": "Concedi autorizzazione",
+    "enableGps": "Attiva GPS",
     "openSettings": "Apri impostazioni",
     "dismissed": "Avviso posizione ignorato"
   },

@@ -1093,8 +1093,12 @@
   },
   "location": {
     "permissionRequired": "Autorisation de localisation requise",
-    "permissionMessage": "L'accès à la localisation est nécessaire pour les fonctionnalités d'adresse de livraison. Veuillez l'activer dans les paramètres.",
-    "enable": "Activer",
+    "permissionMessage": "L'accès à la localisation est nécessaire pour les fonctionnalités d'adresse de livraison. Appuyez ci-dessous pour accorder l'autorisation.",
+    "permissionDeniedMessage": "L'autorisation de localisation a été refusée. Veuillez ouvrir les paramètres de l'application pour accorder l'accès.",
+    "gpsDisabled": "Services de localisation désactivés",
+    "gpsDisabledMessage": "Le GPS est désactivé sur votre appareil. Activez les services de localisation pour utiliser les fonctionnalités d'adresse.",
+    "enable": "Accorder l'autorisation",
+    "enableGps": "Activer le GPS",
     "openSettings": "Ouvrir les paramètres",
     "dismissed": "Avertissement de localisation masqué"
   },

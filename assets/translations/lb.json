@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Standuerterlabnis erfuerderlech",
-    "permissionMessage": "Standuortzougrëff ass fir Liwwerungsadressfunktiounen néideg. Aktivéiert et w.e.g. an den Astellungen.",
-    "enable": "Aktivéieren",
+    "permissionMessage": "Standuortzougrëff ass fir Liwwerungsadressfunktiounen néideg. Tippt hei ënnendrënner fir d'Erlabnis ze ginn.",
+    "permissionDeniedMessage": "D'Standuerterlabnis gouf refuséiert. Öffnet w.e.g. d'App-Astellungen fir den Zougang ze erlaben.",
+    "gpsDisabled": "Standuertdéngschter deaktivéiert",
+    "gpsDisabledMessage": "GPS ass op Ärem Apparat ausgeschalt. Aktivéiert d'Standuertdéngschter fir Adressfunktiounen ze benotzen.",
+    "enable": "Erlabnis ginn",
+    "enableGps": "GPS aktivéieren",
     "openSettings": "Astellunge opmaachen",
     "dismissed": "Standuertwarnung verworfen"
   },

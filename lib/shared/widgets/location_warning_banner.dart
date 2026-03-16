@@ -9,10 +9,10 @@ import '../../core/theme/theme.dart';
 /// A dismissible warning banner that appears when location permission is
 /// denied or location services are disabled.
 ///
-/// The banner can be dismissed by the user, but it will reappear on the next
-/// app resume if the permission is still not granted (because the
-/// [locationPermissionProvider] re-checks on resume and the dismissed flag
-/// is reset).
+/// Shows contextual messaging:
+/// - GPS/location services off → prompts to enable GPS
+/// - Permission denied → prompts to grant permission
+/// - Permanently denied → prompts to open app settings
 class LocationWarningBanner extends ConsumerStatefulWidget {
   const LocationWarningBanner({super.key});
 
@@ -46,8 +46,33 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isServiceDisabled =
+        permissionState == LocationPermissionState.serviceDisabled;
     final isPermanentlyDenied =
         permissionState == LocationPermissionState.permanentlyDenied;
+
+    // Pick the right title, message, icon, and button text
+    final String title;
+    final String message;
+    final IconData icon;
+    final String buttonText;
+
+    if (isServiceDisabled) {
+      title = 'location.gpsDisabled'.tr;
+      message = 'location.gpsDisabledMessage'.tr;
+      icon = Icons.gps_off_rounded;
+      buttonText = 'location.enableGps'.tr;
+    } else if (isPermanentlyDenied) {
+      title = 'location.permissionRequired'.tr;
+      message = 'location.permissionDeniedMessage'.tr;
+      icon = Icons.location_off_rounded;
+      buttonText = 'location.openSettings'.tr;
+    } else {
+      title = 'location.permissionRequired'.tr;
+      message = 'location.permissionMessage'.tr;
+      icon = Icons.location_off_rounded;
+      buttonText = 'location.enable'.tr;
+    }
 
     return Container(
       width: double.infinity,
@@ -68,7 +93,7 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
           Padding(
             padding: EdgeInsets.only(top: 2.h),
             child: Icon(
-              Icons.location_off_rounded,
+              icon,
               color: isDark ? AppColors.warning : AppColors.warningDark,
               size: 20.w,
             ),
@@ -82,7 +107,7 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'location.permissionRequired'.tr,
+                  title,
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
@@ -91,7 +116,7 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  'location.permissionMessage'.tr,
+                  message,
                   style: TextStyle(
                     fontSize: 11.sp,
                     color: isDark
@@ -108,13 +133,9 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
                     height: 28.h,
                     child: TextButton(
                       onPressed: () {
-                        final notifier =
-                            ref.read(locationPermissionProvider.notifier);
-                        if (isPermanentlyDenied) {
-                          notifier.openSettings();
-                        } else {
-                          notifier.requestPermission();
-                        }
+                        ref
+                            .read(locationPermissionProvider.notifier)
+                            .handleEnableAction();
                       },
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -127,9 +148,7 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        isPermanentlyDenied
-                            ? 'location.openSettings'.tr
-                            : 'location.enable'.tr,
+                        buttonText,
                         style: TextStyle(
                           fontSize: 11.sp,
                           fontWeight: FontWeight.w600,

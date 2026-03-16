@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Plasseringstillatelse kreves",
-    "permissionMessage": "Plasseringstilgang er nødvendig for leveringsadressefunksjoner. Aktiver det i innstillingene.",
-    "enable": "Aktiver",
+    "permissionMessage": "Plasseringstilgang er nødvendig for leveringsadressefunksjoner. Trykk nedenfor for å gi tillatelse.",
+    "permissionDeniedMessage": "Plasseringstillatelse ble avslått. Åpne appinnstillingene for å gi tilgang.",
+    "gpsDisabled": "Plasseringstjenester deaktivert",
+    "gpsDisabledMessage": "GPS er slått av på enheten din. Aktiver plasseringstjenester for å bruke adressefunksjoner.",
+    "enable": "Gi tillatelse",
+    "enableGps": "Aktiver GPS",
     "openSettings": "Åpne innstillinger",
     "dismissed": "Plasseringsadvarsel avvist"
   },

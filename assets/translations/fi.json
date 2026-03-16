@@ -1119,8 +1119,12 @@
   },
   "location": {
     "permissionRequired": "Sijaintilupa vaaditaan",
-    "permissionMessage": "Sijaintia tarvitaan toimitusosoitteen ominaisuuksiin. Ota se käyttöön asetuksissa.",
-    "enable": "Ota käyttöön",
+    "permissionMessage": "Sijaintia tarvitaan toimitusosoitteen ominaisuuksiin. Napauta alla myöntääksesi luvan.",
+    "permissionDeniedMessage": "Sijaintilupa evättiin. Avaa sovelluksen asetukset myöntääksesi käyttöoikeuden.",
+    "gpsDisabled": "Sijaintipalvelut pois käytöstä",
+    "gpsDisabledMessage": "GPS on kytketty pois päältä laitteessasi. Ota sijaintipalvelut käyttöön käyttääksesi osoiteominaisuuksia.",
+    "enable": "Myönnä lupa",
+    "enableGps": "Ota GPS käyttöön",
     "openSettings": "Avaa asetukset",
     "dismissed": "Sijaintivaroitus hylätty"
   },
