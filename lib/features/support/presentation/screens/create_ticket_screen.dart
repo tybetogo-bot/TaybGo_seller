@@ -44,7 +44,9 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
       return;
     }
 
-    final success = await ref.read(supportProvider.notifier).createTicket(
+    final success = await ref
+        .read(supportProvider.notifier)
+        .createTicket(
           subject: _subjectController.text.trim(),
           category: TicketCategory.order,
           priority: _priority,
@@ -52,9 +54,9 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
         );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('support.ticketCreated'.tr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('support.ticketCreated'.tr)));
       context.pop();
     } else if (mounted) {
       final error = ref.read(supportProvider).error;
@@ -80,8 +82,9 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
       appBar: AppBar(
         title: Text('support.createTicket'.tr),
         centerTitle: true,
-        backgroundColor:
-            isDark ? DarkColors.background : LightColors.background,
+        backgroundColor: isDark
+            ? DarkColors.background
+            : LightColors.background,
         elevation: 0,
       ),
       body: Form(
@@ -114,11 +117,13 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
               ),
               style: TextStyle(
                 fontSize: 14.sp,
-                color:
-                    isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'validation.required'.tr : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'validation.required'.tr
+                  : null,
             ),
 
             SizedBox(height: 20.h),
@@ -152,8 +157,9 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
               ),
               style: TextStyle(
                 fontSize: 14.sp,
-                color:
-                    isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
 
@@ -245,6 +251,8 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
         return 'support.priorityMedium'.tr;
       case TicketPriority.high:
         return 'support.priorityHigh'.tr;
+      case TicketPriority.urgent:
+        return 'support.priorityUrgent'.tr;
     }
   }
 
@@ -255,6 +263,8 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
       case TicketPriority.medium:
         return AppColors.warning;
       case TicketPriority.high:
+        return AppColors.error;
+      case TicketPriority.urgent:
         return AppColors.error;
     }
   }
@@ -304,11 +314,11 @@ class _OrderSelector extends StatelessWidget {
                   fontSize: 14.sp,
                   color: selectedOrder != null
                       ? (isDark
-                          ? DarkColors.textPrimary
-                          : LightColors.textPrimary)
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary)
                       : (isDark
-                          ? DarkColors.textTertiary
-                          : LightColors.textTertiary),
+                            ? DarkColors.textTertiary
+                            : LightColors.textTertiary),
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -316,8 +326,9 @@ class _OrderSelector extends StatelessWidget {
             Icon(
               Icons.keyboard_arrow_down,
               size: 20.w,
-              color:
-                  isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              color: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
             ),
           ],
         ),
@@ -385,20 +396,21 @@ class _OrderSelector extends StatelessWidget {
                         color: isSelected
                             ? primaryColor
                             : (isDark
-                                ? DarkColors.textSecondary
-                                : LightColors.textSecondary),
+                                  ? DarkColors.textSecondary
+                                  : LightColors.textSecondary),
                       ),
                       title: Text(
                         '#${order.id} - ${order.customerName}',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                           color: isSelected
                               ? primaryColor
                               : (isDark
-                                  ? DarkColors.textPrimary
-                                  : LightColors.textPrimary),
+                                    ? DarkColors.textPrimary
+                                    : LightColors.textPrimary),
                         ),
                       ),
                       subtitle: Text(
@@ -515,8 +527,8 @@ class _OptionSelector<T> extends StatelessWidget {
                     color: isSelected
                         ? (optColor ?? primaryColor)
                         : (isDark
-                            ? DarkColors.textPrimary
-                            : LightColors.textPrimary),
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary),
                   ),
                 ),
               ],

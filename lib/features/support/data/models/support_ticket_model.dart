@@ -4,18 +4,21 @@ library;
 /// Ticket category enum
 enum TicketCategory {
   order,
-  restaurant,
-  driver,
+  payment,
+  delivery,
+  account,
   other;
 
   String get apiValue {
     switch (this) {
       case TicketCategory.order:
         return 'ORDER';
-      case TicketCategory.restaurant:
-        return 'RESTAURANT';
-      case TicketCategory.driver:
-        return 'DRIVER';
+      case TicketCategory.payment:
+        return 'PAYMENT';
+      case TicketCategory.delivery:
+        return 'DELIVERY';
+      case TicketCategory.account:
+        return 'ACCOUNT';
       case TicketCategory.other:
         return 'OTHER';
     }
@@ -25,10 +28,12 @@ enum TicketCategory {
     switch (value.toUpperCase()) {
       case 'ORDER':
         return TicketCategory.order;
-      case 'RESTAURANT':
-        return TicketCategory.restaurant;
-      case 'DRIVER':
-        return TicketCategory.driver;
+      case 'PAYMENT':
+        return TicketCategory.payment;
+      case 'DELIVERY':
+        return TicketCategory.delivery;
+      case 'ACCOUNT':
+        return TicketCategory.account;
       default:
         return TicketCategory.other;
     }
@@ -39,7 +44,8 @@ enum TicketCategory {
 enum TicketPriority {
   low,
   medium,
-  high;
+  high,
+  urgent;
 
   String get apiValue {
     switch (this) {
@@ -49,6 +55,8 @@ enum TicketPriority {
         return 'MEDIUM';
       case TicketPriority.high:
         return 'HIGH';
+      case TicketPriority.urgent:
+        return 'URGENT';
     }
   }
 
@@ -58,6 +66,8 @@ enum TicketPriority {
         return TicketPriority.medium;
       case 'HIGH':
         return TicketPriority.high;
+      case 'URGENT':
+        return TicketPriority.urgent;
       default:
         return TicketPriority.low;
     }
@@ -68,6 +78,8 @@ enum TicketPriority {
 enum TicketStatus {
   open,
   inProgress,
+  waitingOnCustomer,
+  resolved,
   closed;
 
   String get apiValue {
@@ -76,6 +88,10 @@ enum TicketStatus {
         return 'OPEN';
       case TicketStatus.inProgress:
         return 'IN_PROGRESS';
+      case TicketStatus.waitingOnCustomer:
+        return 'WAITING_ON_CUSTOMER';
+      case TicketStatus.resolved:
+        return 'RESOLVED';
       case TicketStatus.closed:
         return 'CLOSED';
     }
@@ -85,6 +101,10 @@ enum TicketStatus {
     switch (value.toUpperCase()) {
       case 'IN_PROGRESS':
         return TicketStatus.inProgress;
+      case 'WAITING_ON_CUSTOMER':
+        return TicketStatus.waitingOnCustomer;
+      case 'RESOLVED':
+        return TicketStatus.resolved;
       case 'CLOSED':
         return TicketStatus.closed;
       default:
@@ -97,17 +117,19 @@ enum TicketStatus {
 enum AuthorRole {
   customer,
   seller,
-  admin,
-  support;
+  driver,
+  staff;
 
   static AuthorRole fromApi(String value) {
     switch (value.toUpperCase()) {
       case 'SELLER':
         return AuthorRole.seller;
+      case 'DRIVER':
+        return AuthorRole.driver;
+      case 'STAFF':
       case 'ADMIN':
-        return AuthorRole.admin;
       case 'SUPPORT':
-        return AuthorRole.support;
+        return AuthorRole.staff;
       default:
         return AuthorRole.customer;
     }
@@ -137,16 +159,38 @@ class TicketAttachment {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'file_url': fileUrl,
-    'mime_type': mimeType,
-  };
+  Map<String, dynamic> toJson() => {'file_url': fileUrl, 'mime_type': mimeType};
+
+  bool get isImage {
+    final lowerMimeType = mimeType.toLowerCase();
+    if (lowerMimeType.startsWith('image/')) return true;
+
+    final lowerUrl = fileUrl.toLowerCase();
+    return lowerUrl.endsWith('.jpg') ||
+        lowerUrl.endsWith('.jpeg') ||
+        lowerUrl.endsWith('.png') ||
+        lowerUrl.endsWith('.webp') ||
+        lowerUrl.endsWith('.gif');
+  }
+
+  String get displayName {
+    if (fileUrl.isEmpty) return 'Attachment';
+
+    final uri = Uri.tryParse(fileUrl);
+    if (uri != null && uri.pathSegments.isNotEmpty) {
+      final fileName = uri.pathSegments.last;
+      if (fileName.isNotEmpty) return fileName;
+    }
+
+    if (mimeType.isNotEmpty) return mimeType;
+    return 'Attachment';
+  }
 }
 
 /// Ticket message model
 class TicketMessage {
   final int id;
-  final int author;
+  final int? author;
   final String authorName;
   final AuthorRole authorRole;
   final String body;
@@ -166,12 +210,15 @@ class TicketMessage {
   factory TicketMessage.fromJson(Map<String, dynamic> json) {
     return TicketMessage(
       id: json['id'] as int,
-      author: json['author'] as int,
+      author: json['author'] as int?,
       authorName: json['author_name'] as String? ?? '',
-      authorRole: AuthorRole.fromApi(json['author_role'] as String? ?? 'CUSTOMER'),
+      authorRole: AuthorRole.fromApi(
+        json['author_role'] as String? ?? 'CUSTOMER',
+      ),
       body: json['body'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
-      attachments: (json['attachments'] as List<dynamic>?)
+      attachments:
+          (json['attachments'] as List<dynamic>?)
               ?.map((e) => TicketAttachment.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -239,7 +286,8 @@ class SupportTicket {
       closedAt: json['closed_at'] != null
           ? DateTime.parse(json['closed_at'] as String)
           : null,
-      messages: (json['messages'] as List<dynamic>?)
+      messages:
+          (json['messages'] as List<dynamic>?)
               ?.map((e) => TicketMessage.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

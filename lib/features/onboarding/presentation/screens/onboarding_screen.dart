@@ -121,28 +121,74 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final restaurantPhone =
         '${_restaurantPhoneCountry.dialCode}${_restaurantPhoneController.text.trim()}';
 
-    await ref.read(onboardingProvider.notifier).submitOnboarding(
-      name: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      age: _ageController.text.isNotEmpty
-          ? int.tryParse(_ageController.text.trim())
-          : null,
-      restaurantName: _restaurantNameController.text.trim(),
-      restaurantPhone: restaurantPhone,
-      streetName: address.street,
-      houseNumber: address.building,
-      city: address.city!,
-      postalCode: address.postalCode ?? '',
-      country: address.country,
-      fullAddress: [
-        address.street,
-        address.building,
-        address.city,
-        address.postalCode,
-        address.country,
-      ].where((s) => s != null && s.isNotEmpty).join(', '),
-      lat: address.latitude,
-      lng: address.longitude,
+    await ref
+        .read(onboardingProvider.notifier)
+        .submitOnboarding(
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          age: _ageController.text.isNotEmpty
+              ? int.tryParse(_ageController.text.trim())
+              : null,
+          restaurantName: _restaurantNameController.text.trim(),
+          restaurantPhone: restaurantPhone,
+          streetName: address.street,
+          houseNumber: address.building,
+          city: address.city!,
+          postalCode: address.postalCode ?? '',
+          country: address.country,
+          fullAddress: [
+            address.street,
+            address.building,
+            address.city,
+            address.postalCode,
+            address.country,
+          ].where((s) => s != null && s.isNotEmpty).join(', '),
+          lat: address.latitude,
+          lng: address.longitude,
+        );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) {
+      context.go(Routes.login);
+    }
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+        return AlertDialog(
+          title: Text('auth.logout'.tr),
+          content: Text('auth.logoutConfirm'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'common.cancel'.tr,
+                style: TextStyle(
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _logout();
+              },
+              child: Text(
+                'auth.logout'.tr,
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -176,16 +222,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             // Header with language selector
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  if (_currentStep > 0)
-                    IconButton(
-                      onPressed: isLoading ? null : _previousStep,
-                      icon: Icon(Icons.arrow_back, size: 24.w),
-                    )
-                  else
-                    SizedBox(width: 48.w),
                   Text(
                     'onboarding.title'.tr,
                     style: TextStyle(
@@ -196,7 +235,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           : LightColors.textPrimary,
                     ),
                   ),
-                  const LanguageSelector(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_currentStep > 0)
+                        IconButton(
+                          onPressed: isLoading ? null : _previousStep,
+                          icon: Icon(Icons.arrow_back, size: 24.w),
+                        )
+                      else
+                        SizedBox(width: 48.w),
+                      const LanguageSelector(),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -281,15 +332,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         SizedBox(height: 4.h),
         Text(
-          step == 0 ? 'onboarding.profileStep'.tr : 'onboarding.restaurantStep'.tr,
+          step == 0
+              ? 'onboarding.profileStep'.tr
+              : 'onboarding.restaurantStep'.tr,
           style: TextStyle(
             fontSize: 11.sp,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             color: isActive
                 ? primary
                 : (isDark
-                    ? DarkColors.textSecondary
-                    : LightColors.textSecondary),
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary),
           ),
         ),
       ],
@@ -312,7 +365,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 8.h),
@@ -369,6 +424,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               label: 'common.next'.tr,
               onPressed: isLoading ? null : _nextStep,
             ),
+            SizedBox(height: 12.h),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: isLoading ? null : _showLogoutConfirmation,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  backgroundColor: isDark
+                      ? DarkColors.surface
+                      : LightColors.surface,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    side: BorderSide(
+                      color: AppColors.error.withValues(alpha: 0.35),
+                    ),
+                  ),
+                ),
+                icon: Icon(Icons.logout_rounded, size: 18.w),
+                label: Text(
+                  'auth.logout'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -391,7 +474,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 8.h),
@@ -428,7 +513,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
             SizedBox(height: 6.h),
@@ -447,7 +534,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 12.h),

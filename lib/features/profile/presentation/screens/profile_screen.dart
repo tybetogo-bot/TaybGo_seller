@@ -10,16 +10,24 @@ import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 import '../../../tour/presentation/widgets/tour_section_widget.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/user_profile_notifier.dart';
 
 /// Profile screen - minimal design
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _didSyncRestaurantsForSwitcher = false;
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeMode = ref.watch(themeProvider);
@@ -27,8 +35,42 @@ class ProfileScreen extends ConsumerWidget {
 
     // Get user profile and restaurant data
     final userProfileState = ref.watch(userProfileProvider);
+    final restaurantState = ref.watch(restaurantProvider);
     final selectedRestaurant = ref.watch(selectedRestaurantProvider);
     final ordersState = ref.watch(ordersProvider);
+    final List<RestaurantModel> restaurants =
+        restaurantState is RestaurantLoaded
+        ? restaurantState.restaurants
+        : const <RestaurantModel>[];
+    final hasMultipleRestaurants = restaurants.length > 1;
+    final currentRestaurantName =
+        selectedRestaurant?.name ??
+        (restaurants.isNotEmpty
+            ? restaurants.first.name
+            : 'profile.yourRestaurant'.tr);
+
+    if (!_didSyncRestaurantsForSwitcher &&
+        restaurantState is RestaurantLoaded) {
+      _didSyncRestaurantsForSwitcher = true;
+      if (restaurantState.selectedRestaurant != null &&
+          restaurantState.restaurants.length <= 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.read(restaurantProvider.notifier).fetchRestaurants();
+          }
+        });
+      }
+    }
+
+    ref.listen<RestaurantState>(restaurantProvider, (previous, next) {
+      if (_didSyncRestaurantsForSwitcher) return;
+      if (next is! RestaurantLoaded) return;
+
+      _didSyncRestaurantsForSwitcher = true;
+      if (next.selectedRestaurant != null && next.restaurants.length <= 1) {
+        ref.read(restaurantProvider.notifier).fetchRestaurants();
+      }
+    });
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -43,170 +85,193 @@ class ProfileScreen extends ConsumerWidget {
       body: userProfileState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-        padding: EdgeInsets.all(16.w),
-        children: [
-          // Restaurant/User info
-          _ProfileCard(
-            name: selectedRestaurant?.name ?? userProfileState.profile?.name ?? 'profile.yourRestaurant'.tr,
-            email: userProfileState.profile?.email ?? userProfileState.profile?.phone ?? '',
-            logoUrl: selectedRestaurant?.logoUrl,
-            isDark: isDark,
-            onEdit: () => context.push(Routes.restaurantSettings),
-          ),
-          SizedBox(height: 20.h),
-
-          // Quick stats row
-          Row(
-            key: TourKeys.quickStatsKey,
-            children: [
-              _QuickStat(
-                label: 'profile.today'.tr,
-                value: selectedRestaurant?.todayStats != null
-                    ? '\$${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
-                    : '\$0',
-                isDark: isDark,
-              ),
-              SizedBox(width: 10.w),
-              _QuickStat(
-                label: 'navigation.orders'.tr,
-                value: selectedRestaurant?.todayStats?.totalOrders.toString() ?? '0',
-                isDark: isDark,
-              ),
-              SizedBox(width: 10.w),
-              _QuickStat(
-                label: 'settings.statistics'.tr,
-                value: 'profile.viewStats'.tr,
-                isDark: isDark,
-                isAction: true,
-                onTap: () => context.push(Routes.statistics),
-              ),
-            ],
-          ),
-          SizedBox(height: 24.h),
-
-          // Settings list
-          _SettingRow(
-            key: TourKeys.settingsOptionsKey,
-            icon: Icons.local_offer_outlined,
-            label: 'coupons.title'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.coupons),
-          ),
-          _SettingRow(
-            key: TourKeys.themeSettingKey,
-            icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            label: 'settings.darkMode'.tr,
-            isDark: isDark,
-            trailing: Switch.adaptive(
-              value: themeMode == AppThemeMode.dark,
-              onChanged: (value) {
-                ref
-                    .read(themeProvider.notifier)
-                    .setTheme(value ? AppThemeMode.dark : AppThemeMode.light);
-              },
-            ),
-          ),
-          _AccentColorRow(
-            key: TourKeys.accentColorSettingKey,
-            accentColor: accentColor,
-            isDark: isDark,
-            onTap: () => _showAccentColorPicker(context, ref, accentColor),
-          ),
-          _SettingRow(
-            key: TourKeys.languageSettingKey,
-            icon: Icons.language_outlined,
-            label: 'settings.language'.tr,
-            value: ref.watch(localeProvider).languageCode.toUpperCase(),
-            isDark: isDark,
-            onTap: () => context.push(Routes.language),
-          ),
-          _SettingRow(
-            icon: Icons.notifications_outlined,
-            label: 'settings.notifications'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.notifications),
-          ),
-
-          SizedBox(height: 16.h),
-          Divider(color: isDark ? DarkColors.border : LightColors.border),
-          SizedBox(height: 8.h),
-
-          KeyedSubtree(
-            key: TourKeys.knowledgeBaseRowKey,
-            child: _SettingRow(
-              icon: Icons.menu_book_outlined,
-              label: 'knowledgeBase.title'.tr,
-              isDark: isDark,
-              onTap: () => context.push(Routes.knowledgeBase),
-            ),
-          ),
-          if (ordersState.completedOrders.length >= 3) ...[
-            SizedBox(height: 12.h),
-            const TourSectionWidget(),
-            SizedBox(height: 12.h),
-          ],
-          _SettingRow(
-            icon: Icons.support_agent_outlined,
-            label: 'support.title'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.support),
-          ),
-          _SettingRow(
-            icon: Icons.help_outline,
-            label: 'settings.help'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.help),
-          ),
-          _SettingRow(
-            icon: Icons.info_outline,
-            label: 'settings.about'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.about),
-          ),
-
-          SizedBox(height: 16.h),
-          Divider(color: isDark ? DarkColors.border : LightColors.border),
-          SizedBox(height: 8.h),
-
-          _SettingRow(
-            icon: Icons.delete_forever_outlined,
-            label: 'deleteAccount.title'.tr,
-            isDark: isDark,
-            onTap: () => context.push(Routes.deleteAccount),
-          ),
-
-          SizedBox(height: 24.h),
-
-          // Logout
-          GestureDetector(
-            onTap: () => _showLogoutConfirmation(context, ref),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.5),
+              padding: EdgeInsets.all(16.w),
+              children: [
+                // Restaurant/User info
+                _ProfileCard(
+                  name:
+                      selectedRestaurant?.name ??
+                      userProfileState.profile?.name ??
+                      'profile.yourRestaurant'.tr,
+                  email:
+                      userProfileState.profile?.email ??
+                      userProfileState.profile?.phone ??
+                      '',
+                  logoUrl: selectedRestaurant?.logoUrl,
+                  isDark: isDark,
+                  onEdit: () => context.push(Routes.restaurantSettings),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.logout, size: 18.w, color: AppColors.error),
-                  SizedBox(width: 8.w),
-                  Text(
-                    'auth.logout'.tr,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.error,
+                SizedBox(height: 20.h),
+
+                // Quick stats row
+                Row(
+                  key: TourKeys.quickStatsKey,
+                  children: [
+                    _QuickStat(
+                      label: 'profile.today'.tr,
+                      value: selectedRestaurant?.todayStats != null
+                          ? '\$${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
+                          : '\$0',
+                      isDark: isDark,
+                    ),
+                    SizedBox(width: 10.w),
+                    _QuickStat(
+                      label: 'navigation.orders'.tr,
+                      value:
+                          selectedRestaurant?.todayStats?.totalOrders
+                              .toString() ??
+                          '0',
+                      isDark: isDark,
+                    ),
+                    SizedBox(width: 10.w),
+                    _QuickStat(
+                      label: 'settings.statistics'.tr,
+                      value: 'profile.viewStats'.tr,
+                      isDark: isDark,
+                      isAction: true,
+                      onTap: () => context.push(Routes.statistics),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 24.h),
+
+                if (hasMultipleRestaurants) ...[
+                  _RestaurantSwitcherCard(
+                    isDark: isDark,
+                    currentRestaurantName: currentRestaurantName,
+                    onTap: () => context.push(Routes.restaurantSelection),
+                  ),
+                  SizedBox(height: 12.h),
+                ],
+
+                // Settings list
+                _SettingRow(
+                  key: TourKeys.settingsOptionsKey,
+                  icon: Icons.local_offer_outlined,
+                  label: 'coupons.title'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.coupons),
+                ),
+                _SettingRow(
+                  key: TourKeys.themeSettingKey,
+                  icon: isDark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                  label: 'settings.darkMode'.tr,
+                  isDark: isDark,
+                  trailing: Switch.adaptive(
+                    value: themeMode == AppThemeMode.dark,
+                    onChanged: (value) {
+                      ref
+                          .read(themeProvider.notifier)
+                          .setTheme(
+                            value ? AppThemeMode.dark : AppThemeMode.light,
+                          );
+                    },
+                  ),
+                ),
+                _AccentColorRow(
+                  key: TourKeys.accentColorSettingKey,
+                  accentColor: accentColor,
+                  isDark: isDark,
+                  onTap: () =>
+                      _showAccentColorPicker(context, ref, accentColor),
+                ),
+                _SettingRow(
+                  key: TourKeys.languageSettingKey,
+                  icon: Icons.language_outlined,
+                  label: 'settings.language'.tr,
+                  value: ref.watch(localeProvider).languageCode.toUpperCase(),
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.language),
+                ),
+                _SettingRow(
+                  icon: Icons.notifications_outlined,
+                  label: 'settings.notifications'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.notifications),
+                ),
+
+                SizedBox(height: 16.h),
+                Divider(color: isDark ? DarkColors.border : LightColors.border),
+                SizedBox(height: 8.h),
+
+                KeyedSubtree(
+                  key: TourKeys.knowledgeBaseRowKey,
+                  child: _SettingRow(
+                    icon: Icons.menu_book_outlined,
+                    label: 'knowledgeBase.title'.tr,
+                    isDark: isDark,
+                    onTap: () => context.push(Routes.knowledgeBase),
+                  ),
+                ),
+                if (ordersState.completedOrders.length >= 3) ...[
+                  SizedBox(height: 12.h),
+                  const TourSectionWidget(),
+                  SizedBox(height: 12.h),
+                ],
+                _SettingRow(
+                  icon: Icons.support_agent_outlined,
+                  label: 'support.title'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.support),
+                ),
+                _SettingRow(
+                  icon: Icons.help_outline,
+                  label: 'settings.help'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.help),
+                ),
+                _SettingRow(
+                  icon: Icons.info_outline,
+                  label: 'settings.about'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.about),
+                ),
+
+                SizedBox(height: 16.h),
+                Divider(color: isDark ? DarkColors.border : LightColors.border),
+                SizedBox(height: 8.h),
+
+                _SettingRow(
+                  icon: Icons.delete_forever_outlined,
+                  label: 'deleteAccount.title'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.deleteAccount),
+                ),
+
+                SizedBox(height: 24.h),
+
+                // Logout
+                GestureDetector(
+                  onTap: () => _showLogoutConfirmation(context, ref),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.logout, size: 18.w, color: AppColors.error),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'auth.logout'.tr,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -268,10 +333,7 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Text(
               'settings.accentColor'.tr,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 20.h),
             Wrap(
@@ -281,7 +343,9 @@ class ProfileScreen extends ConsumerWidget {
                 final isSelected = accent.name == current.name;
                 return GestureDetector(
                   onTap: () {
-                    ref.read(accentColorProvider.notifier).setAccentColor(accent);
+                    ref
+                        .read(accentColorProvider.notifier)
+                        .setAccentColor(accent);
                     Navigator.pop(context);
                   },
                   child: Column(
@@ -294,7 +358,9 @@ class ProfileScreen extends ConsumerWidget {
                           shape: BoxShape.circle,
                           border: isSelected
                               ? Border.all(
-                                  color: Theme.of(context).brightness == Brightness.dark
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Colors.white
                                       : Colors.black,
                                   width: 3,
@@ -309,7 +375,11 @@ class ProfileScreen extends ConsumerWidget {
                           ],
                         ),
                         child: isSelected
-                            ? const Icon(Icons.check, color: Colors.white, size: 24)
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 24,
+                              )
                             : null,
                       ),
                       SizedBox(height: 6.h),
@@ -317,7 +387,9 @@ class ProfileScreen extends ConsumerWidget {
                         'settings.accentColor_${accent.name}'.tr,
                         style: TextStyle(
                           fontSize: 11.sp,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                       ),
                     ],
@@ -335,11 +407,11 @@ class ProfileScreen extends ConsumerWidget {
 
 class _AccentColorRow extends StatelessWidget {
   const _AccentColorRow({
-    Key? key,
+    super.key,
     required this.accentColor,
     required this.isDark,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   final AccentColor accentColor;
   final bool isDark;
@@ -433,7 +505,9 @@ class _ProfileCard extends StatelessWidget {
             width: 50.w,
             height: 50.w,
             decoration: BoxDecoration(
-              color: logoUrl != null ? Colors.transparent : primaryColor.withValues(alpha: 0.1),
+              color: logoUrl != null
+                  ? Colors.transparent
+                  : primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             clipBehavior: Clip.antiAlias,
@@ -495,13 +569,109 @@ class _ProfileCard extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onEdit,
-            child: Icon(
-              Icons.edit_outlined,
-              size: 18.w,
-              color: primaryColor,
-            ),
+            child: Icon(Icons.edit_outlined, size: 18.w, color: primaryColor),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RestaurantSwitcherCard extends StatelessWidget {
+  const _RestaurantSwitcherCard({
+    required this.isDark,
+    required this.currentRestaurantName,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final String currentRestaurantName;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10.r),
+      child: Container(
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: isDark ? DarkColors.surface : LightColors.surface,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: isDark ? DarkColors.border : LightColors.border,
+            width: 0.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44.w,
+              height: 44.w,
+              decoration: BoxDecoration(
+                color: primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                Icons.storefront_outlined,
+                size: 22.w,
+                color: primaryColor,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'restaurant.selectRestaurant'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    currentRestaurantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'restaurant.chooseRestaurant'.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: isDark
+                          ? DarkColors.textTertiary
+                          : LightColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20.w,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -572,14 +742,14 @@ class _QuickStat extends StatelessWidget {
 
 class _SettingRow extends StatelessWidget {
   const _SettingRow({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.isDark,
     this.value,
     this.trailing,
     this.onTap,
-  }) : super(key: key);
+  });
 
   final IconData icon;
   final String label;
