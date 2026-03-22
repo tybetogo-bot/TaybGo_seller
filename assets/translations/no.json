@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Lukk",
     "search": "Søk",
+    "select": "Velg",
     "clear": "Tøm",
     "add": "Legg til",
     "update": "Oppdater",
@@ -341,7 +342,13 @@
     "floor": "Etasje",
     "city": "By",
     "postalCode": "Postnummer",
-    "country": "Land"
+    "country": "Land",
+    "coordinates": "Koordinater",
+    "getLocationCoordinates": "Hent posisjonskoordinater",
+    "latitude": "Breddegrad",
+    "longitude": "Lengdegrad",
+    "invalidLatitude": "Ugyldig breddegrad",
+    "invalidLongitude": "Ugyldig lengdegrad"
   },
   "menu": {
     "title": "Meny",

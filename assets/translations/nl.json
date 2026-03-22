@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Sluiten",
     "search": "Zoeken",
+    "select": "Selecteer",
     "clear": "Wissen",
     "add": "Toevoegen",
     "update": "Bijwerken",
@@ -341,7 +342,13 @@
     "floor": "Verdieping",
     "city": "Stad",
     "postalCode": "Postcode",
-    "country": "Land"
+    "country": "Land",
+    "coordinates": "Coördinaten",
+    "getLocationCoordinates": "Locatiecoördinaten ophalen",
+    "latitude": "Breedtegraad",
+    "longitude": "Lengtegraad",
+    "invalidLatitude": "Ongeldige breedtegraad",
+    "invalidLongitude": "Ongeldige lengtegraad"
   },
   "menu": {
     "title": "Menu",

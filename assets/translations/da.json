@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Luk",
     "search": "Søg",
+    "select": "Vælg",
     "clear": "Ryd",
     "add": "Tilføj",
     "update": "Opdater",
@@ -341,7 +342,13 @@
     "floor": "Etage",
     "city": "By",
     "postalCode": "Postnummer",
-    "country": "Land"
+    "country": "Land",
+    "coordinates": "Koordinater",
+    "getLocationCoordinates": "Hent positionskoordinater",
+    "latitude": "Breddegrad",
+    "longitude": "Længdegrad",
+    "invalidLatitude": "Ugyldig breddegrad",
+    "invalidLongitude": "Ugyldig længdegrad"
   },
   "menu": {
     "title": "Menu",

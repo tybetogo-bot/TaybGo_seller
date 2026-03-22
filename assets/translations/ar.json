@@ -18,6 +18,7 @@
     "ok": "موافق",
     "close": "إغلاق",
     "search": "بحث",
+    "select": "اختر",
     "clear": "مسح",
     "add": "إضافة",
     "update": "تحديث",
@@ -338,7 +339,13 @@
     "floor": "الطابق",
     "city": "المدينة",
     "postalCode": "الرمز البريدي",
-    "country": "البلد"
+    "country": "البلد",
+    "coordinates": "الإحداثيات",
+    "getLocationCoordinates": "الحصول على إحداثيات الموقع",
+    "latitude": "خط العرض",
+    "longitude": "خط الطول",
+    "invalidLatitude": "خط عرض غير صالح",
+    "invalidLongitude": "خط طول غير صالح"
   },
   "menu": {
     "title": "القائمة",

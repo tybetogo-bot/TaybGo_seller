@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/data/countries.dart';
@@ -25,7 +26,9 @@ class CountryPickerWidget extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
         decoration: BoxDecoration(
-          color: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+          color: isDark
+              ? DarkColors.inputBackground
+              : LightColors.inputBackground,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isDark ? DarkColors.border : LightColors.border,
@@ -34,24 +37,25 @@ class CountryPickerWidget extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              selectedCountry.flag,
-              style: TextStyle(fontSize: 20.sp),
-            ),
+            Text(selectedCountry.flag, style: TextStyle(fontSize: 20.sp)),
             SizedBox(width: 6.w),
             Text(
               selectedCountry.dialCode,
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(width: 4.w),
             Icon(
               Icons.keyboard_arrow_down,
               size: 18.w,
-              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              color: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
             ),
           ],
         ),
@@ -75,7 +79,7 @@ class CountryPickerWidget extends StatelessWidget {
   }
 }
 
-class _CountryPickerBottomSheet extends StatefulWidget {
+class _CountryPickerBottomSheet extends ConsumerStatefulWidget {
   const _CountryPickerBottomSheet({
     required this.selectedCountry,
     required this.onCountrySelected,
@@ -85,10 +89,12 @@ class _CountryPickerBottomSheet extends StatefulWidget {
   final ValueChanged<Country> onCountrySelected;
 
   @override
-  State<_CountryPickerBottomSheet> createState() => _CountryPickerBottomSheetState();
+  ConsumerState<_CountryPickerBottomSheet> createState() =>
+      _CountryPickerBottomSheetState();
 }
 
-class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
+class _CountryPickerBottomSheetState
+    extends ConsumerState<_CountryPickerBottomSheet> {
   final _searchController = TextEditingController();
   List<Country> _filteredCountries = Countries.all;
 
@@ -106,6 +112,7 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -131,11 +138,13 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
           Padding(
             padding: EdgeInsets.all(16.w),
             child: Text(
-              'Select Country',
+              '${'common.select'.tr} ${'address.country'.tr}',
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
           ),
@@ -150,12 +159,17 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
                 hintText: 'auth.searchCountry'.tr,
                 prefixIcon: Icon(Icons.search, size: 20.w),
                 filled: true,
-                fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+                fillColor: isDark
+                    ? DarkColors.inputBackground
+                    : LightColors.inputBackground,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
               ),
             ),
           ),
@@ -180,8 +194,12 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
                     country.name,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                   ),
                   trailing: Row(
@@ -191,7 +209,9 @@ class _CountryPickerBottomSheetState extends State<_CountryPickerBottomSheet> {
                         country.dialCode,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
                         ),
                       ),
                       if (isSelected) ...[
@@ -255,22 +275,26 @@ class PhoneInputField extends StatelessWidget {
             keyboardType: TextInputType.phone,
             enabled: enabled,
             onChanged: onChanged,
-            validator: validator ?? (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter phone number';
-              }
-              if (value.length < selectedCountry.minLength) {
-                return 'Phone number too short';
-              }
-              if (value.length > selectedCountry.maxLength) {
-                return 'Phone number too long';
-              }
-              return null;
-            },
+            validator:
+                validator ??
+                (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'validation.required'.tr;
+                  }
+                  if (value.length < selectedCountry.minLength) {
+                    return 'validation.phoneTooShort'.tr;
+                  }
+                  if (value.length > selectedCountry.maxLength) {
+                    return 'validation.phoneTooLong'.tr;
+                  }
+                  return null;
+                },
             decoration: InputDecoration(
               hintText: 'auth.phoneNumber'.tr,
               filled: true,
-              fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+              fillColor: isDark
+                  ? DarkColors.inputBackground
+                  : LightColors.inputBackground,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: BorderSide(
@@ -285,13 +309,18 @@ class PhoneInputField extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
                 borderSide: const BorderSide(color: AppColors.error),
               ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 14.h,
+              ),
             ),
           ),
         ),

@@ -4,7 +4,7 @@
 set -e
 
 echo "=== Building Flutter web (release) ==="
-flutter build web --release --no-wasm-dry-run
+flutter build web --release --no-wasm-dry-run -t lib/main_prod.dart --dart-define=ENV=prod
 
 BUILD_DIR="build/web"
 

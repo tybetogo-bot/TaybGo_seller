@@ -213,6 +213,7 @@ class Tr {
   static String get ok => 'common.ok'.tr;
   static String get close => 'common.close'.tr;
   static String get search => 'common.search'.tr;
+  static String get select => 'common.select'.tr;
   static String get add => 'common.add'.tr;
   static String get update => 'common.update'.tr;
   static String get submit => 'common.submit'.tr;

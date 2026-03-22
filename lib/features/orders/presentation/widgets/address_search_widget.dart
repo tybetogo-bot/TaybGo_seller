@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:geolocator/geolocator.dart';
@@ -17,14 +18,13 @@ class _SupportedCountry {
   final String code;
   final String name;
 
-  const _SupportedCountry({
-    required this.code,
-    required this.name,
-  });
+  const _SupportedCountry({required this.code, required this.name});
 
   /// Generate flag emoji from ISO country code
   String get flag {
-    final codePoints = code.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 0x41);
+    final codePoints = code.toUpperCase().codeUnits.map(
+      (c) => 0x1F1E6 + c - 0x41,
+    );
     return String.fromCharCodes(codePoints);
   }
 }
@@ -235,18 +235,24 @@ const String _corsProxy = 'https://corsproxy.io/?';
 
 /// Google Places API service
 class _PlacesApiService {
-  static final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
-  ));
+  static final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
 
   /// Check if running on web platform
   static bool get _isWeb => kIsWeb;
 
   /// Search for place predictions (autocomplete)
-  static Future<List<_PlacePrediction>> getAutocomplete(String query, {String? countryCode}) async {
+  static Future<List<_PlacePrediction>> getAutocomplete(
+    String query, {
+    String? countryCode,
+  }) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+      final baseUrl =
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json';
       final params = {
         'input': query,
         'key': _placesApiKey,
@@ -256,11 +262,15 @@ class _PlacesApiService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final requestUrl = _isWeb
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
+          : uri.toString();
 
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Searching for: $query');
-        print('[PlacesAPI-Widget] Platform: ${_isWeb ? "Web (CORS proxy)" : "Native"}');
+        print(
+          '[PlacesAPI-Widget] Platform: ${_isWeb ? "Web (CORS proxy)" : "Native"}',
+        );
       }
 
       final response = await _dio.get(requestUrl);
@@ -288,11 +298,15 @@ class _PlacesApiService {
         }
 
         return predictions.map((p) {
-          final structured = p['structured_formatting'] as Map<String, dynamic>? ?? {};
+          final structured =
+              p['structured_formatting'] as Map<String, dynamic>? ?? {};
           return _PlacePrediction(
             placeId: p['place_id'] as String? ?? '',
             description: p['description'] as String? ?? '',
-            mainText: structured['main_text'] as String? ?? p['description'] as String? ?? '',
+            mainText:
+                structured['main_text'] as String? ??
+                p['description'] as String? ??
+                '',
             secondaryText: structured['secondary_text'] as String? ?? '',
           );
         }).toList();
@@ -317,7 +331,9 @@ class _PlacesApiService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final requestUrl = _isWeb
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
+          : uri.toString();
 
       final response = await _dio.get(requestUrl);
 
@@ -325,9 +341,11 @@ class _PlacesApiService {
         final data = response.data as Map<String, dynamic>;
         final results = data['results'] as List<dynamic>? ?? [];
         if (results.isNotEmpty) {
-          final components = results[0]['address_components'] as List<dynamic>? ?? [];
+          final components =
+              results[0]['address_components'] as List<dynamic>? ?? [];
           for (final component in components) {
-            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
+            final types =
+                (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
             if (types.contains('country')) {
               return (component['short_name'] as String?)?.toLowerCase();
             }
@@ -344,16 +362,17 @@ class _PlacesApiService {
   }
 
   /// Forward geocode an address string to coordinates (for web)
-  static Future<({double lat, double lng})?> geocodeAddress(String address) async {
+  static Future<({double lat, double lng})?> geocodeAddress(
+    String address,
+  ) async {
     try {
       final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
-      final params = {
-        'address': address,
-        'key': _placesApiKey,
-      };
+      final params = {'address': address, 'key': _placesApiKey};
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final requestUrl = _isWeb
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
+          : uri.toString();
 
       final response = await _dio.get(requestUrl);
 
@@ -391,7 +410,9 @@ class _PlacesApiService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final requestUrl = _isWeb
+          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
+          : uri.toString();
 
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Getting details for placeId: $placeId');
@@ -416,7 +437,8 @@ class _PlacesApiService {
         if (result != null) {
           final geometry = result['geometry'] as Map<String, dynamic>?;
           final location = geometry?['location'] as Map<String, dynamic>?;
-          final components = result['address_components'] as List<dynamic>? ?? [];
+          final components =
+              result['address_components'] as List<dynamic>? ?? [];
 
           String? streetNumber;
           String? streetName;
@@ -425,7 +447,8 @@ class _PlacesApiService {
           String? country;
 
           for (final component in components) {
-            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
+            final types =
+                (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
             final longName = component['long_name'] as String?;
 
             if (types.contains('street_number')) {
@@ -442,7 +465,9 @@ class _PlacesApiService {
           }
 
           if (kDebugMode) {
-            print('[PlacesAPI-Widget] Got details - lat: ${location?['lat']}, lng: ${location?['lng']}');
+            print(
+              '[PlacesAPI-Widget] Got details - lat: ${location?['lat']}, lng: ${location?['lng']}',
+            );
           }
 
           return _PlaceDetails(
@@ -492,7 +517,7 @@ class _PlaceDetails {
 
 /// Address search widget using Google Places API
 /// Note: Requires Google Places API key to be configured
-class AddressSearchWidget extends StatefulWidget {
+class AddressSearchWidget extends ConsumerStatefulWidget {
   const AddressSearchWidget({
     super.key,
     required this.onAddressSelected,
@@ -503,10 +528,11 @@ class AddressSearchWidget extends StatefulWidget {
   final AddressModel? initialAddress;
 
   @override
-  State<AddressSearchWidget> createState() => _AddressSearchWidgetState();
+  ConsumerState<AddressSearchWidget> createState() =>
+      _AddressSearchWidgetState();
 }
 
-class _AddressSearchWidgetState extends State<AddressSearchWidget> {
+class _AddressSearchWidgetState extends ConsumerState<AddressSearchWidget> {
   final _searchController = TextEditingController();
   final _streetController = TextEditingController();
   final _buildingController = TextEditingController();
@@ -603,7 +629,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
       _log('Detected country: $isoCode');
       if (isoCode != null && mounted) {
-        final matchedCountry = _supportedCountries.where((c) => c.code == isoCode);
+        final matchedCountry = _supportedCountries.where(
+          (c) => c.code == isoCode,
+        );
         if (matchedCountry.isNotEmpty) {
           setState(() {
             _selectedCountryCode = isoCode!;
@@ -722,7 +750,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   Future<void> _selectPlace(_PlacePrediction prediction) async {
-    _log('Selecting place: ${prediction.description} (placeId: ${prediction.placeId})');
+    _log(
+      'Selecting place: ${prediction.description} (placeId: ${prediction.placeId})',
+    );
 
     setState(() {
       _isSearching = true;
@@ -734,8 +764,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     final details = await _PlacesApiService.getPlaceDetails(prediction.placeId);
 
     if (details != null) {
-      _log('Got place details - lat: ${details.latitude}, lng: ${details.longitude}');
-      _log('Street: ${details.streetName} ${details.streetNumber}, City: ${details.city}');
+      _log(
+        'Got place details - lat: ${details.latitude}, lng: ${details.longitude}',
+      );
+      _log(
+        'Street: ${details.streetName} ${details.streetNumber}, City: ${details.city}',
+      );
 
       setState(() {
         _showManualEntry = true;
@@ -767,17 +801,22 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     // so didUpdateWidget won't re-trigger a search.
     _selfUpdated = true;
     // Use the selected country from dropdown as fallback
-    final countryName = _country ??
+    final countryName =
+        _country ??
         _supportedCountries
             .firstWhere((c) => c.code == _selectedCountryCode)
             .name;
     final address = AddressModel(
       street: _streetController.text,
       building: _buildingController.text,
-      apartment: _apartmentController.text.isNotEmpty ? _apartmentController.text : null,
+      apartment: _apartmentController.text.isNotEmpty
+          ? _apartmentController.text
+          : null,
       floor: _floorController.text.isNotEmpty ? _floorController.text : null,
       city: _cityController.text.isNotEmpty ? _cityController.text : null,
-      postalCode: _postalCodeController.text.isNotEmpty ? _postalCodeController.text : null,
+      postalCode: _postalCodeController.text.isNotEmpty
+          ? _postalCodeController.text
+          : null,
       country: countryName,
       latitude: _latitude,
       longitude: _longitude,
@@ -832,6 +871,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -840,10 +880,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
         // Country selector
         InputDecorator(
           decoration: InputDecoration(
-            labelText: 'Country',
+            labelText: 'address.country'.tr,
             isDense: true,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
@@ -856,7 +898,10 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                 color: isDark ? DarkColors.border : LightColors.border,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 4.h,
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -918,18 +963,20 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     ),
                   )
                 : _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear, size: 20.w),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _predictions = [];
-                          });
-                        },
-                      )
-                    : null,
+                ? IconButton(
+                    icon: Icon(Icons.clear, size: 20.w),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _predictions = [];
+                      });
+                    },
+                  )
+                : null,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
@@ -944,7 +991,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ),
@@ -989,14 +1038,18 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                   ),
                   subtitle: Text(
                     prediction.secondaryText,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                   onTap: () => _selectPlace(prediction),
@@ -1102,17 +1155,19 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
           ),
 
           // Get coordinates button (useful for manual entry, especially on web)
-          if (_latitude == null && _streetController.text.isNotEmpty) ...[
+          if (_streetController.text.isNotEmpty) ...[
             SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _geocodeCurrentAddress,
                 icon: Icon(Icons.my_location, size: 18.w),
-                label: const Text('Get Location Coordinates'),
+                label: Text('address.getLocationCoordinates'.tr),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.primary,
-                  side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                 ),
               ),
@@ -1125,16 +1180,22 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 20.w),
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20.w,
+                  ),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      'Location: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                      '${'address.coordinates'.tr}: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Theme.of(context).colorScheme.primary,
@@ -1180,16 +1241,15 @@ class _AddressField extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
             if (isRequired)
               Text(
                 ' *',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.error,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: AppColors.error),
               ),
           ],
         ),
@@ -1201,7 +1261,9 @@ class _AddressField extends StatelessWidget {
             hintText: hint,
             isDense: true,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.r),
               borderSide: BorderSide(
@@ -1216,9 +1278,14 @@ class _AddressField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 10.h,
+            ),
           ),
         ),
       ],

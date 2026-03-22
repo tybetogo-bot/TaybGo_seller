@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Sulje",
     "search": "Hae",
+    "select": "Valitse",
     "clear": "Tyhjennä",
     "add": "Lisää",
     "update": "Päivitä",
@@ -341,7 +342,13 @@
     "floor": "Kerros",
     "city": "Kaupunki",
     "postalCode": "Postinumero",
-    "country": "Maa"
+    "country": "Maa",
+    "coordinates": "Koordinaatit",
+    "getLocationCoordinates": "Hae sijainnin koordinaatit",
+    "latitude": "Leveysaste",
+    "longitude": "Pituusaste",
+    "invalidLatitude": "Virheellinen leveysaste",
+    "invalidLongitude": "Virheellinen pituusaste"
   },
   "menu": {
     "title": "Menu",

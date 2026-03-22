@@ -274,7 +274,7 @@ class _RestaurantSettingsScreenState
                         ],
                       ] else
                         Text(
-                          'No address configured',
+                          'orders.addressNotAvailable'.tr,
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: isDark

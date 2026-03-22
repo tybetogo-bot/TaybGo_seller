@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Close",
     "search": "Search",
+    "select": "Select",
     "clear": "Clear",
     "add": "Add",
     "update": "Update",
@@ -341,7 +342,13 @@
     "floor": "Floor",
     "city": "City",
     "postalCode": "Postal Code",
-    "country": "Country"
+    "country": "Country",
+    "coordinates": "Coordinates",
+    "getLocationCoordinates": "Get Location Coordinates",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "invalidLatitude": "Invalid latitude",
+    "invalidLongitude": "Invalid longitude"
   },
   "menu": {
     "title": "Menu",

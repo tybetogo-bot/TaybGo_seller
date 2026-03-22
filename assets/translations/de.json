@@ -18,6 +18,7 @@
     "ok": "OK",
     "close": "Schließen",
     "search": "Suchen",
+    "select": "Auswählen",
     "clear": "Leeren",
     "add": "Hinzufügen",
     "update": "Aktualisieren",
@@ -326,7 +327,13 @@
     "floor": "Etage",
     "city": "Stadt",
     "postalCode": "PLZ",
-    "country": "Land"
+    "country": "Land",
+    "coordinates": "Koordinaten",
+    "getLocationCoordinates": "Standortkoordinaten abrufen",
+    "latitude": "Breitengrad",
+    "longitude": "Längengrad",
+    "invalidLatitude": "Ungültiger Breitengrad",
+    "invalidLongitude": "Ungültiger Längengrad"
   },
   "menu": {
     "title": "Speisekarte",
