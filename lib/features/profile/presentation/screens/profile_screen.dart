@@ -99,7 +99,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       '',
                   logoUrl: selectedRestaurant?.logoUrl,
                   isDark: isDark,
-                  onEdit: () => context.push(Routes.restaurantSettings),
                 ),
                 SizedBox(height: 20.h),
 
@@ -476,14 +475,12 @@ class _ProfileCard extends StatelessWidget {
     required this.email,
     this.logoUrl,
     required this.isDark,
-    required this.onEdit,
   });
 
   final String name;
   final String email;
   final String? logoUrl;
   final bool isDark;
-  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -566,10 +563,6 @@ class _ProfileCard extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          GestureDetector(
-            onTap: onEdit,
-            child: Icon(Icons.edit_outlined, size: 18.w, color: primaryColor),
           ),
         ],
       ),

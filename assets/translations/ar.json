@@ -536,7 +536,15 @@
     "contactUs": "اتصل بنا",
     "callSupport": "اتصل بالدعم",
     "liveChat": "المحادثة المباشرة",
-    "liveChatDesc": "تحدث مع الدعم"
+    "liveChatDesc": "تحدث مع الدعم",
+    "description": "استخدم دعم TaybGo عندما تحتاج إلى مساعدة بخصوص الحساب أو الطلبات أو المدفوعات أو تشغيل المتجر اليومي.",
+    "visitWebsite": "الانتقال إلى taybgo.com",
+    "websiteTitle": "موقع TaybGo",
+    "websiteDescription": "افتح taybgo.com للاطلاع على معلومات المنصة وطرق التواصل المباشر.",
+    "emailTitle": "مراسلة الدعم",
+    "emailDescription": "أرسل رسالة إلى فريق الدعم عبر تطبيق البريد الافتراضي لديك.",
+    "responseNote": "في مشاكل الحساب أو الطلبات، إنشاء تذكرة دعم من داخل التطبيق هو أسرع طريقة ليتابع فريقنا المشكلة ويحلها.",
+    "linkError": "تعذر فتح TaybGo الآن. حاول مرة أخرى."
   },
   "statistics": {
     "title": "الإحصائيات",
@@ -554,6 +562,10 @@
     "title": "حول التطبيق",
     "version": "الإصدار {version}",
     "description": "إدارة الطلبات والقائمة والعملاء في مكان واحد.",
+    "partnerTools": "مساحة البائع",
+    "websiteLabel": "الموقع الإلكتروني",
+    "supportEmailLabel": "بريد الدعم",
+    "visitWebsite": "زيارة TaybGo",
     "copyright": "© 2024 TaybGo. جميع الحقوق محفوظة."
   },
   "validation": {

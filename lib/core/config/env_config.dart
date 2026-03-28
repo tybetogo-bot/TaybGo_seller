@@ -7,6 +7,9 @@ enum Environment { dev, prod }
 class EnvConfig {
   EnvConfig._();
 
+  static const String websiteUrl = 'https://taybgo.com';
+  static const String supportEmail = 'support@taybgo.com';
+
   static const String _env = String.fromEnvironment('ENV', defaultValue: 'dev');
 
   static Environment get environment =>

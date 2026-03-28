@@ -550,7 +550,15 @@
     "contactUs": "Contact Us",
     "callSupport": "Call Support",
     "liveChat": "Live Chat",
-    "liveChatDesc": "Chat with our support team"
+    "liveChatDesc": "Chat with our support team",
+    "description": "Use TaybGo support whenever you need help with account access, orders, payouts, or day-to-day seller operations.",
+    "visitWebsite": "Go to taybgo.com",
+    "websiteTitle": "TaybGo website",
+    "websiteDescription": "Open taybgo.com for platform information and direct contact options.",
+    "emailTitle": "Email support",
+    "emailDescription": "Send a message to our support team from your default mail app.",
+    "responseNote": "For live account or order issues, creating a support ticket in the app is the fastest way for our team to track and resolve the problem.",
+    "linkError": "Could not open TaybGo right now. Please try again."
   },
   "statistics": {
     "title": "Statistics",
@@ -568,6 +576,10 @@
     "title": "About",
     "version": "Version {version}",
     "description": "Manage your restaurant orders, menu, and customers all in one place.",
+    "partnerTools": "Seller workspace",
+    "websiteLabel": "Website",
+    "supportEmailLabel": "Support email",
+    "visitWebsite": "Visit TaybGo",
     "copyright": "© 2024 TaybGo. All rights reserved."
   },
   "validation": {
