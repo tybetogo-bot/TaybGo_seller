@@ -27,7 +27,6 @@ import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
-import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/restaurant_settings_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
@@ -278,9 +277,7 @@ class AppRouter {
               ),
               GoRoute(
                 path: 'edit',
-                name: Routes.editProfileName,
                 redirect: (context, state) => Routes.profile,
-                builder: (context, state) => const EditProfileScreen(),
               ),
               GoRoute(
                 path: 'restaurant',
