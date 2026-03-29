@@ -16,12 +16,16 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
   const ImagePickerWidget({
     super.key,
     this.initialImageUrl,
+    this.titleText,
+    this.icon = Icons.image,
     this.onImageUploaded,
     this.onImageRemoved,
     this.onUploadStateChanged,
   });
 
   final String? initialImageUrl;
+  final String? titleText;
+  final IconData icon;
   final void Function(String url)? onImageUploaded;
   final void Function()? onImageRemoved;
   final void Function(bool isUploading)? onUploadStateChanged;
@@ -73,7 +77,9 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : LightColors.textPrimary,
                 ),
               ),
               SizedBox(height: 20.h),
@@ -231,17 +237,21 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
           Row(
             children: [
               Icon(
-                Icons.image,
+                widget.icon,
                 size: 20.w,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
               SizedBox(width: 8.w),
               Text(
-                'menu.itemImage'.tr,
+                widget.titleText ?? 'menu.itemImage'.tr,
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : LightColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -249,7 +259,9 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                 'common.optional'.tr,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                  color: isDark
+                      ? DarkColors.textTertiary
+                      : LightColors.textTertiary,
                 ),
               ),
             ],
@@ -274,10 +286,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                 Expanded(
                   child: Text(
                     _error!,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColors.error,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: AppColors.error),
                   ),
                 ),
               ],
@@ -308,13 +317,17 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                   placeholder: (context, url) => Container(
                     height: 200.h,
                     width: double.infinity,
-                    color: isDark ? DarkColors.background : LightColors.background,
+                    color: isDark
+                        ? DarkColors.background
+                        : LightColors.background,
                     child: const Center(child: CircularProgressIndicator()),
                   ),
                   errorWidget: (context, url, error) => Container(
                     height: 200.h,
                     width: double.infinity,
-                    color: isDark ? DarkColors.background : LightColors.background,
+                    color: isDark
+                        ? DarkColors.background
+                        : LightColors.background,
                     child: const Center(child: Icon(Icons.error)),
                   ),
                 ),
@@ -373,7 +386,9 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
             'menu.uploadingImage'.tr,
             style: TextStyle(
               fontSize: 14.sp,
-              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              color: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
             ),
           ),
           SizedBox(height: 8.h),
@@ -389,7 +404,9 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
             '${(_uploadProgress * 100).toInt()}%',
             style: TextStyle(
               fontSize: 12.sp,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
           ),
         ],
@@ -419,14 +436,18 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
             Icon(
               Icons.add_photo_alternate,
               size: 48.w,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             SizedBox(height: 8.h),
             Text(
               'menu.addImage'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ],

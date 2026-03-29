@@ -47,7 +47,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     // Profile fields
     required String name,
     required String phone,
-    int? age,
+    DateTime? birthdate,
+    String? registrationDocumentUrl,
     // Restaurant fields
     required String restaurantName,
     required String restaurantPhone,
@@ -68,7 +69,10 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
         'seller_profile': {
           'name': name,
           'phone': phone,
-          if (age != null) 'age': age,
+          if (birthdate != null) 'birthdate': _formatDate(birthdate),
+          if (registrationDocumentUrl != null &&
+              registrationDocumentUrl.isNotEmpty)
+            'restaurant_registration_license_document': registrationDocumentUrl,
         },
         'address': {
           'label': restaurantName,
@@ -82,10 +86,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
           if (lat != null) 'lat': lat.toStringAsFixed(6),
           if (lng != null) 'lng': lng.toStringAsFixed(6),
         },
-        'restaurant': {
-          'name': restaurantName,
-          'phone': restaurantPhone,
-        },
+        'restaurant': {'name': restaurantName, 'phone': restaurantPhone},
       });
 
       state = const OnboardingSuccess();
@@ -106,6 +107,12 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   /// Reset state to initial
   void reset() {
     state = const OnboardingInitial();
+  }
+
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 }
 

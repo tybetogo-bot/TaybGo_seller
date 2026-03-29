@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/network/user_api.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
+import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
@@ -32,6 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeMode = ref.watch(themeProvider);
     final accentColor = ref.watch(accentColorProvider);
+    final sellerProfileAsync = ref.watch(sellerProfileProvider);
 
     // Get user profile and restaurant data
     final userProfileState = ref.watch(userProfileProvider);
@@ -99,6 +102,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       '',
                   logoUrl: selectedRestaurant?.logoUrl,
                   isDark: isDark,
+                ),
+                SizedBox(height: 12.h),
+                _RegistrationDocumentCard(
+                  isDark: isDark,
+                  sellerProfileAsync: sellerProfileAsync,
+                  onAddPressed: () =>
+                      _showAddRegistrationDocumentSheet(context),
+                  onRetry: () => ref.invalidate(sellerProfileProvider),
                 ),
                 SizedBox(height: 20.h),
 
@@ -399,6 +410,281 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             SizedBox(height: 16.h),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showAddRegistrationDocumentSheet(BuildContext context) async {
+    String? uploadedUrl;
+    var isUploading = false;
+    var isSaving = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? DarkColors.surface
+          : LightColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setModalState) {
+          final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 16.w,
+                right: 16.w,
+                top: 16.h,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16.h,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Add Registration Document',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Once submitted, this document cannot be edited from the app.',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  ImagePickerWidget(
+                    titleText: 'Registration Document',
+                    icon: Icons.description_outlined,
+                    onImageUploaded: (url) {
+                      setModalState(() => uploadedUrl = url);
+                    },
+                    onImageRemoved: () {
+                      setModalState(() => uploadedUrl = null);
+                    },
+                    onUploadStateChanged: (uploading) {
+                      setModalState(() => isUploading = uploading);
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  ElevatedButton.icon(
+                    onPressed:
+                        (uploadedUrl == null ||
+                            uploadedUrl!.isEmpty ||
+                            isUploading ||
+                            isSaving)
+                        ? null
+                        : () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final navigator = Navigator.of(sheetContext);
+
+                            setModalState(() => isSaving = true);
+                            final success = await ref
+                                .read(userProfileProvider.notifier)
+                                .updateSellerProfile({
+                                  'restaurant_registration_license_document':
+                                      uploadedUrl,
+                                });
+
+                            if (!mounted || !sheetContext.mounted) return;
+
+                            if (success) {
+                              ref.invalidate(sellerProfileProvider);
+                              navigator.pop();
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Registration document added successfully.',
+                                  ),
+                                ),
+                              );
+                            } else {
+                              setModalState(() => isSaving = false);
+                              final error = ref.read(userProfileProvider).error;
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    error ??
+                                        'Failed to add registration document.',
+                                  ),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          },
+                    icon: isSaving
+                        ? SizedBox(
+                            width: 16.w,
+                            height: 16.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline),
+                    label: Text(isSaving ? 'Saving...' : 'Save Document'),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RegistrationDocumentCard extends StatelessWidget {
+  const _RegistrationDocumentCard({
+    required this.isDark,
+    required this.sellerProfileAsync,
+    required this.onAddPressed,
+    required this.onRetry,
+  });
+
+  final bool isDark;
+  final AsyncValue<BasicProfile?> sellerProfileAsync;
+  final VoidCallback onAddPressed;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: isDark ? DarkColors.surface : LightColors.surface,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+          color: isDark ? DarkColors.border : LightColors.border,
+          width: 0.5,
+        ),
+      ),
+      child: sellerProfileAsync.when(
+        loading: () => Row(
+          children: [
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 10.w),
+            Text(
+              'Loading registration document status...',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        error: (error, stackTrace) => Row(
+          children: [
+            Icon(Icons.error_outline, size: 18.w, color: AppColors.error),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Text(
+                'Registration document status unavailable',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+        data: (profile) {
+          final documentUrl = profile?.restaurantRegistrationLicenseDocument;
+          final hasDocument = documentUrl != null && documentUrl.isNotEmpty;
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 38.w,
+                height: 38.w,
+                decoration: BoxDecoration(
+                  color: hasDocument
+                      ? AppColors.success.withValues(alpha: 0.12)
+                      : Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  hasDocument
+                      ? Icons.verified_outlined
+                      : Icons.description_outlined,
+                  size: 20.w,
+                  color: hasDocument
+                      ? AppColors.success
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Registration Document',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      hasDocument
+                          ? 'Added and locked. Editing is disabled.'
+                          : 'Missing. Add it once to complete your profile.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasDocument)
+                Icon(
+                  Icons.lock_outline,
+                  size: 18.w,
+                  color: isDark
+                      ? DarkColors.textTertiary
+                      : LightColors.textTertiary,
+                )
+              else
+                TextButton.icon(
+                  onPressed: onAddPressed,
+                  icon: const Icon(Icons.add_link),
+                  label: const Text('Add'),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../auth/presentation/widgets/language_selector.dart';
+import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/address_search_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -32,7 +33,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Profile fields
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _ageController = TextEditingController();
+  final _birthdateController = TextEditingController();
+  DateTime? _selectedBirthdate;
+  String? _registrationDocumentUrl;
+  bool _isDocumentUploading = false;
 
   // Restaurant fields
   final _restaurantNameController = TextEditingController();
@@ -61,7 +65,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _pageController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
-    _ageController.dispose();
+    _birthdateController.dispose();
     _restaurantNameController.dispose();
     _restaurantPhoneController.dispose();
     super.dispose();
@@ -77,6 +81,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextStep() {
+    if (_isDocumentUploading) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please wait for document upload to finish.'),
+        ),
+      );
+      return;
+    }
+
     if (_currentStep == 0) {
       if (!_profileFormKey.currentState!.validate()) return;
       _goToStep(1);
@@ -126,9 +139,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         .submitOnboarding(
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
-          age: _ageController.text.isNotEmpty
-              ? int.tryParse(_ageController.text.trim())
-              : null,
+          birthdate: _selectedBirthdate,
+          registrationDocumentUrl: _registrationDocumentUrl,
           restaurantName: _restaurantNameController.text.trim(),
           restaurantPhone: restaurantPhone,
           streetName: address.street,
@@ -190,6 +202,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
       },
     );
+  }
+
+  Future<void> _pickBirthdate() async {
+    final now = DateTime.now();
+    final initialDate = _selectedBirthdate ?? DateTime(now.year - 18, 1, 1);
+
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+
+    if (!mounted || pickedDate == null) return;
+
+    setState(() {
+      _selectedBirthdate = pickedDate;
+      _birthdateController.text = _formatDate(pickedDate);
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 
   @override
@@ -409,20 +446,59 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             SizedBox(height: 16.h),
 
-            // Age (optional)
+            // Birthdate (optional)
             AppTextField(
-              controller: _ageController,
-              label: '${'onboarding.age'.tr} (${'common.optional'.tr})',
-              hint: 'onboarding.enterAge'.tr,
+              controller: _birthdateController,
+              label: 'Birthdate (${'common.optional'.tr})',
+              hint: 'YYYY-MM-DD',
               prefixIcon: Icons.cake_outlined,
-              keyboardType: TextInputType.number,
+              readOnly: true,
+              onTap: _pickBirthdate,
+            ),
+            SizedBox(height: 16.h),
+
+            Text(
+              'Registration Document (${'common.optional'.tr})',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Upload a clear photo of your restaurant registration or license.',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            ImagePickerWidget(
+              titleText: 'Registration Document',
+              icon: Icons.description_outlined,
+              initialImageUrl: _registrationDocumentUrl,
+              onImageUploaded: (url) {
+                setState(() => _registrationDocumentUrl = url);
+              },
+              onImageRemoved: () {
+                setState(() => _registrationDocumentUrl = null);
+              },
+              onUploadStateChanged: (isUploading) {
+                if (!mounted) return;
+                setState(() => _isDocumentUploading = isUploading);
+              },
             ),
             SizedBox(height: 32.h),
 
             // Next button
             AppButton(
               label: 'common.next'.tr,
-              onPressed: isLoading ? null : _nextStep,
+              onPressed: (isLoading || _isDocumentUploading) ? null : _nextStep,
             ),
             SizedBox(height: 12.h),
             SizedBox(
