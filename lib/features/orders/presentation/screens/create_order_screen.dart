@@ -6,7 +6,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
@@ -320,9 +319,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         );
       }).toList();
 
-      // Build the checkout request with embedded address data
+      // Build the order create request from the validated form fields
       final request = FoodCheckoutRequest(
         restaurantId: int.tryParse(restaurant.id) ?? 0,
+        customerName: _customerNameController.text.trim(),
+        customerPhoneNumber: _phoneController.text.trim(),
         subtotalAmount: _subtotal.toStringAsFixed(2),
         discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : null,
         deliveryFee: _deliveryFee.toStringAsFixed(2),
@@ -332,7 +333,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedVehicleType,
-        pickupAddressData: OrderAddressData.fromRestaurant(restaurant),
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
           label: 'Customer: ${_customerNameController.text.trim()}',
@@ -341,9 +341,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         couponId: _selectedCouponId != null
             ? int.tryParse(_selectedCouponId!)
             : null,
-        notes:
-            'Customer: ${_customerNameController.text.trim()}, '
-            'Phone: ${_phoneController.text.trim()}',
       );
 
       // Create the order

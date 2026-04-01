@@ -11,6 +11,7 @@ import '../../../menu/application/menu_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
+import '../widgets/order_api_debug_inspector.dart';
 // TODO: Re-enable when print button is enabled
 // import '../../data/services/pdf_receipt_service.dart';
 
@@ -29,6 +30,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _isProcessing = false;
+  bool _isLoadingDebugData = false;
 
   @override
   void initState() {
@@ -57,7 +59,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     if (targetStatus == null) return;
 
     // Show confirmation dialog
-    final confirmed = await _showStatusConfirmationDialog(order.status, targetStatus);
+    final confirmed = await _showStatusConfirmationDialog(
+      order.status,
+      targetStatus,
+    );
     if (confirmed != true) return;
 
     setState(() => _isProcessing = true);
@@ -65,11 +70,18 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
     // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
     // Use moveToNextStatus to advance to the next status in sequence
-    final success = await ref.read(ordersProvider.notifier).moveToNextStatus(order.id);
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .moveToNextStatus(order.id);
 
     if (mounted) {
       if (success) {
-        _showSuccessSnackBar('orders.statusUpdatedTo'.tr.replaceAll('{status}', _getStatusDisplayName(targetStatus)));
+        _showSuccessSnackBar(
+          'orders.statusUpdatedTo'.tr.replaceAll(
+            '{status}',
+            _getStatusDisplayName(targetStatus),
+          ),
+        );
       } else {
         final error = ref.read(ordersProvider).error;
         _showErrorSnackBar(error ?? 'orders.statusUpdateFailed'.tr);
@@ -110,7 +122,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
-  Future<bool?> _showStatusConfirmationDialog(OrderStatusEnum currentStatus, OrderStatusEnum targetStatus) {
+  Future<bool?> _showStatusConfirmationDialog(
+    OrderStatusEnum currentStatus,
+    OrderStatusEnum targetStatus,
+  ) {
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -164,7 +179,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                       decoration: BoxDecoration(
                         color: primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: primaryColor.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -255,24 +272,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
     if (order == null) {
       return AppScaffold(
-        appBar: AppAppBar(
-          title: 'orders.orderDetails'.tr,
-        ),
+        appBar: AppAppBar(title: 'orders.orderDetails'.tr),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 48.w,
-                color: AppColors.error,
-              ),
+              Icon(Icons.error_outline, size: 48.w, color: AppColors.error),
               SizedBox(height: 16.h),
               Text(
                 'orderNotFound'.tr,
                 style: TextStyle(
                   fontSize: 16.sp,
-                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
                 ),
               ),
             ],
@@ -284,6 +297,43 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     return AppScaffold(
       appBar: AppAppBar(
         title: '${'orders.orderDetails'.tr} #${order.id}',
+        actions: showOrderApiDebugTools
+            ? [
+                IconButton(
+                  tooltip: 'Show API debug data',
+                  onPressed: _isLoadingDebugData
+                      ? null
+                      : () async {
+                          setState(() => _isLoadingDebugData = true);
+                          try {
+                            await showOrderApiDebugInspector(
+                              context: context,
+                              ref: ref,
+                              order: order,
+                            );
+                          } catch (e) {
+                            if (mounted) {
+                              _showErrorSnackBar('Debug fetch failed: $e');
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _isLoadingDebugData = false);
+                            }
+                          }
+                        },
+                  icon: _isLoadingDebugData
+                      ? SizedBox(
+                          width: 18.w,
+                          height: 18.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      : const Icon(Icons.data_object_rounded),
+                ),
+              ]
+            : null,
         // TODO: Re-enable print button when PDF generation is fully tested
         // actions: [
         //   IconButton(
@@ -333,8 +383,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
               ],
 
               // Delivery options (vehicle type)
-              if (order.requestedVehicleType != null || order.requestedDeliveryType != null) ...[
-                _SectionTitle(title: 'orders.deliveryOptions'.tr, isDark: isDark),
+              if (order.requestedVehicleType != null ||
+                  order.requestedDeliveryType != null) ...[
+                _SectionTitle(
+                  title: 'orders.deliveryOptions'.tr,
+                  isDark: isDark,
+                ),
                 SizedBox(height: 12.h),
                 _DeliveryOptionsCard(order: order, isDark: isDark),
                 SizedBox(height: 20.h),
@@ -346,7 +400,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionTitle(title: 'orders.orderItems'.tr, isDark: isDark),
+                    _SectionTitle(
+                      title: 'orders.orderItems'.tr,
+                      isDark: isDark,
+                    ),
                     SizedBox(height: 12.h),
                     _OrderItemsCard(order: order, isDark: isDark),
                   ],
@@ -431,7 +488,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return Icons.block_rounded; // Cancelled
     }
   }
-
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -483,7 +539,9 @@ class _OrderStatusTimeline extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                  : Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Row(
@@ -499,7 +557,9 @@ class _OrderStatusTimeline extends StatelessWidget {
                   '${'orders.orderId'.tr}: ',
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                 ),
                 Text(
@@ -564,7 +624,11 @@ class _OrderStatusTimeline extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle, color: AppColors.success, size: 14.w),
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.success,
+                        size: 14.w,
+                      ),
                       SizedBox(width: 4.w),
                       Text(
                         'orders.paid'.tr,
@@ -751,10 +815,7 @@ class _OrderStatusTimeline extends StatelessWidget {
 }
 
 class _SimpleProgressBar extends StatelessWidget {
-  const _SimpleProgressBar({
-    required this.progress,
-    required this.isDark,
-  });
+  const _SimpleProgressBar({required this.progress, required this.isDark});
 
   final double progress;
   final bool isDark;
@@ -787,7 +848,12 @@ class _SimpleProgressBar extends StatelessWidget {
                   width: MediaQuery.of(context).size.width * 0.85 * progress,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primary.withValues(alpha: 0.8)],
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.8),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(2.r),
                   ),
@@ -812,10 +878,7 @@ class _SimpleProgressBar extends StatelessWidget {
 }
 
 class _MilestoneDot extends StatelessWidget {
-  const _MilestoneDot({
-    required this.isActive,
-    required this.isDark,
-  });
+  const _MilestoneDot({required this.isActive, required this.isDark});
 
   final bool isActive;
   final bool isDark;
@@ -827,16 +890,22 @@ class _MilestoneDot extends StatelessWidget {
       width: isActive ? 16.w : 12.w,
       height: isActive ? 16.w : 12.w,
       decoration: BoxDecoration(
-        color: isActive ? Theme.of(context).colorScheme.primary : (isDark ? DarkColors.surface : Colors.white),
+        color: isActive
+            ? Theme.of(context).colorScheme.primary
+            : (isDark ? DarkColors.surface : Colors.white),
         shape: BoxShape.circle,
         border: Border.all(
-          color: isActive ? Theme.of(context).colorScheme.primary : (isDark ? DarkColors.border : Colors.grey[400]!),
+          color: isActive
+              ? Theme.of(context).colorScheme.primary
+              : (isDark ? DarkColors.border : Colors.grey[400]!),
           width: 2,
         ),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -909,7 +978,9 @@ class _OrderItemsCard extends ConsumerWidget {
               'orders.noItems'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ),
@@ -932,7 +1003,9 @@ class _OrderItemsCard extends ConsumerWidget {
                     width: 32.w,
                     height: 32.w,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Center(
@@ -952,7 +1025,9 @@ class _OrderItemsCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.name.isNotEmpty ? item.name : 'orders.unknownItem'.tr,
+                          item.name.isNotEmpty
+                              ? item.name
+                              : 'orders.unknownItem'.tr,
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: isDark
@@ -961,7 +1036,8 @@ class _OrderItemsCard extends ConsumerWidget {
                           ),
                         ),
                         // Show customizations text (e.g., "no sauce")
-                        if (item.customizationsText != null && item.customizationsText!.isNotEmpty)
+                        if (item.customizationsText != null &&
+                            item.customizationsText!.isNotEmpty)
                           Padding(
                             padding: EdgeInsets.only(top: 4.h),
                             child: Row(
@@ -1072,7 +1148,9 @@ class _PaymentSummaryCard extends ConsumerWidget {
     final deliveryFee = order.deliveryFee;
     final discountAmount = order.discountAmount;
     final tip = order.tips;
-    final total = order.total > 0 ? order.total : (subtotal + deliveryFee - discountAmount + tip);
+    final total = order.total > 0
+        ? order.total
+        : (subtotal + deliveryFee - discountAmount + tip);
 
     // Check if we have any meaningful payment data
     final hasPaymentData = total > 0 || subtotal > 0 || order.isPaid;
@@ -1086,7 +1164,9 @@ class _PaymentSummaryCard extends ConsumerWidget {
               'orders.paymentInfoNotAvailable'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ),
@@ -1136,7 +1216,10 @@ class _PaymentSummaryCard extends ConsumerWidget {
           ],
           // Show total if available
           if (total > 0) ...[
-            if (subtotal > 0 || deliveryFee > 0 || discountAmount > 0 || tip > 0) ...[
+            if (subtotal > 0 ||
+                deliveryFee > 0 ||
+                discountAmount > 0 ||
+                tip > 0) ...[
               Divider(color: isDark ? DarkColors.border : LightColors.border),
               SizedBox(height: 12.h),
             ],
@@ -1158,7 +1241,11 @@ class _PaymentSummaryCard extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle, color: AppColors.success, size: 16.w),
+                  Icon(
+                    Icons.check_circle,
+                    color: AppColors.success,
+                    size: 16.w,
+                  ),
                   SizedBox(width: 6.w),
                   Text(
                     'orders.paidOnline'.tr,
@@ -1216,8 +1303,10 @@ class _SummaryRow extends StatelessWidget {
             color: isTotal
                 ? Theme.of(context).colorScheme.primary
                 : (isDiscount
-                    ? AppColors.success
-                    : (isDark ? DarkColors.textPrimary : LightColors.textPrimary)),
+                      ? AppColors.success
+                      : (isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary)),
           ),
         ),
       ],
@@ -1244,11 +1333,15 @@ class _OrderInfoCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Icon(
-                    order.orderType == 'FOOD' ? Icons.restaurant : Icons.local_shipping,
+                    order.orderType == 'FOOD'
+                        ? Icons.restaurant
+                        : Icons.local_shipping,
                     color: Theme.of(context).colorScheme.primary,
                     size: 20.w,
                   ),
@@ -1261,15 +1354,21 @@ class _OrderInfoCard extends StatelessWidget {
                       'orders.orderType'.tr,
                       style: TextStyle(
                         fontSize: 11.sp,
-                        color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
                       ),
                     ),
                     Text(
-                      order.orderType == 'FOOD' ? 'orders.foodOrder'.tr : 'orders.parcelOrder'.tr,
+                      order.orderType == 'FOOD'
+                          ? 'orders.foodOrder'.tr
+                          : 'orders.parcelOrder'.tr,
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
                       ),
                     ),
                   ],
@@ -1300,7 +1399,9 @@ class _OrderInfoCard extends StatelessWidget {
                   children: [
                     Icon(
                       order.isPaid ? Icons.check_circle : Icons.pending,
-                      color: order.isPaid ? AppColors.success : AppColors.warning,
+                      color: order.isPaid
+                          ? AppColors.success
+                          : AppColors.warning,
                       size: 16.w,
                     ),
                     SizedBox(width: 4.w),
@@ -1309,7 +1410,9 @@ class _OrderInfoCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
-                        color: order.isPaid ? AppColors.success : AppColors.warning,
+                        color: order.isPaid
+                            ? AppColors.success
+                            : AppColors.warning,
                       ),
                     ),
                   ],
@@ -1319,16 +1422,25 @@ class _OrderInfoCard extends StatelessWidget {
               if (order.isManual) ...[
                 SizedBox(height: 6.h),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6.r),
-                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppColors.warning.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.edit_note, color: AppColors.warning, size: 16.w),
+                      Icon(
+                        Icons.edit_note,
+                        color: AppColors.warning,
+                        size: 16.w,
+                      ),
                       SizedBox(width: 4.w),
                       Text(
                         'orders.manualOrder'.tr,
@@ -1371,9 +1483,10 @@ class _AddressesCard extends StatelessWidget {
             icon: Icons.store,
             iconColor: AppColors.info,
             label: 'orders.pickupFrom'.tr,
-            address: order.pickupAddress?.displayAddress ??
-                     order.restaurant?.address ??
-                     'orders.addressNotAvailable'.tr,
+            address:
+                order.pickupAddress?.displayAddress ??
+                order.restaurant?.address ??
+                'orders.addressNotAvailable'.tr,
             sublabel: order.pickupAddress?.label ?? order.restaurant?.name,
             isDark: isDark,
           ),
@@ -1394,7 +1507,9 @@ class _AddressesCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_downward,
                   size: 16.w,
-                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                  color: isDark
+                      ? DarkColors.textTertiary
+                      : LightColors.textTertiary,
                 ),
               ],
             ),
@@ -1404,9 +1519,11 @@ class _AddressesCard extends StatelessWidget {
             icon: Icons.location_on,
             iconColor: AppColors.error,
             label: 'orders.deliverTo'.tr,
-            address: order.dropoffAddress?.displayAddress ??
-                     order.address.street,
-            sublabel: order.customerName != 'Customer' ? order.customerName : null,
+            address:
+                order.dropoffAddress?.displayAddress ?? order.address.street,
+            sublabel: order.customerName != 'Customer'
+                ? order.customerName
+                : null,
             isDark: isDark,
             latitude: dropoffLat,
             longitude: dropoffLng,
@@ -1489,7 +1606,9 @@ class _AddressRow extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 11.sp,
-                      color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                      color: isDark
+                          ? DarkColors.textTertiary
+                          : LightColors.textTertiary,
                     ),
                   ),
                   if (sublabel != null) ...[
@@ -1498,7 +1617,9 @@ class _AddressRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
                       ),
                     ),
                   ],
@@ -1506,7 +1627,9 @@ class _AddressRow extends StatelessWidget {
                     address,
                     style: TextStyle(
                       fontSize: 13.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1564,7 +1687,11 @@ class _MapActionButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12.w, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              icon,
+              size: 12.w,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             SizedBox(width: 4.w),
             Text(
               label,
@@ -1597,7 +1724,9 @@ class _DriverCard extends StatelessWidget {
             width: 48.w,
             height: 48.w,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -1616,7 +1745,9 @@ class _DriverCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
                   ),
                 ),
                 if (driver.phone != null)
@@ -1624,7 +1755,9 @@ class _DriverCard extends StatelessWidget {
                     driver.phone!,
                     style: TextStyle(
                       fontSize: 13.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
               ],
@@ -1644,10 +1777,7 @@ class _DriverCard extends StatelessWidget {
                   SizedBox(width: 4.w),
                   Text(
                     'orders.verified'.tr,
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: AppColors.success,
-                    ),
+                    style: TextStyle(fontSize: 11.sp, color: AppColors.success),
                   ),
                 ],
               ),
@@ -1724,7 +1854,9 @@ class _DeliveryOptionsCard extends StatelessWidget {
                         'orders.requestedVehicleType'.tr,
                         style: TextStyle(
                           fontSize: 11.sp,
-                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
                         ),
                       ),
                       Text(
@@ -1732,7 +1864,9 @@ class _DeliveryOptionsCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                       ),
                     ],
@@ -1781,14 +1915,18 @@ class _CouponCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
                   ),
                 ),
                 Text(
                   coupon.code,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                 ),
               ],

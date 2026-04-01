@@ -42,6 +42,10 @@ abstract class ApiEndpoints {
   static const String me = '/api/me/';
   static const String sellerProfile = '/api/seller/profile/';
 
+  // Addresses
+  static const String addresses = '/api/addresses/';
+  static String address(int id) => '/api/addresses/$id/';
+
   // Seller Restaurants
   static const String sellerRestaurants = '/api/seller/restaurants/';
   static String sellerRestaurant(String id) => '/api/seller/restaurants/$id/';

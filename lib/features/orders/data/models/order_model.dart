@@ -171,7 +171,9 @@ class OrderRestaurantModel {
     // Parse address - can be a nested object or a string
     OrderAddressModel? parsedAddress;
     if (json['address'] is Map<String, dynamic>) {
-      parsedAddress = OrderAddressModel.fromJson(json['address'] as Map<String, dynamic>);
+      parsedAddress = OrderAddressModel.fromJson(
+        json['address'] as Map<String, dynamic>,
+      );
     }
 
     return OrderRestaurantModel(
@@ -516,7 +518,8 @@ sealed class OrderItemModel with _$OrderItemModel {
       unitPrice: (priceValue is num)
           ? priceValue.toDouble()
           : (double.tryParse(priceValue.toString()) ?? 0.0),
-      notes: json['notes'] as String?,
+      notes:
+          json['delivery_instructions'] as String? ?? json['notes'] as String?,
       customizations: customizationsList,
       customizationsText: customizationsText,
     );

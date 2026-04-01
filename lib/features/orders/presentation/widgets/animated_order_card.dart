@@ -9,6 +9,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
+import 'order_api_debug_inspector.dart';
 
 /// Swipeable order card with clean design
 /// - Swipe right: Update to next status
@@ -37,6 +38,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   late Animation<double> _slideAnimation;
 
   bool _isProcessing = false;
+  bool _isLoadingDebugData = false;
   double _dragExtent = 0.0;
   bool _isDragging = false;
   bool _hasPassedThreshold = false;
@@ -85,7 +87,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final newExtent = _dragExtent + (details.primaryDelta ?? 0);
     final maxDrag = maxWidth * _maxSwipeRatio;
     // Only allow left-swipe (negative) for PENDING orders; others can only swipe right
-    final minDrag = widget.order.status == OrderStatusEnum.pending ? -maxDrag : 0.0;
+    final minDrag = widget.order.status == OrderStatusEnum.pending
+        ? -maxDrag
+        : 0.0;
     final clampedExtent = newExtent.clamp(minDrag, maxDrag);
 
     // Check if we're crossing the threshold
@@ -117,7 +121,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final nextStatus = status.nextStatus;
 
     // Swipe left threshold reached - update status (only for PENDING orders)
-    if (swipeRatio < -_swipeThreshold && status == OrderStatusEnum.pending && nextStatus != null) {
+    if (swipeRatio < -_swipeThreshold &&
+        status == OrderStatusEnum.pending &&
+        nextStatus != null) {
       await _handleSwipeToUpdateStatus();
     }
     // Swipe right threshold reached - open details
@@ -214,6 +220,34 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     if (mounted) {
       await _scaleController.reverse();
       setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _handleShowDebugInspector() async {
+    if (_isLoadingDebugData) return;
+
+    setState(() => _isLoadingDebugData = true);
+
+    try {
+      await showOrderApiDebugInspector(
+        context: context,
+        ref: ref,
+        order: widget.order,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Debug fetch failed: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingDebugData = false);
+      }
     }
   }
 
@@ -474,6 +508,14 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                       ),
                                     ),
                                     const Spacer(),
+                                    if (showOrderApiDebugTools) ...[
+                                      _CardDebugButton(
+                                        isDark: isDark,
+                                        isLoading: _isLoadingDebugData,
+                                        onTap: _handleShowDebugInspector,
+                                      ),
+                                      SizedBox(width: 8.w),
+                                    ],
                                     // Time ago
                                     Text(
                                       _getTimeAgo(order.createdAt),
@@ -649,7 +691,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                 ),
 
                                 // Action button only for PENDING orders
-                                if (status == OrderStatusEnum.pending && nextStatus != null) ...[
+                                if (status == OrderStatusEnum.pending &&
+                                    nextStatus != null) ...[
                                   SizedBox(height: 14.h),
                                   _StatusActionButton(
                                     onTap: _handleMoveToNextStatus,
@@ -679,6 +722,54 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
           ),
         );
       },
+    );
+  }
+}
+
+class _CardDebugButton extends StatelessWidget {
+  const _CardDebugButton({
+    required this.isDark,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        width: 28.w,
+        height: 28.w,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Center(
+          child: isLoading
+              ? SizedBox(
+                  width: 14.w,
+                  height: 14.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                )
+              : Icon(
+                  Icons.data_object_rounded,
+                  size: 16.w,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : Theme.of(context).colorScheme.primary,
+                ),
+        ),
+      ),
     );
   }
 }
@@ -757,7 +848,9 @@ class _SwipeBackground extends StatelessWidget {
             // Content - Text only
             if (absProgress > 0.1 && !isProcessing)
               Align(
-                alignment: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
+                alignment: isSwipingRight
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: AnimatedOpacity(
@@ -972,21 +1065,21 @@ class _CountdownSnackBar extends SnackBar {
     required String Function(OrderStatusEnum) getStatusLabel,
     required Future<void> Function(String, OrderStatusEnum) onUndo,
   }) : super(
-          content: _CountdownSnackBarContent(
-            orderId: orderId,
-            previousStatus: previousStatus,
-            newStatus: newStatus,
-            getStatusLabel: getStatusLabel,
-            onUndo: onUndo,
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-          margin: EdgeInsets.all(16.w),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-        );
+         content: _CountdownSnackBarContent(
+           orderId: orderId,
+           previousStatus: previousStatus,
+           newStatus: newStatus,
+           getStatusLabel: getStatusLabel,
+           onUndo: onUndo,
+         ),
+         backgroundColor: AppColors.success,
+         behavior: SnackBarBehavior.floating,
+         duration: const Duration(seconds: 3),
+         margin: EdgeInsets.all(16.w),
+         shape: RoundedRectangleBorder(
+           borderRadius: BorderRadius.circular(12.r),
+         ),
+       );
 }
 
 /// Content widget for countdown snackbar

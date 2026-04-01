@@ -60,6 +60,9 @@ class Routes {
   static const String settings = '/profile/settings';
   static const String settingsName = 'settings';
 
+  static const String editProfile = '/profile/edit';
+  static const String editProfileName = 'editProfile';
+
   static const String restaurantSettings = '/profile/restaurant';
   static const String restaurantSettingsName = 'restaurantSettings';
 

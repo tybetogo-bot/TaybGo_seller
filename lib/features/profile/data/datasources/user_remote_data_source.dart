@@ -19,6 +19,15 @@ abstract class UserDataSource {
 
   /// Delete user account
   Future<void> deleteAccount();
+
+  /// List saved addresses
+  Future<List<Map<String, dynamic>>> listAddresses();
+
+  /// Create a new address
+  Future<Map<String, dynamic>> createAddress(Map<String, dynamic> data);
+
+  /// Update an existing address
+  Future<Map<String, dynamic>> updateAddress(int id, Map<String, dynamic> data);
 }
 
 /// Remote data source implementation using UserApi
@@ -50,5 +59,23 @@ class UserRemoteDataSource implements UserDataSource {
   @override
   Future<void> deleteAccount() async {
     await _api.deleteAccount();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> listAddresses() async {
+    return await _api.listAddresses();
+  }
+
+  @override
+  Future<Map<String, dynamic>> createAddress(Map<String, dynamic> data) async {
+    return await _api.createAddress(data);
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateAddress(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    return await _api.updateAddress(id, data);
   }
 }

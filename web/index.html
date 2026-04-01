@@ -79,6 +79,21 @@
     }
   </style>
 
+  <script>
+    window.flutterfire_web_sdk_version = '11.9.1';
+    window.flutterfire_ignore_scripts = ['core', 'messaging'];
+    window.__flutterFirebaseReady = Promise.resolve();
+  </script>
+  <script type="module">
+    window.__flutterFirebaseReady = Promise.all([
+      import('/firebasejs/11.9.1/firebase-app.js'),
+      import('/firebasejs/11.9.1/firebase-messaging.js'),
+    ]).then(function (modules) {
+      window.firebase_core = modules[0];
+      window.firebase_messaging = modules[1];
+    });
+  </script>
+
   <div id="loading">
     <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
       <text x="512" y="540" text-anchor="middle" dominant-baseline="middle"
@@ -90,15 +105,6 @@
   </div>
 
   <script>
-    // Unregister any stale service workers from previous deployments
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-
     window.addEventListener('flutter-first-frame', function () {
       var el = document.getElementById('loading');
       if (el) {
@@ -107,6 +113,18 @@
       }
     });
   </script>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.__flutterFirebaseReady
+      .catch(function (error) {
+        console.error('Failed to preload Firebase web SDK locally', error);
+        window.flutterfire_ignore_scripts = [];
+      })
+      .finally(function () {
+        var script = document.createElement('script');
+        script.src = 'flutter_bootstrap.js';
+        script.async = true;
+        document.body.appendChild(script);
+      });
+  </script>
 </body>
 </html>

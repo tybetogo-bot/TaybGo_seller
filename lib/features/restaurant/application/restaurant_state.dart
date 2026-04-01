@@ -61,6 +61,9 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     debugPrint('🟡 [RestaurantNotifier] build() called');
     _repository = ref.watch(restaurantRepositoryProvider);
     _initialized = false;
+    // Auto-initialize so restaurants load even without splash screen
+    // (e.g. on hot restart when already on a protected route)
+    Future.microtask(() => initialize());
     return const RestaurantInitial();
   }
 
@@ -141,17 +144,18 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     }
   }
 
-  /// Fetch restaurant by ID with today's stats
+  /// Fetch restaurant by ID with today's stats.
+  /// Does NOT transition through RestaurantLoading to avoid losing
+  /// the restaurant list while refreshing details.
   Future<void> fetchRestaurantById(String id) async {
     final previousState = state;
-    state = const RestaurantLoading();
 
     final result = await _repository.getRestaurantById(id);
 
     if (result.failure != null) {
-      state = RestaurantError(
-        message: result.failure!.message,
-        previousState: previousState,
+      // On error, keep the previous state instead of losing it
+      debugPrint(
+        '🔴 [RestaurantNotifier] fetchRestaurantById error: ${result.failure!.message}',
       );
     } else if (result.data != null) {
       final fetchedRestaurant = result.data!;

@@ -12,20 +12,24 @@ class OrdersApi {
 
   OrdersApi(this._dio);
 
+  Map<String, dynamic> _buildOrdersQueryParams({
+    required int page,
+    String? status,
+  }) {
+    final queryParams = <String, dynamic>{'page': page};
+    if (status != null) queryParams['status'] = status;
+    return queryParams;
+  }
+
   /// List orders owned by the authenticated user
   /// GET /api/orders/
   Future<PaginatedResponse<OrderModel>> getOrders({
     int page = 1,
     String? status,
   }) async {
-    final queryParams = <String, dynamic>{
-      'page': page,
-    };
-    if (status != null) queryParams['status'] = status;
-
     final response = await _dio.get(
       '/api/orders/',
-      queryParameters: queryParams,
+      queryParameters: _buildOrdersQueryParams(page: page, status: status),
     );
 
     return PaginatedResponse.fromJson(
@@ -41,6 +45,24 @@ class OrdersApi {
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// Debug helper to inspect the raw paginated orders payload.
+  Future<Map<String, dynamic>> getRawOrders({
+    int page = 1,
+    String? status,
+  }) async {
+    final response = await _dio.get(
+      '/api/orders/',
+      queryParameters: _buildOrdersQueryParams(page: page, status: status),
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// Debug helper to inspect the raw order details payload.
+  Future<Map<String, dynamic>> getRawOrderById(String id) async {
+    final response = await _dio.get('/api/orders/$id/');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   /// Update order status
   /// PATCH /api/orders/{id}/
   Future<OrderModel> updateOrderStatus(String id, String status) async {
@@ -48,7 +70,15 @@ class OrdersApi {
       '/api/orders/$id/',
       data: {'status': status},
     );
-    return OrderModel.fromJson(response.data as Map<String, dynamic>);
+
+    // Some PATCH responses omit customer/order details, so re-fetch the full
+    // order before updating local state to avoid replacing rich data with
+    // placeholder fallbacks like "Customer".
+    try {
+      return await getOrderById(id);
+    } on DioException {
+      return OrderModel.fromJson(response.data as Map<String, dynamic>);
+    }
   }
 
   /// Process refund
@@ -72,13 +102,8 @@ class OrdersApi {
 
   /// Log manual order from scanned form
   /// POST /api/orders/manual/
-  Future<void> logManualOrder({
-    required Map<String, dynamic> data,
-  }) async {
-    await _dio.post(
-      '/api/orders/manual/',
-      data: data,
-    );
+  Future<void> logManualOrder({required Map<String, dynamic> data}) async {
+    await _dio.post('/api/orders/manual/', data: data);
   }
 
   /// Export orders to Excel
@@ -99,9 +124,7 @@ class OrdersApi {
     return await _dio.get(
       '/api/orders/export/excel/',
       queryParameters: queryParams,
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
   }
 
@@ -123,9 +146,7 @@ class OrdersApi {
     return await _dio.get(
       '/api/orders/export/pdf/',
       queryParameters: queryParams,
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
   }
 }
