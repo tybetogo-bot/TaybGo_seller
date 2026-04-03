@@ -14,6 +14,8 @@ class ParsedOrderData {
   final List<ParsedOrderItem> items;
   final double? total;
   final String rawText;
+  final String? notes;
+  final List<String> missingForOrderCreate;
 
   // Confidence scores (0.0 to 1.0)
   final double orderIdConfidence;
@@ -32,6 +34,8 @@ class ParsedOrderData {
     this.items = const [],
     this.total,
     required this.rawText,
+    this.notes,
+    this.missingForOrderCreate = const [],
     this.orderIdConfidence = 0.0,
     this.phoneConfidence = 0.0,
     this.addressConfidence = 0.0,

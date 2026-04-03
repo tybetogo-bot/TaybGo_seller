@@ -55,6 +55,7 @@ class _OrderVerificationScreenState
   late final TextEditingController _deliveryTimeController;
   late final TextEditingController _paymentStatusController;
   late final TextEditingController _totalController;
+  late final TextEditingController _notesController;
 
   @override
   void initState() {
@@ -77,6 +78,9 @@ class _OrderVerificationScreenState
     _totalController = TextEditingController(
       text: data.total?.toStringAsFixed(2) ?? '',
     );
+    _notesController = TextEditingController(
+      text: data.notes ?? '',
+    );
   }
 
   @override
@@ -89,6 +93,7 @@ class _OrderVerificationScreenState
     _deliveryTimeController.dispose();
     _paymentStatusController.dispose();
     _totalController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -123,6 +128,9 @@ class _OrderVerificationScreenState
             ? _paymentStatusController.text.trim()
             : null,
         'total': double.tryParse(_totalController.text.trim()),
+        'notes': _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
         'items': widget.parsedData.items
             .map(
               (item) => {
@@ -237,8 +245,8 @@ class _OrderVerificationScreenState
       items: items,
       total: double.tryParse(_totalController.text.trim()),
       isPaid: isPaid,
-      notes: _deliveryTimeController.text.trim().isNotEmpty
-          ? 'Delivery time: ${_deliveryTimeController.text.trim()}'
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
           : null,
       extractedFields: widget.extractedFields,
     );
@@ -477,6 +485,13 @@ class _OrderVerificationScreenState
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+              ),
+              SizedBox(height: 12.h),
+
+              _buildTextField(
+                controller: _notesController,
+                label: 'orders.verify.deliveryInstructions'.tr,
+                icon: Icons.notes,
               ),
               SizedBox(height: 16.h),
 

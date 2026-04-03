@@ -68,6 +68,9 @@ abstract class ApiEndpoints {
   static const String sellerOrdersExportExcel = '/api/seller/orders/export/excel/';
   static const String sellerOrdersExportPdf = '/api/seller/orders/export/pdf/';
 
+  // Order extraction
+  static const String ordersExtractDraft = '/api/orders/extract-draft/';
+
   // Seller Coupons
   static const String sellerCoupons = '/api/seller/coupons/';
   static String sellerCoupon(String id) => '/api/seller/coupons/$id/';

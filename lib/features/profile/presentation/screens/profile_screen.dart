@@ -9,7 +9,6 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/user_api.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
-import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
@@ -107,8 +106,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 _RegistrationDocumentCard(
                   isDark: isDark,
                   sellerProfileAsync: sellerProfileAsync,
-                  onAddPressed: () =>
-                      _showAddRegistrationDocumentSheet(context),
+                  onViewProfile: () => context.push(Routes.editProfile),
                   onRetry: () => ref.invalidate(sellerProfileProvider),
                 ),
                 SizedBox(height: 20.h),
@@ -155,6 +153,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
 
                 // Settings list
+                _SettingRow(
+                  icon: Icons.badge_outlined,
+                  label: 'Seller profile',
+                  value: 'View only',
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.editProfile),
+                ),
                 _SettingRow(
                   key: TourKeys.settingsOptionsKey,
                   icon: Icons.local_offer_outlined,
@@ -413,151 +418,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-
-  Future<void> _showAddRegistrationDocumentSheet(BuildContext context) async {
-    String? uploadedUrl;
-    var isUploading = false;
-    var isSaving = false;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? DarkColors.surface
-          : LightColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-      ),
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (sheetContext, setModalState) {
-          final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
-          return SafeArea(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16.w,
-                right: 16.w,
-                top: 16.h,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16.h,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Add Registration Document',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? DarkColors.textPrimary
-                          : LightColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Once submitted, this document cannot be edited from the app.',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: isDark
-                          ? DarkColors.textSecondary
-                          : LightColors.textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  ImagePickerWidget(
-                    titleText: 'Registration Document',
-                    icon: Icons.description_outlined,
-                    onImageUploaded: (url) {
-                      setModalState(() => uploadedUrl = url);
-                    },
-                    onImageRemoved: () {
-                      setModalState(() => uploadedUrl = null);
-                    },
-                    onUploadStateChanged: (uploading) {
-                      setModalState(() => isUploading = uploading);
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-                  ElevatedButton.icon(
-                    onPressed:
-                        (uploadedUrl == null ||
-                            uploadedUrl!.isEmpty ||
-                            isUploading ||
-                            isSaving)
-                        ? null
-                        : () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final navigator = Navigator.of(sheetContext);
-
-                            setModalState(() => isSaving = true);
-                            final success = await ref
-                                .read(userProfileProvider.notifier)
-                                .updateSellerProfile({
-                                  'restaurant_registration_license_document':
-                                      uploadedUrl,
-                                });
-
-                            if (!mounted || !sheetContext.mounted) return;
-
-                            if (success) {
-                              ref.invalidate(sellerProfileProvider);
-                              navigator.pop();
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Registration document added successfully.',
-                                  ),
-                                ),
-                              );
-                            } else {
-                              setModalState(() => isSaving = false);
-                              final error = ref.read(userProfileProvider).error;
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    error ??
-                                        'Failed to add registration document.',
-                                  ),
-                                  backgroundColor: AppColors.error,
-                                ),
-                              );
-                            }
-                          },
-                    icon: isSaving
-                        ? SizedBox(
-                            width: 16.w,
-                            height: 16.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.check_circle_outline),
-                    label: Text(isSaving ? 'Saving...' : 'Save Document'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
 
 class _RegistrationDocumentCard extends StatelessWidget {
   const _RegistrationDocumentCard({
     required this.isDark,
     required this.sellerProfileAsync,
-    required this.onAddPressed,
+    required this.onViewProfile,
     required this.onRetry,
   });
 
   final bool isDark;
   final AsyncValue<BasicProfile?> sellerProfileAsync;
-  final VoidCallback onAddPressed;
+  final VoidCallback onViewProfile;
   final VoidCallback onRetry;
 
   @override
@@ -656,8 +529,8 @@ class _RegistrationDocumentCard extends StatelessWidget {
                     SizedBox(height: 4.h),
                     Text(
                       hasDocument
-                          ? 'Added and locked. Editing is disabled.'
-                          : 'Missing. Add it once to complete your profile.',
+                          ? 'Added and locked. View-only from this page.'
+                          : 'Missing. Open seller profile to review details.',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: isDark
@@ -668,20 +541,13 @@ class _RegistrationDocumentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (hasDocument)
-                Icon(
-                  Icons.lock_outline,
-                  size: 18.w,
-                  color: isDark
-                      ? DarkColors.textTertiary
-                      : LightColors.textTertiary,
-                )
-              else
-                TextButton.icon(
-                  onPressed: onAddPressed,
-                  icon: const Icon(Icons.add_link),
-                  label: const Text('Add'),
+              TextButton.icon(
+                onPressed: onViewProfile,
+                icon: Icon(
+                  hasDocument ? Icons.visibility_outlined : Icons.open_in_new,
                 ),
+                label: Text(hasDocument ? 'View' : 'Open'),
+              ),
             ],
           );
         },

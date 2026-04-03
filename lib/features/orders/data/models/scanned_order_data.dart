@@ -114,9 +114,21 @@ class ScannedOrderData {
       items: items,
       total: parsed.total,
       isPaid: isPaid,
-      notes: parsed.deliveryTime != null ? 'Delivery time: ${parsed.deliveryTime}' : null,
+      notes: _buildNotes(parsed),
       extractedFields: extractedFields,
     );
+  }
+
+  /// Build notes string from parsed data
+  static String? _buildNotes(ParsedOrderData parsed) {
+    final parts = <String>[];
+    if (parsed.deliveryTime != null) {
+      parts.add('Delivery time: ${parsed.deliveryTime}');
+    }
+    if (parsed.notes != null && parsed.notes!.isNotEmpty) {
+      parts.add(parsed.notes!);
+    }
+    return parts.isNotEmpty ? parts.join('\n') : null;
   }
 
   /// Check if any data was extracted

@@ -2,8 +2,10 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../features/orders/data/models/order_model.dart';
+import '../config/constants.dart';
 import 'restaurant_api.dart';
 
 /// Orders API service
@@ -104,6 +106,36 @@ class OrdersApi {
   /// POST /api/orders/manual/
   Future<void> logManualOrder({required Map<String, dynamic> data}) async {
     await _dio.post('/api/orders/manual/', data: data);
+  }
+
+  /// Extract order draft from images using backend AI
+  /// POST /api/orders/extract-draft/
+  Future<Map<String, dynamic>> extractDraft({
+    required int restaurantId,
+    required List<String> imagePaths,
+  }) async {
+    final formData = FormData();
+    formData.fields.add(MapEntry('restaurant_id', restaurantId.toString()));
+
+    for (final path in imagePaths) {
+      final file = XFile(path);
+      final bytes = await file.readAsBytes();
+      final fileName = file.name;
+      formData.files.add(
+        MapEntry(
+          'images',
+          MultipartFile.fromBytes(bytes, filename: fileName),
+        ),
+      );
+    }
+
+    final response = await _dio.post(
+      ApiEndpoints.ordersExtractDraft,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+
+    return response.data as Map<String, dynamic>;
   }
 
   /// Export orders to Excel

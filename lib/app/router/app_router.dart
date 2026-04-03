@@ -22,6 +22,7 @@ import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
 import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
@@ -277,7 +278,8 @@ class AppRouter {
               ),
               GoRoute(
                 path: 'edit',
-                redirect: (context, state) => Routes.profile,
+                name: Routes.editProfileName,
+                builder: (context, state) => const EditProfileScreen(),
               ),
               GoRoute(
                 path: 'restaurant',

@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/providers/providers.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../restaurant/application/restaurant_state.dart';
 import '../../data/models/scanned_order_data.dart';
 import '../../data/services/gemini_scan_service.dart';
 import 'order_verification_screen.dart';
@@ -30,21 +32,33 @@ class ScanOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
-  final _geminiService = GeminiScanService();
+  GeminiScanService? _geminiService;
   final List<String> _capturedImages = [];
   bool _isProcessing = false;
   String? _error;
 
+  GeminiScanService _getService() {
+    if (_geminiService == null) {
+      final ordersApi = ref.read(ordersApiProvider);
+      final restaurantId = ref.read(selectedRestaurantIdProvider);
+      _geminiService = GeminiScanService(
+        ordersApi: ordersApi,
+        restaurantId: int.tryParse(restaurantId ?? '') ?? 0,
+      );
+    }
+    return _geminiService!;
+  }
+
   @override
   void dispose() {
-    _geminiService.dispose();
+    _geminiService?.dispose();
     super.dispose();
   }
 
   Future<void> _captureFromCamera() async {
     setState(() => _error = null);
 
-    final imagePath = await _geminiService.captureImage();
+    final imagePath = await _getService().captureImage();
     if (imagePath != null) {
       setState(() {
         _capturedImages.add(imagePath);
@@ -55,7 +69,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   Future<void> _pickFromGallery() async {
     setState(() => _error = null);
 
-    final imagePath = await _geminiService.pickImageFromGallery();
+    final imagePath = await _getService().pickImageFromGallery();
     if (imagePath != null) {
       setState(() {
         _capturedImages.add(imagePath);
@@ -66,7 +80,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   Future<void> _pickMultipleFromGallery() async {
     setState(() => _error = null);
 
-    final imagePaths = await _geminiService.pickMultipleImagesFromGallery();
+    final imagePaths = await _getService().pickMultipleImagesFromGallery();
     if (imagePaths.isNotEmpty) {
       setState(() {
         _capturedImages.addAll(imagePaths);
@@ -100,7 +114,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
     });
 
     try {
-      final result = await _geminiService.processMultipleImages(_capturedImages);
+      final result = await _getService().processMultipleImages(_capturedImages);
 
       if (!result.success || result.parsedData == null) {
         setState(() {

@@ -4,9 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
+import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../menu/application/menu_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
@@ -36,6 +38,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   final _deliveryFeeController = TextEditingController(text: '3.99');
   final _tipsController = TextEditingController(text: '0.00');
 
+  Country _selectedCountry = Countries.defaultCountry;
   AddressModel? _selectedAddress;
   final List<OrderItemModel> _orderItems = [];
   bool _isPaid = false;
@@ -162,14 +165,15 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         _customerNameController.text = scannedData.customerName!;
       }
 
-      // Fill phone number (with country code if present)
+      // Fill phone number and country code
       if (scannedData.phone != null) {
-        String phone = scannedData.phone!;
-        // If country code is provided, prepend it to the phone
-        if (scannedData.countryCode != null) {
-          phone = '${scannedData.countryCode}$phone';
-        }
-        _phoneController.text = phone;
+        _phoneController.text = scannedData.phone!;
+      }
+      if (scannedData.countryCode != null) {
+        final match = Countries.all.where(
+          (c) => c.dialCode == scannedData.countryCode,
+        ).firstOrNull;
+        if (match != null) _selectedCountry = match;
       }
 
       // Fill order items - match with menu
@@ -323,7 +327,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       final request = FoodCheckoutRequest(
         restaurantId: int.tryParse(restaurant.id) ?? 0,
         customerName: _customerNameController.text.trim(),
-        customerPhoneNumber: _phoneController.text.trim(),
+        customerPhoneNumber: '${_selectedCountry.dialCode}${_phoneController.text.trim()}',
         subtotalAmount: _subtotal.toStringAsFixed(2),
         discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : null,
         deliveryFee: _deliveryFee.toStringAsFixed(2),
@@ -466,49 +470,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                   ),
                 ),
                 SizedBox(height: 8.h),
-                TextFormField(
+                PhoneInputField(
                   controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'validation.phoneRequired'.tr;
-                    }
-                    return null;
+                  selectedCountry: _selectedCountry,
+                  onCountrySelected: (country) {
+                    setState(() {
+                      _selectedCountry = country;
+                    });
                   },
-                  decoration: InputDecoration(
-                    hintText: 'auth.phoneNumber'.tr,
-                    prefixIcon: Icon(Icons.phone, size: 20.w),
-                    filled: true,
-                    fillColor: isDark
-                        ? DarkColors.inputBackground
-                        : LightColors.inputBackground,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: isDark ? DarkColors.border : LightColors.border,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: isDark ? DarkColors.border : LightColors.border,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: const BorderSide(color: AppColors.error),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 14.h,
-                    ),
-                  ),
                 ),
 
                 SizedBox(height: 24.h),
