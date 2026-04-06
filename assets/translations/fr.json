@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Cette action est irréversible.",
     "version": "Version",
     "undo": "Annuler",
-    "optional": "Optionnel"
+    "optional": "Optionnel",
+    "required": "Obligatoire"
   },
   "auth": {
     "phoneNumber": "Téléphone",

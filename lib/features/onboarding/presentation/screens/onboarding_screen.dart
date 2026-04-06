@@ -92,6 +92,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     if (_currentStep == 0) {
       if (!_profileFormKey.currentState!.validate()) return;
+      if (_registrationDocumentUrl == null ||
+          _registrationDocumentUrl!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('validation.imageRequired'.tr),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
       _goToStep(1);
     }
   }
@@ -104,6 +114,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _submitOnboarding() async {
     if (!_restaurantFormKey.currentState!.validate()) return;
+
+    if (_registrationDocumentUrl == null || _registrationDocumentUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('validation.imageRequired'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     if (_selectedAddress == null ||
         _selectedAddress!.street.isEmpty ||
@@ -140,7 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
           birthdate: _selectedBirthdate,
-          registrationDocumentUrl: _registrationDocumentUrl,
+          registrationDocumentUrl: _registrationDocumentUrl!,
           restaurantName: _restaurantNameController.text.trim(),
           restaurantPhone: restaurantPhone,
           streetName: address.street,
@@ -458,7 +478,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             SizedBox(height: 16.h),
 
             Text(
-              'Registration Document (${'common.optional'.tr})',
+              'Registration Document (${'common.required'.tr})',
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
@@ -481,6 +501,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ImagePickerWidget(
               titleText: 'Registration Document',
               icon: Icons.description_outlined,
+              isRequired: true,
               initialImageUrl: _registrationDocumentUrl,
               onImageUploaded: (url) {
                 setState(() => _registrationDocumentUrl = url);

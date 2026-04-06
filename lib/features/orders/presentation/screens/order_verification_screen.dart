@@ -1,9 +1,6 @@
 /// Screen for verifying and correcting OCR-scanned order data
 library;
 
-import 'dart:io';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,6 +11,7 @@ import '../../data/models/order_model.dart';
 import '../../data/models/scanned_order_data.dart';
 import '../../data/services/order_form_parser.dart';
 import '../../application/orders_notifier.dart';
+import '../widgets/order_image_preview.dart';
 
 /// Order verification screen
 class OrderVerificationScreen extends ConsumerStatefulWidget {
@@ -340,21 +338,11 @@ class _OrderVerificationScreenState
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
-                    child: kIsWeb
-                        ? Image.network(
-                            widget.imagePath!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-                              ),
-                            ),
-                          )
-                        : Image.file(
-                            File(widget.imagePath!),
-                            fit: BoxFit.contain,
-                          ),
+                    child: buildOrderImagePreview(
+                      widget.imagePath!,
+                      fit: BoxFit.contain,
+                      isDark: isDark,
+                    ),
                   ),
                 ),
                 SizedBox(height: 24.h),

@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Tätä toimintoa ei voi perua.",
     "version": "Versio",
     "undo": "Kumoa",
-    "optional": "Valinnainen"
+    "optional": "Valinnainen",
+    "required": "Pakollinen"
   },
   "auth": {
     "phoneNumber": "Puhelinnumero",

@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Denne handlingen kan ikke angres.",
     "version": "Versjon",
     "undo": "Angre",
-    "optional": "Valgfritt"
+    "optional": "Valgfritt",
+    "required": "Påkrevd"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",

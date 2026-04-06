@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -18,6 +18,7 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
     this.initialImageUrl,
     this.titleText,
     this.icon = Icons.image,
+    this.isRequired = false,
     this.onImageUploaded,
     this.onImageRemoved,
     this.onUploadStateChanged,
@@ -26,6 +27,7 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
   final String? initialImageUrl;
   final String? titleText;
   final IconData icon;
+  final bool isRequired;
   final void Function(String url)? onImageUploaded;
   final void Function()? onImageRemoved;
   final void Function(bool isUploading)? onUploadStateChanged;
@@ -36,7 +38,7 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
 
 class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
   String? _imageUrl;
-  File? _selectedFile;
+  Uint8List? _selectedBytes;
   bool _isUploading = false;
   double _uploadProgress = 0.0;
   String? _error;
@@ -53,12 +55,14 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
     if (widget.initialImageUrl != oldWidget.initialImageUrl) {
       setState(() {
         _imageUrl = widget.initialImageUrl;
+        _selectedBytes = null;
       });
     }
   }
 
   Future<void> _showImageSourceDialog() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWeb = kIsWeb;
 
     await showModalBottomSheet(
       context: context,
@@ -88,23 +92,24 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                   Icons.photo_library,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: Text('menu.gallery'.tr),
+                title: Text(isWeb ? 'menu.selectImage'.tr : 'menu.gallery'.tr),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
                 },
               ),
-              ListTile(
-                leading: Icon(
-                  Icons.camera_alt,
-                  color: Theme.of(context).colorScheme.primary,
+              if (!isWeb)
+                ListTile(
+                  leading: Icon(
+                    Icons.camera_alt,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text('menu.camera'.tr),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
                 ),
-                title: Text('menu.camera'.tr),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
             ],
           ),
         ),
@@ -142,73 +147,89 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
     // Read the service first, before any state changes
     final cloudinaryService = ref.read(cloudinaryServiceProvider);
 
-    if (!mounted) return;
+    try {
+      final previewBytes = await xFile.readAsBytes();
+      if (!mounted) return;
 
-    setState(() {
-      _isUploading = true;
-      _uploadProgress = 0.0;
-      _error = null;
-    });
-
-    widget.onUploadStateChanged?.call(true);
-
-    final result = await cloudinaryService.uploadImageFromXFile(
-      xFile,
-      onProgress: (progress) {
-        if (mounted) {
-          setState(() => _uploadProgress = progress);
-        }
-      },
-    );
-
-    if (!mounted) return;
-
-    setState(() => _isUploading = false);
-    widget.onUploadStateChanged?.call(false);
-
-    if (result.failure != null) {
-      if (mounted) {
-        setState(() => _error = result.failure!.message);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.failure!.message),
-            backgroundColor: AppColors.error,
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: () => _uploadImageFromXFile(xFile),
-            ),
-          ),
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
       setState(() {
-        _imageUrl = result.imageUrl;
-        // On web, we can't use File, so only set it on mobile
-        if (!kIsWeb) {
-          _selectedFile = File(xFile.path);
-        }
+        _selectedBytes = previewBytes;
+        _isUploading = true;
+        _uploadProgress = 0.0;
         _error = null;
       });
 
-      widget.onImageUploaded?.call(result.imageUrl!);
+      widget.onUploadStateChanged?.call(true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('menu.imageUploadSuccess'.tr),
-          backgroundColor: AppColors.success,
-        ),
+      final result = await cloudinaryService.uploadImageFromBytes(
+        previewBytes,
+        fileName: xFile.name,
+        onProgress: (progress) {
+          if (mounted) {
+            setState(() => _uploadProgress = progress);
+          }
+        },
       );
+
+      if (!mounted) return;
+
+      setState(() => _isUploading = false);
+      widget.onUploadStateChanged?.call(false);
+
+      if (result.failure != null) {
+        if (mounted) {
+          setState(() => _error = result.failure!.message);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.failure!.message),
+              backgroundColor: AppColors.error,
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _uploadImageFromXFile(xFile),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _imageUrl = result.imageUrl;
+          _selectedBytes = null;
+          _error = null;
+        });
+
+        widget.onImageUploaded?.call(result.imageUrl!);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('menu.imageUploadSuccess'.tr),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _error = 'Error uploading image: $e';
+        });
+        widget.onUploadStateChanged?.call(false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
   void _removeImage() {
     setState(() {
       _imageUrl = null;
-      _selectedFile = null;
+      _selectedBytes = null;
       _error = null;
     });
     widget.onImageRemoved?.call();
@@ -256,7 +277,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
               ),
               const Spacer(),
               Text(
-                'common.optional'.tr,
+                widget.isRequired ? 'common.required'.tr : 'common.optional'.tr,
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: isDark
@@ -302,9 +323,9 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(8.r),
-          child: _selectedFile != null
-              ? Image.file(
-                  _selectedFile!,
+          child: _selectedBytes != null
+              ? Image.memory(
+                  _selectedBytes!,
                   height: 200.h,
                   width: double.infinity,
                   fit: BoxFit.cover,

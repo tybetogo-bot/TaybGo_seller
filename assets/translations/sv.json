@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Denna åtgärd kan inte ångras.",
     "version": "Version",
     "undo": "Ångra",
-    "optional": "Valfritt"
+    "optional": "Valfritt",
+    "required": "Obligatorisk"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",

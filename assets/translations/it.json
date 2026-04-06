@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Questa azione non può essere annullata.",
     "version": "Versione",
     "undo": "Annulla",
-    "optional": "Opzionale"
+    "optional": "Opzionale",
+    "required": "Obbligatorio"
   },
   "auth": {
     "phoneNumber": "Numero di telefono",

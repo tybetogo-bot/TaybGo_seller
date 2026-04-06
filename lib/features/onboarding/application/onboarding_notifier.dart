@@ -48,7 +48,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     required String name,
     required String phone,
     DateTime? birthdate,
-    String? registrationDocumentUrl,
+    required String registrationDocumentUrl,
     // Restaurant fields
     required String restaurantName,
     required String restaurantPhone,
@@ -63,6 +63,13 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     double? lng,
   }) async {
     try {
+      if (registrationDocumentUrl.trim().isEmpty) {
+        state = const OnboardingError(
+          message: 'Registration document is required.',
+        );
+        return;
+      }
+
       state = const OnboardingLoading();
 
       await _userApi.submitOnboarding({
@@ -70,9 +77,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
           'name': name,
           'phone': phone,
           if (birthdate != null) 'birthdate': _formatDate(birthdate),
-          if (registrationDocumentUrl != null &&
-              registrationDocumentUrl.isNotEmpty)
-            'restaurant_registration_license_document': registrationDocumentUrl,
+          'restaurant_registration_license_document':
+              registrationDocumentUrl.trim(),
         },
         'address': {
           'label': restaurantName,

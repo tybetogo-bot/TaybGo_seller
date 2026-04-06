@@ -1,9 +1,6 @@
 /// Screen for scanning order forms with Gemini AI
 library;
 
-import 'dart:io';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,6 +11,7 @@ import '../../../../core/theme/theme.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../data/models/scanned_order_data.dart';
 import '../../data/services/gemini_scan_service.dart';
+import '../widgets/order_image_preview.dart';
 import 'order_verification_screen.dart';
 
 /// Scan order screen with multi-image support
@@ -530,21 +528,11 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10.r),
-              child: kIsWeb
-                  ? Image.network(
-                      _capturedImages[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-                        ),
-                      ),
-                    )
-                  : Image.file(
-                      File(_capturedImages[index]),
-                      fit: BoxFit.cover,
-                    ),
+              child: buildOrderImagePreview(
+                _capturedImages[index],
+                fit: BoxFit.cover,
+                isDark: isDark,
+              ),
             ),
           ),
           // Image number badge

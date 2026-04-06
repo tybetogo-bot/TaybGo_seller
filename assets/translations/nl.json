@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Deze actie kan niet ongedaan worden gemaakt.",
     "version": "Versie",
     "undo": "Ongedaan maken",
-    "optional": "Optioneel"
+    "optional": "Optioneel",
+    "required": "Vereist"
   },
   "auth": {
     "phoneNumber": "Telefoonnummer",

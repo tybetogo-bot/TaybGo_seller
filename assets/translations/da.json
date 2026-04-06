@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Denne handling kan ikke fortrydes.",
     "version": "Version",
     "undo": "Fortryd",
-    "optional": "Valgfri"
+    "optional": "Valgfri",
+    "required": "Påkrævet"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",

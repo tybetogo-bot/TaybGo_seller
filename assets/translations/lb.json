@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Dës Aktioun kann net rückgängeg gemaach ginn.",
     "version": "Versioun",
     "undo": "Réckgängeg maachen",
-    "optional": "Optional"
+    "optional": "Optional",
+    "required": "Erfuerderlech"
   },
   "auth": {
     "phoneNumber": "Telefonsnummer",

@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "لا يمكن التراجع عن هذا الإجراء.",
     "version": "الإصدار",
     "undo": "تراجع",
-    "optional": "اختياري"
+    "optional": "اختياري",
+    "required": "مطلوب"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -1174,3 +1175,4 @@
     "logout": "تسجيل الخروج"
   }
 }
+

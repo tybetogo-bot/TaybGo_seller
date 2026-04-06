@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "version": "Version",
     "undo": "Rückgängig",
-    "optional": "Optional"
+    "optional": "Optional",
+    "required": "Erforderlich"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",

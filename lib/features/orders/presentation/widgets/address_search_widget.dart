@@ -228,10 +228,10 @@ const List<_SupportedCountry> _supportedCountries = [
 ];
 
 /// Google Places API key
-const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
+const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
 /// CORS proxy for web platform
-const String _corsProxy = 'https://corsproxy.io/?';
+const String _corsProxy = 'https://api.allorigins.win/raw?url=';
 
 /// Google Places API service
 class _PlacesApiService {
@@ -1020,7 +1020,7 @@ class _AddressSearchWidgetState extends ConsumerState<AddressSearchWidget> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _predictions.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (context, index) => Divider(
                 height: 1,
                 color: isDark ? DarkColors.border : LightColors.border,
               ),

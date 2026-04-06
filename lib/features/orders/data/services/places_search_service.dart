@@ -9,7 +9,7 @@ import '../models/order_model.dart';
 /// Google Places API key
 const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
-/// CORS proxy for web platform (only for development/testing)
+/// CORS proxy for web platform
 const String _corsProxy = 'https://api.allorigins.win/raw?url=';
 
 /// Place prediction from autocomplete
@@ -76,6 +76,12 @@ class PlacesSearchService {
   /// Check if running on web platform
   static bool get _isWeb => kIsWeb;
 
+  static String _buildRequestUrl(Uri uri) {
+    return _isWeb
+        ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
+        : uri.toString();
+  }
+
   /// Search for place predictions (autocomplete)
   static Future<List<PlacePrediction>> searchAddress(String query, {String? countryCode}) async {
     if (query.trim().length < 3) {
@@ -98,9 +104,7 @@ class PlacesSearchService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
+      final requestUrl = _buildRequestUrl(uri);
 
       if (kDebugMode) {
         print('[PlacesAPI] Searching for: $query');
@@ -169,9 +173,7 @@ class PlacesSearchService {
       };
 
       final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
+      final requestUrl = _buildRequestUrl(uri);
 
       if (kDebugMode) {
         print('[PlacesAPI] Getting details for placeId: $placeId');
@@ -277,6 +279,76 @@ class PlacesSearchService {
       if (kDebugMode) {
         print('[PlacesAPI] ERROR: $e');
         print('[PlacesAPI] ===== searchAndGetAddress END (error) =====');
+      }
+      return null;
+    }
+  }
+
+  /// Reverse geocode coordinates to a country ISO code.
+  static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
+    try {
+      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
+      final params = {
+        'latlng': '$lat,$lng',
+        'key': _placesApiKey,
+        'result_type': 'country',
+      };
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final response = await _dio.get(_buildRequestUrl(uri));
+
+      if (response.statusCode != 200) return null;
+
+      final data = response.data as Map<String, dynamic>;
+      final results = data['results'] as List<dynamic>? ?? [];
+      if (results.isEmpty) return null;
+
+      final components =
+          results[0]['address_components'] as List<dynamic>? ?? [];
+      for (final component in components) {
+        final types =
+            (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
+        if (types.contains('country')) {
+          return (component['short_name'] as String?)?.toLowerCase();
+        }
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Reverse geocode error: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Forward geocode an address string to coordinates.
+  static Future<({double lat, double lng})?> geocodeAddress(
+    String address,
+  ) async {
+    try {
+      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
+      final params = {'address': address, 'key': _placesApiKey};
+
+      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+      final response = await _dio.get(_buildRequestUrl(uri));
+
+      if (response.statusCode != 200) return null;
+
+      final data = response.data as Map<String, dynamic>;
+      final results = data['results'] as List<dynamic>? ?? [];
+      if (results.isEmpty) return null;
+
+      final geometry = results[0]['geometry'] as Map<String, dynamic>?;
+      final location = geometry?['location'] as Map<String, dynamic>?;
+      if (location == null) return null;
+
+      return (
+        lat: (location['lat'] as num).toDouble(),
+        lng: (location['lng'] as num).toDouble(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('[PlacesAPI] Geocode error: $e');
       }
       return null;
     }

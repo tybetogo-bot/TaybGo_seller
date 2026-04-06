@@ -37,7 +37,8 @@
     "actionCannotBeUndone": "This action cannot be undone.",
     "version": "Version",
     "undo": "Undo",
-    "optional": "Optional"
+    "optional": "Optional",
+    "required": "Required"
   },
   "auth": {
     "phoneNumber": "Phone Number",
