@@ -57,7 +57,11 @@ dependencies:
 
   # Image handling
   image_picker: ^1.1.2
+  file_picker: ^11.0.2
   image: ^4.1.7
+
+  # Web-only: direct DOM file picker fallback
+  web: ^1.1.1
 
   # QR/Barcode Scanner
   mobile_scanner: ^7.1.4

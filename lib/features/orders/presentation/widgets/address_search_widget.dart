@@ -230,10 +230,11 @@ const List<_SupportedCountry> _supportedCountries = [
 /// Google Places API key
 const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
-/// CORS proxy for web platform
-const String _corsProxy = 'https://api.allorigins.win/raw?url=';
-
-/// Google Places API service
+/// Google Places API service using Places API (New) v1.
+///
+/// The legacy `maps.googleapis.com/maps/api/place/*` endpoints don't send
+/// CORS headers, so browsers block them. The new `places.googleapis.com/v1`
+/// endpoints support CORS. Enable "Places API (New)" in your GCP console.
 class _PlacesApiService {
   static final Dio _dio = Dio(
     BaseOptions(
@@ -242,74 +243,74 @@ class _PlacesApiService {
     ),
   );
 
-  /// Check if running on web platform
-  static bool get _isWeb => kIsWeb;
-
   /// Search for place predictions (autocomplete)
   static Future<List<_PlacePrediction>> getAutocomplete(
     String query, {
     String? countryCode,
   }) async {
     try {
-      final baseUrl =
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json';
-      final params = {
+      const url = 'https://places.googleapis.com/v1/places:autocomplete';
+      final body = <String, dynamic>{
         'input': query,
-        'key': _placesApiKey,
-        'types': 'geocode|establishment',
-        'language': 'en',
-        if (countryCode != null) 'components': 'country:$countryCode',
+        'languageCode': 'en',
+        if (countryCode != null)
+          'includedRegionCodes': [countryCode.toLowerCase()],
       };
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
-
       if (kDebugMode) {
-        print('[PlacesAPI-Widget] Searching for: $query');
-        print(
-          '[PlacesAPI-Widget] Platform: ${_isWeb ? "Web (CORS proxy)" : "Native"}',
-        );
+        print('[PlacesAPI-Widget] Searching for: $query (new API)');
       }
 
-      final response = await _dio.get(requestUrl);
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+          },
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
+        final suggestions = data['suggestions'] as List<dynamic>? ?? [];
 
-        // Check for API errors
-        final status = data['status'] as String?;
         if (kDebugMode) {
-          print('[PlacesAPI-Widget] Response status: $status');
+          print('[PlacesAPI-Widget] Found ${suggestions.length} suggestions');
         }
 
-        if (status != 'OK' && status != 'ZERO_RESULTS') {
-          if (kDebugMode) {
-            print('[PlacesAPI-Widget] API error status: $status');
-            print('[PlacesAPI-Widget] Error message: ${data['error_message']}');
-          }
-          return [];
-        }
+        return suggestions
+            .map((s) {
+              final prediction =
+                  (s as Map<String, dynamic>)['placePrediction']
+                      as Map<String, dynamic>?;
+              if (prediction == null) return null;
 
-        final predictions = data['predictions'] as List<dynamic>? ?? [];
-        if (kDebugMode) {
-          print('[PlacesAPI-Widget] Found ${predictions.length} predictions');
-        }
+              final placeResource = prediction['place'] as String? ?? '';
+              final placeId = prediction['placeId'] as String? ??
+                  (placeResource.startsWith('places/')
+                      ? placeResource.substring(7)
+                      : placeResource);
 
-        return predictions.map((p) {
-          final structured =
-              p['structured_formatting'] as Map<String, dynamic>? ?? {};
-          return _PlacePrediction(
-            placeId: p['place_id'] as String? ?? '',
-            description: p['description'] as String? ?? '',
-            mainText:
-                structured['main_text'] as String? ??
-                p['description'] as String? ??
-                '',
-            secondaryText: structured['secondary_text'] as String? ?? '',
-          );
-        }).toList();
+              final text = prediction['text'] as Map<String, dynamic>?;
+              final structured =
+                  prediction['structuredFormat'] as Map<String, dynamic>?;
+              final mainTextObj =
+                  structured?['mainText'] as Map<String, dynamic>?;
+              final secondaryTextObj =
+                  structured?['secondaryText'] as Map<String, dynamic>?;
+
+              final description = text?['text'] as String? ?? '';
+              return _PlacePrediction(
+                placeId: placeId,
+                description: description,
+                mainText: mainTextObj?['text'] as String? ?? description,
+                secondaryText: secondaryTextObj?['text'] as String? ?? '',
+              );
+            })
+            .whereType<_PlacePrediction>()
+            .toList();
       }
       return [];
     } catch (e) {
@@ -320,36 +321,49 @@ class _PlacesApiService {
     }
   }
 
-  /// Reverse geocode coordinates to get country code (for web)
+  /// Reverse geocode coordinates to a country ISO code.
   static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
-      final params = {
-        'latlng': '$lat,$lng',
-        'key': _placesApiKey,
-        'result_type': 'country',
+      const url = 'https://places.googleapis.com/v1/places:searchNearby';
+      final body = <String, dynamic>{
+        'locationRestriction': {
+          'circle': {
+            'center': {'latitude': lat, 'longitude': lng},
+            'radius': 50.0,
+          },
+        },
+        'maxResultCount': 1,
       };
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask': 'places.addressComponents',
+          },
+        ),
+      );
 
-      final response = await _dio.get(requestUrl);
+      if (response.statusCode != 200) return null;
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final results = data['results'] as List<dynamic>? ?? [];
-        if (results.isNotEmpty) {
-          final components =
-              results[0]['address_components'] as List<dynamic>? ?? [];
-          for (final component in components) {
-            final types =
-                (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
-            if (types.contains('country')) {
-              return (component['short_name'] as String?)?.toLowerCase();
-            }
-          }
+      final data = response.data as Map<String, dynamic>;
+      final places = data['places'] as List<dynamic>? ?? [];
+      if (places.isEmpty) return null;
+
+      final components =
+          (places[0] as Map<String, dynamic>)['addressComponents']
+              as List<dynamic>? ??
+              [];
+      for (final component in components) {
+        final types =
+            ((component as Map<String, dynamic>)['types'] as List<dynamic>?)
+                    ?.cast<String>() ??
+                [];
+        if (types.contains('country')) {
+          return (component['shortText'] as String?)?.toLowerCase();
         }
       }
       return null;
@@ -361,36 +375,41 @@ class _PlacesApiService {
     }
   }
 
-  /// Forward geocode an address string to coordinates (for web)
+  /// Forward geocode an address string to coordinates.
   static Future<({double lat, double lng})?> geocodeAddress(
     String address,
   ) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
-      final params = {'address': address, 'key': _placesApiKey};
+      const url = 'https://places.googleapis.com/v1/places:searchText';
+      final body = <String, dynamic>{'textQuery': address};
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask': 'places.location',
+          },
+        ),
+      );
 
-      final response = await _dio.get(requestUrl);
+      if (response.statusCode != 200) return null;
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final results = data['results'] as List<dynamic>? ?? [];
-        if (results.isNotEmpty) {
-          final geometry = results[0]['geometry'] as Map<String, dynamic>?;
-          final location = geometry?['location'] as Map<String, dynamic>?;
-          if (location != null) {
-            return (
-              lat: (location['lat'] as num).toDouble(),
-              lng: (location['lng'] as num).toDouble(),
-            );
-          }
-        }
-      }
-      return null;
+      final data = response.data as Map<String, dynamic>;
+      final places = data['places'] as List<dynamic>? ?? [];
+      if (places.isEmpty) return null;
+
+      final location =
+          (places[0] as Map<String, dynamic>)['location']
+              as Map<String, dynamic>?;
+      if (location == null) return null;
+
+      return (
+        lat: (location['latitude'] as num).toDouble(),
+        lng: (location['longitude'] as num).toDouble(),
+      );
     } catch (e) {
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Geocode error: $e');
@@ -402,85 +421,71 @@ class _PlacesApiService {
   /// Get place details including lat/lng
   static Future<_PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
-      final params = {
-        'place_id': placeId,
-        'key': _placesApiKey,
-        'fields': 'geometry,address_components,formatted_address',
-      };
-
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb
-          ? '$_corsProxy${Uri.encodeComponent(uri.toString())}'
-          : uri.toString();
+      final url = 'https://places.googleapis.com/v1/places/$placeId';
 
       if (kDebugMode) {
-        print('[PlacesAPI-Widget] Getting details for placeId: $placeId');
+        print(
+          '[PlacesAPI-Widget] Getting details for placeId: $placeId (new API)',
+        );
       }
 
-      final response = await _dio.get(requestUrl);
+      final response = await _dio.get(
+        url,
+        options: Options(
+          headers: {
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask':
+                'id,location,addressComponents,formattedAddress',
+          },
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
+        final location = data['location'] as Map<String, dynamic>?;
+        final components =
+            data['addressComponents'] as List<dynamic>? ?? [];
 
-        // Check for API errors
-        final status = data['status'] as String?;
-        if (status != 'OK') {
-          if (kDebugMode) {
-            print('[PlacesAPI-Widget] Details error: $status');
+        String? streetNumber;
+        String? streetName;
+        String? city;
+        String? postalCode;
+        String? country;
+
+        for (final component in components) {
+          final map = component as Map<String, dynamic>;
+          final types = (map['types'] as List<dynamic>?)?.cast<String>() ?? [];
+          final longText = map['longText'] as String?;
+
+          if (types.contains('street_number')) {
+            streetNumber = longText;
+          } else if (types.contains('route')) {
+            streetName = longText;
+          } else if (types.contains('locality')) {
+            city = longText;
+          } else if (types.contains('postal_code')) {
+            postalCode = longText;
+          } else if (types.contains('country')) {
+            country = longText;
           }
-          return null;
         }
 
-        final result = data['result'] as Map<String, dynamic>?;
-
-        if (result != null) {
-          final geometry = result['geometry'] as Map<String, dynamic>?;
-          final location = geometry?['location'] as Map<String, dynamic>?;
-          final components =
-              result['address_components'] as List<dynamic>? ?? [];
-
-          String? streetNumber;
-          String? streetName;
-          String? city;
-          String? postalCode;
-          String? country;
-
-          for (final component in components) {
-            final types =
-                (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
-            final longName = component['long_name'] as String?;
-
-            if (types.contains('street_number')) {
-              streetNumber = longName;
-            } else if (types.contains('route')) {
-              streetName = longName;
-            } else if (types.contains('locality')) {
-              city = longName;
-            } else if (types.contains('postal_code')) {
-              postalCode = longName;
-            } else if (types.contains('country')) {
-              country = longName;
-            }
-          }
-
-          if (kDebugMode) {
-            print(
-              '[PlacesAPI-Widget] Got details - lat: ${location?['lat']}, lng: ${location?['lng']}',
-            );
-          }
-
-          return _PlaceDetails(
-            latitude: (location?['lat'] as num?)?.toDouble(),
-            longitude: (location?['lng'] as num?)?.toDouble(),
-            formattedAddress: result['formatted_address'] as String?,
-            streetName: streetName,
-            streetNumber: streetNumber,
-            city: city,
-            postalCode: postalCode,
-            country: country,
+        if (kDebugMode) {
+          print(
+            '[PlacesAPI-Widget] Got details - lat: ${location?['latitude']}, lng: ${location?['longitude']}',
           );
         }
+
+        return _PlaceDetails(
+          latitude: (location?['latitude'] as num?)?.toDouble(),
+          longitude: (location?['longitude'] as num?)?.toDouble(),
+          formattedAddress: data['formattedAddress'] as String?,
+          streetName: streetName,
+          streetNumber: streetNumber,
+          city: city,
+          postalCode: postalCode,
+          country: country,
+        );
       }
       return null;
     } catch (e) {

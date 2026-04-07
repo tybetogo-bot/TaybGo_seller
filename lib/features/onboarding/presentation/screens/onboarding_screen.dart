@@ -11,11 +11,11 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../auth/presentation/widgets/country_picker_widget.dart';
 import '../../../auth/presentation/widgets/language_selector.dart';
-import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/address_search_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/onboarding_notifier.dart';
+import '../widgets/document_upload_widget.dart';
 
 /// Onboarding screen for new sellers
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -478,7 +478,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             SizedBox(height: 16.h),
 
             Text(
-              'Registration Document (${'common.required'.tr})',
+              'onboarding.documentTitle'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
@@ -489,7 +489,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Upload a clear photo of your restaurant registration or license.',
+              'onboarding.documentDescription'.tr,
               style: TextStyle(
                 fontSize: 13.sp,
                 color: isDark
@@ -498,15 +498,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             SizedBox(height: 12.h),
-            ImagePickerWidget(
-              titleText: 'Registration Document',
+            DocumentUploadWidget(
+              titleText: 'onboarding.documentTitle'.tr,
+              helperText: 'onboarding.documentUploadHelper'.tr,
               icon: Icons.description_outlined,
               isRequired: true,
-              initialImageUrl: _registrationDocumentUrl,
-              onImageUploaded: (url) {
+              initialDocumentUrl: _registrationDocumentUrl,
+              onDocumentUploaded: (url) {
                 setState(() => _registrationDocumentUrl = url);
               },
-              onImageRemoved: () {
+              onDocumentRemoved: () {
                 setState(() => _registrationDocumentUrl = null);
               },
               onUploadStateChanged: (isUploading) {

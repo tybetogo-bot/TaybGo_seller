@@ -42,6 +42,26 @@ class CloudinaryService {
     }
   }
 
+  /// Upload any asset from an XFile, including images and documents.
+  Future<CloudinaryResult> uploadAssetFromXFile(
+    XFile xFile, {
+    void Function(double progress)? onProgress,
+  }) async {
+    try {
+      final bytes = await xFile.readAsBytes();
+      return uploadAssetFromBytes(
+        bytes,
+        fileName: xFile.name,
+        onProgress: onProgress,
+      );
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'Failed to read file: $e'),
+        imageUrl: null,
+      );
+    }
+  }
+
   /// Upload an image from raw bytes.
   ///
   /// This keeps the upload path web-safe and lets callers reuse the same
@@ -84,6 +104,80 @@ class CloudinaryService {
       if (secureUrl == null || secureUrl.isEmpty) {
         return (
           failure: const ServerFailure(message: 'No image URL in response'),
+          imageUrl: null,
+        );
+      }
+
+      return (failure: null, imageUrl: secureUrl);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return (
+          failure: const NetworkFailure(message: 'Upload timeout'),
+          imageUrl: null,
+        );
+      }
+
+      if (e.type == DioExceptionType.connectionError) {
+        return (
+          failure: const NetworkFailure(message: 'No internet connection'),
+          imageUrl: null,
+        );
+      }
+
+      final errorMessage = e.response?.data?['error']?['message'] as String? ??
+          'Upload failed';
+      return (
+        failure: ServerFailure(message: errorMessage),
+        imageUrl: null,
+      );
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'Unexpected error: $e'),
+        imageUrl: null,
+      );
+    }
+  }
+
+  /// Upload any file type from raw bytes.
+  Future<CloudinaryResult> uploadAssetFromBytes(
+    Uint8List bytes, {
+    required String fileName,
+    void Function(double progress)? onProgress,
+  }) async {
+    if (bytes.isEmpty) {
+      return (
+        failure: const ValidationFailure(message: 'File is empty'),
+        imageUrl: null,
+      );
+    }
+
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(bytes, filename: fileName),
+        'upload_preset': CloudinaryConfig.uploadPreset,
+      });
+
+      final response = await _dio.post(
+        CloudinaryConfig.uploadAutoUrl,
+        data: formData,
+        onSendProgress: (sent, total) {
+          if (onProgress != null && total > 0) {
+            onProgress(sent / total);
+          }
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final secureUrl = response.data['secure_url'] as String?;
+      if (secureUrl == null || secureUrl.isEmpty) {
+        return (
+          failure: const ServerFailure(message: 'No file URL in response'),
           imageUrl: null,
         );
       }
