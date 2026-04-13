@@ -78,13 +78,11 @@ class OrderStatusTimeline extends StatelessWidget {
       ),
     ];
 
-    // Handle rejected/cancelled status
+    // Handle rejected/cancelled/expired status
     if (currentStatus == OrderStatusEnum.rejected ||
-        currentStatus == OrderStatusEnum.cancelled) {
-      return _RejectedStatusCard(
-        status: currentStatus,
-        isDark: isDark,
-      );
+        currentStatus == OrderStatusEnum.cancelled ||
+        currentStatus == OrderStatusEnum.expired) {
+      return _RejectedStatusCard(status: currentStatus, isDark: isDark);
     }
 
     return Column(
@@ -125,25 +123,38 @@ class OrderStatusTimeline extends StatelessWidget {
                           size: 18.w,
                           color: step.isCompleted || step.isCurrent
                               ? Theme.of(context).colorScheme.primary
-                              : (isDark ? DarkColors.textTertiary : LightColors.textTertiary),
+                              : (isDark
+                                    ? DarkColors.textTertiary
+                                    : LightColors.textTertiary),
                         ),
                         SizedBox(width: 8.w),
                         Text(
                           step.label,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            fontWeight: step.isCurrent ? FontWeight.w600 : FontWeight.w500,
+                            fontWeight: step.isCurrent
+                                ? FontWeight.w600
+                                : FontWeight.w500,
                             color: step.isCompleted || step.isCurrent
-                                ? (isDark ? DarkColors.textPrimary : LightColors.textPrimary)
-                                : (isDark ? DarkColors.textTertiary : LightColors.textTertiary),
+                                ? (isDark
+                                      ? DarkColors.textPrimary
+                                      : LightColors.textPrimary)
+                                : (isDark
+                                      ? DarkColors.textTertiary
+                                      : LightColors.textTertiary),
                           ),
                         ),
                         if (step.isCurrent) ...[
                           SizedBox(width: 8.w),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4.r),
                             ),
                             child: Text(
@@ -164,7 +175,9 @@ class OrderStatusTimeline extends StatelessWidget {
                         _formatTimestamp(step.timestamp!),
                         style: TextStyle(
                           fontSize: 12.sp,
-                          color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                          color: isDark
+                              ? DarkColors.textTertiary
+                              : LightColors.textTertiary,
                         ),
                       ),
                     ],
@@ -204,6 +217,7 @@ class OrderStatusTimeline extends StatelessWidget {
           return 4;
         case OrderStatusEnum.delivered:
           return 5;
+        case OrderStatusEnum.expired:
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           return -1;
@@ -223,7 +237,10 @@ class OrderStatusTimeline extends StatelessWidget {
     if (diff.inMinutes < 1) {
       return 'time.justNow'.tr;
     } else if (diff.inMinutes < 60) {
-      return 'time.minutesAgo'.tr.replaceAll('{minutes}', diff.inMinutes.toString());
+      return 'time.minutesAgo'.tr.replaceAll(
+        '{minutes}',
+        diff.inMinutes.toString(),
+      );
     } else if (diff.inHours < 24) {
       return 'time.hoursAgo'.tr.replaceAll('{hours}', diff.inHours.toString());
     } else {
@@ -251,10 +268,7 @@ class _TimelineStep {
 }
 
 class _StatusDot extends StatelessWidget {
-  const _StatusDot({
-    required this.isCompleted,
-    required this.isCurrent,
-  });
+  const _StatusDot({required this.isCompleted, required this.isCurrent});
 
   final bool isCompleted;
   final bool isCurrent;
@@ -270,7 +284,9 @@ class _StatusDot extends StatelessWidget {
         shape: BoxShape.circle,
         color: isCompleted || isCurrent
             ? Theme.of(context).colorScheme.primary
-            : (isDark ? DarkColors.backgroundSecondary : LightColors.backgroundSecondary),
+            : (isDark
+                  ? DarkColors.backgroundSecondary
+                  : LightColors.backgroundSecondary),
         border: Border.all(
           color: isCompleted || isCurrent
               ? Theme.of(context).colorScheme.primary
@@ -279,29 +295,22 @@ class _StatusDot extends StatelessWidget {
         ),
       ),
       child: isCompleted && !isCurrent
-          ? Icon(
-              Icons.check,
-              size: 14.w,
-              color: Colors.white,
-            )
+          ? Icon(Icons.check, size: 14.w, color: Colors.white)
           : isCurrent
-              ? Container(
-                  margin: EdgeInsets.all(4.w),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                )
-              : null,
+          ? Container(
+              margin: EdgeInsets.all(4.w),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+            )
+          : null,
     );
   }
 }
 
 class _TimelineLine extends StatelessWidget {
-  const _TimelineLine({
-    required this.isCompleted,
-    required this.isDark,
-  });
+  const _TimelineLine({required this.isCompleted, required this.isDark});
 
   final bool isCompleted;
   final bool isDark;
@@ -319,10 +328,7 @@ class _TimelineLine extends StatelessWidget {
 }
 
 class _RejectedStatusCard extends StatelessWidget {
-  const _RejectedStatusCard({
-    required this.status,
-    required this.isDark,
-  });
+  const _RejectedStatusCard({required this.status, required this.isDark});
 
   final OrderStatusEnum status;
   final bool isDark;
@@ -330,9 +336,18 @@ class _RejectedStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRejected = status == OrderStatusEnum.rejected;
+    final isExpired = status == OrderStatusEnum.expired;
     final color = isRejected ? AppColors.error : AppColors.warning;
-    final icon = isRejected ? Icons.cancel : Icons.block;
-    final label = isRejected ? 'orders.status.rejected'.tr : 'orders.status.cancelled'.tr;
+    final icon = isRejected
+        ? Icons.cancel
+        : isExpired
+        ? Icons.timer_off
+        : Icons.block;
+    final label = isRejected
+        ? 'orders.status.rejected'.tr
+        : isExpired
+        ? 'coupons.expired'.tr
+        : 'orders.status.cancelled'.tr;
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -361,10 +376,14 @@ class _RejectedStatusCard extends StatelessWidget {
                 Text(
                   isRejected
                       ? 'orders.orderRejectedByRestaurant'.tr
+                      : isExpired
+                      ? 'coupons.expired'.tr
                       : 'orders.orderWasCancelled'.tr,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
                 ),
               ],
@@ -394,6 +413,7 @@ class OrderActionButtons extends StatelessWidget {
     // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
     // Terminal statuses - no action buttons
     if (currentStatus == OrderStatusEnum.delivered ||
+        currentStatus == OrderStatusEnum.expired ||
         currentStatus == OrderStatusEnum.rejected ||
         currentStatus == OrderStatusEnum.cancelled) {
       return const SizedBox.shrink();
@@ -419,7 +439,6 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.onPressed,
-    this.isOutlined = false,
     this.isLoading = false,
   });
 
@@ -427,48 +446,34 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback? onPressed;
-  final bool isOutlined;
   final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 48.h,
-      child: isOutlined
-          ? OutlinedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 18.w),
-              label: Text(label),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: color,
-                side: BorderSide(color: color),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: isLoading
+            ? SizedBox(
+                width: 18.w,
+                height: 18.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
-              ),
-            )
-          : ElevatedButton.icon(
-              onPressed: onPressed,
-              icon: isLoading
-                  ? SizedBox(
-                      width: 18.w,
-                      height: 18.w,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Icon(icon, size: 18.w),
-              label: Text(label),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: color,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-            ),
+              )
+            : Icon(icon, size: 18.w),
+        label: Text(label),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+      ),
     );
   }
 }

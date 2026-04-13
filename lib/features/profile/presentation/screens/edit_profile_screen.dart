@@ -76,7 +76,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
-        title: const Text('Seller Profile'),
+        title: Text('profile.sellerProfile'.tr),
         backgroundColor: isDark
             ? DarkColors.background
             : LightColors.background,
@@ -103,7 +103,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       SizedBox(width: 10.w),
                       Expanded(
                         child: Text(
-                          'View-only mode. Profile edits are disabled from this page.',
+                          'profile.viewOnlyBanner'.tr,
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: isDark
@@ -119,7 +119,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 // Personal info section
                 _SectionHeader(
                   icon: Icons.person_outline,
-                  title: 'Seller Details',
+                  title: 'profile.sellerDetails'.tr,
                   isDark: isDark,
                 ),
                 SizedBox(height: 12.h),
@@ -132,11 +132,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   keyboardType: TextInputType.phone,
                 ),
                 SizedBox(height: 12.h),
-                _buildTextField('email'.tr, _emailController, isDark),
+                _buildTextField('auth.email'.tr, _emailController, isDark),
                 SizedBox(height: 12.h),
-                _buildTextField('Birthdate', _birthdateController, isDark),
+                _buildTextField(
+                  'profile.birthdate'.tr,
+                  _birthdateController,
+                  isDark,
+                ),
                 SizedBox(height: 12.h),
-                _buildTextField('Age', _ageController, isDark),
+                _buildTextField('onboarding.age'.tr, _ageController, isDark),
 
                 SizedBox(height: 28.h),
 
@@ -335,7 +339,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               ),
                               SizedBox(height: 8.h),
                               Text(
-                                'No address available',
+                                'orders.addressNotAvailable'.tr,
                                 style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.w500,
@@ -376,7 +380,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 SizedBox(height: 28.h),
                 _SectionHeader(
                   icon: Icons.description_outlined,
-                  title: 'Registration Document',
+                  title: 'onboarding.documentTitle'.tr,
                   isDark: isDark,
                 ),
                 SizedBox(height: 12.h),
@@ -402,8 +406,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (uri == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid document URL.'),
+          SnackBar(
+            content: Text('profile.invalidDocumentUrl'.tr),
             backgroundColor: AppColors.error,
           ),
         );
@@ -414,8 +418,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not open document.'),
+        SnackBar(
+          content: Text('profile.documentOpenFailed'.tr),
           backgroundColor: AppColors.error,
         ),
       );
@@ -489,7 +493,7 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
             SizedBox(width: 10.w),
             Expanded(
               child: Text(
-                'Loading registration document...',
+                'common.loading'.tr,
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: isDark
@@ -506,7 +510,7 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
             SizedBox(width: 10.w),
             Expanded(
               child: Text(
-                'Could not load registration document.',
+                'profile.registrationDocumentUnavailable'.tr,
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: isDark
@@ -515,7 +519,7 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
                 ),
               ),
             ),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(onPressed: onRetry, child: Text('common.retry'.tr)),
           ],
         ),
         data: (profile) {
@@ -552,7 +556,7 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Registration Document',
+                      'onboarding.documentTitle'.tr,
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -564,8 +568,8 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
                     SizedBox(height: 4.h),
                     Text(
                       hasDocument
-                          ? 'Added and locked. This page is view-only.'
-                          : 'No document found on this seller profile.',
+                          ? 'profile.registrationDocumentAddedLocked'.tr
+                          : 'profile.registrationDocumentMissing'.tr,
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: isDark
@@ -578,7 +582,7 @@ class _RegistrationDocumentStatusCard extends StatelessWidget {
                       TextButton.icon(
                         onPressed: () => onOpenDocument(context, documentUrl),
                         icon: const Icon(Icons.open_in_new),
-                        label: const Text('Open Document'),
+                        label: Text('common.open'.tr),
                       ),
                     ],
                   ],

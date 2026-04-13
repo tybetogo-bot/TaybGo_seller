@@ -79,6 +79,9 @@ class Routes {
   /// Get edit coupon path with id
   static String editCouponPath(String couponId) => '/coupons/edit/$couponId';
 
+  static const String earnings = '/profile/earnings';
+  static const String earningsName = 'earnings';
+
   static const String statistics = '/profile/statistics';
   static const String statisticsName = 'statistics';
 

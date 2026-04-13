@@ -152,6 +152,7 @@
     "markDelivered": "Markera som levererad",
     "noItems": "Inga artiklar tillagda",
     "orderCreated": "Beställning skapad!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Välj en artikel från menyn",
     "status": {
       "pending": "Väntar",
@@ -491,7 +492,17 @@
     "title": "Profil",
     "yourRestaurant": "Din restaurang",
     "today": "Idag",
-    "viewStats": "Visa statistik"
+    "viewStats": "Visa statistik",
+    "sellerProfile": "Säljarprofil",
+    "viewOnly": "Endast visning",
+    "viewOnlyBanner": "Visningsläge. Profilredigering är inaktiverad på den här sidan.",
+    "sellerDetails": "Säljaruppgifter",
+    "birthdate": "Födelsedatum",
+    "registrationDocumentUnavailable": "Registreringsdokument är inte tillgängligt",
+    "registrationDocumentAddedLocked": "Tillagt och låst. Den här sidan är endast för visning.",
+    "registrationDocumentMissing": "Inget registreringsdokument hittades för den här säljarprofilen.",
+    "invalidDocumentUrl": "Ogiltig dokument-URL.",
+    "documentOpenFailed": "Det gick inte att öppna dokumentet."
   },
   "deleteAccount": {
     "title": "Radera konto",

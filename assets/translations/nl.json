@@ -152,6 +152,7 @@
     "markDelivered": "Markeer als bezorgd",
     "noItems": "Geen items toegevoegd",
     "orderCreated": "Bestelling succesvol aangemaakt!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Selecteer een item uit het menu",
     "status": {
       "pending": "In behandeling",
@@ -491,7 +492,17 @@
     "title": "Profiel",
     "yourRestaurant": "Uw restaurant",
     "today": "Vandaag",
-    "viewStats": "Statistieken bekijken"
+    "viewStats": "Statistieken bekijken",
+    "sellerProfile": "Verkopersprofiel",
+    "viewOnly": "Alleen bekijken",
+    "viewOnlyBanner": "Alleen-lezenmodus. Profielbewerking is uitgeschakeld op deze pagina.",
+    "sellerDetails": "Verkopersgegevens",
+    "birthdate": "Geboortedatum",
+    "registrationDocumentUnavailable": "Registratiedocument niet beschikbaar",
+    "registrationDocumentAddedLocked": "Toegevoegd en vergrendeld. Deze pagina is alleen-lezen.",
+    "registrationDocumentMissing": "Geen registratiedocument gevonden voor dit verkopersprofiel.",
+    "invalidDocumentUrl": "Ongeldige document-URL.",
+    "documentOpenFailed": "Kan document niet openen."
   },
   "deleteAccount": {
     "title": "Account verwijderen",

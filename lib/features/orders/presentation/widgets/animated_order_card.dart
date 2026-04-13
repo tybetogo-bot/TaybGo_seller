@@ -223,6 +223,40 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
   }
 
+  Future<void> _handleReorder() async {
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+
+    final createdOrder = await ref
+        .read(ordersProvider.notifier)
+        .reorderExpiredOrder(widget.order.id);
+
+    if (!mounted) return;
+
+    if (createdOrder != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orders.orderCreated'.tr),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else {
+      final error = ref.read(ordersProvider).error ?? 'errors.unexpected'.tr;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+
+    setState(() => _isProcessing = false);
+  }
+
   Future<void> _handleShowDebugInspector() async {
     if (_isLoadingDebugData) return;
 
@@ -317,6 +351,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.expired:
+        return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.status.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -355,6 +391,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 0.75;
       case OrderStatusEnum.delivered:
         return 1.0;
+      case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return 0.0;
@@ -375,6 +412,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
         return const Color(0xFF4CAF50); // Green - Delivered (final success)
+      case OrderStatusEnum.expired:
+        return AppColors.warning; // Amber - Order expired before completion
       case OrderStatusEnum.rejected:
         return const Color(0xFFF44336); // Red - Rejected
       case OrderStatusEnum.cancelled:
@@ -396,6 +435,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
         return Icons.check_circle_rounded; // Delivered (final success)
+      case OrderStatusEnum.expired:
+        return Icons.timer_off_rounded; // Expired before completion
       case OrderStatusEnum.rejected:
         return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
@@ -417,6 +458,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.statusDesc.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.statusDesc.delivered'.tr;
+      case OrderStatusEnum.expired:
+        return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.statusDesc.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -432,6 +475,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final statusColor = _getStatusColor(status);
     final isTerminal =
         status == OrderStatusEnum.delivered ||
+        status == OrderStatusEnum.expired ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled;
     final nextStatus = status.nextStatus;
@@ -690,7 +734,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                   ],
                                 ),
 
-                                // Action button only for PENDING orders
+                                // Action button for explicit order actions
                                 if (status == OrderStatusEnum.pending &&
                                     nextStatus != null) ...[
                                   SizedBox(height: 14.h),
@@ -699,6 +743,15 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                     isLoading: _isProcessing,
                                     nextStatusLabel: 'orders.requestDriver'.tr,
                                     nextStatusIcon: _getStatusIcon(nextStatus),
+                                  ),
+                                ] else if (status ==
+                                    OrderStatusEnum.expired) ...[
+                                  SizedBox(height: 14.h),
+                                  _StatusActionButton(
+                                    onTap: _handleReorder,
+                                    isLoading: _isProcessing,
+                                    nextStatusLabel: 'orders.reorder'.tr,
+                                    nextStatusIcon: Icons.refresh_rounded,
                                   ),
                                 ],
                               ],

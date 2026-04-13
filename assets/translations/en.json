@@ -152,6 +152,7 @@
     "markDelivered": "Mark Delivered",
     "noItems": "No items added",
     "orderCreated": "Order created successfully!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Please select an item from the menu",
     "status": {
       "pending": "Pending",
@@ -491,7 +492,17 @@
     "title": "Profile",
     "yourRestaurant": "Your Restaurant",
     "today": "Today",
-    "viewStats": "View Stats"
+    "viewStats": "View Stats",
+    "sellerProfile": "Seller Profile",
+    "viewOnly": "View only",
+    "viewOnlyBanner": "View-only mode. Profile edits are disabled from this page.",
+    "sellerDetails": "Seller Details",
+    "birthdate": "Birthdate",
+    "registrationDocumentUnavailable": "Registration document unavailable",
+    "registrationDocumentAddedLocked": "Added and locked. This page is view-only.",
+    "registrationDocumentMissing": "No registration document found on this seller profile.",
+    "invalidDocumentUrl": "Invalid document URL.",
+    "documentOpenFailed": "Could not open document."
   },
   "deleteAccount": {
     "title": "Delete Account",
@@ -560,6 +571,22 @@
     "emailDescription": "Send a message to our support team from your default mail app.",
     "responseNote": "For live account or order issues, creating a support ticket in the app is the fastest way for our team to track and resolve the problem.",
     "linkError": "Could not open TaybGo right now. Please try again."
+  },
+  "earnings": {
+    "title": "Earnings",
+    "totalEarnings": "Total Earnings",
+    "orders": "Orders",
+    "subtotal": "Subtotal",
+    "discounts": "Discounts",
+    "empty": "No earnings found for this period",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "filter": {
+      "today": "Today",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "custom": "Custom"
+    }
   },
   "statistics": {
     "title": "Statistics",

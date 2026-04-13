@@ -90,6 +90,28 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
+  Future<void> _handleReorder(OrderModel order) async {
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+
+    final createdOrder = await ref
+        .read(ordersProvider.notifier)
+        .reorderExpiredOrder(order.id);
+
+    if (mounted) {
+      if (createdOrder != null) {
+        _showSuccessSnackBar('orders.orderCreated'.tr);
+      } else {
+        final error = ref.read(ordersProvider).error;
+        _showErrorSnackBar(error ?? 'errors.unexpected'.tr);
+      }
+
+      setState(() => _isProcessing = false);
+    }
+  }
+
   OrderStatusEnum? _getTargetStatus(OrderStatusEnum currentStatus) {
     // Seller can only accept orders (move PENDING → SEARCHING_FOR_DRIVER)
     // All subsequent status transitions are handled by the backend/driver
@@ -115,6 +137,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.expired:
+        return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.status.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -446,6 +470,16 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   Widget _buildActionButtons(OrderModel order, bool isDark) {
     final status = order.status;
 
+    if (status == OrderStatusEnum.expired) {
+      return AppButton(
+        label: 'orders.reorder'.tr,
+        icon: Icons.refresh_rounded,
+        isLoading: _isProcessing,
+        onPressed: () => _handleReorder(order),
+        isFullWidth: true,
+      );
+    }
+
     // Flow: Pending → Searching → Driver Notified → Accepted/Rejected → On the Way → Delivered
     // Delivered, rejected, or cancelled orders don't need action buttons
     if (status == OrderStatusEnum.delivered ||
@@ -482,6 +516,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
         return Icons.check_circle_rounded; // Delivered (final success)
+      case OrderStatusEnum.expired:
+        return Icons.timer_off_rounded; // Expired before completion
       case OrderStatusEnum.rejected:
         return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
@@ -647,7 +683,8 @@ class _OrderStatusTimeline extends StatelessWidget {
 
           // Simple progress timeline with 4 milestones
           if (order.status != OrderStatusEnum.rejected &&
-              order.status != OrderStatusEnum.cancelled) ...[
+              order.status != OrderStatusEnum.cancelled &&
+              order.status != OrderStatusEnum.expired) ...[
             // Progress bar
             _SimpleProgressBar(progress: progress, isDark: isDark),
             SizedBox(height: 8.h),
@@ -681,21 +718,39 @@ class _OrderStatusTimeline extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color:
+                    (order.status == OrderStatusEnum.rejected
+                            ? AppColors.error
+                            : AppColors.warning)
+                        .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.cancel, color: AppColors.error, size: 20.w),
+                  Icon(
+                    order.status == OrderStatusEnum.rejected
+                        ? Icons.cancel
+                        : order.status == OrderStatusEnum.expired
+                        ? Icons.timer_off
+                        : Icons.block,
+                    color: order.status == OrderStatusEnum.rejected
+                        ? AppColors.error
+                        : AppColors.warning,
+                    size: 20.w,
+                  ),
                   SizedBox(width: 8.w),
                   Text(
                     order.status == OrderStatusEnum.rejected
                         ? 'orders.orderRejected'.tr
+                        : order.status == OrderStatusEnum.expired
+                        ? 'coupons.expired'.tr
                         : 'orders.orderCancelled'.tr,
                     style: TextStyle(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.error,
+                      color: order.status == OrderStatusEnum.rejected
+                          ? AppColors.error
+                          : AppColors.warning,
                     ),
                   ),
                 ],
@@ -723,6 +778,7 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 0.75;
       case OrderStatusEnum.delivered:
         return 1.0;
+      case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return 0.0;
@@ -743,6 +799,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
         return const Color(0xFF4CAF50); // Green - Delivered (final success)
+      case OrderStatusEnum.expired:
+        return AppColors.warning; // Amber - Order expired before completion
       case OrderStatusEnum.rejected:
         return const Color(0xFFF44336); // Red - Rejected
       case OrderStatusEnum.cancelled:
@@ -764,6 +822,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
         return Icons.check_circle_rounded; // Delivered (final success)
+      case OrderStatusEnum.expired:
+        return Icons.timer_off_rounded; // Expired before completion
       case OrderStatusEnum.rejected:
         return Icons.cancel_rounded; // Rejected
       case OrderStatusEnum.cancelled:
@@ -785,6 +845,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.expired:
+        return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.status.rejected'.tr;
       case OrderStatusEnum.cancelled:
@@ -806,6 +868,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 'orders.statusDesc.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.statusDesc.delivered'.tr;
+      case OrderStatusEnum.expired:
+        return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
         return 'orders.statusDesc.rejected'.tr;
       case OrderStatusEnum.cancelled:

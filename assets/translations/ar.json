@@ -149,6 +149,7 @@
     "markDelivered": "تم التسليم",
     "noItems": "لا توجد عناصر",
     "orderCreated": "تم إنشاء الطلب!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "اختر عنصراً من القائمة",
     "status": {
       "pending": "قيد الانتظار",
@@ -477,7 +478,17 @@
     "title": "الملف الشخصي",
     "yourRestaurant": "مطعمك",
     "today": "اليوم",
-    "viewStats": "الإحصائيات"
+    "viewStats": "الإحصائيات",
+    "sellerProfile": "ملف البائع",
+    "viewOnly": "للعرض فقط",
+    "viewOnlyBanner": "وضع العرض فقط. تم تعطيل تعديل الملف من هذه الصفحة.",
+    "sellerDetails": "بيانات البائع",
+    "birthdate": "تاريخ الميلاد",
+    "registrationDocumentUnavailable": "وثيقة التسجيل غير متاحة",
+    "registrationDocumentAddedLocked": "تمت الإضافة والقفل. هذه الصفحة للعرض فقط.",
+    "registrationDocumentMissing": "لا توجد وثيقة تسجيل في ملف هذا البائع.",
+    "invalidDocumentUrl": "رابط الوثيقة غير صالح.",
+    "documentOpenFailed": "تعذر فتح الوثيقة."
   },
   "deleteAccount": {
     "title": "حذف الحساب",
@@ -546,6 +557,22 @@
     "emailDescription": "أرسل رسالة إلى فريق الدعم عبر تطبيق البريد الافتراضي لديك.",
     "responseNote": "في مشاكل الحساب أو الطلبات، إنشاء تذكرة دعم من داخل التطبيق هو أسرع طريقة ليتابع فريقنا المشكلة ويحلها.",
     "linkError": "تعذر فتح TaybGo الآن. حاول مرة أخرى."
+  },
+  "earnings": {
+    "title": "الأرباح",
+    "totalEarnings": "إجمالي الأرباح",
+    "orders": "الطلبات",
+    "subtotal": "المجموع الفرعي",
+    "discounts": "الخصومات",
+    "empty": "لا توجد أرباح لهذه الفترة",
+    "paid": "مدفوع",
+    "unpaid": "غير مدفوع",
+    "filter": {
+      "today": "اليوم",
+      "thisWeek": "هذا الأسبوع",
+      "thisMonth": "هذا الشهر",
+      "custom": "مخصص"
+    }
   },
   "statistics": {
     "title": "الإحصائيات",

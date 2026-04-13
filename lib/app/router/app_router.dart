@@ -30,6 +30,7 @@ import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/restaurant_settings_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
 import '../../features/public_menu/presentation/screens/public_menu_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -290,6 +291,11 @@ class AppRouter {
                 path: 'coupons',
                 name: Routes.couponsName,
                 builder: (context, state) => const CouponsScreen(),
+              ),
+              GoRoute(
+                path: 'earnings',
+                name: Routes.earningsName,
+                builder: (context, state) => const EarningsScreen(),
               ),
               GoRoute(
                 path: 'statistics',

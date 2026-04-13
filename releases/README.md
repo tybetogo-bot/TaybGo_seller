@@ -4,7 +4,7 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.0+1`
+**Current Version:** `1.0.1+2`
 
 ---
 
@@ -13,14 +13,21 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ### Universal APK
 | File | Description |
 |------|-------------|
-| `tybetogoSeller-v1.0.0-release.apk` | Universal APK that works on all Android devices. Larger file size but maximum compatibility. |
+| `taybgo-seller-v1.0.1+2-prod-release.apk` | Universal APK that works on all Android devices. Larger file size but maximum compatibility. |
 
 ### Split APKs (Recommended for smaller file size)
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
-| `tybetogoSeller-v1.0.0-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
-| `tybetogoSeller-v1.0.0-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
-| `tybetogoSeller-v1.0.0-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+| `taybgo-seller-v1.0.1+2-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
+| `taybgo-seller-v1.0.1+2-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
+| `taybgo-seller-v1.0.1+2-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+
+### Dev Split APKs
+| File | Architecture | Target Use |
+|------|--------------|------------|
+| `taybgo-seller-v1.0.1+2-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.1+2-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.1+2-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 ---
 
@@ -58,6 +65,11 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ## Changelog
 
+### v1.0.1 (14 April, 2026)
+- Added support for expired order status handling
+- Added reorder action for expired orders in history and order details
+- Refreshed About page release metadata for this build
+
 ### v1.0.0 (Initial Release)
 - Restaurant management features
 - Order handling and tracking
@@ -82,4 +94,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-01-24*
+*Last updated: 2026-04-14*

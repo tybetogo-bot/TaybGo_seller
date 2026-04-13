@@ -13,7 +13,8 @@ import '../../../../core/theme/theme.dart';
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
-  static const String _appVersion = '1.0.0+1';
+  static const String _appVersion = '1.0.1+2';
+  static const String _releaseDate = '14 April, 2026';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,6 +54,12 @@ class AboutScreen extends ConsumerWidget {
       'about.visitWebsite',
       en: 'Visit TaybGo',
       ar: 'زيارة TaybGo',
+    );
+    final releaseDateLabel = _translated(
+      context,
+      'about.releaseDateLabel',
+      en: 'Release date',
+      ar: 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥ØµØ¯Ø§Ø±',
     );
 
     return Scaffold(
@@ -164,6 +171,13 @@ class AboutScreen extends ConsumerWidget {
                   icon: Icons.info_outline_rounded,
                   label: 'common.version'.tr,
                   value: _appVersion,
+                  isDark: isDark,
+                ),
+                Divider(color: borderColor, height: 24.h),
+                _InfoRow(
+                  icon: Icons.event_rounded,
+                  label: releaseDateLabel,
+                  value: _releaseDate,
                   isDark: isDark,
                 ),
               ],

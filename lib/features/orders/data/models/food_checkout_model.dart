@@ -117,6 +117,24 @@ class OrderAddressData {
       country: address.country,
     );
   }
+
+  /// Create from the order API's address shape.
+  factory OrderAddressData.fromOrderAddress(
+    OrderAddressModel address, {
+    String? fallbackLabel,
+  }) {
+    return OrderAddressData(
+      label: address.label ?? fallbackLabel ?? 'Delivery',
+      lat: (address.lat ?? 0.0).toStringAsFixed(6),
+      lng: (address.lng ?? 0.0).toStringAsFixed(6),
+      fullAddress: address.displayAddress,
+      streetName: address.streetName,
+      houseNumber: address.houseNumber,
+      city: address.city,
+      postalCode: address.postalCode,
+      country: address.country,
+    );
+  }
 }
 
 /// Order type enum
@@ -150,6 +168,22 @@ enum VehicleType {
         return 'Car';
       case VehicleType.van:
         return 'Van';
+    }
+  }
+
+  static VehicleType? fromApiValue(String? value) {
+    switch (value?.trim().toUpperCase()) {
+      case 'BIKE':
+        return VehicleType.bike;
+      case 'MOTOR':
+      case 'MOTORCYCLE':
+        return VehicleType.motorcycle;
+      case 'CAR':
+        return VehicleType.car;
+      case 'VAN':
+        return VehicleType.van;
+      default:
+        return null;
     }
   }
 }
@@ -279,6 +313,124 @@ class FoodCheckoutRequest {
   /// Build JSON with pre-created address IDs instead of nested address data.
   Map<String, dynamic> toJsonWithAddressIds({int? dropoffId}) {
     return toJson(dropoffId: dropoffId);
+  }
+}
+
+String? _buildCustomerPhoneNumber(OrderModel order) {
+  final phone = order.phoneNumber.trim();
+  final countryCode = order.countryCode.trim();
+
+  if (phone.isEmpty) return null;
+  if (phone.startsWith('+')) return phone;
+  if (countryCode.isNotEmpty && phone.startsWith(countryCode)) return phone;
+
+  return '$countryCode$phone';
+}
+
+String? _buildCartItemCustomizations(OrderItemModel item) {
+  final parts = <String>[];
+
+  final customizationsText = item.customizationsText?.trim();
+  if (customizationsText != null && customizationsText.isNotEmpty) {
+    parts.add(customizationsText);
+  }
+
+  final notes = item.notes?.trim();
+  if (notes != null && notes.isNotEmpty && !parts.contains(notes)) {
+    parts.add(notes);
+  }
+
+  if (item.customizations.isNotEmpty) {
+    final structuredCustomizations = item.customizations
+        .map(
+          (customization) => switch (customization.type) {
+            CustomizationType.addition => '+ ${customization.name}',
+            CustomizationType.removal => '- ${customization.name}',
+          },
+        )
+        .join(', ');
+
+    if (structuredCustomizations.isNotEmpty &&
+        !parts.contains(structuredCustomizations)) {
+      parts.add(structuredCustomizations);
+    }
+  }
+
+  if (parts.isEmpty) return null;
+  return parts.join('\n');
+}
+
+OrderAddressData _buildDropoffAddressData(OrderModel order) {
+  final label =
+      order.dropoffAddress?.label ?? 'Customer: ${order.customerName}';
+
+  if (order.dropoffAddress != null) {
+    return OrderAddressData.fromOrderAddress(
+      order.dropoffAddress!,
+      fallbackLabel: label,
+    );
+  }
+
+  return OrderAddressData.fromAddressModel(order.address, label: label);
+}
+
+extension OrderReorderRequestExtension on OrderModel {
+  FoodCheckoutRequest toReorderRequest() {
+    final parsedRestaurantId = int.tryParse(
+      restaurantId ?? restaurant?.id.toString() ?? '',
+    );
+
+    if (parsedRestaurantId == null || parsedRestaurantId <= 0) {
+      throw const FormatException('Missing restaurant for reorder.');
+    }
+
+    final cartItems = items.map((item) {
+      final parsedItemId = int.tryParse(item.menuItemId);
+      if (parsedItemId == null || parsedItemId <= 0) {
+        throw FormatException(
+          'Order item "${item.name}" is missing a valid menu item id.',
+        );
+      }
+
+      return CartItem(
+        itemId: parsedItemId,
+        quantity: item.quantity,
+        customizations: _buildCartItemCustomizations(item),
+      );
+    }).toList();
+
+    if (cartItems.isEmpty) {
+      throw const FormatException('This order has no items to reorder.');
+    }
+
+    final effectiveSubtotal = subtotal > 0 ? subtotal : calculatedSubtotal;
+    final effectiveTotal = total > 0
+        ? total
+        : effectiveSubtotal + deliveryFee + tips - discountAmount;
+    final requestedVehicle = VehicleType.fromApiValue(requestedVehicleType);
+    final requestedDelivery =
+        VehicleType.fromApiValue(requestedDeliveryType) ?? requestedVehicle;
+
+    return FoodCheckoutRequest(
+      restaurantId: parsedRestaurantId,
+      customerName: customerName.trim().isEmpty ? null : customerName.trim(),
+      customerPhoneNumber: _buildCustomerPhoneNumber(this),
+      subtotalAmount: effectiveSubtotal.toStringAsFixed(2),
+      discountAmount: discountAmount > 0
+          ? discountAmount.toStringAsFixed(2)
+          : null,
+      deliveryFee: deliveryFee.toStringAsFixed(2),
+      tip: tips > 0 ? tips.toStringAsFixed(2) : null,
+      totalAmount: effectiveTotal.toStringAsFixed(2),
+      requestedVehicleType: requestedVehicle,
+      requestedDeliveryType: requestedDelivery,
+      isManual: true,
+      isPaid: isPaid,
+      dropoffAddressData: _buildDropoffAddressData(this),
+      items: cartItems,
+      couponId: coupon?.id,
+      notes: notes,
+    );
   }
 }
 

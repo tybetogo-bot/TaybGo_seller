@@ -152,6 +152,7 @@
     "markDelivered": "Marker som levert",
     "noItems": "Ingen elementer lagt til",
     "orderCreated": "Bestilling opprettet!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Velg et element fra menyen",
     "status": {
       "pending": "Venter",
@@ -491,7 +492,17 @@
     "title": "Profil",
     "yourRestaurant": "Din restaurant",
     "today": "I dag",
-    "viewStats": "Se statistikk"
+    "viewStats": "Se statistikk",
+    "sellerProfile": "Selgerprofil",
+    "viewOnly": "Kun visning",
+    "viewOnlyBanner": "Visningsmodus. Profilredigering er deaktivert på denne siden.",
+    "sellerDetails": "Selgerdetaljer",
+    "birthdate": "Fødselsdato",
+    "registrationDocumentUnavailable": "Registreringsdokument ikke tilgjengelig",
+    "registrationDocumentAddedLocked": "Lagt til og låst. Denne siden er kun for visning.",
+    "registrationDocumentMissing": "Fant ikke noe registreringsdokument for denne selgerprofilen.",
+    "invalidDocumentUrl": "Ugyldig dokument-URL.",
+    "documentOpenFailed": "Kunne ikke åpne dokumentet."
   },
   "deleteAccount": {
     "title": "Slett konto",

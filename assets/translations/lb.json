@@ -152,6 +152,7 @@
     "markDelivered": "Als geliwwert markéieren",
     "noItems": "Keng Artikelen derbäigesat",
     "orderCreated": "Bestelling erfollegräich erstellt!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Wielt w.e.g. en Artikel aus dem Menü",
     "status": {
       "pending": "Aussteend",
@@ -491,7 +492,17 @@
     "title": "Profil",
     "yourRestaurant": "Äre Restaurant",
     "today": "Haut",
-    "viewStats": "Statistike gesinn"
+    "viewStats": "Statistike gesinn",
+    "sellerProfile": "Verkeeferprofil",
+    "viewOnly": "Nëmme weisen",
+    "viewOnlyBanner": "Nëmme-Lies-Modus. Profilännerunge si vun dëser Säit aus deaktivéiert.",
+    "sellerDetails": "Verkeeferdetailer",
+    "birthdate": "Gebuertsdatum",
+    "registrationDocumentUnavailable": "Registratiounsdokument net verfügbar",
+    "registrationDocumentAddedLocked": "Dobäigesat a gespaart. Dës Säit ass nëmme fir d'Vue.",
+    "registrationDocumentMissing": "Keng Registratiounsdokument gouf op dësem Verkeeferprofil fonnt.",
+    "invalidDocumentUrl": "Ongëlteg Dokument-URL.",
+    "documentOpenFailed": "D'Dokument konnt net opgemaach ginn."
   },
   "deleteAccount": {
     "title": "Kont läschen",

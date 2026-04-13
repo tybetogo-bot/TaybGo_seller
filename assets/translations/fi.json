@@ -152,6 +152,7 @@
     "markDelivered": "Merkitse toimitetuksi",
     "noItems": "Ei lisättyjä tuotteita",
     "orderCreated": "Tilaus luotu onnistuneesti!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Valitse tuote menusta",
     "status": {
       "pending": "Odottaa",
@@ -491,7 +492,17 @@
     "title": "Profiili",
     "yourRestaurant": "Ravintolasi",
     "today": "Tänään",
-    "viewStats": "Näytä tilastot"
+    "viewStats": "Näytä tilastot",
+    "sellerProfile": "Myyjäprofiili",
+    "viewOnly": "Vain katselu",
+    "viewOnlyBanner": "Vain katselu -tila. Profiilin muokkaus on poistettu käytöstä tällä sivulla.",
+    "sellerDetails": "Myyjän tiedot",
+    "birthdate": "Syntymäaika",
+    "registrationDocumentUnavailable": "Rekisteröintiasiakirja ei ole saatavilla",
+    "registrationDocumentAddedLocked": "Lisätty ja lukittu. Tämä sivu on vain katseltavissa.",
+    "registrationDocumentMissing": "Tältä myyjäprofiililta ei löytynyt rekisteröintiasiakirjaa.",
+    "invalidDocumentUrl": "Virheellinen asiakirjan URL-osoite.",
+    "documentOpenFailed": "Asiakirjaa ei voitu avata."
   },
   "deleteAccount": {
     "title": "Poista tili",

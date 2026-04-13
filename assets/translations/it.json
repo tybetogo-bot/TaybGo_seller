@@ -152,6 +152,7 @@
     "markDelivered": "Segna consegnato",
     "noItems": "Nessun articolo aggiunto",
     "orderCreated": "Ordine creato con successo!",
+    "reorder": "Reorder",
     "selectItemFromMenu": "Seleziona un articolo dal menu",
     "status": {
       "pending": "In attesa",
@@ -490,7 +491,17 @@
     "title": "Profilo",
     "yourRestaurant": "Il tuo ristorante",
     "today": "Oggi",
-    "viewStats": "Vedi statistiche"
+    "viewStats": "Vedi statistiche",
+    "sellerProfile": "Profilo venditore",
+    "viewOnly": "Solo visualizzazione",
+    "viewOnlyBanner": "Modalità di sola visualizzazione. Le modifiche al profilo sono disabilitate da questa pagina.",
+    "sellerDetails": "Dettagli venditore",
+    "birthdate": "Data di nascita",
+    "registrationDocumentUnavailable": "Documento di registrazione non disponibile",
+    "registrationDocumentAddedLocked": "Aggiunto e bloccato. Questa pagina è solo di visualizzazione.",
+    "registrationDocumentMissing": "Nessun documento di registrazione trovato in questo profilo venditore.",
+    "invalidDocumentUrl": "URL del documento non valido.",
+    "documentOpenFailed": "Impossibile aprire il documento."
   },
   "deleteAccount": {
     "title": "Elimina account",

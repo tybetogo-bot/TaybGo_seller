@@ -155,10 +155,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // Settings list
                 _SettingRow(
                   icon: Icons.badge_outlined,
-                  label: 'Seller profile',
-                  value: 'View only',
+                  label: 'profile.sellerProfile'.tr,
+                  value: 'profile.viewOnly'.tr,
                   isDark: isDark,
                   onTap: () => context.push(Routes.editProfile),
+                ),
+                _SettingRow(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'earnings.title'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.earnings),
                 ),
                 _SettingRow(
                   key: TourKeys.settingsOptionsKey,
@@ -455,7 +461,7 @@ class _RegistrationDocumentCard extends StatelessWidget {
             ),
             SizedBox(width: 10.w),
             Text(
-              'Loading registration document status...',
+              'common.loading'.tr,
               style: TextStyle(
                 fontSize: 13.sp,
                 color: isDark
@@ -471,7 +477,7 @@ class _RegistrationDocumentCard extends StatelessWidget {
             SizedBox(width: 10.w),
             Expanded(
               child: Text(
-                'Registration document status unavailable',
+                'profile.registrationDocumentUnavailable'.tr,
                 style: TextStyle(
                   fontSize: 13.sp,
                   color: isDark
@@ -480,7 +486,7 @@ class _RegistrationDocumentCard extends StatelessWidget {
                 ),
               ),
             ),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(onPressed: onRetry, child: Text('common.retry'.tr)),
           ],
         ),
         data: (profile) {
@@ -517,7 +523,7 @@ class _RegistrationDocumentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Registration Document',
+                      'onboarding.documentTitle'.tr,
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -529,8 +535,8 @@ class _RegistrationDocumentCard extends StatelessWidget {
                     SizedBox(height: 4.h),
                     Text(
                       hasDocument
-                          ? 'Added and locked. View-only from this page.'
-                          : 'Missing. Open seller profile to review details.',
+                          ? 'profile.registrationDocumentAddedLocked'.tr
+                          : 'profile.registrationDocumentMissing'.tr,
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: isDark
@@ -546,7 +552,7 @@ class _RegistrationDocumentCard extends StatelessWidget {
                 icon: Icon(
                   hasDocument ? Icons.visibility_outlined : Icons.open_in_new,
                 ),
-                label: Text(hasDocument ? 'View' : 'Open'),
+                label: Text('common.open'.tr),
               ),
             ],
           );

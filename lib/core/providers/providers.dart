@@ -11,6 +11,7 @@ import '../network/restaurant_api.dart';
 import '../network/menu_api.dart';
 import '../network/orders_api.dart';
 import '../network/coupons_api.dart';
+import '../network/earnings_api.dart';
 import '../network/support_api.dart';
 import '../network/user_api.dart';
 import '../../features/support/data/repositories/support_repository.dart';
@@ -82,6 +83,12 @@ final ordersApiProvider = Provider<OrdersApi>((ref) {
 final couponsApiProvider = Provider<CouponsApi>((ref) {
   final dio = ref.watch(dioProvider);
   return CouponsApi(dio);
+});
+
+/// Provider for EarningsApi
+final earningsApiProvider = Provider<EarningsApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return EarningsApi(dio);
 });
 
 /// Provider for UserApi
