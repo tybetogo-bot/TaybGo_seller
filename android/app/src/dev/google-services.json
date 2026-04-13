@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "861868751268",
-    "project_id": "tybetogoseller",
-    "storage_bucket": "tybetogoseller.firebasestorage.app"
+    "project_number": "188938523542",
+    "project_id": "sellertaybgo",
+    "storage_bucket": "sellertaybgo.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:861868751268:android:6e861d2c9ec2db5a352931",
+        "mobilesdk_app_id": "1:188938523542:android:bd82c7143bf50ca46343b7",
         "android_client_info": {
-          "package_name": "com.tybetogo.seller.dev"
+          "package_name": "com.taybgo.seller.dev"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCDJ0ZMTIFUO2ZGNIAP-p4yzkF5fNNoBuM"
+          "current_key": "AIzaSyB0krx5c-Sh4QYYl7GHCTqAc2nDEAp4qNE"
         }
       ],
       "services": {

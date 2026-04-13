@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -426,9 +428,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     bool isDark, {
     TextInputType? keyboardType,
   }) {
+    final textDirection = keyboardType == TextInputType.phone
+        ? ui.TextDirection.ltr
+        : null;
+
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      textDirection: textDirection,
       enabled: false,
       decoration: InputDecoration(
         labelText: label,

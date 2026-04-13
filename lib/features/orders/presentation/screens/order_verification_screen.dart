@@ -1,6 +1,8 @@
 /// Screen for verifying and correcting OCR-scanned order data
 library;
 
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -76,9 +78,7 @@ class _OrderVerificationScreenState
     _totalController = TextEditingController(
       text: data.total?.toStringAsFixed(2) ?? '',
     );
-    _notesController = TextEditingController(
-      text: data.notes ?? '',
-    );
+    _notesController = TextEditingController(text: data.notes ?? '');
   }
 
   @override
@@ -195,7 +195,9 @@ class _OrderVerificationScreenState
     String street = streetText;
     String building = '';
 
-    final streetMatch = RegExp(r'^(.+?)\s+(\d+\s*[a-zA-Z]?)$').firstMatch(streetText);
+    final streetMatch = RegExp(
+      r'^(.+?)\s+(\d+\s*[a-zA-Z]?)$',
+    ).firstMatch(streetText);
     if (streetMatch != null) {
       street = streetMatch.group(1) ?? streetText;
       building = streetMatch.group(2) ?? '';
@@ -205,31 +207,40 @@ class _OrderVerificationScreenState
     final address = AddressModel(
       street: street,
       building: building,
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-      postalCode: _postalCodeController.text.trim().isNotEmpty ? _postalCodeController.text.trim() : null,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
+      postalCode: _postalCodeController.text.trim().isNotEmpty
+          ? _postalCodeController.text.trim()
+          : null,
     );
 
     // Convert items
-    final items = widget.parsedData.items.map((item) => ScannedOrderItem(
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-      notes: item.toppings.isNotEmpty ? item.toppings.join(', ') : null,
-    )).toList();
+    final items = widget.parsedData.items
+        .map(
+          (item) => ScannedOrderItem(
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            notes: item.toppings.isNotEmpty ? item.toppings.join(', ') : null,
+          ),
+        )
+        .toList();
 
     // Determine if paid - check for online/paid indicators
     final paymentStatus = _paymentStatusController.text.trim().toLowerCase();
     bool? isPaid;
     if (paymentStatus.isNotEmpty) {
-      isPaid = paymentStatus.contains('paid') ||
-               paymentStatus.contains('betaald') ||
-               paymentStatus.contains('online') ||
-               paymentStatus.contains('ideal') ||
-               paymentStatus.contains('card') ||
-               paymentStatus.contains('kaart') ||
-               paymentStatus.contains('pin') ||
-               paymentStatus.contains('creditcard') ||
-               paymentStatus.contains('debit');
+      isPaid =
+          paymentStatus.contains('paid') ||
+          paymentStatus.contains('betaald') ||
+          paymentStatus.contains('online') ||
+          paymentStatus.contains('ideal') ||
+          paymentStatus.contains('card') ||
+          paymentStatus.contains('kaart') ||
+          paymentStatus.contains('pin') ||
+          paymentStatus.contains('creditcard') ||
+          paymentStatus.contains('debit');
     }
 
     // Build scanned data
@@ -369,7 +380,9 @@ class _OrderVerificationScreenState
                 required: true,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'orders.verify.requiredField'.trParams({'field': 'orders.verify.customerName'.tr});
+                    return 'orders.verify.requiredField'.trParams({
+                      'field': 'orders.verify.customerName'.tr,
+                    });
                   }
                   return null;
                 },
@@ -386,7 +399,9 @@ class _OrderVerificationScreenState
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'orders.verify.requiredField'.trParams({'field': 'orders.verify.phoneNumber'.tr});
+                    return 'orders.verify.requiredField'.trParams({
+                      'field': 'orders.verify.phoneNumber'.tr,
+                    });
                   }
                   return null;
                 },
@@ -486,7 +501,9 @@ class _OrderVerificationScreenState
               // Items section
               if (widget.parsedData.items.isNotEmpty) ...[
                 Text(
-                  'orders.verify.orderItems'.trParams({'count': widget.parsedData.items.length.toString()}),
+                  'orders.verify.orderItems'.trParams({
+                    'count': widget.parsedData.items.length.toString(),
+                  }),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -584,9 +601,9 @@ class _OrderVerificationScreenState
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
-                  disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(
-                    alpha: 0.5,
-                  ),
+                  disabledBackgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.5),
                 ),
                 child: _isSubmitting
                     ? SizedBox(
@@ -616,28 +633,28 @@ class _OrderVerificationScreenState
   }
 
   Widget _buildScanSummary(bool isDark) {
-    final extracted = widget.extractedFields.entries.where((e) => e.value).map((e) => e.key).toList();
-    final notExtracted = widget.extractedFields.entries.where((e) => !e.value).map((e) => e.key).toList();
+    final extracted = widget.extractedFields.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    final notExtracted = widget.extractedFields.entries
+        .where((e) => !e.value)
+        .map((e) => e.key)
+        .toList();
 
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(
-          color: AppColors.success.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.auto_awesome,
-                color: AppColors.success,
-                size: 20.w,
-              ),
+              Icon(Icons.auto_awesome, color: AppColors.success, size: 20.w),
               SizedBox(width: 8.w),
               Text(
                 'orders.verify.aiScanComplete'.tr,
@@ -654,18 +671,16 @@ class _OrderVerificationScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.success,
-                  size: 16.w,
-                ),
+                Icon(Icons.check_circle, color: AppColors.success, size: 16.w),
                 SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     '${'orders.verify.fieldsExtracted'.tr}: ${_getFieldLabels(extracted).join(', ')}',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ),
@@ -677,19 +692,12 @@ class _OrderVerificationScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.edit,
-                  color: AppColors.warning,
-                  size: 16.w,
-                ),
+                Icon(Icons.edit, color: AppColors.warning, size: 16.w),
                 SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     '${'orders.verify.fieldsToFill'.tr}: ${_getFieldLabels(notExtracted).join(', ')}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColors.warning,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: AppColors.warning),
                   ),
                 ),
               ],
@@ -747,18 +755,21 @@ class _OrderVerificationScreenState
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLowConfidence = confidence != null && confidence < 0.8;
+    final textDirection = _textDirectionForKeyboardType(keyboardType);
 
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      textDirection: textDirection,
       validator: validator,
       decoration: InputDecoration(
         labelText: '$label${required ? ' *' : ''}',
         prefixIcon: Icon(icon, size: 20.w),
         suffixIcon: isLowConfidence
             ? Tooltip(
-                message:
-                    'orders.verify.lowConfidence'.trParams({'percent': (confidence * 100).toStringAsFixed(0)}),
+                message: 'orders.verify.lowConfidence'.trParams({
+                  'percent': (confidence * 100).toStringAsFixed(0),
+                }),
                 child: Icon(
                   Icons.warning_amber_rounded,
                   color: AppColors.warning,
@@ -789,7 +800,9 @@ class _OrderVerificationScreenState
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide(
-            color: isLowConfidence ? AppColors.warning : Theme.of(context).colorScheme.primary,
+            color: isLowConfidence
+                ? AppColors.warning
+                : Theme.of(context).colorScheme.primary,
             width: 2,
           ),
         ),
@@ -800,6 +813,16 @@ class _OrderVerificationScreenState
         contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       ),
     );
+  }
+
+  /// Keep phone and numeric inputs left-to-right so values like `+43...` stay readable in RTL locales.
+  TextDirection? _textDirectionForKeyboardType(TextInputType? keyboardType) {
+    final shouldForceLtr =
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.number ||
+        keyboardType?.toString().contains('numberWithOptions') == true;
+
+    return shouldForceLtr ? ui.TextDirection.ltr : null;
   }
 
   Widget _buildItemTile(ParsedOrderItem item, bool isDark) {
@@ -813,7 +836,9 @@ class _OrderVerificationScreenState
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
                 child: Text(

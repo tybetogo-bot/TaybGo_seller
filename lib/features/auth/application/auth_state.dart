@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/location_permission_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/repositories/auth_repository.dart';
 
@@ -29,6 +30,7 @@ class AuthOtpSent extends AuthState {
 
   final String phone;
   final int expiresInSeconds;
+
   /// Debug OTP (only available in dev/test environments)
   final String? debugOtp;
 
@@ -119,15 +121,14 @@ class AuthNotifier extends Notifier<AuthState> {
     AuthOtpSent? otpState;
     if (currentState is AuthOtpSent) {
       otpState = currentState;
-    } else if (currentState is AuthError && currentState.previousState is AuthOtpSent) {
+    } else if (currentState is AuthError &&
+        currentState.previousState is AuthOtpSent) {
       // Allow retry after error by using the previous OTP state
       otpState = currentState.previousState as AuthOtpSent;
     }
 
     if (otpState == null) {
-      state = const AuthError(
-        message: 'Invalid state for OTP verification',
-      );
+      state = const AuthError(message: 'Invalid state for OTP verification');
       return;
     }
 
@@ -145,6 +146,10 @@ class AuthNotifier extends Notifier<AuthState> {
       );
     } else {
       state = AuthAuthenticated(phone: otpState.phone);
+
+      ref
+          .read(locationPermissionAutoRequestProvider.notifier)
+          .queueAfterLogin();
 
       // Trigger restaurant fetch after successful login
       ref.read(restaurantProvider.notifier).fetchRestaurants();
@@ -168,6 +173,7 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> logout() async {
     state = const AuthLoading();
 
+    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
     await _repository.logout();
     state = const AuthUnauthenticated();
   }

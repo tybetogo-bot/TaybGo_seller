@@ -57,11 +57,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCDJ0ZMTIFUO2ZGNIAP-p4yzkF5fNNoBuM',
-    appId: '1:861868751268:android:6e861d2c9ec2db5a352931',
-    messagingSenderId: '861868751268',
-    projectId: 'tybetogoseller',
-    storageBucket: 'tybetogoseller.firebasestorage.app',
+    apiKey: 'AIzaSyB0krx5c-Sh4QYYl7GHCTqAc2nDEAp4qNE',
+    appId: '1:188938523542:android:bd82c7143bf50ca46343b7',
+    messagingSenderId: '188938523542',
+    projectId: 'sellertaybgo',
+    storageBucket: 'sellertaybgo.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

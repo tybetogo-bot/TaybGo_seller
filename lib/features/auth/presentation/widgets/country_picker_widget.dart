@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -41,6 +43,7 @@ class CountryPickerWidget extends StatelessWidget {
             SizedBox(width: 6.w),
             Text(
               selectedCountry.dialCode,
+              textDirection: ui.TextDirection.ltr,
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -207,6 +210,7 @@ class _CountryPickerBottomSheetState
                     children: [
                       Text(
                         country.dialCode,
+                        textDirection: ui.TextDirection.ltr,
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: isDark
@@ -273,6 +277,7 @@ class PhoneInputField extends StatelessWidget {
           child: TextFormField(
             controller: controller,
             keyboardType: TextInputType.phone,
+            textDirection: ui.TextDirection.ltr,
             enabled: enabled,
             onChanged: onChanged,
             validator:

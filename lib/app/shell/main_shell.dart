@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/i18n/i18n.dart';
+import '../../core/services/location_permission_service.dart';
 import '../../core/services/push_notification_service.dart';
 import '../../core/theme/theme.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
@@ -13,10 +14,7 @@ import '../router/routes.dart';
 
 /// Main shell with bottom navigation
 class MainShell extends ConsumerStatefulWidget {
-  const MainShell({
-    super.key,
-    required this.child,
-  });
+  const MainShell({super.key, required this.child});
 
   final Widget child;
 
@@ -25,6 +23,8 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
+  bool _locationRequestScheduled = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,13 +45,50 @@ class _MainShellState extends ConsumerState<MainShell> {
     };
   }
 
+  Future<void> _requestLocationPermissionAfterLogin() async {
+    final autoRequestNotifier = ref.read(
+      locationPermissionAutoRequestProvider.notifier,
+    );
+
+    if (ref.read(locationPermissionAutoRequestProvider) !=
+        LocationPermissionAutoRequestState.pending) {
+      _locationRequestScheduled = false;
+      return;
+    }
+
+    autoRequestNotifier.markRequesting();
+
+    try {
+      await ref
+          .read(locationPermissionProvider.notifier)
+          .requestPermissionIfNeeded();
+    } finally {
+      autoRequestNotifier.clear();
+      _locationRequestScheduled = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch the FCM token provider to trigger token retrieval & backend
     // registration whenever the main shell is active.
     final fcmState = ref.watch(fcmTokenProvider);
-    debugPrint('🎯 [MainShell] build() → fcmToken state: '
-        '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}');
+    final autoRequestState = ref.watch(locationPermissionAutoRequestProvider);
+
+    debugPrint(
+      '[MainShell] fcmToken state: '
+      '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}',
+    );
+
+    if (autoRequestState == LocationPermissionAutoRequestState.pending &&
+        !_locationRequestScheduled) {
+      _locationRequestScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _requestLocationPermissionAfterLogin();
+        }
+      });
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -77,13 +114,15 @@ class AppBottomNavBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final location = GoRouterState.of(context).uri.toString();
-    
+
     // Watch translations to rebuild when locale changes
     ref.watch(translationsLoadedProvider);
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? DarkColors.bottomNavBackground : LightColors.bottomNavBackground,
+        color: isDark
+            ? DarkColors.bottomNavBackground
+            : LightColors.bottomNavBackground,
         boxShadow: AppShadows.bottomNav,
       ),
       child: SafeArea(
@@ -134,13 +173,13 @@ class AppBottomNavBar extends ConsumerWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.activeIcon,
     required this.label,
     required this.isSelected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   final IconData icon;
   final IconData activeIcon;
@@ -155,7 +194,9 @@ class _NavItem extends StatelessWidget {
 
     final color = isSelected
         ? theme.colorScheme.primary
-        : (isDark ? DarkColors.bottomNavInactive : LightColors.bottomNavInactive);
+        : (isDark
+              ? DarkColors.bottomNavInactive
+              : LightColors.bottomNavInactive);
 
     return InkWell(
       onTap: onTap,
@@ -166,11 +207,7 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: color,
-              size: 24.w,
-            ),
+            Icon(isSelected ? activeIcon : icon, color: color, size: 24.w),
             SizedBox(height: 4.h),
             Text(
               label,
