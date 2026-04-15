@@ -13,6 +13,7 @@ import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/theme/theme.dart';
+import 'features/auth/application/auth_state.dart';
 import 'features/tour/application/tour_notifier.dart';
 import 'features/tour/presentation/widgets/tour_overlay.dart';
 import 'firebase_options.dart';
@@ -68,7 +69,9 @@ class TaybGoApp extends ConsumerWidget {
 
     // Set up global unauthorized callback to handle 401 errors
     // This callback will be called by the AuthInterceptor when a 401 error occurs
-    globalUnauthorizedCallback = () {
+    globalUnauthorizedCallback = () async {
+      await ref.read(authProvider.notifier).handleUnauthorized();
+
       // Check if we're on a public route - don't redirect if so
       final currentLocation =
           router.routerDelegate.currentConfiguration.uri.path;

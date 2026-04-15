@@ -41,7 +41,8 @@
       "Bash(firebase deploy --only hosting)",
       "Bash(firebase --version)",
       "Bash(firebase hosting:channel:deploy live --only hosting)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "WebFetch(domain:dev.taybgo.com)"
     ]
   }
 }

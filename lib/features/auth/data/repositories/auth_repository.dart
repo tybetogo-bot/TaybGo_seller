@@ -28,6 +28,9 @@ abstract class AuthRepository {
   /// Refresh access token
   Future<AuthResult<TokenRefreshResponse>> refreshToken();
 
+  /// Proactively validate the stored session
+  Future<bool> validateStoredSession();
+
   /// Logout user
   Future<AuthResult<void>> logout();
 
@@ -56,8 +59,8 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required AuthDataSource remoteDataSource,
     required SharedPreferences prefs,
-  })  : _remoteDataSource = remoteDataSource,
-        _prefs = prefs;
+  }) : _remoteDataSource = remoteDataSource,
+       _prefs = prefs;
 
   final AuthDataSource _remoteDataSource;
   final SharedPreferences _prefs;
@@ -74,13 +77,19 @@ class AuthRepositoryImpl implements AuthRepository {
       if (apiError is ApiException) {
         return (failure: _mapAuthError(apiError, 'otp_request'), data: null);
       }
-      return (failure: NetworkFailure(message: 'errors.network'.tr), data: null);
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
     } on NetworkException catch (_) {
-      return (failure: NetworkFailure(message: 'errors.network'.tr), data: null);
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
     } catch (e) {
       return (
         failure: ServerFailure(message: 'errors.unexpected'.tr),
-        data: null
+        data: null,
       );
     }
   }
@@ -109,13 +118,19 @@ class AuthRepositoryImpl implements AuthRepository {
       if (apiError is ApiException) {
         return (failure: _mapAuthError(apiError, 'otp_verify'), data: null);
       }
-      return (failure: NetworkFailure(message: 'errors.network'.tr), data: null);
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
     } on NetworkException catch (_) {
-      return (failure: NetworkFailure(message: 'errors.network'.tr), data: null);
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
     } catch (e) {
       return (
         failure: ServerFailure(message: 'errors.unexpected'.tr),
-        data: null
+        data: null,
       );
     }
   }
@@ -127,7 +142,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (refreshToken == null) {
         return (
           failure: const AuthFailure(message: 'No refresh token available'),
-          data: null
+          data: null,
         );
       }
 
@@ -149,8 +164,46 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (e) {
       return (
         failure: ServerFailure(message: 'An unexpected error occurred'),
-        data: null
+        data: null,
       );
+    }
+  }
+
+  @override
+  Future<bool> validateStoredSession() async {
+    final accessToken = _prefs.getString(StorageKeys.authToken);
+    if (accessToken == null || accessToken.isEmpty) {
+      await clearAuthData();
+      return false;
+    }
+
+    try {
+      await _remoteDataSource.verifyToken(accessToken);
+      return true;
+    } on DioException catch (e) {
+      final apiError = e.error;
+      final isUnauthorized =
+          apiError is UnauthorizedException ||
+          apiError is ForbiddenException ||
+          (apiError is ApiException &&
+              (apiError.statusCode == 401 || apiError.statusCode == 403));
+
+      if (isUnauthorized) {
+        await clearAuthData();
+        return false;
+      }
+
+      return true;
+    } on ApiException catch (e) {
+      if (e.statusCode == 401 || e.statusCode == 403) {
+        await clearAuthData();
+        return false;
+      }
+      return true;
+    } on NetworkException {
+      return true;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -172,7 +225,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await clearAuthData();
       return (
         failure: ServerFailure(message: 'An unexpected error occurred'),
-        data: null
+        data: null,
       );
     }
   }

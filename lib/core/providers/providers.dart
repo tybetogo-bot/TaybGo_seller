@@ -27,7 +27,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 /// Global callback for handling unauthorized access (401 errors)
 /// This is set from the main app initialization to avoid circular dependencies
-void Function()? globalUnauthorizedCallback;
+Future<void> Function()? globalUnauthorizedCallback;
 
 /// Provider for Dio instance
 final dioProvider = Provider<Dio>((ref) {
@@ -37,7 +37,7 @@ final dioProvider = Provider<Dio>((ref) {
     prefs,
     onUnauthorized: () async {
       // Call the global callback if set
-      globalUnauthorizedCallback?.call();
+      await globalUnauthorizedCallback?.call();
     },
   );
 });

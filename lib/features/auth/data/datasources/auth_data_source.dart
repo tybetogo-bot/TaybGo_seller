@@ -17,6 +17,9 @@ abstract class AuthDataSource {
   /// Refresh access token
   Future<TokenRefreshResponse> refreshToken(String refreshToken);
 
+  /// Verify the current access token/session
+  Future<void> verifyToken(String accessToken);
+
   /// Logout user (blacklist token)
   Future<void> logout(String refreshToken);
 }

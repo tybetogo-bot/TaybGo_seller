@@ -61,6 +61,7 @@ class AuthError extends AuthState {
 /// Auth notifier for managing authentication state (Riverpod 3.x compatible)
 class AuthNotifier extends Notifier<AuthState> {
   late final AuthRepository _repository;
+  bool _isValidatingSession = false;
 
   @override
   AuthState build() {
@@ -175,6 +176,36 @@ class AuthNotifier extends Notifier<AuthState> {
 
     ref.read(locationPermissionAutoRequestProvider.notifier).clear();
     await _repository.logout();
+    state = const AuthUnauthenticated();
+  }
+
+  /// Proactively validate the stored session before using protected routes.
+  Future<bool> validateSession() async {
+    if (_isValidatingSession) {
+      return state is AuthAuthenticated;
+    }
+
+    if (state is! AuthAuthenticated) {
+      return false;
+    }
+
+    _isValidatingSession = true;
+    try {
+      final isValid = await _repository.validateStoredSession();
+      if (!isValid) {
+        ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+        state = const AuthUnauthenticated();
+      }
+      return isValid;
+    } finally {
+      _isValidatingSession = false;
+    }
+  }
+
+  /// Clear local auth state after an unauthorized response elsewhere in the app.
+  Future<void> handleUnauthorized() async {
+    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+    await _repository.clearAuthData();
     state = const AuthUnauthenticated();
   }
 

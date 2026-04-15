@@ -33,6 +33,12 @@ class AuthRemoteDataSource implements AuthDataSource {
   }
 
   @override
+  Future<void> verifyToken(String accessToken) async {
+    final request = TokenVerifyRequest(token: accessToken);
+    await _authApi.verifyToken(request);
+  }
+
+  @override
   Future<void> logout(String refreshToken) async {
     final request = TokenBlacklistRequest(refresh: refreshToken);
     await _authApi.blacklistToken(request);

@@ -44,12 +44,15 @@ class AuthApi {
     return TokenRefreshResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// Verify access token
+  /// POST /api/auth/token/verify/
+  Future<void> verifyToken(TokenVerifyRequest request) async {
+    await _dio.post('/api/auth/token/verify/', data: request.toJson());
+  }
+
   /// Blacklist token (logout)
   /// POST /api/auth/token/blacklist/
   Future<void> blacklistToken(TokenBlacklistRequest request) async {
-    await _dio.post(
-      '/api/auth/token/blacklist/',
-      data: request.toJson(),
-    );
+    await _dio.post('/api/auth/token/blacklist/', data: request.toJson());
   }
 }

@@ -87,6 +87,19 @@ class TokenRefreshResponse {
 }
 
 // ============================================================================
+// Token Verify Models
+// ============================================================================
+
+/// Token verify request model - POST /api/auth/token/verify/
+class TokenVerifyRequest {
+  final String token;
+
+  const TokenVerifyRequest({required this.token});
+
+  Map<String, dynamic> toJson() => {'token': token};
+}
+
+// ============================================================================
 // Token Blacklist Models (Logout)
 // ============================================================================
 
@@ -116,8 +129,7 @@ class AuthTokens {
   });
 
   /// Check if token is expired
-  bool get isExpired =>
-      expiresAt != null && DateTime.now().isAfter(expiresAt!);
+  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
 
   /// Check if token needs refresh (expires within 5 minutes)
   bool get needsRefresh {
@@ -127,10 +139,10 @@ class AuthTokens {
   }
 
   Map<String, dynamic> toJson() => {
-        'access': access,
-        'refresh': refresh,
-        'expiresAt': expiresAt?.toIso8601String(),
-      };
+    'access': access,
+    'refresh': refresh,
+    'expiresAt': expiresAt?.toIso8601String(),
+  };
 
   factory AuthTokens.fromJson(Map<String, dynamic> json) {
     return AuthTokens(
@@ -142,11 +154,7 @@ class AuthTokens {
     );
   }
 
-  AuthTokens copyWith({
-    String? access,
-    String? refresh,
-    DateTime? expiresAt,
-  }) {
+  AuthTokens copyWith({String? access, String? refresh, DateTime? expiresAt}) {
     return AuthTokens(
       access: access ?? this.access,
       refresh: refresh ?? this.refresh,

@@ -57,6 +57,42 @@ class _OrderVerificationScreenState
   late final TextEditingController _totalController;
   late final TextEditingController _notesController;
 
+  List<TextEditingController> get _watchedControllers => [
+    _customerNameController,
+    _phoneController,
+    _streetController,
+    _postalCodeController,
+    _cityController,
+    _deliveryTimeController,
+    _paymentStatusController,
+    _totalController,
+    _notesController,
+  ];
+
+  List<String> get _missingFieldsForSubmit {
+    final missing = <String>[];
+
+    if (_customerNameController.text.trim().isEmpty) {
+      missing.add('orders.verify.customerName'.tr);
+    }
+    if (_phoneController.text.trim().isEmpty) {
+      missing.add('orders.verify.phoneNumber'.tr);
+    }
+    if (_streetController.text.trim().isEmpty) {
+      missing.add('orders.verify.streetAndNumber'.tr);
+    }
+    if (_cityController.text.trim().isEmpty) {
+      missing.add('orders.verify.city'.tr);
+    }
+
+    return missing;
+  }
+
+  void _handleFieldChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -79,10 +115,18 @@ class _OrderVerificationScreenState
       text: data.total?.toStringAsFixed(2) ?? '',
     );
     _notesController = TextEditingController(text: data.notes ?? '');
+
+    for (final controller in _watchedControllers) {
+      controller.addListener(_handleFieldChanged);
+    }
   }
 
   @override
   void dispose() {
+    for (final controller in _watchedControllers) {
+      controller.removeListener(_handleFieldChanged);
+    }
+
     _customerNameController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -529,7 +573,7 @@ class _OrderVerificationScreenState
               ],
 
               // Missing fields warning
-              if (!widget.parsedData.isValid) ...[
+              if (_missingFieldsForSubmit.isNotEmpty) ...[
                 Container(
                   padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
@@ -561,7 +605,7 @@ class _OrderVerificationScreenState
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              widget.parsedData.missingFields.join(', '),
+                              _missingFieldsForSubmit.join(', '),
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: AppColors.error,

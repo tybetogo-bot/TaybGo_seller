@@ -886,10 +886,13 @@ class _SimpleProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Progress bar with milestone dots
-        SizedBox(
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final progressWidth = constraints.maxWidth * progress.clamp(0.0, 1.0);
+
+        return SizedBox(
           height: 24.h,
           child: Stack(
             alignment: Alignment.center,
@@ -904,14 +907,18 @@ class _SimpleProgressBar extends StatelessWidget {
               ),
               // Progress fill
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeInOut,
                   height: 4.h,
-                  width: MediaQuery.of(context).size.width * 0.85 * progress,
+                  width: progressWidth,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
+                      begin: isRtl
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      end: isRtl ? Alignment.centerLeft : Alignment.centerRight,
                       colors: [
                         Theme.of(context).colorScheme.primary,
                         Theme.of(
@@ -935,8 +942,8 @@ class _SimpleProgressBar extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

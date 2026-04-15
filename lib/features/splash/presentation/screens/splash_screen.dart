@@ -26,6 +26,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _pulseAnimation;
   bool _minimumDelayPassed = false;
   bool _hasNavigated = false;
+  bool _sessionValidationStarted = false;
+  bool _sessionValidationCompleted = false;
 
   @override
   void initState() {
@@ -122,6 +124,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
+      if (!_sessionValidationCompleted) {
+        if (!_sessionValidationStarted) {
+          _sessionValidationStarted = true;
+          ref.read(authProvider.notifier).validateSession().then((isValid) {
+            if (!mounted) return;
+            _sessionValidationCompleted = isValid;
+            _sessionValidationStarted = false;
+            _tryNavigate();
+          });
+        }
+
+        print('ðŸŸ¡ [SplashScreen] Session validation in progress, waiting...');
+        return;
+      }
+
       // Kick off restaurant initialization if not yet started
       if (restaurantState is RestaurantInitial) {
         print('🟡 [SplashScreen] Triggering restaurant initialization...');
@@ -148,7 +165,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (restaurantState is RestaurantLoaded) {
         // No restaurants or all pending -> restaurant selection
         if (restaurantState.restaurants.isEmpty) {
-          print('🟢 [SplashScreen] -> No restaurants, going to restaurant selection');
+          print(
+            '🟢 [SplashScreen] -> No restaurants, going to restaurant selection',
+          );
           context.go(Routes.restaurantSelection);
           return;
         }
@@ -157,7 +176,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           (r) => r.status == RestaurantStatus.pending,
         );
         if (allPending) {
-          print('🟢 [SplashScreen] -> All restaurants pending, going to restaurant selection');
+          print(
+            '🟢 [SplashScreen] -> All restaurants pending, going to restaurant selection',
+          );
           context.go(Routes.restaurantSelection);
           return;
         }
