@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/config/env_config.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
@@ -13,8 +14,8 @@ import '../../../../core/theme/theme.dart';
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
-  static const String _appVersion = '1.0.1+2';
-  static const String _releaseDate = '14 April, 2026';
+  static const String _appVersion = AppConfig.appVersion;
+  static const String _releaseDate = '16 April, 2026';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

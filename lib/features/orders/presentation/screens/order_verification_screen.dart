@@ -208,8 +208,9 @@ class _OrderVerificationScreenState
         Navigator.of(context).pop(); // Close verification screen
         Navigator.of(context).pop(); // Close scan screen
       } else {
+        final error = ref.read(ordersProvider).error;
         setState(() {
-          _submitError = 'orders.verify.orderLogFailed'.tr;
+          _submitError = error ?? 'orders.verify.orderLogFailed'.tr;
         });
       }
     } catch (e) {

@@ -3,6 +3,8 @@ library;
 
 import 'package:dio/dio.dart';
 
+import '../config/constants.dart';
+
 int? _calculateAgeFromBirthdate(DateTime? birthdate) {
   if (birthdate == null) return null;
 
@@ -43,7 +45,7 @@ class UserProfile {
     required this.phone,
     this.birthdate,
     this.age,
-    this.roles = const ['seller'],
+    this.roles = const [UserRoles.seller],
     this.createdAt,
     this.updatedAt,
   });
@@ -56,7 +58,7 @@ class UserProfile {
       } else if (rolesJson is String) {
         return [rolesJson];
       }
-      return ['seller'];
+      return [UserRoles.seller];
     }
 
     final parsedBirthdate = json['birthdate'] != null
@@ -83,7 +85,7 @@ class UserProfile {
   }
 
   /// Get primary role (first role in list)
-  String get role => roles.isNotEmpty ? roles.first : 'seller';
+  String get role => roles.isNotEmpty ? roles.first : UserRoles.seller;
 
   /// Check if user has a specific role
   bool hasRole(String role) => roles.contains(role);

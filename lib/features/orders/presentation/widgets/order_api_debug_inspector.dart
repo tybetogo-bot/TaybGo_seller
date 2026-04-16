@@ -74,7 +74,7 @@ Map<String, dynamic> _buildRawListMeta({
 }) {
   final results = rawOrdersResponse['results'];
   return {
-    'endpoint': 'GET /api/orders/?page=$page',
+    'endpoint': 'GET /api/seller/orders/?page=$page',
     'requestedPage': page,
     'count': rawOrdersResponse['count'],
     'next': rawOrdersResponse['next'],
@@ -327,13 +327,13 @@ class _OrderApiDebugSheet extends StatelessWidget {
                   ),
                   SizedBox(height: 12.h),
                   _DebugJsonSection(
-                    title: 'GET /api/orders/ Metadata',
+                    title: 'GET /api/seller/orders/ Metadata',
                     payload: rawListMeta,
                     isDark: isDark,
                   ),
                   SizedBox(height: 12.h),
                   _DebugJsonSection(
-                    title: 'GET /api/orders/ Matched Item',
+                    title: 'GET /api/seller/orders/ Matched Item',
                     payload:
                         rawListOrder ??
                         {
@@ -344,7 +344,7 @@ class _OrderApiDebugSheet extends StatelessWidget {
                   ),
                   SizedBox(height: 12.h),
                   _DebugJsonSection(
-                    title: 'GET /api/orders/{id}/ Raw Detail',
+                    title: 'GET /api/seller/orders/{id}/ Raw Detail',
                     payload: rawDetailOrder,
                     isDark: isDark,
                   ),

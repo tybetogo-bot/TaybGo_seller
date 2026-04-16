@@ -1,5 +1,8 @@
 /// Auth models for API requests and responses
 /// Simple data classes without code generation for better compatibility
+library;
+
+import '../../../../core/config/constants.dart';
 
 // ============================================================================
 // OTP Request Models
@@ -8,10 +11,11 @@
 /// OTP request model - POST /api/auth/otp/request/
 class OtpRequest {
   final String phone;
+  final String targetRole;
 
-  const OtpRequest({required this.phone});
+  const OtpRequest({required this.phone, this.targetRole = UserRoles.seller});
 
-  Map<String, dynamic> toJson() => {'phone': phone};
+  Map<String, dynamic> toJson() => {'phone': phone, 'target_role': targetRole};
 }
 
 /// OTP request response
@@ -37,10 +41,19 @@ class OtpRequestResponse {
 class OtpVerifyRequest {
   final String phone;
   final String code;
+  final String targetRole;
 
-  const OtpVerifyRequest({required this.phone, required this.code});
+  const OtpVerifyRequest({
+    required this.phone,
+    required this.code,
+    this.targetRole = UserRoles.seller,
+  });
 
-  Map<String, dynamic> toJson() => {'phone': phone, 'code': code};
+  Map<String, dynamic> toJson() => {
+    'phone': phone,
+    'code': code,
+    'target_role': targetRole,
+  };
 }
 
 /// OTP verify response - returns JWT tokens

@@ -108,6 +108,7 @@ abstract class OrderStatus {
 /// User roles
 abstract class UserRoles {
   static const String customer = 'customer';
+  static const String seller = 'seller';
   static const String vendor = 'vendor';
   static const String owner = 'owner';
   static const String admin = 'admin';

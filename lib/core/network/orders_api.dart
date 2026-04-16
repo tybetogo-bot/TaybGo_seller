@@ -23,14 +23,14 @@ class OrdersApi {
     return queryParams;
   }
 
-  /// List orders owned by the authenticated user
-  /// GET /api/orders/
+  /// List orders owned by the authenticated seller
+  /// GET /api/seller/orders/
   Future<PaginatedResponse<OrderModel>> getOrders({
     int page = 1,
     String? status,
   }) async {
     final response = await _dio.get(
-      '/api/orders/',
+      ApiEndpoints.sellerOrders,
       queryParameters: _buildOrdersQueryParams(page: page, status: status),
     );
 
@@ -40,10 +40,10 @@ class OrdersApi {
     );
   }
 
-  /// Get order details
-  /// GET /api/orders/{id}/
+  /// Get seller order details
+  /// GET /api/seller/orders/{id}/
   Future<OrderModel> getOrderById(String id) async {
-    final response = await _dio.get('/api/orders/$id/');
+    final response = await _dio.get(ApiEndpoints.sellerOrder(id));
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -53,7 +53,7 @@ class OrdersApi {
     String? status,
   }) async {
     final response = await _dio.get(
-      '/api/orders/',
+      ApiEndpoints.sellerOrders,
       queryParameters: _buildOrdersQueryParams(page: page, status: status),
     );
     return Map<String, dynamic>.from(response.data as Map);
@@ -61,19 +61,19 @@ class OrdersApi {
 
   /// Debug helper to inspect the raw order details payload.
   Future<Map<String, dynamic>> getRawOrderById(String id) async {
-    final response = await _dio.get('/api/orders/$id/');
+    final response = await _dio.get(ApiEndpoints.sellerOrder(id));
     return Map<String, dynamic>.from(response.data as Map);
   }
 
   /// Update order status
-  /// PATCH /api/orders/{id}/
+  /// POST /api/seller/orders/{id}/status/
   Future<OrderModel> updateOrderStatus(String id, String status) async {
-    final response = await _dio.patch(
-      '/api/orders/$id/',
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderStatus(id),
       data: {'status': status},
     );
 
-    // Some PATCH responses omit customer/order details, so re-fetch the full
+    // Some status responses omit customer/order details, so re-fetch the full
     // order before updating local state to avoid replacing rich data with
     // placeholder fallbacks like "Customer".
     try {
@@ -84,7 +84,7 @@ class OrdersApi {
   }
 
   /// Process refund
-  /// POST /api/orders/{order_id}/refund/
+  /// POST /api/seller/orders/{order_id}/refund/
   Future<RefundResponse> refundOrder({
     required String orderId,
     required double amount,
@@ -92,7 +92,7 @@ class OrdersApi {
     String? idempotencyKey,
   }) async {
     final response = await _dio.post(
-      '/api/orders/$orderId/refund/',
+      ApiEndpoints.sellerOrderRefund(orderId),
       data: {
         'amount': amount,
         'reason': reason,
@@ -122,10 +122,7 @@ class OrdersApi {
       final bytes = await file.readAsBytes();
       final fileName = file.name;
       formData.files.add(
-        MapEntry(
-          'images',
-          MultipartFile.fromBytes(bytes, filename: fileName),
-        ),
+        MapEntry('images', MultipartFile.fromBytes(bytes, filename: fileName)),
       );
     }
 

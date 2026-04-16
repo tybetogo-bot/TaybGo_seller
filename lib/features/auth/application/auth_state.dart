@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/constants.dart';
+import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/location_permission_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
@@ -146,6 +149,16 @@ class AuthNotifier extends Notifier<AuthState> {
         previousState: otpState,
       );
     } else {
+      final hasSellerAccess = await _hasSellerAccess();
+      if (!hasSellerAccess) {
+        await _repository.clearAuthData();
+        state = AuthError(
+          message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          previousState: otpState,
+        );
+        return;
+      }
+
       state = AuthAuthenticated(phone: otpState.phone);
 
       ref
@@ -192,11 +205,14 @@ class AuthNotifier extends Notifier<AuthState> {
     _isValidatingSession = true;
     try {
       final isValid = await _repository.validateStoredSession();
-      if (!isValid) {
+      final hasSellerAccess = isValid ? await _hasSellerAccess() : false;
+      if (!isValid || !hasSellerAccess) {
         ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+        await _repository.clearAuthData();
         state = const AuthUnauthenticated();
+        return false;
       }
-      return isValid;
+      return true;
     } finally {
       _isValidatingSession = false;
     }
@@ -217,6 +233,21 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Check if user is logged in
   bool get isLoggedIn => state is AuthAuthenticated;
+
+  Future<bool> _hasSellerAccess() async {
+    try {
+      final profile = await ref.read(userApiProvider).getProfile();
+      return profile.hasRole(UserRoles.seller);
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403) {
+        return false;
+      }
+      return true;
+    } catch (_) {
+      return true;
+    }
+  }
 }
 
 /// Provider for auth state (Riverpod 3.x style)

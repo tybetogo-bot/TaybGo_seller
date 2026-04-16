@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/config/constants.dart';
+import '../../../../core/i18n/i18n.dart';
 import '../datasources/restaurant_remote_data_source.dart';
 import '../models/restaurant_model.dart';
 
@@ -15,11 +16,21 @@ typedef RestaurantResult<T> = ({Failure? failure, T? data});
 
 /// Restaurant repository interface
 abstract class RestaurantRepository {
-  Future<RestaurantResult<List<RestaurantModel>>> getRestaurants({int page = 1});
+  Future<RestaurantResult<List<RestaurantModel>>> getRestaurants({
+    int page = 1,
+  });
   Future<RestaurantResult<RestaurantModel>> getRestaurantById(String id);
-  Future<RestaurantResult<RestaurantModel>> createRestaurant(Map<String, dynamic> data);
-  Future<RestaurantResult<RestaurantModel>> updateRestaurant(String id, Map<String, dynamic> data);
-  Future<RestaurantResult<RestaurantModel>> patchRestaurant(String id, Map<String, dynamic> data);
+  Future<RestaurantResult<RestaurantModel>> createRestaurant(
+    Map<String, dynamic> data,
+  );
+  Future<RestaurantResult<RestaurantModel>> updateRestaurant(
+    String id,
+    Map<String, dynamic> data,
+  );
+  Future<RestaurantResult<RestaurantModel>> patchRestaurant(
+    String id,
+    Map<String, dynamic> data,
+  );
   Future<RestaurantResult<void>> deleteRestaurant(String id);
 
   // Local storage for selected restaurant
@@ -33,8 +44,8 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   RestaurantRepositoryImpl({
     required RestaurantDataSource remoteDataSource,
     required SharedPreferences prefs,
-  })  : _remoteDataSource = remoteDataSource,
-        _prefs = prefs;
+  }) : _remoteDataSource = remoteDataSource,
+       _prefs = prefs;
 
   final RestaurantDataSource _remoteDataSource;
   final SharedPreferences _prefs;
@@ -47,26 +58,31 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final response = await _remoteDataSource.getRestaurants(page: page);
       return (failure: null, data: response.results);
     } on DioException catch (e) {
-      // 403 means the user has no restaurants assigned — treat as empty list
+      // 403 on seller-scoped restaurants usually means this account does not
+      // have seller access in this app, so surface the account-type guidance.
       if (e.response?.statusCode == 403) {
-        return (failure: null, data: <RestaurantModel>[]);
+        return (
+          failure: AuthFailure(
+            message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          ),
+          data: null,
+        );
       }
 
       // Check if it's a 401 Unauthorized error
       if (e.response?.statusCode == 401) {
         // AuthInterceptor will handle logout, just return auth failure
         return (
-          failure: const AuthFailure(message: 'Session expired. Please login again.'),
+          failure: const AuthFailure(
+            message: 'Session expired. Please login again.',
+          ),
           data: null,
         );
       }
 
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -88,21 +104,29 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final restaurant = await _remoteDataSource.getRestaurantById(id);
       return (failure: null, data: restaurant);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        return (
+          failure: AuthFailure(
+            message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          ),
+          data: null,
+        );
+      }
+
       // Check if it's a 401 Unauthorized error
       if (e.response?.statusCode == 401) {
         // AuthInterceptor will handle logout, just return auth failure
         return (
-          failure: const AuthFailure(message: 'Session expired. Please login again.'),
+          failure: const AuthFailure(
+            message: 'Session expired. Please login again.',
+          ),
           data: null,
         );
       }
 
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -209,10 +233,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),

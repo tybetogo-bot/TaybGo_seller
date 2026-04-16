@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/exceptions.dart';
+import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/network/user_api.dart';
 
@@ -77,8 +78,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
           'name': name,
           'phone': phone,
           if (birthdate != null) 'birthdate': _formatDate(birthdate),
-          'restaurant_registration_license_document':
-              registrationDocumentUrl.trim(),
+          'restaurant_registration_license_document': registrationDocumentUrl
+              .trim(),
         },
         'address': {
           'label': restaurantName,
@@ -99,7 +100,13 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        state = OnboardingError(message: apiError.message);
+        if (apiError.statusCode == 409) {
+          state = OnboardingError(
+            message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          );
+        } else {
+          state = OnboardingError(message: apiError.message);
+        }
       } else {
         state = OnboardingError(
           message: e.message ?? 'Something went wrong. Please try again.',

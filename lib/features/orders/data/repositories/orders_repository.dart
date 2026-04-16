@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/orders_api.dart';
 import '../datasources/orders_remote_data_source.dart';
 import '../models/order_model.dart';
@@ -43,11 +44,22 @@ abstract class OrdersRepository {
 
 /// Implementation of orders repository
 class OrdersRepositoryImpl implements OrdersRepository {
-  OrdersRepositoryImpl({
-    required OrdersDataSource remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource;
+  OrdersRepositoryImpl({required OrdersDataSource remoteDataSource})
+    : _remoteDataSource = remoteDataSource;
 
   final OrdersDataSource _remoteDataSource;
+
+  bool _isRoleConflict({int? statusCode, required String message}) {
+    final normalizedMessage = message.toLowerCase();
+
+    if (statusCode == 409) return true;
+
+    return normalizedMessage.contains('another role') ||
+        normalizedMessage.contains('another app') ||
+        normalizedMessage.contains('account type') ||
+        (normalizedMessage.contains('already') &&
+            normalizedMessage.contains('registered'));
+  }
 
   @override
   Future<OrdersResult<List<OrderModel>>> getOrders({
@@ -63,10 +75,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -98,10 +107,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -116,7 +122,10 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<OrdersResult<OrderModel>> updateOrderStatus(String id, String status) async {
+  Future<OrdersResult<OrderModel>> updateOrderStatus(
+    String id,
+    String status,
+  ) async {
     try {
       final order = await _remoteDataSource.updateOrderStatus(id, status);
       return (failure: null, data: order);
@@ -184,11 +193,20 @@ class OrdersRepositoryImpl implements OrdersRepository {
       return (failure: null, data: null);
     } on DioException catch (e) {
       final apiError = e.error;
-      if (apiError is ApiException) {
+      if (apiError is ApiException &&
+          _isRoleConflict(
+            statusCode: apiError.statusCode ?? e.response?.statusCode,
+            message: apiError.message,
+          )) {
         return (
-          failure: ServerFailure(message: apiError.message),
+          failure: ValidationFailure(
+            message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          ),
           data: null,
         );
+      }
+      if (apiError is ApiException) {
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),

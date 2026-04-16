@@ -102,7 +102,7 @@
       "invalidOtp": "Invalid verification code. Please check and try again.",
       "otpExpired": "Verification code has expired. Please request a new one.",
       "phoneNotFound": "This phone number is not registered. Please contact support.",
-      "phoneAlreadyRegistered": "This phone number is already registered.",
+      "phoneAlreadyRegistered": "This phone number is already registered under another TaybGo account type. Please use the matching app/account or contact support.",
       "invalidPhone": "Please enter a valid phone number.",
       "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
       "unauthorized": "Authentication failed. Please try again.",
