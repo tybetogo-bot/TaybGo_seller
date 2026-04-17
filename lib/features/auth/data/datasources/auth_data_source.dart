@@ -6,12 +6,16 @@ import '../models/auth_model.dart';
 /// Abstract auth data source interface
 abstract class AuthDataSource {
   /// Request OTP for phone number
-  Future<OtpRequestResponse> requestOtp({required String phone});
+  Future<OtpRequestResponse> requestOtp({
+    required String phone,
+    required String targetRole,
+  });
 
   /// Verify OTP code and get tokens
   Future<OtpVerifyResponse> verifyOtp({
     required String phone,
     required String code,
+    required String targetRole,
   });
 
   /// Refresh access token

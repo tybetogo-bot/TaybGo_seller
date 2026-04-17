@@ -102,7 +102,7 @@
       "invalidOtp": "Ongeldige verificatiecode. Controleer de code en probeer het opnieuw.",
       "otpExpired": "Verificatiecode is verlopen. Vraag een nieuwe aan.",
       "phoneNotFound": "Dit telefoonnummer is niet geregistreerd. Neem contact op met de ondersteuning.",
-      "phoneAlreadyRegistered": "Dit telefoonnummer is al geregistreerd.",
+      "phoneAlreadyRegistered": "Dit nummer is al geregistreerd.",
       "invalidPhone": "Voer een geldig telefoonnummer in.",
       "tooManyAttempts": "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",
       "unauthorized": "Authenticatie mislukt. Probeer het opnieuw.",

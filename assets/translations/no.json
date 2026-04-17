@@ -102,7 +102,7 @@
       "invalidOtp": "Ugyldig bekreftelseskode. Sjekk og prøv igjen.",
       "otpExpired": "Bekreftelseskoden har utløpt. Be om en ny.",
       "phoneNotFound": "Dette telefonnummeret er ikke registrert. Kontakt support.",
-      "phoneAlreadyRegistered": "Dette telefonnummeret er allerede registrert.",
+      "phoneAlreadyRegistered": "Dette nummeret er allerede registrert.",
       "invalidPhone": "Skriv inn et gyldig telefonnummer.",
       "tooManyAttempts": "For mange forsøk. Vent noen minutter og prøv igjen.",
       "unauthorized": "Autentisering mislyktes. Vennligst prøv igjen.",

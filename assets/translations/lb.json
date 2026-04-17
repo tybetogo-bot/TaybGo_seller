@@ -102,7 +102,7 @@
       "invalidOtp": "Ongültege Verifizéierungscode. Iwwerpréift an probéiert et nach eng Kéier.",
       "otpExpired": "Verifizéierungscode ass ofgelaf. Freet w.e.g. en neie Code un.",
       "phoneNotFound": "Dës Telefonsnummer ass net ageschriwwen. Kontaktéiert w.e.g. den Support.",
-      "phoneAlreadyRegistered": "Dës Telefonsnummer ass scho registréiert.",
+      "phoneAlreadyRegistered": "Dës Nummer ass scho registréiert.",
       "invalidPhone": "Gitt w.e.g. eng gülteg Telefonsnummer an.",
       "tooManyAttempts": "Ze vill Versich. Waart w.e.g. e puer Minutten a probéiert et nach eng Kéier.",
       "unauthorized": "Authentifikatioun fehlgeschloen. Probéiert et w.e.g. nach eng Kéier.",

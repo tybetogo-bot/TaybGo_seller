@@ -17,12 +17,16 @@ typedef AuthResult<T> = ({Failure? failure, T? data});
 /// Auth repository interface
 abstract class AuthRepository {
   /// Request OTP for phone number
-  Future<AuthResult<OtpRequestResponse>> requestOtp({required String phone});
+  Future<AuthResult<OtpRequestResponse>> requestOtp({
+    required String phone,
+    required String targetRole,
+  });
 
   /// Verify OTP code and get tokens
   Future<AuthResult<OtpVerifyResponse>> verifyOtp({
     required String phone,
     required String code,
+    required String targetRole,
   });
 
   /// Refresh access token
@@ -68,9 +72,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResult<OtpRequestResponse>> requestOtp({
     required String phone,
+    required String targetRole,
   }) async {
     try {
-      final response = await _remoteDataSource.requestOtp(phone: phone);
+      final response = await _remoteDataSource.requestOtp(
+        phone: phone,
+        targetRole: targetRole,
+      );
       return (failure: null, data: response);
     } on DioException catch (e) {
       final apiError = e.error;
@@ -98,11 +106,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult<OtpVerifyResponse>> verifyOtp({
     required String phone,
     required String code,
+    required String targetRole,
   }) async {
     try {
       final response = await _remoteDataSource.verifyOtp(
         phone: phone,
         code: code,
+        targetRole: targetRole,
       );
 
       // Save auth data after successful verification

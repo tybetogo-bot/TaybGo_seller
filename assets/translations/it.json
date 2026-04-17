@@ -102,7 +102,7 @@
       "invalidOtp": "Codice di verifica non valido. Controlla e riprova.",
       "otpExpired": "Il codice di verifica è scaduto. Richiedine uno nuovo.",
       "phoneNotFound": "Questo numero di telefono non è registrato. Contatta il supporto.",
-      "phoneAlreadyRegistered": "Questo numero di telefono è già registrato.",
+      "phoneAlreadyRegistered": "Questo numero è già registrato.",
       "invalidPhone": "Inserisci un numero di telefono valido.",
       "tooManyAttempts": "Troppi tentativi. Attendi qualche minuto e riprova.",
       "unauthorized": "Autenticazione fallita. Riprova.",

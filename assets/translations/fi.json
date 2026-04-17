@@ -102,7 +102,7 @@
       "invalidOtp": "Virheellinen vahvistuskoodi. Tarkista ja yritä uudelleen.",
       "otpExpired": "Vahvistuskoodi on vanhentunut. Pyydä uusi koodi.",
       "phoneNotFound": "Tätä puhelinnumeroa ei ole rekisteröity. Ota yhteyttä tukeen.",
-      "phoneAlreadyRegistered": "Tämä puhelinnumero on jo rekisteröity.",
+      "phoneAlreadyRegistered": "Tämä numero on jo rekisteröity.",
       "invalidPhone": "Syötä kelvollinen puhelinnumero.",
       "tooManyAttempts": "Liian monta yritystä. Odota hetki ja yritä uudelleen.",
       "unauthorized": "Todennus epäonnistui. Yritä uudelleen.",

@@ -102,7 +102,7 @@
       "invalidOtp": "Ungültiger Bestätigungscode. Bitte überprüfen und erneut versuchen.",
       "otpExpired": "Bestätigungscode abgelaufen. Bitte fordern Sie einen neuen an.",
       "phoneNotFound": "Diese Telefonnummer ist nicht registriert. Bitte kontaktieren Sie den Support.",
-      "phoneAlreadyRegistered": "Diese Telefonnummer ist bereits registriert.",
+      "phoneAlreadyRegistered": "Diese Nummer ist bereits registriert.",
       "invalidPhone": "Bitte geben Sie eine gültige Telefonnummer ein.",
       "tooManyAttempts": "Zu viele Versuche. Bitte warten Sie einige Minuten.",
       "unauthorized": "Authentifizierung fehlgeschlagen. Bitte versuchen Sie es erneut.",

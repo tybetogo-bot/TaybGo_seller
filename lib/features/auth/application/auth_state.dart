@@ -27,11 +27,13 @@ class AuthLoading extends AuthState {
 class AuthOtpSent extends AuthState {
   const AuthOtpSent({
     required this.phone,
+    required this.targetRole,
     this.expiresInSeconds = 60,
     this.debugOtp,
   });
 
   final String phone;
+  final String targetRole;
   final int expiresInSeconds;
 
   /// Debug OTP (only available in dev/test environments)
@@ -98,10 +100,16 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Request OTP for phone number
-  Future<void> requestOtp({required String phone}) async {
+  Future<void> requestOtp({
+    required String phone,
+    String targetRole = UserRoles.seller,
+  }) async {
     state = const AuthLoading();
 
-    final result = await _repository.requestOtp(phone: phone);
+    final result = await _repository.requestOtp(
+      phone: phone,
+      targetRole: targetRole,
+    );
 
     if (result.failure != null) {
       state = AuthError(
@@ -111,6 +119,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } else {
       state = AuthOtpSent(
         phone: phone,
+        targetRole: targetRole,
         expiresInSeconds: 60,
         debugOtp: result.data?.otp,
       );
@@ -141,6 +150,7 @@ class AuthNotifier extends Notifier<AuthState> {
     final result = await _repository.verifyOtp(
       phone: otpState.phone,
       code: code,
+      targetRole: otpState.targetRole,
     );
 
     if (result.failure != null) {
@@ -175,7 +185,10 @@ class AuthNotifier extends Notifier<AuthState> {
     final currentState = state;
     if (currentState is! AuthOtpSent) return;
 
-    await requestOtp(phone: currentState.phone);
+    await requestOtp(
+      phone: currentState.phone,
+      targetRole: currentState.targetRole,
+    );
   }
 
   /// Go back to phone input (from OTP screen)

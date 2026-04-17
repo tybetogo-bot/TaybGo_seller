@@ -102,7 +102,7 @@
       "invalidOtp": "Ogiltig verifieringskod. Kontrollera och försök igen.",
       "otpExpired": "Verifieringskoden har gått ut. Begär en ny.",
       "phoneNotFound": "Det här telefonnumret är inte registrerat. Kontakta support.",
-      "phoneAlreadyRegistered": "Det här telefonnumret är redan registrerat.",
+      "phoneAlreadyRegistered": "Det här numret är redan registrerat.",
       "invalidPhone": "Ange ett giltigt telefonnummer.",
       "tooManyAttempts": "För många försök. Vänta några minuter och försök igen.",
       "unauthorized": "Autentisering misslyckades. Försök igen.",
