@@ -34,17 +34,21 @@ class OrdersState {
   final String searchQuery;
 
   // Cached filtered lists
+  late final List<OrderModel> _currentOrders;
   late final List<OrderModel> _pendingOrders;
   late final List<OrderModel> _activeOrders;
   late final List<OrderModel> _completedOrders;
+  late final List<OrderModel> _expiredOrders;
 
   void _computeFilteredLists() {
     final query = searchQuery.toLowerCase();
     final bool hasSearch = searchQuery.isNotEmpty;
 
+    final current = <OrderModel>[];
     final pending = <OrderModel>[];
     final active = <OrderModel>[];
     final completed = <OrderModel>[];
+    final expired = <OrderModel>[];
 
     for (final order in orders) {
       // Apply search filter once
@@ -54,22 +58,27 @@ class OrdersState {
       switch (order.status) {
         case OrderStatusEnum.pending:
         case OrderStatusEnum.searchingForDriver:
+          current.add(order);
           pending.add(order);
         case OrderStatusEnum.accepted:
         case OrderStatusEnum.driverNotificationSent:
         case OrderStatusEnum.onTheWay:
+          current.add(order);
           active.add(order);
         case OrderStatusEnum.delivered:
-        case OrderStatusEnum.expired:
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           completed.add(order);
+        case OrderStatusEnum.expired:
+          expired.add(order);
       }
     }
 
+    _currentOrders = current;
     _pendingOrders = pending;
     _activeOrders = active;
     _completedOrders = completed;
+    _expiredOrders = expired;
   }
 
   bool _matchesSearch(OrderModel order, String query) {
@@ -105,9 +114,11 @@ class OrdersState {
   }
 
   /// Cached getters - no computation on access
+  List<OrderModel> get currentOrders => _currentOrders;
   List<OrderModel> get pendingOrders => _pendingOrders;
   List<OrderModel> get activeOrders => _activeOrders;
   List<OrderModel> get completedOrders => _completedOrders;
+  List<OrderModel> get expiredOrders => _expiredOrders;
 }
 
 /// Orders notifier for managing order state (Riverpod 3.x)

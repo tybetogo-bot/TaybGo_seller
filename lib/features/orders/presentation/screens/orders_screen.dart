@@ -16,9 +16,31 @@ import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 import '../widgets/animated_order_card.dart';
 
+enum OrdersScreenTab {
+  current,
+  done,
+  expired;
+
+  static OrdersScreenTab fromQueryParam(String? value) {
+    switch (value?.toLowerCase()) {
+      case 'done':
+        return OrdersScreenTab.done;
+      case 'expired':
+        return OrdersScreenTab.expired;
+      case 'current':
+      default:
+        return OrdersScreenTab.current;
+    }
+  }
+}
+
+enum CurrentOrdersFilter { newOnly, activeOnly, all }
+
 /// Orders screen
 class OrdersScreen extends ConsumerStatefulWidget {
-  const OrdersScreen({super.key});
+  const OrdersScreen({super.key, this.initialTab = OrdersScreenTab.current});
+
+  final OrdersScreenTab initialTab;
 
   @override
   ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
@@ -29,6 +51,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   late TabController _tabController;
   final _searchController = TextEditingController();
   bool _isRefreshing = false;
+  CurrentOrdersFilter _currentOrdersFilter = CurrentOrdersFilter.all;
   Timer? _searchDebounce;
   OrdersPollingNotifier? _ordersPollingNotifier;
   NotificationsPollingNotifier? _notificationsPollingNotifier;
@@ -37,31 +60,44 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   @override
   void initState() {
     super.initState();
-    debugPrint('🎯 [OrdersScreen] initState() called');
-    _tabController = TabController(length: 3, vsync: this);
+    debugPrint('[OrdersScreen] initState() called');
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialTab.index,
+    );
     WidgetsBinding.instance.addObserver(this);
 
     // Start polling when screen is initialized (skip during tour)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final tourActive = ref.read(tourProvider).isActive;
       if (!tourActive) {
-        debugPrint('🎯 [OrdersScreen] starting all polling services');
+        debugPrint('[OrdersScreen] starting all polling services');
 
-        // Start orders polling
         _ordersPollingNotifier = ref.read(ordersPollingProvider.notifier);
         _ordersPollingNotifier!.start();
 
-        // Start notifications polling
-        _notificationsPollingNotifier = ref.read(notificationsPollingProvider.notifier);
+        _notificationsPollingNotifier = ref.read(
+          notificationsPollingProvider.notifier,
+        );
         _notificationsPollingNotifier!.start();
 
-        // Start profile polling
         _profilePollingNotifier = ref.read(userProfilePollingProvider.notifier);
         _profilePollingNotifier!.start();
       } else {
-        debugPrint('🎯 [OrdersScreen] skipping polling — tour is active');
+        debugPrint('[OrdersScreen] skipping polling because tour is active');
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant OrdersScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.initialTab != widget.initialTab &&
+        _tabController.index != widget.initialTab.index) {
+      _tabController.animateTo(widget.initialTab.index);
+    }
   }
 
   Future<void> _handleRefresh() async {
@@ -80,8 +116,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
 
   @override
   void dispose() {
-    debugPrint('🎯 [OrdersScreen] dispose() called');
-    // Stop all polling services using saved references (safe to call after unmount)
+    debugPrint('[OrdersScreen] dispose() called');
     _ordersPollingNotifier?.stop();
     _notificationsPollingNotifier?.stop();
     _profilePollingNotifier?.stop();
@@ -94,7 +129,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Pause all polling when app is in background, resume when in foreground
     if (state == AppLifecycleState.resumed) {
       ref.read(ordersPollingProvider.notifier).start();
       ref.read(notificationsPollingProvider.notifier).start();
@@ -113,12 +147,27 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     final primaryColor = Theme.of(context).colorScheme.primary;
     final ordersState = ref.watch(ordersProvider);
 
-    debugPrint('🎯 [OrdersScreen] build() → '
-        'isLoading=${ordersState.isLoading}, '
-        'orders=${ordersState.orders.length}, '
-        'pending=${ordersState.pendingOrders.length}, '
-        'active=${ordersState.activeOrders.length}, '
-        'error=${ordersState.error}');
+    debugPrint(
+      '[OrdersScreen] build() -> '
+      'isLoading=${ordersState.isLoading}, '
+      'orders=${ordersState.orders.length}, '
+      'current=${ordersState.currentOrders.length}, '
+      'pending=${ordersState.pendingOrders.length}, '
+      'active=${ordersState.activeOrders.length}, '
+      'expired=${ordersState.expiredOrders.length}, '
+      'error=${ordersState.error}',
+    );
+
+    final filteredCurrentOrders = switch (_currentOrdersFilter) {
+      CurrentOrdersFilter.newOnly => ordersState.pendingOrders,
+      CurrentOrdersFilter.activeOnly => ordersState.activeOrders,
+      CurrentOrdersFilter.all => ordersState.currentOrders,
+    };
+    final currentEmptyMessage = switch (_currentOrdersFilter) {
+      CurrentOrdersFilter.newOnly => 'orders.noPendingOrders'.tr,
+      CurrentOrdersFilter.activeOnly => 'orders.noActiveOrders'.tr,
+      CurrentOrdersFilter.all => 'noData'.tr,
+    };
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -137,7 +186,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                     height: 20.w,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textSecondary,
                     ),
                   )
                 : const Icon(Icons.refresh_rounded),
@@ -160,32 +211,43 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
           dividerColor: Colors.transparent,
           tabs: [
             Tab(
-              key: TourKeys.pendingOrdersTabKey,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('orders.new'.tr),
-                  if (ordersState.pendingOrders.isNotEmpty) ...[
-                    SizedBox(width: 4.w),
-                    _TabBadge(count: ordersState.pendingOrders.length),
-                  ],
-                ],
-              ),
-            ),
-            Tab(
               key: TourKeys.activeOrdersTabKey,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('orders.active'.tr),
-                  if (ordersState.activeOrders.isNotEmpty) ...[
+                  if (ordersState.currentOrders.isNotEmpty) ...[
                     SizedBox(width: 4.w),
-                    _TabBadge(count: ordersState.activeOrders.length),
+                    _TabBadge(count: ordersState.currentOrders.length),
                   ],
                 ],
               ),
             ),
-            Tab(text: 'orders.done'.tr),
+            Tab(
+              key: TourKeys.pendingOrdersTabKey,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('orders.done'.tr),
+                  if (ordersState.completedOrders.isNotEmpty) ...[
+                    SizedBox(width: 4.w),
+                    _TabBadge(count: ordersState.completedOrders.length),
+                  ],
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('expired'.tr),
+                  if (ordersState.expiredOrders.isNotEmpty) ...[
+                    SizedBox(width: 4.w),
+                    _TabBadge(count: ordersState.expiredOrders.length),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -193,17 +255,20 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Search bar
                 Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) {
-                      // Debounce search to avoid filtering on every keystroke
                       _searchDebounce?.cancel();
-                      _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-                        ref.read(ordersProvider.notifier).setSearchQuery(value);
-                      });
+                      _searchDebounce = Timer(
+                        const Duration(milliseconds: 300),
+                        () {
+                          ref
+                              .read(ordersProvider.notifier)
+                              .setSearchQuery(value);
+                        },
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'orders.searchHint'.tr,
@@ -253,10 +318,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(
-                          color: primaryColor,
-                          width: 1.5,
-                        ),
+                        borderSide: BorderSide(color: primaryColor, width: 1.5),
                       ),
                     ),
                     style: TextStyle(
@@ -267,39 +329,152 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                     ),
                   ),
                 ),
-                // Tab content
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _OrdersList(
-                        key: TourKeys.pendingOrdersListKey,
-                        orders: ordersState.pendingOrders,
+                      _CurrentOrdersTab(
+                        orders: filteredCurrentOrders,
+                        selectedFilter: _currentOrdersFilter,
+                        onFilterSelected: (filter) {
+                          setState(() => _currentOrdersFilter = filter);
+                        },
                         isDark: isDark,
                         emptyMessage: ordersState.searchQuery.isNotEmpty
                             ? 'orders.noSearchResults'.tr
-                            : 'orders.noPendingOrders'.tr,
+                            : currentEmptyMessage,
                       ),
                       _OrdersList(
                         key: TourKeys.activeOrdersListKey,
-                        orders: ordersState.activeOrders,
-                        isDark: isDark,
-                        emptyMessage: ordersState.searchQuery.isNotEmpty
-                            ? 'orders.noSearchResults'.tr
-                            : 'orders.noActiveOrders'.tr,
-                      ),
-                      _OrdersList(
                         orders: ordersState.completedOrders,
                         isDark: isDark,
                         emptyMessage: ordersState.searchQuery.isNotEmpty
                             ? 'orders.noSearchResults'.tr
                             : 'orders.noCompletedOrders'.tr,
                       ),
+                      _OrdersList(
+                        orders: ordersState.expiredOrders,
+                        isDark: isDark,
+                        emptyMessage: ordersState.searchQuery.isNotEmpty
+                            ? 'orders.noSearchResults'.tr
+                            : 'noData'.tr,
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _CurrentOrdersTab extends StatelessWidget {
+  const _CurrentOrdersTab({
+    required this.orders,
+    required this.selectedFilter,
+    required this.onFilterSelected,
+    required this.isDark,
+    required this.emptyMessage,
+  });
+
+  final List<OrderModel> orders;
+  final CurrentOrdersFilter selectedFilter;
+  final ValueChanged<CurrentOrdersFilter> onFilterSelected;
+  final bool isDark;
+  final String emptyMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                _FilterChip(
+                  label: 'orders.new'.tr,
+                  isSelected: selectedFilter == CurrentOrdersFilter.newOnly,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  onSelected: () =>
+                      onFilterSelected(CurrentOrdersFilter.newOnly),
+                ),
+                _FilterChip(
+                  label: 'orders.active'.tr,
+                  isSelected: selectedFilter == CurrentOrdersFilter.activeOnly,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  onSelected: () =>
+                      onFilterSelected(CurrentOrdersFilter.activeOnly),
+                ),
+                _FilterChip(
+                  label: 'all'.tr,
+                  isSelected: selectedFilter == CurrentOrdersFilter.all,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  onSelected: () => onFilterSelected(CurrentOrdersFilter.all),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: _OrdersList(
+            key: TourKeys.pendingOrdersListKey,
+            orders: orders,
+            isDark: isDark,
+            emptyMessage: emptyMessage,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.isDark,
+    required this.primaryColor,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool isSelected;
+  final bool isDark;
+  final Color primaryColor;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onSelected(),
+      showCheckmark: false,
+      labelStyle: TextStyle(
+        color: isSelected
+            ? Colors.white
+            : (isDark ? DarkColors.textSecondary : LightColors.textSecondary),
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
+      ),
+      selectedColor: primaryColor,
+      backgroundColor: isDark ? DarkColors.surface : LightColors.surface,
+      side: BorderSide(
+        color: isSelected
+            ? primaryColor
+            : (isDark ? DarkColors.border : LightColors.border),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999.r)),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
     );
   }
 }
@@ -331,11 +506,11 @@ class _TabBadge extends StatelessWidget {
 
 class _OrdersList extends StatelessWidget {
   const _OrdersList({
-    Key? key,
+    super.key,
     required this.orders,
     required this.isDark,
     required this.emptyMessage,
-  }) : super(key: key);
+  });
 
   final List<OrderModel> orders;
   final bool isDark;
@@ -351,14 +526,18 @@ class _OrdersList extends StatelessWidget {
             Icon(
               Icons.receipt_long_outlined,
               size: 64.w,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             SizedBox(height: 16.h),
             Text(
               emptyMessage,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ],
@@ -369,7 +548,6 @@ class _OrdersList extends StatelessWidget {
     return ListView.builder(
       padding: EdgeInsets.all(16.w),
       itemCount: orders.length,
-      // Use itemExtent for better performance if cards have fixed height
       itemBuilder: (context, index) {
         final order = orders[index];
         return RepaintBoundary(

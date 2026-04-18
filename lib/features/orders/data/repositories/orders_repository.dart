@@ -49,18 +49,6 @@ class OrdersRepositoryImpl implements OrdersRepository {
 
   final OrdersDataSource _remoteDataSource;
 
-  bool _isRoleConflict({int? statusCode, required String message}) {
-    final normalizedMessage = message.toLowerCase();
-
-    if (statusCode == 409) return true;
-
-    return normalizedMessage.contains('another role') ||
-        normalizedMessage.contains('another app') ||
-        normalizedMessage.contains('account type') ||
-        (normalizedMessage.contains('already') &&
-            normalizedMessage.contains('registered'));
-  }
-
   @override
   Future<OrdersResult<List<OrderModel>>> getOrders({
     int page = 1,
@@ -194,10 +182,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException &&
-          _isRoleConflict(
-            statusCode: apiError.statusCode ?? e.response?.statusCode,
-            message: apiError.message,
-          )) {
+          (apiError.statusCode ?? e.response?.statusCode) == 409) {
         return (
           failure: ValidationFailure(
             message: 'errors.auth.phoneAlreadyRegistered'.tr,

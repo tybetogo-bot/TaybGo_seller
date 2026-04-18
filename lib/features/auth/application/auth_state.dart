@@ -63,6 +63,8 @@ class AuthError extends AuthState {
   final AuthState? previousState;
 }
 
+enum SellerAccessStatus { seller, needsOnboarding, forbidden }
+
 /// Auth notifier for managing authentication state (Riverpod 3.x compatible)
 class AuthNotifier extends Notifier<AuthState> {
   late final AuthRepository _repository;
@@ -159,11 +161,11 @@ class AuthNotifier extends Notifier<AuthState> {
         previousState: otpState,
       );
     } else {
-      final hasSellerAccess = await _hasSellerAccess();
-      if (!hasSellerAccess) {
+      final accessStatus = await _getSellerAccessStatus();
+      if (accessStatus == SellerAccessStatus.forbidden) {
         await _repository.clearAuthData();
         state = AuthError(
-          message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          message: 'errors.auth.forbidden'.tr,
           previousState: otpState,
         );
         return;
@@ -175,8 +177,12 @@ class AuthNotifier extends Notifier<AuthState> {
           .read(locationPermissionAutoRequestProvider.notifier)
           .queueAfterLogin();
 
-      // Trigger restaurant fetch after successful login
-      ref.read(restaurantProvider.notifier).fetchRestaurants();
+      if (accessStatus == SellerAccessStatus.needsOnboarding) {
+        ref.read(restaurantProvider.notifier).setOnboardingPending();
+      } else {
+        // Trigger restaurant fetch after successful login
+        ref.read(restaurantProvider.notifier).fetchRestaurants();
+      }
     }
   }
 
@@ -218,13 +224,20 @@ class AuthNotifier extends Notifier<AuthState> {
     _isValidatingSession = true;
     try {
       final isValid = await _repository.validateStoredSession();
-      final hasSellerAccess = isValid ? await _hasSellerAccess() : false;
-      if (!isValid || !hasSellerAccess) {
+      final accessStatus = isValid
+          ? await _getSellerAccessStatus()
+          : SellerAccessStatus.forbidden;
+      if (!isValid || accessStatus == SellerAccessStatus.forbidden) {
         ref.read(locationPermissionAutoRequestProvider.notifier).clear();
         await _repository.clearAuthData();
         state = const AuthUnauthenticated();
         return false;
       }
+
+      if (accessStatus == SellerAccessStatus.needsOnboarding) {
+        ref.read(restaurantProvider.notifier).setOnboardingPending();
+      }
+
       return true;
     } finally {
       _isValidatingSession = false;
@@ -247,18 +260,26 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Check if user is logged in
   bool get isLoggedIn => state is AuthAuthenticated;
 
-  Future<bool> _hasSellerAccess() async {
+  Future<SellerAccessStatus> _getSellerAccessStatus() async {
     try {
       final profile = await ref.read(userApiProvider).getProfile();
-      return profile.hasRole(UserRoles.seller);
+      if (profile.hasRole(UserRoles.seller)) {
+        return SellerAccessStatus.seller;
+      }
+
+      if (profile.roles.isEmpty) {
+        return SellerAccessStatus.needsOnboarding;
+      }
+
+      return SellerAccessStatus.forbidden;
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       if (statusCode == 401 || statusCode == 403) {
-        return false;
+        return SellerAccessStatus.forbidden;
       }
-      return true;
+      return SellerAccessStatus.seller;
     } catch (_) {
-      return true;
+      return SellerAccessStatus.seller;
     }
   }
 }

@@ -94,18 +94,6 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
     return e.message ?? 'Network error occurred';
   }
 
-  bool _isRoleConflict({int? statusCode, String? message}) {
-    final normalizedMessage = message?.toLowerCase() ?? '';
-
-    if (statusCode == 409) return true;
-
-    return normalizedMessage.contains('another role') ||
-        normalizedMessage.contains('another app') ||
-        normalizedMessage.contains('account type') ||
-        (normalizedMessage.contains('already') &&
-            normalizedMessage.contains('registered'));
-  }
-
   @override
   Future<CustomerOrdersResult<OrderModel>> createFoodOrder(
     FoodCheckoutRequest request,
@@ -127,10 +115,7 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       _log('Extracted error message: $errorMessage');
 
       final apiError = e.error;
-      if (_isRoleConflict(
-        statusCode: e.response?.statusCode,
-        message: errorMessage,
-      )) {
+      if (e.response?.statusCode == 409) {
         return (
           failure: ValidationFailure(
             message: 'errors.auth.phoneAlreadyRegistered'.tr,

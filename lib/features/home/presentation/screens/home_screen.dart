@@ -24,7 +24,8 @@ class HomeScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ordersState = ref.watch(ordersProvider);
     final pendingOrders = ordersState.pendingOrders;
-    
+    final expiredOrders = ordersState.expiredOrders;
+
     // Use restaurant stats from API if available, fallback to calculated values
     final selectedRestaurant = ref.watch(selectedRestaurantProvider);
     final todayStats = selectedRestaurant?.todayStats;
@@ -60,7 +61,9 @@ class HomeScreen extends ConsumerWidget {
             // Refresh both orders and restaurant stats
             await ref.read(ordersProvider.notifier).refreshOrders();
             if (selectedRestaurant != null) {
-              await ref.read(restaurantProvider.notifier).fetchRestaurantById(selectedRestaurant.id);
+              await ref
+                  .read(restaurantProvider.notifier)
+                  .fetchRestaurantById(selectedRestaurant.id);
             }
           },
           color: primaryColor,
@@ -78,7 +81,8 @@ class HomeScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              selectedRestaurant?.name ?? 'profile.yourRestaurant'.tr,
+                              selectedRestaurant?.name ??
+                                  'profile.yourRestaurant'.tr,
                               style: TextStyle(
                                 fontSize: 20.sp,
                                 fontWeight: FontWeight.w600,
@@ -144,6 +148,18 @@ class HomeScreen extends ConsumerWidget {
                     icon: Icons.add,
                     label: 'orders.createOrder'.tr,
                     onTap: () => context.push(Routes.createOrder),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
+                  child: _PrimaryAction(
+                    icon: Icons.timer_off_outlined,
+                    label:
+                        '${'expired'.tr} ${'navigation.orders'.tr} (${expiredOrders.length})',
+                    backgroundColor: AppColors.error,
+                    onTap: () => context.go(Routes.ordersPath(tab: 'expired')),
                   ),
                 ),
               ),
@@ -221,21 +237,17 @@ class HomeScreen extends ConsumerWidget {
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final order = pendingOrders[index];
-                        return RepaintBoundary(
-                          child: AnimatedOrderCard(
-                            key: ValueKey(order.id),
-                            order: order,
-                            onTap: () => context.push(
-                              Routes.orderDetailsPath(order.id),
-                            ),
-                          ),
-                        );
-                      },
-                      childCount: pendingOrders.length.clamp(0, 5),
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final order = pendingOrders[index];
+                      return RepaintBoundary(
+                        child: AnimatedOrderCard(
+                          key: ValueKey(order.id),
+                          order: order,
+                          onTap: () =>
+                              context.push(Routes.orderDetailsPath(order.id)),
+                        ),
+                      );
+                    }, childCount: pendingOrders.length.clamp(0, 5)),
                   ),
                 ),
 
@@ -312,22 +324,25 @@ class _PrimaryAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.backgroundColor,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final backgroundColor =
+        this.backgroundColor ?? Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 14.h),
         decoration: BoxDecoration(
-          color: primaryColor,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(10.r),
         ),
         child: Row(
@@ -375,7 +390,9 @@ class _RefreshButtonState extends ConsumerState<_RefreshButton> {
       await ref.read(ordersProvider.notifier).refreshOrders();
       final selectedRestaurant = ref.read(selectedRestaurantProvider);
       if (selectedRestaurant != null) {
-        await ref.read(restaurantProvider.notifier).fetchRestaurantById(selectedRestaurant.id);
+        await ref
+            .read(restaurantProvider.notifier)
+            .fetchRestaurantById(selectedRestaurant.id);
       }
     } finally {
       if (mounted) {
@@ -394,12 +411,16 @@ class _RefreshButtonState extends ConsumerState<_RefreshButton> {
               height: 20.w,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: widget.isDark ? DarkColors.textPrimary : LightColors.textSecondary,
+                color: widget.isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textSecondary,
               ),
             )
           : Icon(
               Icons.refresh_rounded,
-              color: widget.isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+              color: widget.isDark
+                  ? DarkColors.textPrimary
+                  : LightColors.textPrimary,
             ),
     );
   }
@@ -428,4 +449,3 @@ class _NotificationIconButton extends ConsumerWidget {
     );
   }
 }
-

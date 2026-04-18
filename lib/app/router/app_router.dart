@@ -213,8 +213,13 @@ class AppRouter {
           GoRoute(
             path: Routes.orders,
             name: Routes.ordersName,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: OrdersScreen()),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: OrdersScreen(
+                initialTab: OrdersScreenTab.fromQueryParam(
+                  state.uri.queryParameters['tab'],
+                ),
+              ),
+            ),
             routes: [
               GoRoute(
                 path: 'details/:orderId',

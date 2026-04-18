@@ -282,10 +282,6 @@ class AuthRepositoryImpl implements AuthRepository {
     final message = error.message.toLowerCase();
     final statusCode = error.statusCode;
 
-    if (_isRoleConflict(statusCode: statusCode, message: message)) {
-      return AuthFailure(message: 'errors.auth.phoneAlreadyRegistered'.tr);
-    }
-
     // Prioritize context-specific errors first
     // For OTP verification context, any 400-level error is likely an invalid OTP
     if (context == 'otp_verify' && (statusCode == 400 || statusCode == 401)) {
@@ -312,9 +308,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     if (message.contains('not found') || message.contains('no user')) {
       return AuthFailure(message: 'errors.auth.phoneNotFound'.tr);
-    }
-    if (message.contains('already') && message.contains('registered')) {
-      return AuthFailure(message: 'errors.auth.phoneAlreadyRegistered'.tr);
     }
     if (message.contains('too many') || statusCode == 429) {
       return AuthFailure(message: 'errors.auth.tooManyAttempts'.tr);
@@ -346,14 +339,5 @@ class AuthRepositoryImpl implements AuthRepository {
       default:
         return ServerFailure(message: error.message);
     }
-  }
-
-  bool _isRoleConflict({required int? statusCode, required String message}) {
-    if (statusCode == 409) return true;
-
-    return (message.contains('already') && message.contains('registered')) ||
-        message.contains('another app') ||
-        message.contains('another role') ||
-        message.contains('account type');
   }
 }

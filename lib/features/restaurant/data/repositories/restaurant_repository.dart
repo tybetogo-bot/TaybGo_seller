@@ -58,13 +58,10 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       final response = await _remoteDataSource.getRestaurants(page: page);
       return (failure: null, data: response.results);
     } on DioException catch (e) {
-      // 403 on seller-scoped restaurants usually means this account does not
-      // have seller access in this app, so surface the account-type guidance.
+      // 403 on seller-scoped restaurants means the account lacks access here.
       if (e.response?.statusCode == 403) {
         return (
-          failure: AuthFailure(
-            message: 'errors.auth.phoneAlreadyRegistered'.tr,
-          ),
+          failure: AuthFailure(message: 'errors.auth.forbidden'.tr),
           data: null,
         );
       }
@@ -106,9 +103,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
         return (
-          failure: AuthFailure(
-            message: 'errors.auth.phoneAlreadyRegistered'.tr,
-          ),
+          failure: AuthFailure(message: 'errors.auth.forbidden'.tr),
           data: null,
         );
       }

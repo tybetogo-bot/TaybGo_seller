@@ -84,6 +84,13 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     }
   }
 
+  /// Seed an empty restaurant list so new users can be redirected to onboarding
+  /// without calling seller-scoped restaurant endpoints first.
+  void setOnboardingPending() {
+    _initialized = true;
+    state = const RestaurantLoaded(restaurants: []);
+  }
+
   /// Fetch all restaurants for the seller
   Future<void> fetchRestaurants() async {
     debugPrint('🟡 [RestaurantNotifier] fetchRestaurants() called');

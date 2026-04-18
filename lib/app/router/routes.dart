@@ -135,6 +135,12 @@ class Routes {
   /// Get order details path with id
   static String orderDetailsPath(String orderId) => '/orders/details/$orderId';
 
+  /// Get orders path with an optional tab query parameter.
+  static String ordersPath({String? tab}) {
+    if (tab == null || tab.isEmpty) return orders;
+    return '$orders?tab=$tab';
+  }
+
   /// Get menu item path with id
   static String menuItemPath(String itemId) => '/menu/item/$itemId';
 
