@@ -162,7 +162,7 @@
       "outForDelivery": "Onderweg voor bezorging",
       "onTheWay": "Onderweg",
       "searchingForDriver": "Chauffeur zoeken",
-      "driverNotificationSent": "Chauffeur geïnformeerd",
+      "driverNotificationSent": "Wacht op chauffeur",
       "delivered": "Bezorgd",
       "rejected": "Afgewezen",
       "cancelled": "Geannuleerd"
@@ -202,7 +202,7 @@
       "pending": "Wachten op uw reactie",
       "searchingForDriver": "Op zoek naar beschikbare chauffeur",
       "accepted": "Bestelling wordt bereid",
-      "driverNotificationSent": "Chauffeur is geïnformeerd",
+      "driverNotificationSent": "Wacht op acceptatie chauffeur",
       "ready": "Klaar voor afhalen",
       "onTheWay": "Onderweg naar klant",
       "delivery": "Onderweg naar klant",

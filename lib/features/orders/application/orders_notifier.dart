@@ -58,10 +58,10 @@ class OrdersState {
       switch (order.status) {
         case OrderStatusEnum.pending:
         case OrderStatusEnum.searchingForDriver:
+        case OrderStatusEnum.driverNotificationSent:
           current.add(order);
           pending.add(order);
         case OrderStatusEnum.accepted:
-        case OrderStatusEnum.driverNotificationSent:
         case OrderStatusEnum.onTheWay:
           current.add(order);
           active.add(order);

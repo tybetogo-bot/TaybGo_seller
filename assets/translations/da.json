@@ -162,7 +162,7 @@
       "outForDelivery": "Ude til levering",
       "onTheWay": "Undervejs",
       "searchingForDriver": "Søger efter chauffør",
-      "driverNotificationSent": "Chauffør notificeret",
+      "driverNotificationSent": "Afventer chauffør",
       "delivered": "Leveret",
       "rejected": "Afvist",
       "cancelled": "Annulleret"
@@ -202,7 +202,7 @@
       "pending": "Venter på dit svar",
       "searchingForDriver": "Leder efter tilgængelig chauffør",
       "accepted": "Forbereder ordren",
-      "driverNotificationSent": "Chaufføren er blevet notificeret",
+      "driverNotificationSent": "Afventer chaufførens accept",
       "ready": "Klar til afhentning",
       "onTheWay": "På vej til kunden",
       "delivery": "På vej til kunden",

@@ -162,7 +162,7 @@
       "outForDelivery": "In consegna",
       "onTheWay": "In viaggio",
       "searchingForDriver": "Ricerca autista",
-      "driverNotificationSent": "Autista notificato",
+      "driverNotificationSent": "In attesa autista",
       "delivered": "Consegnato",
       "rejected": "Rifiutato",
       "cancelled": "Annullato"
@@ -201,7 +201,7 @@
       "pending": "In attesa della tua risposta",
       "searchingForDriver": "Ricerca autista disponibile",
       "accepted": "Preparazione dell'ordine",
-      "driverNotificationSent": "L'autista è stato notificato",
+      "driverNotificationSent": "In attesa dell'accettazione dell'autista",
       "ready": "Pronto per il ritiro",
       "onTheWay": "In viaggio verso il cliente",
       "delivery": "In viaggio verso il cliente",

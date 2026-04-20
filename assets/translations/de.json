@@ -159,7 +159,7 @@
       "outForDelivery": "Unterwegs",
       "onTheWay": "Unterwegs",
       "searchingForDriver": "Fahrer wird gesucht",
-      "driverNotificationSent": "Fahrer benachrichtigt",
+      "driverNotificationSent": "Warte auf Fahrer",
       "delivered": "Geliefert",
       "rejected": "Abgelehnt",
       "cancelled": "Storniert"
@@ -199,7 +199,7 @@
       "pending": "Wartet auf Ihre Antwort",
       "searchingForDriver": "Suche nach verfügbarem Fahrer",
       "accepted": "Bestellung wird zubereitet",
-      "driverNotificationSent": "Fahrer wurde benachrichtigt",
+      "driverNotificationSent": "Warte auf Annahme durch Fahrer",
       "ready": "Bereit zur Abholung",
       "onTheWay": "Auf dem Weg zum Kunden",
       "delivery": "Auf dem Weg zum Kunden",

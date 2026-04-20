@@ -15,7 +15,7 @@ class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   static const String _appVersion = AppConfig.appVersion;
-  static const String _releaseDate = '17 April, 2026';
+  static const String _releaseDate = '20 April, 2026';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

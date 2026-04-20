@@ -162,7 +162,7 @@
       "outForDelivery": "Ute för leverans",
       "onTheWay": "På väg",
       "searchingForDriver": "Söker efter chaufför",
-      "driverNotificationSent": "Chaufför notifierad",
+      "driverNotificationSent": "Väntar på chaufför",
       "delivered": "Levererad",
       "rejected": "Avvisad",
       "cancelled": "Avbruten"
@@ -202,7 +202,7 @@
       "pending": "Väntar på ditt svar",
       "searchingForDriver": "Söker efter tillgänglig chaufför",
       "accepted": "Förbereder beställningen",
-      "driverNotificationSent": "Chaufför har blivit notifierad",
+      "driverNotificationSent": "Väntar på chaufförens godkännande",
       "ready": "Klar för upphämtning",
       "onTheWay": "På väg till kunden",
       "delivery": "På väg till kunden",

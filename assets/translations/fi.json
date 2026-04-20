@@ -162,7 +162,7 @@
       "outForDelivery": "Matkalla toimitukseen",
       "onTheWay": "Matkalla",
       "searchingForDriver": "Etsitään kuljettajaa",
-      "driverNotificationSent": "Kuljettaja ilmoitettu",
+      "driverNotificationSent": "Odottaa kuljettajaa",
       "delivered": "Toimitettu",
       "rejected": "Hylätty",
       "cancelled": "Peruutettu"
@@ -202,7 +202,7 @@
       "pending": "Odotetaan vastaustasi",
       "searchingForDriver": "Etsitään vapaata kuljettajaa",
       "accepted": "Tilaus valmistellaan",
-      "driverNotificationSent": "Kuljettajalle on ilmoitettu",
+      "driverNotificationSent": "Odottaa kuljettajan hyväksyntää",
       "ready": "Valmis noutoon",
       "onTheWay": "Matkalla asiakkaalle",
       "delivery": "Matkalla asiakkaalle",

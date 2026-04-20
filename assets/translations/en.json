@@ -162,7 +162,7 @@
       "outForDelivery": "Out for Delivery",
       "onTheWay": "On the Way",
       "searchingForDriver": "Searching for Driver",
-      "driverNotificationSent": "Driver Notified",
+      "driverNotificationSent": "Awaiting Driver",
       "delivered": "Delivered",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
@@ -202,7 +202,7 @@
       "pending": "Waiting for your response",
       "searchingForDriver": "Looking for available driver",
       "accepted": "Preparing the order",
-      "driverNotificationSent": "Driver has been notified",
+      "driverNotificationSent": "Awaiting driver acceptance",
       "ready": "Ready for pickup",
       "onTheWay": "On the way to customer",
       "delivery": "On the way to customer",

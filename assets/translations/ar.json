@@ -159,7 +159,7 @@
       "outForDelivery": "في الطريق",
       "onTheWay": "في الطريق",
       "searchingForDriver": "البحث عن سائق",
-      "driverNotificationSent": "تم إخطار السائق",
+      "driverNotificationSent": "بانتظار السائق",
       "delivered": "تم التسليم",
       "rejected": "مرفوض",
       "cancelled": "ملغي"
@@ -199,7 +199,7 @@
       "pending": "بانتظار ردك",
       "searchingForDriver": "جاري البحث عن سائق متاح",
       "accepted": "جاري تحضير الطلب",
-      "driverNotificationSent": "تم إبلاغ السائق",
+      "driverNotificationSent": "بانتظار قبول السائق",
       "ready": "جاهز للاستلام",
       "onTheWay": "في الطريق للعميل",
       "delivery": "في الطريق للعميل",

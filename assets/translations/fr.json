@@ -159,7 +159,7 @@
       "outForDelivery": "En livraison",
       "onTheWay": "En route",
       "searchingForDriver": "Recherche de livreur",
-      "driverNotificationSent": "Livreur notifié",
+      "driverNotificationSent": "En attente du livreur",
       "delivered": "Livrée",
       "rejected": "Refusée",
       "cancelled": "Annulée"
@@ -199,7 +199,7 @@
       "pending": "En attente de votre réponse",
       "searchingForDriver": "Recherche d'un chauffeur disponible",
       "accepted": "Préparation en cours",
-      "driverNotificationSent": "Chauffeur notifié",
+      "driverNotificationSent": "En attente d'acceptation du livreur",
       "ready": "Prêt à être récupéré",
       "onTheWay": "En route vers le client",
       "delivery": "En route vers le client",
