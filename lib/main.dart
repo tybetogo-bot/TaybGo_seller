@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -23,6 +27,19 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (!kIsWeb) {
+    await FirebaseCrashlytics.instance.setCustomKey(
+      'environment',
+      EnvConfig.environment.name,
+    );
+
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
 
   // Initialize push notification service (non-blocking so it doesn't stall the app)
   PushNotificationService.instance.initialize();
@@ -137,13 +154,94 @@ class TaybGoApp extends ConsumerWidget {
                 data: mediaQueryData.copyWith(
                   textScaler: constrainedTextScaleFactor,
                 ),
-                // Dismiss keyboard when tapping outside of input fields
-                child: GestureDetector(
-                  onTap: () => FocusScope.of(context).unfocus(),
-                  child: child ?? const SizedBox.shrink(),
+                child: _DebugCrashlyticsTester(
+                  // Dismiss keyboard when tapping outside of input fields
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               );
             },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DebugCrashlyticsTester extends StatelessWidget {
+  const _DebugCrashlyticsTester({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!kDebugMode || kIsWeb || !EnvConfig.isDev) {
+      return child;
+    }
+
+    return Stack(
+      children: [
+        child,
+        Positioned(
+          right: 16,
+          bottom: 24,
+          child: SafeArea(
+            child: FloatingActionButton.small(
+              heroTag: 'crashlyticsTestFab',
+              tooltip: 'Crashlytics test',
+              onPressed: () => _showCrashlyticsTestSheet(context),
+              child: const Icon(Icons.bug_report_outlined),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _recordNonFatal(BuildContext context) async {
+    await FirebaseCrashlytics.instance.recordError(
+      StateError('Crashlytics non-fatal test'),
+      StackTrace.current,
+      reason: 'Manual Crashlytics test from debug menu',
+      fatal: false,
+    );
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Crashlytics non-fatal test sent')),
+    );
+  }
+
+  void _showCrashlyticsTestSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.report_outlined),
+                title: const Text('Record non-fatal test'),
+                onTap: () => _recordNonFatal(context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.dangerous_outlined),
+                title: const Text('Crash app'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Future<void>.delayed(
+                    const Duration(milliseconds: 250),
+                    FirebaseCrashlytics.instance.crash,
+                  );
+                },
+              ),
+            ],
           ),
         );
       },
