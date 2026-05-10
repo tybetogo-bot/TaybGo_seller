@@ -73,6 +73,34 @@ sealed class RestaurantStats with _$RestaurantStats {
   }
 }
 
+/// Single opening interval for a restaurant working day.
+class WorkHourPeriod {
+  const WorkHourPeriod({required this.open, required this.close});
+
+  final String open;
+  final String close;
+
+  factory WorkHourPeriod.fromJson(Map<String, dynamic> json) {
+    return WorkHourPeriod(
+      open: json['open'] as String? ?? '',
+      close: json['close'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'open': open, 'close': close};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WorkHourPeriod &&
+          runtimeType == other.runtimeType &&
+          open == other.open &&
+          close == other.close;
+
+  @override
+  int get hashCode => Object.hash(open, close);
+}
+
 /// Restaurant model
 @freezed
 sealed class RestaurantModel with _$RestaurantModel {
@@ -91,6 +119,7 @@ sealed class RestaurantModel with _$RestaurantModel {
     @Default(false) bool isOpen,
     String? openingHours,
     String? closingHours,
+    @Default({}) Map<String, List<WorkHourPeriod>> workHours,
     @Default(0.0) double deliveryFee,
     @Default(0.0) double minimumOrder,
     @Default(30) int estimatedDeliveryTime,
@@ -157,6 +186,7 @@ sealed class RestaurantModel with _$RestaurantModel {
       isOpen: (json['is_open'] ?? json['isOpen'] ?? false) as bool,
       openingHours: (json['opening_hours'] ?? json['openingHours']) as String?,
       closingHours: (json['closing_hours'] ?? json['closingHours']) as String?,
+      workHours: _parseWorkHours(json['work_hours'] ?? json['workHours']),
       deliveryFee: (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0) is num
           ? (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0).toDouble()
           : 0.0,
@@ -199,7 +229,9 @@ sealed class RestaurantModel with _$RestaurantModel {
       lat: _parseCoordinate(json['lat']),
       lng: _parseCoordinate(json['lng']),
       addressData: json['address'] is Map<String, dynamic>
-          ? RestaurantAddressModel.fromJson(json['address'] as Map<String, dynamic>)
+          ? RestaurantAddressModel.fromJson(
+              json['address'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -209,6 +241,29 @@ sealed class RestaurantModel with _$RestaurantModel {
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value);
     return null;
+  }
+
+  static Map<String, List<WorkHourPeriod>> _parseWorkHours(dynamic value) {
+    if (value is! Map) return const {};
+
+    final parsed = <String, List<WorkHourPeriod>>{};
+    for (final entry in value.entries) {
+      final day = entry.key.toString().toLowerCase();
+      final periods = entry.value;
+      if (periods is! List) {
+        parsed[day] = const [];
+        continue;
+      }
+
+      parsed[day] = periods
+          .whereType<Map>()
+          .map(
+            (period) =>
+                WorkHourPeriod.fromJson(Map<String, dynamic>.from(period)),
+          )
+          .toList();
+    }
+    return parsed;
   }
 }
 
@@ -220,7 +275,8 @@ extension RestaurantModelExtension on RestaurantModel {
   /// Get full address string (prefers addressData if available)
   String get fullAddress {
     // If we have addressData with fullAddress, use it
-    if (addressData?.fullAddress != null && addressData!.fullAddress!.isNotEmpty) {
+    if (addressData?.fullAddress != null &&
+        addressData!.fullAddress!.isNotEmpty) {
       return addressData!.fullAddress!;
     }
 
@@ -249,8 +305,7 @@ extension RestaurantModelExtension on RestaurantModel {
   bool get hasCoordinates => lat != null && lng != null;
 
   /// Get coordinates as tuple (for map usage)
-  (double, double)? get coordinates =>
-      hasCoordinates ? (lat!, lng!) : null;
+  (double, double)? get coordinates => hasCoordinates ? (lat!, lng!) : null;
 
   /// Format rating with stars
   String get formattedRating =>

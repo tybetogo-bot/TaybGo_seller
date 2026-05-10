@@ -1,6 +1,7 @@
 /// Service for AI-powered order form scanning via backend API
 library;
 
+import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -52,14 +53,9 @@ class GeminiScanResult {
 /// Service for AI-powered order form scanning using backend extract-draft API
 class GeminiScanService {
   final OrdersApi _ordersApi;
-  final int _restaurantId;
   final ImagePicker _imagePicker = ImagePicker();
 
-  GeminiScanService({
-    required OrdersApi ordersApi,
-    required int restaurantId,
-  })  : _ordersApi = ordersApi,
-        _restaurantId = restaurantId;
+  GeminiScanService({required OrdersApi ordersApi}) : _ordersApi = ordersApi;
 
   /// Check camera permission
   Future<bool> checkCameraPermission() async {
@@ -76,8 +72,8 @@ class GeminiScanService {
     return false;
   }
 
-  /// Capture a single image from camera (returns path only)
-  Future<String?> captureImage() async {
+  /// Capture a single image from camera.
+  Future<XFile?> captureImage() async {
     try {
       final hasPermission = await checkCameraPermission();
       if (!hasPermission) {
@@ -90,34 +86,34 @@ class GeminiScanService {
         preferredCameraDevice: CameraDevice.rear,
       );
 
-      return image?.path;
+      return image;
     } catch (e) {
       return null;
     }
   }
 
-  /// Pick a single image from gallery (returns path only)
-  Future<String?> pickImageFromGallery() async {
+  /// Pick a single image from gallery.
+  Future<XFile?> pickImageFromGallery() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 100,
       );
 
-      return image?.path;
+      return image;
     } catch (e) {
       return null;
     }
   }
 
-  /// Pick multiple images from gallery (returns paths)
-  Future<List<String>> pickMultipleImagesFromGallery() async {
+  /// Pick multiple images from gallery.
+  Future<List<XFile>> pickMultipleImagesFromGallery() async {
     try {
       final List<XFile> images = await _imagePicker.pickMultiImage(
         imageQuality: 100,
       );
 
-      return images.map((img) => img.path).toList();
+      return images;
     } catch (e) {
       return [];
     }
@@ -125,19 +121,48 @@ class GeminiScanService {
 
   /// Process multiple images via the backend extract-draft API
   Future<GeminiScanResult> processMultipleImages(
-    List<String> imagePaths,
+    List<XFile> images,
+    int restaurantId,
   ) async {
-    if (imagePaths.isEmpty) {
+    if (images.isEmpty) {
       return GeminiScanResult.failure('No images to process');
     }
 
     try {
       final data = await _ordersApi.extractDraft(
-        restaurantId: _restaurantId,
-        imagePaths: imagePaths,
+        restaurantId: restaurantId,
+        images: images,
       );
 
+      final imagePaths = images.map((image) => image.path).toList();
       return _parseApiResponse(data, imagePaths);
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 415) {
+        return GeminiScanResult.failure(
+          'Unsupported file type. Please use JPEG or PNG images.',
+        );
+      }
+      if (statusCode == 400) {
+        return GeminiScanResult.failure(
+          _extractErrorMessage(e.response?.data) ??
+              'Invalid request. Please check images and try again.',
+        );
+      }
+      if (statusCode == 404) {
+        return GeminiScanResult.failure(
+          'Restaurant not found. Please check your settings.',
+        );
+      }
+      if (statusCode == 502 || statusCode == 503) {
+        return GeminiScanResult.failure(
+          'Server is temporarily unavailable. Please try again later.',
+        );
+      }
+      return GeminiScanResult.failure(
+        _extractErrorMessage(e.response?.data) ??
+            'Processing error. Please try again.',
+      );
     } catch (e) {
       final message = e.toString();
       if (message.contains('415')) {
@@ -164,6 +189,21 @@ class GeminiScanService {
     }
   }
 
+  String? _extractErrorMessage(Object? data) {
+    if (data is Map) {
+      for (final key in ['detail', 'message', 'error', 'msg']) {
+        final value = data[key];
+        if (value != null && value.toString().trim().isNotEmpty) {
+          return value.toString();
+        }
+      }
+    }
+    if (data is String && data.trim().isNotEmpty) {
+      return data;
+    }
+    return null;
+  }
+
   /// Parse the backend API response into ParsedOrderData
   GeminiScanResult _parseApiResponse(
     Map<String, dynamic> data,
@@ -171,7 +211,8 @@ class GeminiScanService {
   ) {
     try {
       // Parse address from dropoff_address_draft
-      final addressDraft = data['dropoff_address_draft'] as Map<String, dynamic>?;
+      final addressDraft =
+          data['dropoff_address_draft'] as Map<String, dynamic>?;
       String? street;
       String? postalCode;
       String? city;
@@ -296,9 +337,7 @@ class GeminiScanService {
         imagePaths: imagePaths,
       );
     } catch (e) {
-      return GeminiScanResult.failure(
-        'Failed to parse response: $e',
-      );
+      return GeminiScanResult.failure('Failed to parse response: $e');
     }
   }
 

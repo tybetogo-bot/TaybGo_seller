@@ -161,6 +161,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: () => context.push(Routes.editProfile),
                 ),
                 _SettingRow(
+                  icon: Icons.storefront_outlined,
+                  label: 'settings.restaurantSettings'.tr,
+                  isDark: isDark,
+                  onTap: () => context.push(Routes.restaurantSettings),
+                ),
+                _SettingRow(
                   icon: Icons.account_balance_wallet_outlined,
                   label: 'earnings.title'.tr,
                   isDark: isDark,

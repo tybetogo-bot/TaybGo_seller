@@ -80,6 +80,7 @@
     "failedToRejectOrder": "Failed to reject order",
     "failedToMarkOnTheWay": "Failed to mark order as on the way",
     "failedToMarkDelivered": "Failed to mark order as delivered",
+    "failedToMarkDelivered": "Failed to mark order as delivered",
     "failedToFetchOrder": "Failed to fetch order",
     "failedToLogOrder": "Failed to log manual order",
     "failedToLoadMenu": "Failed to load menu",
@@ -118,22 +119,10 @@
   "orders": {
     "title": "Orders",
     "new": "New",
-    "current": "Current",
     "active": "Active",
-    "all": "All",
     "done": "Done",
-    "expired": "Expired",
     "pending": "Pending Orders",
     "createOrder": "Create Order",
-    "editOrder": "Edit Order",
-    "saveChanges": "Save Changes",
-    "editingOrder": "Editing order #{id}",
-    "editOrderSubtitle": "Update the order details and save when ready.",
-    "orderUpdated": "Order updated successfully!",
-    "orderUpdateFailed": "Failed to update order",
-    "editUnavailable": "This order cannot be edited",
-    "editUnavailableCompleted": "Completed orders cannot be edited",
-    "editManualOnly": "Only app-created manual orders can be edited",
     "orderDetails": "Order Details",
     "orderId": "Order ID",
     "customerName": "Customer Name",
@@ -173,7 +162,7 @@
       "outForDelivery": "Out for Delivery",
       "onTheWay": "On the Way",
       "searchingForDriver": "Searching for Driver",
-      "driverNotificationSent": "Awaiting Driver",
+      "driverNotificationSent": "Driver Notified",
       "delivered": "Delivered",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
@@ -184,6 +173,7 @@
     "orderWasCancelled": "This order was cancelled",
     "orderLabel": "Order {status}",
     "markOnTheWay": "Mark On the Way",
+    "markDelivered": "Mark Delivered",
     "updateStatus": "Update Status",
     "confirmStatusUpdate": "Do you want to update the order status?",
     "from": "From",
@@ -212,7 +202,7 @@
       "pending": "Waiting for your response",
       "searchingForDriver": "Looking for available driver",
       "accepted": "Preparing the order",
-      "driverNotificationSent": "Awaiting driver acceptance",
+      "driverNotificationSent": "Driver has been notified",
       "ready": "Ready for pickup",
       "onTheWay": "On the way to customer",
       "delivery": "On the way to customer",
@@ -228,10 +218,7 @@
     "orderCancelled": "This order was cancelled",
     "noPendingOrders": "No pending orders",
     "noActiveOrders": "No active orders",
-    "noCurrentOrders": "No current orders",
     "noCompletedOrders": "No completed orders",
-    "noExpiredOrders": "No expired orders",
-    "expiredAction": "Expired Orders ({count})",
     "searchHint": "Search by ID, customer, phone, item...",
     "noSearchResults": "No orders found",
     "addressNotAvailable": "Address not available",
@@ -330,7 +317,6 @@
       "deliveryTime": "Delivery Time (Optional)",
       "paymentStatus": "Payment Status (Optional)",
       "totalAmount": "Total Amount (Optional)",
-      "deliveryInstructions": "Delivery Instructions (Optional)",
       "orderItems": "Order Items ({count})",
       "orderItemsLabel": "Items",
       "missingFields": "Missing Fields",
@@ -637,7 +623,7 @@
     "websiteLabel": "Website",
     "supportEmailLabel": "Support email",
     "visitWebsite": "Visit TaybGo",
-    "copyright": "Â© 2024 TaybGo. All rights reserved."
+    "copyright": "© 2024 TaybGo. All rights reserved."
   },
   "validation": {
     "required": "This field is required",
@@ -787,9 +773,9 @@
       "title": "Welcome to TaybGo Seller",
       "description": "An overview of the app and what you can do with it.",
       "s1Title": "What is TaybGo Seller?",
-      "s1Body": "TaybGo Seller is your all-in-one restaurant management app. It lets you receive and manage orders, update your menu in real time, create promotional coupons, and track your business performance â€” all from your phone.",
+      "s1Body": "TaybGo Seller is your all-in-one restaurant management app. It lets you receive and manage orders, update your menu in real time, create promotional coupons, and track your business performance — all from your phone.",
       "s2Title": "Key Features",
-      "s2Body": "â€¢ Real-time order management with status tracking\nâ€¢ Full menu editing with categories, images, and customizations\nâ€¢ Coupon creation and discount management\nâ€¢ Business analytics and revenue tracking\nâ€¢ AI-powered order scanning for manual orders\nâ€¢ Push notifications for new orders\nâ€¢ Dark mode and theme customization\nâ€¢ Multi-language support (English, Arabic, German, French)",
+      "s2Body": "• Real-time order management with status tracking\n• Full menu editing with categories, images, and customizations\n• Coupon creation and discount management\n• Business analytics and revenue tracking\n• AI-powered order scanning for manual orders\n• Push notifications for new orders\n• Dark mode and theme customization\n• Multi-language support (English, Arabic, German, French)",
       "s3Title": "Getting Help",
       "s3Body": "You can access this Knowledge Base anytime from Profile > Knowledge Base. For hands-on guidance, tap the \"Start Interactive Tour\" button at the top of this page to walk through the app step by step."
     },
@@ -797,7 +783,7 @@
       "title": "Navigating the App",
       "description": "Learn about the main screens and how to move between them.",
       "s1Title": "Bottom Navigation Bar",
-      "s1Body": "The app has four main tabs at the bottom of the screen:\n\nâ€¢ Home â€” Your dashboard showing today's stats and pending orders\nâ€¢ Orders â€” Manage all incoming, active, and completed orders\nâ€¢ Menu â€” View and edit your restaurant's menu items\nâ€¢ Profile â€” Access settings, statistics, coupons, and more",
+      "s1Body": "The app has four main tabs at the bottom of the screen:\n\n• Home — Your dashboard showing today's stats and pending orders\n• Orders — Manage all incoming, active, and completed orders\n• Menu — View and edit your restaurant's menu items\n• Profile — Access settings, statistics, coupons, and more",
       "s2Title": "Home Dashboard",
       "s2Body": "The Home screen gives you a quick overview of your day. You'll see your pending order count, today's revenue, and total orders. Tap \"See all\" to jump to the full orders list, or use the quick action buttons to create an order or start the app tour.",
       "s3Title": "Navigating Back",
@@ -807,21 +793,21 @@
       "title": "Viewing & Managing Orders",
       "description": "How to view, search, and track your orders.",
       "s1Title": "Order Tabs",
-      "s1Body": "The Orders screen has three tabs:\n\nâ€¢ New â€” Orders waiting for your response (accept or reject)\nâ€¢ Active â€” Orders you've accepted that are being prepared or delivered\nâ€¢ Done â€” Completed, delivered, rejected, or cancelled orders",
+      "s1Body": "The Orders screen has three tabs:\n\n• New — Orders waiting for your response (accept or reject)\n• Active — Orders you've accepted that are being prepared or delivered\n• Done — Completed, delivered, rejected, or cancelled orders",
       "s2Title": "Searching Orders",
       "s2Body": "Use the search bar at the top of the Orders screen to find specific orders. You can search by order ID, customer name, phone number, or item names. Search works across all three tabs simultaneously.",
       "s3Title": "Auto-Refresh",
       "s3Body": "Orders automatically refresh every 30 seconds to keep you up to date. You can also pull down to manually refresh the list at any time. The app pauses automatic refresh when running in the background to save battery.",
       "s4Title": "Order Details",
-      "s4Body": "Tap any order card to open its full details. You'll see:\n\nâ€¢ Customer name, phone, and delivery address\nâ€¢ All ordered items with quantities and customizations\nâ€¢ Payment status and order totals\nâ€¢ A visual timeline showing the order's status progression\nâ€¢ Action buttons to update the order status"
+      "s4Body": "Tap any order card to open its full details. You'll see:\n\n• Customer name, phone, and delivery address\n• All ordered items with quantities and customizations\n• Payment status and order totals\n• A visual timeline showing the order's status progression\n• Action buttons to update the order status"
     },
     "ordersStatus": {
       "title": "Accepting & Updating Order Status",
       "description": "How to accept, reject, and move orders through each stage.",
       "s1Title": "Accepting or Rejecting",
-      "s1Body": "When a new order arrives, you have two options:\n\nâ€¢ Accept â€” The order moves to your Active tab and the system searches for a delivery driver\nâ€¢ Reject â€” The order is declined (this cannot be undone)\n\nYou'll receive a push notification whenever a new order comes in.",
+      "s1Body": "When a new order arrives, you have two options:\n\n• Accept — The order moves to your Active tab and the system searches for a delivery driver\n• Reject — The order is declined (this cannot be undone)\n\nYou'll receive a push notification whenever a new order comes in.",
       "s2Title": "Order Status Flow",
-      "s2Body": "After accepting, an order progresses through these stages:\n\n1. Accepted â€” You're preparing the order\n2. Searching for Driver â€” The system is finding a driver\n3. Driver Notified â€” A driver has been assigned\n4. Ready for Delivery â€” Food is ready for pickup\n5. On the Way â€” Driver is delivering to customer\n6. Delivered / Completed â€” Order is done\n\nUse the status buttons on the order detail screen to advance through stages.",
+      "s2Body": "After accepting, an order progresses through these stages:\n\n1. Accepted — You're preparing the order\n2. Searching for Driver — The system is finding a driver\n3. Driver Notified — A driver has been assigned\n4. Ready for Delivery — Food is ready for pickup\n5. On the Way — Driver is delivering to customer\n6. Delivered / Completed — Order is done\n\nUse the status buttons on the order detail screen to advance through stages.",
       "s3Title": "Undo Status Changes",
       "s3Body": "If you accidentally update an order's status, you'll see a brief \"Undo\" option appear as a snackbar at the bottom of the screen. Tap it quickly to revert the change."
     },
@@ -841,7 +827,7 @@
       "s1Title": "How AI Scanning Works",
       "s1Body": "The AI Scan feature uses Gemini AI to read order forms from photos. Take a picture of a handwritten or printed order, and the AI will extract customer details, items, quantities, and addresses automatically.",
       "s2Title": "Tips for Best Results",
-      "s2Body": "â€¢ Place the order form on a flat surface\nâ€¢ Ensure good lighting without shadows\nâ€¢ Keep the text in focus and readable\nâ€¢ For multi-page orders, take multiple photos\nâ€¢ You can use the camera or pick images from your gallery",
+      "s2Body": "• Place the order form on a flat surface\n• Ensure good lighting without shadows\n• Keep the text in focus and readable\n• For multi-page orders, take multiple photos\n• You can use the camera or pick images from your gallery",
       "s3Title": "Verifying Scanned Data",
       "s3Body": "After scanning, you'll see a verification screen showing all extracted data. Fields with low confidence are highlighted so you can review them. Correct any mistakes, fill in missing fields, then submit the order."
     },
@@ -851,7 +837,7 @@
       "s1Title": "Viewing Your Menu",
       "s1Body": "The Menu screen shows all your items organized by category. Use the horizontal category tabs at the top to filter by category, or use the search bar to find specific items by name, description, or ingredients.",
       "s2Title": "Adding a New Item",
-      "s2Body": "Tap the \"+\" button on the Menu screen to add a new item. Fill in:\n\nâ€¢ Item name and description\nâ€¢ Price\nâ€¢ Category (select from existing or create new)\nâ€¢ Ingredients list\nâ€¢ Item image (from camera or gallery)\nâ€¢ Preparation time\nâ€¢ Availability status",
+      "s2Body": "Tap the \"+\" button on the Menu screen to add a new item. Fill in:\n\n• Item name and description\n• Price\n• Category (select from existing or create new)\n• Ingredients list\n• Item image (from camera or gallery)\n• Preparation time\n• Availability status",
       "s3Title": "Editing an Item",
       "s3Body": "Tap any menu item card to open its detail view, then tap \"Edit Item\" to modify its details. Changes are saved when you tap \"Save\".",
       "s4Title": "Quick Availability Toggle",
@@ -865,7 +851,7 @@
       "s1Title": "What Are Categories?",
       "s1Body": "Categories help organize your menu into logical sections like \"Burgers\", \"Pizza\", \"Drinks\", \"Desserts\", etc. Customers see these categories when browsing your public menu.",
       "s2Title": "Managing Categories",
-      "s2Body": "Go to Menu > Categories (via the categories icon) to:\n\nâ€¢ Add new categories with a name\nâ€¢ Edit existing category names\nâ€¢ Delete categories (items in the category will also be affected)\n\nEach category shows how many items it contains.",
+      "s2Body": "Go to Menu > Categories (via the categories icon) to:\n\n• Add new categories with a name\n• Edit existing category names\n• Delete categories (items in the category will also be affected)\n\nEach category shows how many items it contains.",
       "s3Title": "Filtering by Category",
       "s3Body": "On the main Menu screen, the horizontal category tabs let you quickly filter your view. Tap \"All\" to see everything, or tap a specific category to show only items in that group."
     },
@@ -873,17 +859,17 @@
       "title": "Item Customizations & Extras",
       "description": "Set up extras and removal options for menu items.",
       "s1Title": "What Are Customizations?",
-      "s1Body": "Customizations let customers modify their order items. There are two types:\n\nâ€¢ Extras (Additions) â€” Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\nâ€¢ Removals â€” Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
+      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
       "s2Title": "Adding Extras",
       "s2Body": "When editing a menu item, scroll to the Customizations section and tap \"Add Extra\". Enter the extra's name and additional price. You can add as many extras as needed.",
       "s3Title": "Adding Removal Options",
-      "s3Body": "In the same Customizations section, tap \"Add Removal Option\" to let customers request ingredient removals. These have no price change â€” they're simply instructions for the kitchen."
+      "s3Body": "In the same Customizations section, tap \"Add Removal Option\" to let customers request ingredient removals. These have no price change — they're simply instructions for the kitchen."
     },
     "couponsCreate": {
       "title": "Creating Coupons",
       "description": "Set up promotional discount codes for your customers.",
       "s1Title": "Creating a Coupon",
-      "s1Body": "Go to Profile > Coupons and tap the \"+\" button. Fill in:\n\nâ€¢ Coupon title and description\nâ€¢ Unique coupon code (or tap \"Generate\" for a random code)\nâ€¢ Discount percentage\nâ€¢ Minimum order price requirement\nâ€¢ Maximum usage limits\nâ€¢ Start and end dates",
+      "s1Body": "Go to Profile > Coupons and tap the \"+\" button. Fill in:\n\n• Coupon title and description\n• Unique coupon code (or tap \"Generate\" for a random code)\n• Discount percentage\n• Minimum order price requirement\n• Maximum usage limits\n• Start and end dates",
       "s2Title": "How Discounts Work",
       "s2Body": "When a coupon is applied to an order, the discount percentage is calculated on the order subtotal. The coupon will only work if the order meets the minimum price requirement you set.",
       "s3Title": "Using Coupons in Orders",
@@ -893,7 +879,7 @@
       "title": "Managing Coupons",
       "description": "Edit, activate, deactivate, and track your coupons.",
       "s1Title": "Coupon List",
-      "s1Body": "The Coupons screen shows all your coupons with filter tabs:\n\nâ€¢ All â€” Every coupon\nâ€¢ Active â€” Currently usable coupons\nâ€¢ Expired â€” Past their end date\n\nEach coupon card shows its code, discount, and current status.",
+      "s1Body": "The Coupons screen shows all your coupons with filter tabs:\n\n• All — Every coupon\n• Active — Currently usable coupons\n• Expired — Past their end date\n\nEach coupon card shows its code, discount, and current status.",
       "s2Title": "Editing & Deleting",
       "s2Body": "Tap a coupon to edit its details. You can update any field except the code. To delete a coupon, use the delete option on the coupon card. Deleted coupons cannot be recovered.",
       "s3Title": "Toggling Active Status",
@@ -919,9 +905,9 @@
       "title": "Notification Preferences",
       "description": "Configure which notifications you receive.",
       "s1Title": "Notification Types",
-      "s1Body": "You can configure notifications for:\n\nâ€¢ New Orders â€” Get alerted when a new order arrives\nâ€¢ Order Updates â€” Status changes on your orders\nâ€¢ Promotions â€” News and special offers from TaybGo",
+      "s1Body": "You can configure notifications for:\n\n• New Orders — Get alerted when a new order arrives\n• Order Updates — Status changes on your orders\n• Promotions — News and special offers from TaybGo",
       "s2Title": "Sound & Haptics",
-      "s2Body": "In the notification settings, you can also control:\n\nâ€¢ Sound â€” Enable or disable notification sounds\nâ€¢ Vibration â€” Enable or disable haptic feedback\n\nThese settings are independent of your device's system notification settings.",
+      "s2Body": "In the notification settings, you can also control:\n\n• Sound — Enable or disable notification sounds\n• Vibration — Enable or disable haptic feedback\n\nThese settings are independent of your device's system notification settings.",
       "s3Title": "Viewing Notifications",
       "s3Body": "Tap the bell icon on the Home screen to see your notification history. Unread notifications show a count badge. Use \"Mark all read\" to clear the unread count."
     },
@@ -929,19 +915,19 @@
       "title": "Understanding Your Analytics",
       "description": "Track revenue, orders, and performance metrics.",
       "s1Title": "Accessing Statistics",
-      "s1Body": "You can view your analytics in two ways:\n\nâ€¢ Quick stats on the Profile screen (today's revenue and order count)\nâ€¢ Detailed view via Profile > \"View Stats\" button",
+      "s1Body": "You can view your analytics in two ways:\n\n• Quick stats on the Profile screen (today's revenue and order count)\n• Detailed view via Profile > \"View Stats\" button",
       "s2Title": "Time Periods",
-      "s2Body": "The Statistics screen lets you view data for different time periods:\n\nâ€¢ Today â€” Current day's performance\nâ€¢ Week â€” Last 7 days\nâ€¢ Month â€” Last 30 days\nâ€¢ Year â€” Last 12 months",
+      "s2Body": "The Statistics screen lets you view data for different time periods:\n\n• Today — Current day's performance\n• Week — Last 7 days\n• Month — Last 30 days\n• Year — Last 12 months",
       "s3Title": "Key Metrics",
-      "s3Body": "â€¢ Total Orders â€” Number of orders in the selected period\nâ€¢ Revenue â€” Total income from all orders\nâ€¢ Average Order â€” Mean order value\nâ€¢ Customers â€” Unique customers served\nâ€¢ Top Selling Items â€” Your most popular menu items"
+      "s3Body": "• Total Orders — Number of orders in the selected period\n• Revenue — Total income from all orders\n• Average Order — Mean order value\n• Customers — Unique customers served\n• Top Selling Items — Your most popular menu items"
     },
     "tipsGestures": {
       "title": "Swipe Actions & Gestures",
       "description": "Speed up your workflow with swipe gestures.",
       "s1Title": "Order Swipe Actions",
-      "s1Body": "On the Orders screen, swipe order cards to quickly:\n\nâ€¢ Accept pending orders\nâ€¢ Update order status to the next stage\nâ€¢ This saves time compared to opening each order individually",
+      "s1Body": "On the Orders screen, swipe order cards to quickly:\n\n• Accept pending orders\n• Update order status to the next stage\n• This saves time compared to opening each order individually",
       "s2Title": "Menu Item Swipe Actions",
-      "s2Body": "On the Menu screen, swipe item cards to:\n\nâ€¢ Toggle availability (mark available/unavailable)\nâ€¢ Delete items\n\nSwipe actions show colored indicators so you know what action will be taken.",
+      "s2Body": "On the Menu screen, swipe item cards to:\n\n• Toggle availability (mark available/unavailable)\n• Delete items\n\nSwipe actions show colored indicators so you know what action will be taken.",
       "s3Title": "Pull to Refresh",
       "s3Body": "Pull down on any list screen (Orders, Menu, Notifications) to manually refresh the data. This is useful if you want to check for updates immediately instead of waiting for the auto-refresh."
     },
@@ -949,13 +935,13 @@
       "title": "Best Practices",
       "description": "Tips to get the most out of the app.",
       "s1Title": "Keep Your Menu Updated",
-      "s1Body": "â€¢ Mark items as unavailable as soon as you run out\nâ€¢ Update prices regularly to reflect current costs\nâ€¢ Add clear descriptions and images to attract customers\nâ€¢ Use categories to keep your menu well-organized",
+      "s1Body": "• Mark items as unavailable as soon as you run out\n• Update prices regularly to reflect current costs\n• Add clear descriptions and images to attract customers\n• Use categories to keep your menu well-organized",
       "s2Title": "Respond to Orders Quickly",
-      "s2Body": "â€¢ Enable push notifications so you never miss an order\nâ€¢ Accept or reject new orders as soon as possible\nâ€¢ Keep order statuses updated so customers and drivers know what's happening\nâ€¢ Use the search feature to quickly find specific orders",
+      "s2Body": "• Enable push notifications so you never miss an order\n• Accept or reject new orders as soon as possible\n• Keep order statuses updated so customers and drivers know what's happening\n• Use the search feature to quickly find specific orders",
       "s3Title": "Use Coupons Strategically",
-      "s3Body": "â€¢ Create time-limited coupons to drive urgency\nâ€¢ Set minimum order values to increase average order size\nâ€¢ Use coupons during slow periods to boost sales\nâ€¢ Track coupon usage to see which promotions work best",
+      "s3Body": "• Create time-limited coupons to drive urgency\n• Set minimum order values to increase average order size\n• Use coupons during slow periods to boost sales\n• Track coupon usage to see which promotions work best",
       "s4Title": "Monitor Your Stats",
-      "s4Body": "â€¢ Check your daily stats on the Home screen regularly\nâ€¢ Review weekly and monthly trends in the Statistics section\nâ€¢ Pay attention to your top-selling items\nâ€¢ Use insights to adjust your menu and pricing strategy"
+      "s4Body": "• Check your daily stats on the Home screen regularly\n• Review weekly and monthly trends in the Statistics section\n• Pay attention to your top-selling items\n• Use insights to adjust your menu and pricing strategy"
     }
   },
   "knowledgeBase": {
@@ -1020,7 +1006,7 @@
     },
     "navigateToOrders": {
       "title": "Orders Tab",
-      "description": "Tap here to go to your orders â€” manage all incoming and active requests"
+      "description": "Tap here to go to your orders — manage all incoming and active requests"
     },
     "swipeActions": {
       "title": "Swipe Actions",
@@ -1048,7 +1034,7 @@
     },
     "navigateToMenu": {
       "title": "Menu Tab",
-      "description": "Tap here to manage your restaurant menu â€” add, edit, and organize items"
+      "description": "Tap here to manage your restaurant menu — add, edit, and organize items"
     },
     "menuTab": {
       "title": "Menu Management",
@@ -1108,7 +1094,7 @@
     },
     "knowledgeBase": {
       "title": "Knowledge Base",
-      "description": "Find detailed guides for every feature â€” and restart this tour anytime from here"
+      "description": "Find detailed guides for every feature — and restart this tour anytime from here"
     },
     "ordersWelcome": {
       "title": "Orders Overview",
@@ -1120,7 +1106,7 @@
     },
     "ordersCard": {
       "title": "Order Card",
-      "description": "Each card shows order details â€” tap to view or swipe to take action"
+      "description": "Each card shows order details — tap to view or swipe to take action"
     },
     "ordersActive": {
       "title": "Active Orders",
@@ -1136,7 +1122,7 @@
     },
     "menuList": {
       "title": "Menu Items",
-      "description": "All your items are listed here â€” scroll through to view them all"
+      "description": "All your items are listed here — scroll through to view them all"
     },
     "menuToggle": {
       "title": "Toggle Availability",

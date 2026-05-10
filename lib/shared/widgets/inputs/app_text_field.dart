@@ -113,7 +113,7 @@ class _AppTextFieldState extends State<AppTextField> {
           keyboardType: widget.keyboardType,
           textDirection: _effectiveTextDirection(),
           textInputAction: widget.textInputAction,
-          inputFormatters: widget.inputFormatters,
+          inputFormatters: _effectiveInputFormatters(),
           textCapitalization: widget.textCapitalization,
           onChanged: widget.onChanged,
           onFieldSubmitted: widget.onSubmitted,
@@ -182,6 +182,14 @@ class _AppTextFieldState extends State<AppTextField> {
         keyboardType?.toString().contains('numberWithOptions') == true;
 
     return shouldForceLtr ? ui.TextDirection.ltr : null;
+  }
+
+  List<TextInputFormatter>? _effectiveInputFormatters() {
+    if (widget.keyboardType != TextInputType.phone) {
+      return widget.inputFormatters;
+    }
+
+    return [FilteringTextInputFormatter.digitsOnly, ...?widget.inputFormatters];
   }
 
   Widget? _buildSuffixIcon(bool isDark) {

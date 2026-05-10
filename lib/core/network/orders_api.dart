@@ -112,15 +112,14 @@ class OrdersApi {
   /// POST /api/orders/extract-draft/
   Future<Map<String, dynamic>> extractDraft({
     required int restaurantId,
-    required List<String> imagePaths,
+    required List<XFile> images,
   }) async {
     final formData = FormData();
     formData.fields.add(MapEntry('restaurant_id', restaurantId.toString()));
 
-    for (final path in imagePaths) {
-      final file = XFile(path);
+    for (final file in images) {
       final bytes = await file.readAsBytes();
-      final fileName = file.name;
+      final fileName = file.name.isNotEmpty ? file.name : 'order-image.jpg';
       formData.files.add(
         MapEntry('images', MultipartFile.fromBytes(bytes, filename: fileName)),
       );

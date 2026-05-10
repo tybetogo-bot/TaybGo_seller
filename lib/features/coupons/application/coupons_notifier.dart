@@ -111,7 +111,7 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
     // Listen for restaurant selection changes
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && previous != next) {
+      if (previous != next) {
         Future.microtask(() => _loadCoupons());
       }
     });
@@ -149,6 +149,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         active: active,
         code: code,
       );
+
+      if (_restaurantId != restaurantId) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(

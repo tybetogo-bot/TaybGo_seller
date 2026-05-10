@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
@@ -278,6 +279,7 @@ class PhoneInputField extends StatelessWidget {
             controller: controller,
             keyboardType: TextInputType.phone,
             textDirection: ui.TextDirection.ltr,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             enabled: enabled,
             onChanged: onChanged,
             validator:

@@ -154,12 +154,28 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
-                  child: _PrimaryAction(
-                    icon: Icons.timer_off_outlined,
-                    label:
-                        '${'expired'.tr} ${'navigation.orders'.tr} (${expiredOrders.length})',
-                    backgroundColor: AppColors.error,
-                    onTap: () => context.go(Routes.ordersPath(tab: 'expired')),
+                  child: Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: [
+                      if (expiredOrders.isNotEmpty)
+                        _CompactAction(
+                          icon: Icons.timer_off_outlined,
+                          label: 'orders.expiredAction'.trParams({
+                            'count': expiredOrders.length.toString(),
+                          }),
+                          isDark: isDark,
+                          accentColor: AppColors.warning,
+                          onTap: () =>
+                              context.go(Routes.ordersPath(tab: 'expired')),
+                        ),
+                      _CompactAction(
+                        icon: Icons.support_agent_outlined,
+                        label: 'support.title'.tr,
+                        isDark: isDark,
+                        onTap: () => context.push(Routes.support),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -324,18 +340,15 @@ class _PrimaryAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.backgroundColor,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor =
-        this.backgroundColor ?? Theme.of(context).colorScheme.primary;
+    final backgroundColor = Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
@@ -363,6 +376,68 @@ class _PrimaryAction extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactAction extends StatelessWidget {
+  const _CompactAction({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+    this.accentColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final VoidCallback onTap;
+  final Color? accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final actionColor = accentColor ?? Theme.of(context).colorScheme.primary;
+    final maxWidth = MediaQuery.sizeOf(context).width - 40.w;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999.r),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Ink(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: actionColor.withValues(alpha: isDark ? 0.14 : 0.08),
+              borderRadius: BorderRadius.circular(999.r),
+              border: Border.all(color: actionColor.withValues(alpha: 0.22)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16.w, color: actionColor),
+                SizedBox(width: 6.w),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

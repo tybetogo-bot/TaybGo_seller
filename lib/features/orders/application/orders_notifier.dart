@@ -342,6 +342,46 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
   }
 
+  /// Update an app-created order through the authenticated order endpoint.
+  Future<OrderModel?> updateManualOrder(
+    String orderId,
+    OrderUpdateRequest request,
+  ) async {
+    state = state.copyWith(clearError: true);
+
+    try {
+      final result = await _customerOrdersRepository.updateOrder(
+        orderId,
+        request,
+      );
+
+      if (result.failure != null) {
+        state = state.copyWith(error: result.failure!.message);
+        return null;
+      }
+
+      var updatedOrder = result.data!;
+      final verifiedResult = await _repository.getOrderById(orderId);
+      if (verifiedResult.failure == null && verifiedResult.data != null) {
+        updatedOrder = verifiedResult.data!;
+      }
+
+      final index = state.orders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final updatedOrders = List<OrderModel>.from(state.orders);
+        updatedOrders[index] = updatedOrder;
+        state = state.copyWith(orders: updatedOrders);
+      } else {
+        await refreshOrders();
+      }
+
+      return updatedOrder;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to update order: $e');
+      return null;
+    }
+  }
+
   /// Recreate an expired order using the regular create-order API.
   Future<OrderModel?> reorderExpiredOrder(String orderId) async {
     state = state.copyWith(clearError: true);

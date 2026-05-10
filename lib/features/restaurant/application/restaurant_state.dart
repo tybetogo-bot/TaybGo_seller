@@ -243,7 +243,13 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
       // Refresh the current state with updated restaurant
       final currentState = state;
       if (currentState is RestaurantLoaded) {
-        state = currentState.copyWith(selectedRestaurant: result.data!);
+        state = currentState.copyWith(
+          restaurants: _replaceRestaurant(
+            currentState.restaurants,
+            result.data!,
+          ),
+          selectedRestaurant: result.data!,
+        );
       }
     }
   }
@@ -261,7 +267,13 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
       // Refresh the current state with updated restaurant
       final currentState = state;
       if (currentState is RestaurantLoaded) {
-        state = currentState.copyWith(selectedRestaurant: result.data!);
+        state = currentState.copyWith(
+          restaurants: _replaceRestaurant(
+            currentState.restaurants,
+            result.data!,
+          ),
+          selectedRestaurant: result.data!,
+        );
       }
     }
   }
@@ -278,6 +290,24 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
   /// Get selected restaurant ID (convenience method)
   String? get selectedRestaurantId {
     return selectedRestaurant?.id;
+  }
+
+  List<RestaurantModel> _replaceRestaurant(
+    List<RestaurantModel> restaurants,
+    RestaurantModel updatedRestaurant,
+  ) {
+    var didReplace = false;
+    final updatedRestaurants = restaurants.map((restaurant) {
+      if (restaurant.id != updatedRestaurant.id) return restaurant;
+      didReplace = true;
+      return updatedRestaurant;
+    }).toList();
+
+    if (!didReplace) {
+      updatedRestaurants.insert(0, updatedRestaurant);
+    }
+
+    return updatedRestaurants;
   }
 }
 

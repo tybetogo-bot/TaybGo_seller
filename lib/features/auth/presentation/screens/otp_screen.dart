@@ -284,7 +284,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.orange.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8.r),
                       border: Border.all(color: Colors.orange),
                     ),
@@ -312,105 +312,110 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 SizedBox(height: 32.h),
 
                 // OTP input fields
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(6, (index) {
-                    return SizedBox(
-                      width: 50.w,
-                      height: 60.h,
-                      child: KeyboardListener(
-                        focusNode: FocusNode(),
-                        onKeyEvent: (event) => _onKeyPressed(index, event),
-                        child: GestureDetector(
-                          onTap: () {
-                            // Only allow tapping if field is tappable (sequential order)
-                            if (_isFieldTappable(index) && !isLoading) {
-                              _focusNodes[index].requestFocus();
-                            }
-                          },
-                          child: AbsorbPointer(
-                            // Prevent direct text field interaction, use GestureDetector instead
-                            absorbing: !_isFieldTappable(index) || isLoading,
-                            child: TextFormField(
-                              controller: _controllers[index],
-                              focusNode: _focusNodes[index],
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              // Allow paste on first field
-                              maxLength: index == 0 ? null : 1,
-                              enabled: !isLoading,
-                              style: TextStyle(
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? DarkColors.textPrimary
-                                    : LightColors.textPrimary,
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) {
+                      return SizedBox(
+                        width: 50.w,
+                        height: 60.h,
+                        child: KeyboardListener(
+                          focusNode: FocusNode(),
+                          onKeyEvent: (event) => _onKeyPressed(index, event),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Only allow tapping if field is tappable (sequential order)
+                              if (_isFieldTappable(index) && !isLoading) {
+                                _focusNodes[index].requestFocus();
+                              }
+                            },
+                            child: AbsorbPointer(
+                              // Prevent direct text field interaction, use GestureDetector instead
+                              absorbing: !_isFieldTappable(index) || isLoading,
+                              child: TextFormField(
+                                controller: _controllers[index],
+                                focusNode: _focusNodes[index],
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                textDirection: TextDirection.ltr,
+                                // Allow paste on first field
+                                maxLength: index == 0 ? null : 1,
+                                enabled: !isLoading,
+                                style: TextStyle(
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? DarkColors.textPrimary
+                                      : LightColors.textPrimary,
+                                ),
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 14.h,
+                                  ),
+                                  filled: true,
+                                  fillColor: _isFieldTappable(index)
+                                      ? (isDark
+                                            ? DarkColors.inputBackground
+                                            : LightColors.inputBackground)
+                                      : (isDark
+                                            ? DarkColors.inputBackground
+                                                  .withValues(alpha: 0.5)
+                                            : LightColors.inputBackground
+                                                  .withValues(alpha: 0.5)),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? DarkColors.border
+                                          : LightColors.border,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? DarkColors.border
+                                          : LightColors.border,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    borderSide: BorderSide(
+                                      color:
+                                          (isDark
+                                                  ? DarkColors.border
+                                                  : LightColors.border)
+                                              .withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  // Limit to 6 digits for paste support
+                                  LengthLimitingTextInputFormatter(
+                                    index == 0 ? 6 : 1,
+                                  ),
+                                ],
+                                onChanged: (value) =>
+                                    _onOtpChanged(index, value),
                               ),
-                              decoration: InputDecoration(
-                                counterText: '',
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 14.h,
-                                ),
-                                filled: true,
-                                fillColor: _isFieldTappable(index)
-                                    ? (isDark
-                                          ? DarkColors.inputBackground
-                                          : LightColors.inputBackground)
-                                    : (isDark
-                                          ? DarkColors.inputBackground
-                                                .withOpacity(0.5)
-                                          : LightColors.inputBackground
-                                                .withOpacity(0.5)),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? DarkColors.border
-                                        : LightColors.border,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? DarkColors.border
-                                        : LightColors.border,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                                disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  borderSide: BorderSide(
-                                    color:
-                                        (isDark
-                                                ? DarkColors.border
-                                                : LightColors.border)
-                                            .withOpacity(0.3),
-                                  ),
-                                ),
-                              ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                // Limit to 6 digits for paste support
-                                LengthLimitingTextInputFormatter(
-                                  index == 0 ? 6 : 1,
-                                ),
-                              ],
-                              onChanged: (value) => _onOtpChanged(index, value),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  ),
                 ),
 
                 SizedBox(height: 32.h),

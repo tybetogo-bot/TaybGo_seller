@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -469,15 +471,33 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   Widget _buildActionButtons(OrderModel order, bool isDark) {
     final status = order.status;
+    final canEditOrder = order.isManual && !order.isCompleted;
+    final actionButtons = <Widget>[];
+
+    if (canEditOrder) {
+      actionButtons.add(
+        AppButton(
+          label: 'orders.editOrder'.tr,
+          icon: Icons.edit_outlined,
+          variant: AppButtonVariant.secondary,
+          isLoading: _isProcessing,
+          onPressed: () => context.push(Routes.editOrderPath(order.id)),
+          isFullWidth: true,
+        ),
+      );
+    }
 
     if (status == OrderStatusEnum.expired) {
-      return AppButton(
-        label: 'orders.reorder'.tr,
-        icon: Icons.refresh_rounded,
-        isLoading: _isProcessing,
-        onPressed: () => _handleReorder(order),
-        isFullWidth: true,
+      actionButtons.add(
+        AppButton(
+          label: 'orders.reorder'.tr,
+          icon: Icons.refresh_rounded,
+          isLoading: _isProcessing,
+          onPressed: () => _handleReorder(order),
+          isFullWidth: true,
+        ),
       );
+      return _ActionButtonStack(children: actionButtons);
     }
 
     // Flow: Pending → Searching → Driver Notified → Accepted/Rejected → On the Way → Delivered
@@ -485,21 +505,27 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     if (status == OrderStatusEnum.delivered ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled) {
-      return const SizedBox.shrink();
+      return _ActionButtonStack(children: actionButtons);
     }
 
     // Get the next status label for the button
     final targetStatus = _getTargetStatus(status);
-    if (targetStatus == null) return const SizedBox.shrink();
+    if (targetStatus == null) {
+      return _ActionButtonStack(children: actionButtons);
+    }
 
     // Show button with action label
-    return AppButton(
-      label: 'orders.requestDriver'.tr,
-      icon: _getStatusIcon(targetStatus),
-      isLoading: _isProcessing,
-      onPressed: () => _handleStatusAction(order),
-      isFullWidth: true,
+    actionButtons.add(
+      AppButton(
+        label: 'orders.requestDriver'.tr,
+        icon: _getStatusIcon(targetStatus),
+        isLoading: _isProcessing,
+        onPressed: () => _handleStatusAction(order),
+        isFullWidth: true,
+      ),
     );
+
+    return _ActionButtonStack(children: actionButtons);
   }
 
   IconData _getStatusIcon(OrderStatusEnum status) {
@@ -523,6 +549,27 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       case OrderStatusEnum.cancelled:
         return Icons.block_rounded; // Cancelled
     }
+  }
+}
+
+class _ActionButtonStack extends StatelessWidget {
+  const _ActionButtonStack({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) SizedBox(height: 10.h),
+          children[i],
+        ],
+      ],
+    );
   }
 }
 

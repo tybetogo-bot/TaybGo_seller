@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -440,6 +441,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       controller: controller,
       keyboardType: keyboardType,
       textDirection: textDirection,
+      inputFormatters: keyboardType == TextInputType.phone
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : null,
       enabled: false,
       decoration: InputDecoration(
         labelText: label,

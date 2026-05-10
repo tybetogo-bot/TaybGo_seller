@@ -166,7 +166,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
     final currentEmptyMessage = switch (_currentOrdersFilter) {
       CurrentOrdersFilter.newOnly => 'orders.noPendingOrders'.tr,
       CurrentOrdersFilter.activeOnly => 'orders.noActiveOrders'.tr,
-      CurrentOrdersFilter.all => 'noData'.tr,
+      CurrentOrdersFilter.all => 'orders.noCurrentOrders'.tr,
     };
 
     return Scaffold(
@@ -215,7 +215,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('orders.active'.tr),
+                  Text('orders.current'.tr),
                   if (ordersState.currentOrders.isNotEmpty) ...[
                     SizedBox(width: 4.w),
                     _TabBadge(count: ordersState.currentOrders.length),
@@ -240,7 +240,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('expired'.tr),
+                  Text('orders.expired'.tr),
                   if (ordersState.expiredOrders.isNotEmpty) ...[
                     SizedBox(width: 4.w),
                     _TabBadge(count: ordersState.expiredOrders.length),
@@ -357,7 +357,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                         isDark: isDark,
                         emptyMessage: ordersState.searchQuery.isNotEmpty
                             ? 'orders.noSearchResults'.tr
-                            : 'noData'.tr,
+                            : 'orders.noExpiredOrders'.tr,
                       ),
                     ],
                   ),
@@ -414,7 +414,7 @@ class _CurrentOrdersTab extends StatelessWidget {
                       onFilterSelected(CurrentOrdersFilter.activeOnly),
                 ),
                 _FilterChip(
-                  label: 'all'.tr,
+                  label: 'orders.all'.tr,
                   isSelected: selectedFilter == CurrentOrdersFilter.all,
                   isDark: isDark,
                   primaryColor: primaryColor,

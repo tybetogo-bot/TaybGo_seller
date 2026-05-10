@@ -436,40 +436,73 @@ extension OrderReorderRequestExtension on OrderModel {
 
 /// Order update request model for editing orders
 class OrderUpdateRequest {
+  final String? orderType;
+  final String? customerName;
+  final String? customerPhoneNumber;
   final OrderAddressData? dropoffAddressData;
   final List<CartItem>? items;
   final String? notes;
   final String? status;
+  final int? restaurantId;
+  final int? couponId;
+  final bool includeCoupon;
   final String? subtotalAmount;
   final String? discountAmount;
   final String? deliveryFee;
   final String? tip;
   final String? totalAmount;
+  final VehicleType? requestedVehicleType;
+  final VehicleType? requestedDeliveryType;
+  final bool? isManual;
+  final bool? isPaid;
 
   const OrderUpdateRequest({
+    this.orderType,
+    this.customerName,
+    this.customerPhoneNumber,
     this.dropoffAddressData,
     this.items,
     this.notes,
     this.status,
+    this.restaurantId,
+    this.couponId,
+    this.includeCoupon = false,
     this.subtotalAmount,
     this.discountAmount,
     this.deliveryFee,
     this.tip,
     this.totalAmount,
+    this.requestedVehicleType,
+    this.requestedDeliveryType,
+    this.isManual,
+    this.isPaid,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      if (orderType != null) 'order_type': orderType,
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
       if (dropoffAddressData != null)
         'dropoff_address_data': dropoffAddressData!.toJson(),
       if (items != null) 'items': items!.map((item) => item.toJson()).toList(),
-      if (notes != null) 'notes': notes,
+      if (notes != null) 'delivery_instructions': notes,
       if (status != null) 'status': status,
+      if (restaurantId != null) 'restaurant': restaurantId,
+      if (includeCoupon) 'coupon': couponId,
       if (subtotalAmount != null) 'subtotal_amount': subtotalAmount,
       if (discountAmount != null) 'discount_amount': discountAmount,
       if (deliveryFee != null) 'delivery_fee': deliveryFee,
       if (tip != null) 'tip': tip,
       if (totalAmount != null) 'total_amount': totalAmount,
+      if (requestedVehicleType != null)
+        'requested_vehicle_type': requestedVehicleType!.value,
+      if (requestedDeliveryType != null)
+        'requested_delivery_type': requestedDeliveryType!.value,
+      if (isManual != null) 'is_manual': isManual,
+      if (isPaid != null) 'is_paid': isPaid,
     };
   }
 }

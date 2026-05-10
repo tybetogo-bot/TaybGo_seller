@@ -43,6 +43,9 @@ class Routes {
   static const String createOrder = '/orders/create';
   static const String createOrderName = 'createOrder';
 
+  static const String editOrder = '/orders/edit/:orderId';
+  static const String editOrderName = 'editOrder';
+
   static const String scanOrder = '/orders/scan';
   static const String scanOrderName = 'scanOrder';
 
@@ -134,6 +137,9 @@ class Routes {
 
   /// Get order details path with id
   static String orderDetailsPath(String orderId) => '/orders/details/$orderId';
+
+  /// Get edit order path with id
+  static String editOrderPath(String orderId) => '/orders/edit/$orderId';
 
   /// Get orders path with an optional tab query parameter.
   static String ordersPath({String? tab}) {

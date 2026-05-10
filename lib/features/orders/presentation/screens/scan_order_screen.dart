@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/providers/providers.dart';
@@ -16,10 +17,7 @@ import 'order_verification_screen.dart';
 
 /// Scan order screen with multi-image support
 class ScanOrderScreen extends ConsumerStatefulWidget {
-  const ScanOrderScreen({
-    super.key,
-    this.onDataScanned,
-  });
+  const ScanOrderScreen({super.key, this.onDataScanned});
 
   /// Callback when data is successfully scanned and verified
   /// If provided, returns data to caller instead of navigating to verification
@@ -31,18 +29,20 @@ class ScanOrderScreen extends ConsumerStatefulWidget {
 
 class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   GeminiScanService? _geminiService;
-  final List<String> _capturedImages = [];
+  final List<XFile> _capturedImages = [];
   bool _isProcessing = false;
   String? _error;
+
+  int? _selectedRestaurantId() {
+    final value = ref.read(selectedRestaurantIdProvider);
+    final restaurantId = int.tryParse(value ?? '');
+    return restaurantId != null && restaurantId > 0 ? restaurantId : null;
+  }
 
   GeminiScanService _getService() {
     if (_geminiService == null) {
       final ordersApi = ref.read(ordersApiProvider);
-      final restaurantId = ref.read(selectedRestaurantIdProvider);
-      _geminiService = GeminiScanService(
-        ordersApi: ordersApi,
-        restaurantId: int.tryParse(restaurantId ?? '') ?? 0,
-      );
+      _geminiService = GeminiScanService(ordersApi: ordersApi);
     }
     return _geminiService!;
   }
@@ -56,10 +56,10 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   Future<void> _captureFromCamera() async {
     setState(() => _error = null);
 
-    final imagePath = await _getService().captureImage();
-    if (imagePath != null) {
+    final image = await _getService().captureImage();
+    if (image != null) {
       setState(() {
-        _capturedImages.add(imagePath);
+        _capturedImages.add(image);
       });
     }
   }
@@ -67,10 +67,10 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   Future<void> _pickFromGallery() async {
     setState(() => _error = null);
 
-    final imagePath = await _getService().pickImageFromGallery();
-    if (imagePath != null) {
+    final image = await _getService().pickImageFromGallery();
+    if (image != null) {
       setState(() {
-        _capturedImages.add(imagePath);
+        _capturedImages.add(image);
       });
     }
   }
@@ -78,10 +78,10 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
   Future<void> _pickMultipleFromGallery() async {
     setState(() => _error = null);
 
-    final imagePaths = await _getService().pickMultipleImagesFromGallery();
-    if (imagePaths.isNotEmpty) {
+    final images = await _getService().pickMultipleImagesFromGallery();
+    if (images.isNotEmpty) {
       setState(() {
-        _capturedImages.addAll(imagePaths);
+        _capturedImages.addAll(images);
       });
     }
   }
@@ -106,13 +106,24 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
       return;
     }
 
+    final restaurantId = _selectedRestaurantId();
+    if (restaurantId == null) {
+      setState(() {
+        _error = 'validation.noRestaurantSelected'.tr;
+      });
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
       _error = null;
     });
 
     try {
-      final result = await _getService().processMultipleImages(_capturedImages);
+      final result = await _getService().processMultipleImages(
+        _capturedImages,
+        restaurantId,
+      );
 
       if (!result.success || result.parsedData == null) {
         setState(() {
@@ -155,7 +166,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
         title: Text('orders.scan.title'.tr),
-        backgroundColor: isDark ? DarkColors.background : LightColors.background,
+        backgroundColor: isDark
+            ? DarkColors.background
+            : LightColors.background,
         elevation: 0,
         actions: [
           if (_capturedImages.isNotEmpty)
@@ -185,7 +198,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 8.h),
@@ -195,7 +210,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
             SizedBox(height: 24.h),
@@ -206,11 +223,16 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'orders.scan.capturedImages'.tr.replaceAll('{count}', '${_capturedImages.length}'),
+                    'orders.scan.capturedImages'.tr.replaceAll(
+                      '{count}',
+                      '${_capturedImages.length}',
+                    ),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                   ),
                   TextButton.icon(
@@ -244,7 +266,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                     'orders.scan.processing'.tr,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ],
@@ -282,14 +306,18 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                     onPressed: _pickMultipleFromGallery,
                     icon: Icon(
                       Icons.photo_library_outlined,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                     label: Text(
                       'orders.scan.chooseFromGallery'.tr,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -316,7 +344,10 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                     onPressed: _processImages,
                     icon: const Icon(Icons.auto_awesome, color: Colors.white),
                     label: Text(
-                      'orders.scan.processImages'.tr.replaceAll('{count}', '${_capturedImages.length}'),
+                      'orders.scan.processImages'.tr.replaceAll(
+                        '{count}',
+                        '${_capturedImages.length}',
+                      ),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -347,13 +378,17 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                         icon: Icon(
                           Icons.camera_alt,
                           size: 18.w,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                         label: Text(
                           'orders.scan.addCamera'.tr,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                            color: isDark
+                                ? DarkColors.textPrimary
+                                : LightColors.textPrimary,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -362,7 +397,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                             vertical: 12.h,
                           ),
                           side: BorderSide(
-                            color: isDark ? DarkColors.border : LightColors.border,
+                            color: isDark
+                                ? DarkColors.border
+                                : LightColors.border,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.r),
@@ -374,13 +411,17 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                         icon: Icon(
                           Icons.photo_library_outlined,
                           size: 18.w,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                         label: Text(
                           'orders.scan.addGallery'.tr,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                            color: isDark
+                                ? DarkColors.textPrimary
+                                : LightColors.textPrimary,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -389,7 +430,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                             vertical: 12.h,
                           ),
                           side: BorderSide(
-                            color: isDark ? DarkColors.border : LightColors.border,
+                            color: isDark
+                                ? DarkColors.border
+                                : LightColors.border,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.r),
@@ -494,7 +537,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                   ),
                   SizedBox(height: 12.h),
@@ -529,7 +574,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10.r),
               child: buildOrderImagePreview(
-                _capturedImages[index],
+                _capturedImages[index].path,
                 fit: BoxFit.cover,
                 isDark: isDark,
               ),
@@ -567,11 +612,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
                   color: AppColors.error,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.close,
-                  size: 14.w,
-                  color: Colors.white,
-                ),
+                child: Icon(Icons.close, size: 14.w, color: Colors.white),
               ),
             ),
           ),
@@ -586,18 +627,16 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
       padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
         children: [
-          Icon(
-            Icons.check_circle,
-            size: 16.w,
-            color: AppColors.success,
-          ),
+          Icon(Icons.check_circle, size: 16.w, color: AppColors.success),
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
               tip,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
           ),
@@ -616,7 +655,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
             width: 24.w,
             height: 24.w,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -636,7 +677,9 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
               description,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
           ),

@@ -86,12 +86,41 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
             data['message'] ??
             data['error'] ??
             data['non_field_errors']?.toString() ??
+            _formatFieldErrors(data) ??
             data.toString();
         return errorMsg.toString();
       }
       return data?.toString() ?? e.message ?? 'Unknown error';
     }
     return e.message ?? 'Network error occurred';
+  }
+
+  String? _formatFieldErrors(Map<String, dynamic> data) {
+    final fieldErrors = <String>[];
+
+    void collect(String key, dynamic value) {
+      if (value is List && value.isNotEmpty) {
+        fieldErrors.add('$key: ${value.first}');
+      } else if (value is String) {
+        fieldErrors.add('$key: $value');
+      } else if (value is Map) {
+        value.forEach((nestedKey, nestedValue) {
+          collect('$key.$nestedKey', nestedValue);
+        });
+      }
+    }
+
+    data.forEach(collect);
+    if (fieldErrors.isEmpty) return null;
+    return fieldErrors.join(', ');
+  }
+
+  String _extractPatchErrorMessage(DioException e) {
+    final apiError = e.error;
+    if (apiError is ApiException && apiError.message != 'An error occurred') {
+      return apiError.message;
+    }
+    return _extractErrorMessage(e);
   }
 
   @override
@@ -209,12 +238,12 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ValidationFailure(message: apiError.message),
+          failure: ValidationFailure(message: _extractPatchErrorMessage(e)),
           data: null,
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: NetworkFailure(message: _extractPatchErrorMessage(e)),
         data: null,
       );
     } catch (e) {
@@ -237,12 +266,12 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ValidationFailure(message: apiError.message),
+          failure: ValidationFailure(message: _extractPatchErrorMessage(e)),
           data: null,
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: NetworkFailure(message: _extractPatchErrorMessage(e)),
         data: null,
       );
     } catch (e) {

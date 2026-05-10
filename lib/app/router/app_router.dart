@@ -235,6 +235,14 @@ class AppRouter {
                 builder: (context, state) => const CreateOrderScreen(),
               ),
               GoRoute(
+                path: 'edit/:orderId',
+                name: Routes.editOrderName,
+                builder: (context, state) {
+                  final orderId = state.pathParameters['orderId']!;
+                  return CreateOrderScreen(editOrderId: orderId);
+                },
+              ),
+              GoRoute(
                 path: 'scan',
                 name: Routes.scanOrderName,
                 builder: (context, state) => const ScanOrderScreen(),

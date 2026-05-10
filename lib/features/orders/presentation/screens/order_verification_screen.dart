@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
@@ -781,6 +782,12 @@ class _OrderVerificationScreenState
         case 'total':
           labels.add('orders.verify.totalAmount'.tr);
           break;
+        case 'deliveryInstructions':
+        case 'delivery_instructions':
+        case 'deliveryisntructions':
+        case 'notes':
+          labels.add('orders.verify.deliveryInstructions'.tr);
+          break;
         case 'items':
           labels.add('orders.verify.orderItemsLabel'.tr);
           break;
@@ -799,13 +806,17 @@ class _OrderVerificationScreenState
     String? Function(String?)? validator,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isLowConfidence = confidence != null && confidence < 0.8;
+    final isLowConfidence =
+        confidence != null &&
+        confidence < 0.8 &&
+        controller.text.trim().isEmpty;
     final textDirection = _textDirectionForKeyboardType(keyboardType);
 
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       textDirection: textDirection,
+      inputFormatters: _inputFormattersForKeyboardType(keyboardType),
       validator: validator,
       decoration: InputDecoration(
         labelText: '$label${required ? ' *' : ''}',
@@ -868,6 +879,16 @@ class _OrderVerificationScreenState
         keyboardType?.toString().contains('numberWithOptions') == true;
 
     return shouldForceLtr ? ui.TextDirection.ltr : null;
+  }
+
+  List<TextInputFormatter>? _inputFormattersForKeyboardType(
+    TextInputType? keyboardType,
+  ) {
+    if (keyboardType != TextInputType.phone) {
+      return null;
+    }
+
+    return [FilteringTextInputFormatter.digitsOnly];
   }
 
   Widget _buildItemTile(ParsedOrderItem item, bool isDark) {

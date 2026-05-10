@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../app/router/routes.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
@@ -24,7 +25,9 @@ import 'scan_order_screen.dart';
 
 /// Create order screen with all required fields
 class CreateOrderScreen extends ConsumerStatefulWidget {
-  const CreateOrderScreen({super.key});
+  const CreateOrderScreen({super.key, this.editOrderId});
+
+  final String? editOrderId;
 
   @override
   ConsumerState<CreateOrderScreen> createState() => _CreateOrderScreenState();
@@ -43,22 +46,132 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   final List<OrderItemModel> _orderItems = [];
   bool _isPaid = false;
   bool _isLoading = false;
+  bool _isLoadingEditOrder = false;
+  bool _isHydratingEditOrder = false;
+  OrderModel? _editingOrder;
 
   // New fields for coupon and vehicle/delivery types
   String? _selectedCouponId;
   VehicleType? _selectedVehicleType = VehicleType.bike;
 
+  bool get _isEditMode => widget.editOrderId != null;
+
   @override
   void initState() {
     super.initState();
     _setupChangeListeners();
+    if (_isEditMode) {
+      Future.microtask(_loadEditOrder);
+    }
   }
 
   void _setupChangeListeners() {
-    _customerNameController.addListener(markAsChanged);
-    _phoneController.addListener(markAsChanged);
-    _deliveryFeeController.addListener(markAsChanged);
-    _tipsController.addListener(markAsChanged);
+    _customerNameController.addListener(_markChangedAfterHydration);
+    _phoneController.addListener(_markChangedAfterHydration);
+    _deliveryFeeController.addListener(_markChangedAfterHydration);
+    _tipsController.addListener(_markChangedAfterHydration);
+  }
+
+  void _markChangedAfterHydration() {
+    if (!_isHydratingEditOrder) markAsChanged();
+  }
+
+  Future<void> _loadEditOrder() async {
+    final orderId = widget.editOrderId;
+    if (orderId == null) return;
+
+    setState(() => _isLoadingEditOrder = true);
+
+    final cachedOrder = ref.read(orderByIdProvider(orderId));
+    final order =
+        cachedOrder ??
+        await ref.read(ordersProvider.notifier).fetchOrderById(orderId);
+
+    if (!mounted) return;
+
+    if (order == null) {
+      setState(() => _isLoadingEditOrder = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orderNotFound'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      context.pop();
+      return;
+    }
+
+    if (!_canEditOrder(order)) {
+      setState(() => _isLoadingEditOrder = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_editUnavailableMessage(order)),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      context.pop();
+      return;
+    }
+
+    _hydrateFromOrder(order);
+    setState(() => _isLoadingEditOrder = false);
+  }
+
+  bool _canEditOrder(OrderModel order) => order.isManual && !order.isCompleted;
+
+  String _editUnavailableMessage(OrderModel order) {
+    if (order.isCompleted) return 'orders.editUnavailableCompleted'.tr;
+    if (!order.isManual) return 'orders.editManualOnly'.tr;
+    return 'orders.editUnavailable'.tr;
+  }
+
+  void _hydrateFromOrder(OrderModel order) {
+    _isHydratingEditOrder = true;
+
+    final phoneParts = _splitPhone(order);
+    final address = order.dropoffAddress != null
+        ? AddressModel.fromOrderAddress(order.dropoffAddress!)
+        : order.address;
+
+    _customerNameController.text = order.customerName;
+    _phoneController.text = phoneParts.phone;
+    _deliveryFeeController.text = order.deliveryFee.toStringAsFixed(2);
+    _tipsController.text = order.tips.toStringAsFixed(2);
+
+    _selectedCountry = phoneParts.country;
+    _selectedAddress = address;
+    _orderItems
+      ..clear()
+      ..addAll(order.items);
+    _isPaid = order.isPaid;
+    _selectedVehicleType =
+        VehicleType.fromApiValue(order.requestedVehicleType) ??
+        VehicleType.fromApiValue(order.requestedDeliveryType) ??
+        VehicleType.bike;
+    _selectedCouponId = order.coupon?.id.toString();
+    _editingOrder = order;
+
+    _isHydratingEditOrder = false;
+    markAsSaved();
+  }
+
+  ({Country country, String phone}) _splitPhone(OrderModel order) {
+    final rawPhone = order.phoneNumber.trim();
+    final rawCountryCode = order.countryCode.trim();
+    final country = Countries.all.firstWhere(
+      (c) => c.dialCode == rawCountryCode,
+      orElse: () => Countries.all.firstWhere(
+        (c) => rawPhone.startsWith(c.dialCode),
+        orElse: () => Countries.defaultCountry,
+      ),
+    );
+
+    var phone = rawPhone;
+    if (phone.startsWith(country.dialCode)) {
+      phone = phone.substring(country.dialCode.length);
+    }
+
+    return (country: country, phone: phone);
   }
 
   @override
@@ -170,9 +283,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         _phoneController.text = scannedData.phone!;
       }
       if (scannedData.countryCode != null) {
-        final match = Countries.all.where(
-          (c) => c.dialCode == scannedData.countryCode,
-        ).firstOrNull;
+        final match = Countries.all
+            .where((c) => c.dialCode == scannedData.countryCode)
+            .firstOrNull;
         if (match != null) _selectedCountry = match;
       }
 
@@ -298,9 +411,24 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   Future<void> _submitOrder() async {
     if (!_validateForm()) return;
 
+    if (_isEditMode) {
+      await _updateOrder();
+      return;
+    }
+
     // Get the selected restaurant
     final restaurant = ref.read(selectedRestaurantProvider);
     if (restaurant == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('validation.noRestaurantSelected'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    final restaurantId = int.tryParse(restaurant.id);
+    if (restaurantId == null || restaurantId <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('validation.noRestaurantSelected'.tr),
@@ -325,9 +453,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
       // Build the order create request from the validated form fields
       final request = FoodCheckoutRequest(
-        restaurantId: int.tryParse(restaurant.id) ?? 0,
+        restaurantId: restaurantId,
         customerName: _customerNameController.text.trim(),
-        customerPhoneNumber: '${_selectedCountry.dialCode}${_phoneController.text.trim()}',
+        customerPhoneNumber: _fullCustomerPhoneNumber(),
         subtotalAmount: _subtotal.toStringAsFixed(2),
         discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : null,
         deliveryFee: _deliveryFee.toStringAsFixed(2),
@@ -388,43 +516,161 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     }
   }
 
+  List<CartItem> _buildCartItems() {
+    return _orderItems
+        .map((item) {
+          final itemId = int.tryParse(item.menuItemId) ?? 0;
+          return CartItem(
+            itemId: itemId,
+            quantity: item.quantity,
+            customizations: item.notes,
+          );
+        })
+        .where((item) => item.itemId > 0)
+        .toList();
+  }
+
+  String _fullCustomerPhoneNumber() {
+    final phone = _phoneController.text.trim();
+    if (phone.startsWith('+') || phone.startsWith(_selectedCountry.dialCode)) {
+      return phone;
+    }
+    return '${_selectedCountry.dialCode}$phone';
+  }
+
+  Future<void> _updateOrder() async {
+    final order = _editingOrder;
+    final orderId = widget.editOrderId;
+    if (order == null || orderId == null || !_canEditOrder(order)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            order == null ? 'orderNotFound'.tr : _editUnavailableMessage(order),
+          ),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      return;
+    }
+
+    final restaurant = ref.read(selectedRestaurantProvider);
+    final restaurantId =
+        int.tryParse(restaurant?.id ?? order.restaurantId ?? '') ??
+        order.restaurant?.id;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final cartItems = _buildCartItems();
+      final request = OrderUpdateRequest(
+        orderType: 'FOOD',
+        restaurantId: restaurantId,
+        customerName: _customerNameController.text.trim(),
+        customerPhoneNumber: _fullCustomerPhoneNumber(),
+        status: _statusToApiValue(order.status),
+        subtotalAmount: _subtotal.toStringAsFixed(2),
+        discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : '0.00',
+        deliveryFee: _deliveryFee.toStringAsFixed(2),
+        tip: _tips > 0 ? _tips.toStringAsFixed(2) : '0.00',
+        totalAmount: _total.toStringAsFixed(2),
+        isManual: true,
+        isPaid: _isPaid,
+        requestedVehicleType: _selectedVehicleType,
+        requestedDeliveryType: _selectedVehicleType,
+        dropoffAddressData: OrderAddressData.fromAddressModel(
+          _selectedAddress!,
+          label: 'Customer: ${_customerNameController.text.trim()}',
+        ),
+        items: cartItems.isEmpty ? null : cartItems,
+        includeCoupon: _selectedCouponId != null,
+        couponId: _selectedCouponId != null
+            ? int.tryParse(_selectedCouponId!)
+            : null,
+      );
+
+      final updatedOrder = await ref
+          .read(ordersProvider.notifier)
+          .updateManualOrder(orderId, request);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (updatedOrder != null) {
+        markAsSaved();
+        context.go(Routes.orderDetailsPath(updatedOrder.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('orders.orderUpdated'.tr),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        final error = ref.read(ordersProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'orders.orderUpdateFailed'.tr),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orders.orderUpdateFailed'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  String _statusToApiValue(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.pending:
+        return 'PENDING';
+      case OrderStatusEnum.searchingForDriver:
+        return 'SEARCHING_FOR_DRIVER';
+      case OrderStatusEnum.driverNotificationSent:
+        return 'DRIVER_NOTIFICATION_SENT';
+      case OrderStatusEnum.accepted:
+        return 'ACCEPTED';
+      case OrderStatusEnum.onTheWay:
+        return 'ON_THE_WAY';
+      case OrderStatusEnum.delivered:
+        return 'DELIVERED';
+      case OrderStatusEnum.expired:
+        return 'EXPIRED';
+      case OrderStatusEnum.rejected:
+        return 'REJECTED';
+      case OrderStatusEnum.cancelled:
+        return 'CANCELLED';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenTitle = _isEditMode
+        ? 'orders.editOrder'.tr
+        : 'orders.createOrder'.tr;
+    final submitLabel = _isEditMode
+        ? 'orders.saveChanges'.tr
+        : 'orders.createOrder'.tr;
 
     return buildWithUnsavedChangesGuard(
       child: AppScaffold(
         appBar: AppAppBar(
-          title: 'orders.createOrder'.tr,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.document_scanner),
-              tooltip: 'orders.scan.title'.tr,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ScanOrderScreen(onDataScanned: _fillWithScannedData),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: AppSpacing.screenPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Prominent Scan Card
-                KeyedSubtree(
-                  key: TourKeys.scanOrderCardKey,
-                  child: _ScanOrderCard(
-                    onTap: () {
+          title: screenTitle,
+          actions: _isEditMode
+              ? null
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.document_scanner),
+                    tooltip: 'orders.scan.title'.tr,
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -434,315 +680,369 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                         ),
                       );
                     },
-                    isDark: isDark,
                   ),
-                ),
-                SizedBox(height: 24.h),
-
-                // Customer Information Section
-                _SectionTitle(title: 'orders.customerInfo'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-
-                // Customer Name
-                AppTextField(
-                  controller: _customerNameController,
-                  label: 'orders.customerName'.tr,
-                  hint: 'validation.enterCustomerName'.tr,
-                  prefixIcon: Icons.person_outline,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'validation.enterCustomerName'.tr;
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 12.h),
-
-                // Phone Number with Country Code
-                Text(
-                  'orders.phone'.tr,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? DarkColors.textPrimary
-                        : LightColors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                PhoneInputField(
-                  controller: _phoneController,
-                  selectedCountry: _selectedCountry,
-                  onCountrySelected: (country) {
-                    setState(() {
-                      _selectedCountry = country;
-                    });
-                  },
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Delivery Address Section
-                _SectionTitle(
-                  title: 'orders.deliveryAddress'.tr,
-                  isDark: isDark,
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  'address.enterManually'.tr,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: isDark
-                        ? DarkColors.textTertiary
-                        : LightColors.textTertiary,
-                  ),
-                ),
-                SizedBox(height: 12.h),
-
-                AddressSearchWidget(
-                  initialAddress: _selectedAddress,
-                  onAddressSelected: (address) {
-                    setState(() {
-                      _selectedAddress = address;
-                    });
-                    markAsChanged();
-                  },
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Order Items Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _SectionTitle(
-                      title: 'orders.orderItems'.tr,
-                      isDark: isDark,
-                    ),
-                    TextButton.icon(
-                      onPressed: _showAddItemDialog,
-                      icon: Icon(Icons.add, size: 18.w),
-                      label: Text('orders.addItem'.tr),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-
-                if (_orderItems.isEmpty)
-                  _EmptyItemsCard(isDark: isDark, onAddItem: _showAddItemDialog)
-                else
-                  ...List.generate(_orderItems.length, (index) {
-                    final item = _orderItems[index];
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 12.h),
-                      child: _OrderItemCard(
-                        item: item,
-                        onRemove: () => _removeItem(index),
-                        onQuantityChanged: (delta) =>
-                            _updateItemQuantity(index, delta),
-                        onNotesChanged: (notes) =>
-                            _updateItemNotes(index, notes),
-                        isDark: isDark,
-                      ),
-                    );
-                  }),
-
-                SizedBox(height: 24.h),
-
-                // Delivery Options Section
-                _SectionTitle(
-                  title: 'orders.deliveryOptions'.tr,
-                  isDark: isDark,
-                ),
-                SizedBox(height: 12.h),
-
-                // Vehicle Type dropdown
-                _VehicleTypeDropdown(
-                  label: 'orders.requestedVehicleType'.tr,
-                  value: _selectedVehicleType,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVehicleType = value;
-                    });
-                    markAsChanged();
-                  },
-                  isDark: isDark,
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Coupon Section
-                _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-
-                _CouponDropdown(
-                  key: ValueKey('coupon_dropdown_$_subtotal'),
-                  selectedCouponId: _selectedCouponId,
-                  subtotal: _subtotal,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCouponId = value;
-                    });
-                    markAsChanged();
-                  },
-                  isDark: isDark,
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Payment Section
-                _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppTextField(
-                        controller: _deliveryFeeController,
-                        label: 'orders.deliveryFee'.tr,
-                        hint: '0.00',
-                        prefixIcon: Icons.delivery_dining,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: AppTextField(
-                        controller: _tipsController,
-                        label: 'orders.tips'.tr,
-                        hint: '0.00',
-                        prefixIcon: Icons.volunteer_activism,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 16.h),
-
-                // Paid checkbox
-                AppCard(
-                  child: CheckboxListTile(
-                    value: _isPaid,
-                    onChanged: (value) {
-                      setState(() {
-                        _isPaid = value ?? false;
-                      });
-                      markAsChanged();
-                    },
-                    title: Text(
-                      'orders.isPaid'.tr,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? DarkColors.textPrimary
-                            : LightColors.textPrimary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      _isPaid
-                          ? 'orders.paymentReceived'.tr
-                          : 'orders.paymentPending'.tr,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: _isPaid ? AppColors.success : AppColors.warning,
-                      ),
-                    ),
-                    secondary: Icon(
-                      _isPaid ? Icons.check_circle : Icons.pending,
-                      color: _isPaid ? AppColors.success : AppColors.warning,
-                    ),
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Order Summary
-                _SectionTitle(title: 'orders.orderSummary'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-
-                AppCard(
+                ],
+        ),
+        body: _isLoadingEditOrder
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: AppSpacing.screenPadding,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SummaryRow(
-                        label: 'orders.subtotal'.tr,
-                        value: _subtotal,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 8.h),
-                      _SummaryRow(
-                        label: 'orders.deliveryFee'.tr,
-                        value: _deliveryFee,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 8.h),
-                      _SummaryRow(
-                        label: 'orders.tips'.tr,
-                        value: _tips,
-                        isDark: isDark,
-                      ),
-                      // Show discount row if coupon is applied
-                      if (_discount > 0) ...[
-                        SizedBox(height: 8.h),
-                        _DiscountRow(
-                          label: 'orders.discount'.tr,
-                          value: _discount,
+                      if (_isEditMode) ...[
+                        _EditOrderBanner(
+                          orderId: widget.editOrderId!,
                           isDark: isDark,
                         ),
+                        SizedBox(height: 24.h),
+                      ] else ...[
+                        // Prominent Scan Card
+                        KeyedSubtree(
+                          key: TourKeys.scanOrderCardKey,
+                          child: _ScanOrderCard(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ScanOrderScreen(
+                                    onDataScanned: _fillWithScannedData,
+                                  ),
+                                ),
+                              );
+                            },
+                            isDark: isDark,
+                          ),
+                        ),
+                        SizedBox(height: 24.h),
                       ],
-                      Divider(
-                        height: 24.h,
-                        color: isDark ? DarkColors.border : LightColors.border,
+
+                      // Customer Information Section
+                      _SectionTitle(
+                        title: 'orders.customerInfo'.tr,
+                        isDark: isDark,
                       ),
+                      SizedBox(height: 12.h),
+
+                      // Customer Name
+                      AppTextField(
+                        controller: _customerNameController,
+                        label: 'orders.customerName'.tr,
+                        hint: 'validation.enterCustomerName'.tr,
+                        prefixIcon: Icons.person_outline,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'validation.enterCustomerName'.tr;
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 12.h),
+
+                      // Phone Number with Country Code
+                      Text(
+                        'orders.phone'.tr,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      PhoneInputField(
+                        controller: _phoneController,
+                        selectedCountry: _selectedCountry,
+                        onCountrySelected: (country) {
+                          setState(() {
+                            _selectedCountry = country;
+                          });
+                        },
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Delivery Address Section
+                      _SectionTitle(
+                        title: 'orders.deliveryAddress'.tr,
+                        isDark: isDark,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'address.enterManually'.tr,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: isDark
+                              ? DarkColors.textTertiary
+                              : LightColors.textTertiary,
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
+
+                      AddressSearchWidget(
+                        initialAddress: _selectedAddress,
+                        onAddressSelected: (address) {
+                          setState(() {
+                            _selectedAddress = address;
+                          });
+                          markAsChanged();
+                        },
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Order Items Section
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'orders.total'.tr,
+                          _SectionTitle(
+                            title: 'orders.orderItems'.tr,
+                            isDark: isDark,
+                          ),
+                          TextButton.icon(
+                            onPressed: _showAddItemDialog,
+                            icon: Icon(Icons.add, size: 18.w),
+                            label: Text('orders.addItem'.tr),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+
+                      if (_orderItems.isEmpty)
+                        _EmptyItemsCard(
+                          isDark: isDark,
+                          onAddItem: _showAddItemDialog,
+                        )
+                      else
+                        ...List.generate(_orderItems.length, (index) {
+                          final item = _orderItems[index];
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 12.h),
+                            child: _OrderItemCard(
+                              item: item,
+                              onRemove: () => _removeItem(index),
+                              onQuantityChanged: (delta) =>
+                                  _updateItemQuantity(index, delta),
+                              onNotesChanged: (notes) =>
+                                  _updateItemNotes(index, notes),
+                              isDark: isDark,
+                            ),
+                          );
+                        }),
+
+                      SizedBox(height: 24.h),
+
+                      // Delivery Options Section
+                      _SectionTitle(
+                        title: 'orders.deliveryOptions'.tr,
+                        isDark: isDark,
+                      ),
+                      SizedBox(height: 12.h),
+
+                      // Vehicle Type dropdown
+                      _VehicleTypeDropdown(
+                        label: 'orders.requestedVehicleType'.tr,
+                        value: _selectedVehicleType,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedVehicleType = value;
+                          });
+                          markAsChanged();
+                        },
+                        isDark: isDark,
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Coupon Section
+                      _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
+                      SizedBox(height: 12.h),
+
+                      _CouponDropdown(
+                        key: ValueKey('coupon_dropdown_$_subtotal'),
+                        selectedCouponId: _selectedCouponId,
+                        subtotal: _subtotal,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCouponId = value;
+                          });
+                          markAsChanged();
+                        },
+                        isDark: isDark,
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Payment Section
+                      _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
+                      SizedBox(height: 12.h),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppTextField(
+                              controller: _deliveryFeeController,
+                              label: 'orders.deliveryFee'.tr,
+                              hint: '0.00',
+                              prefixIcon: Icons.delivery_dining,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: AppTextField(
+                              controller: _tipsController,
+                              label: 'orders.tips'.tr,
+                              hint: '0.00',
+                              prefixIcon: Icons.volunteer_activism,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 16.h),
+
+                      // Paid checkbox
+                      AppCard(
+                        child: CheckboxListTile(
+                          value: _isPaid,
+                          onChanged: (value) {
+                            setState(() {
+                              _isPaid = value ?? false;
+                            });
+                            markAsChanged();
+                          },
+                          title: Text(
+                            'orders.isPaid'.tr,
                             style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
                               color: isDark
                                   ? DarkColors.textPrimary
                                   : LightColors.textPrimary,
                             ),
                           ),
-                          Text(
-                            '\u20AC${_total.toStringAsFixed(2)}',
+                          subtitle: Text(
+                            _isPaid
+                                ? 'orders.paymentReceived'.tr
+                                : 'orders.paymentPending'.tr,
                             style: TextStyle(
-                              fontSize: 24.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 12.sp,
+                              color: _isPaid
+                                  ? AppColors.success
+                                  : AppColors.warning,
                             ),
                           ),
-                        ],
+                          secondary: Icon(
+                            _isPaid ? Icons.check_circle : Icons.pending,
+                            color: _isPaid
+                                ? AppColors.success
+                                : AppColors.warning,
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
+
+                      SizedBox(height: 24.h),
+
+                      // Order Summary
+                      _SectionTitle(
+                        title: 'orders.orderSummary'.tr,
+                        isDark: isDark,
+                      ),
+                      SizedBox(height: 12.h),
+
+                      AppCard(
+                        child: Column(
+                          children: [
+                            _SummaryRow(
+                              label: 'orders.subtotal'.tr,
+                              value: _subtotal,
+                              isDark: isDark,
+                            ),
+                            SizedBox(height: 8.h),
+                            _SummaryRow(
+                              label: 'orders.deliveryFee'.tr,
+                              value: _deliveryFee,
+                              isDark: isDark,
+                            ),
+                            SizedBox(height: 8.h),
+                            _SummaryRow(
+                              label: 'orders.tips'.tr,
+                              value: _tips,
+                              isDark: isDark,
+                            ),
+                            // Show discount row if coupon is applied
+                            if (_discount > 0) ...[
+                              SizedBox(height: 8.h),
+                              _DiscountRow(
+                                label: 'orders.discount'.tr,
+                                value: _discount,
+                                isDark: isDark,
+                              ),
+                            ],
+                            Divider(
+                              height: 24.h,
+                              color: isDark
+                                  ? DarkColors.border
+                                  : LightColors.border,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'orders.total'.tr,
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? DarkColors.textPrimary
+                                        : LightColors.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  '\u20AC${_total.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 24.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Submit Button
+                      AppButton(
+                        label: submitLabel,
+                        icon: _isEditMode ? Icons.save_outlined : null,
+                        onPressed: _submitOrder,
+                        isLoading: _isLoading,
+                      ),
+                      SizedBox(height: 24.h),
                     ],
                   ),
                 ),
-
-                SizedBox(height: 24.h),
-
-                // Submit Button
-                AppButton(
-                  label: 'orders.createOrder'.tr,
-                  onPressed: _submitOrder,
-                  isLoading: _isLoading,
-                ),
-                SizedBox(height: 24.h),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
@@ -762,6 +1062,68 @@ class _SectionTitle extends StatelessWidget {
         fontSize: 16.sp,
         fontWeight: FontWeight.w600,
         color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+      ),
+    );
+  }
+}
+
+class _EditOrderBanner extends StatelessWidget {
+  const _EditOrderBanner({required this.orderId, required this.isDark});
+
+  final String orderId;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: primaryColor.withValues(alpha: isDark ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: primaryColor.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: primaryColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(Icons.edit_outlined, color: primaryColor, size: 20.w),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'orders.editingOrder'.trParams({'id': orderId}),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  'orders.editOrderSubtitle'.tr,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1789,7 +2151,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
                       width: 60.w,
                       height: 60.w,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         width: 60.w,
                         height: 60.w,
                         decoration: BoxDecoration(
@@ -1983,7 +2345,7 @@ class _MenuItemTile extends StatelessWidget {
                   width: 50.w,
                   height: 50.w,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (context, error, stackTrace) => Container(
                     width: 50.w,
                     height: 50.w,
                     decoration: BoxDecoration(
