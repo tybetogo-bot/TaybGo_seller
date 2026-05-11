@@ -163,6 +163,7 @@
     "markOutForDelivery": "Ënnerwee zur Liwwerung",
     "markDelivered": "Als geliwwert markéieren",
     "noItems": "Keng Artikelen derbäigesat",
+    "emptyItemsWarning": "Dës Bestellung huet 0 Artikelen. Dir kënnt Artikelen derbäisetzen oder se trotzdem erstellen.",
     "orderCreated": "Bestelling erfollegräich erstellt!",
     "reorder": "Nach eng Kéier bestellen",
     "selectItemFromMenu": "Wielt w.e.g. en Artikel aus dem Menü",
@@ -295,6 +296,7 @@
       "addGallery": "Galerie",
       "processImages": "{count} Bild(er) veraarbechten",
       "noImages": "Maacht w.e.g. op mannst ee Bild",
+      "imageTooLarge": "All Bild muss manner wéi 10 MB sinn.",
       "clearAll": "Alles läschen",
       "tips": {
         "title": "Tipps fir bescht Resultater",

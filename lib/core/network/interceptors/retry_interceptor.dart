@@ -1,6 +1,8 @@
 /// Retry interceptor for handling timeout and connection errors
 library;
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 /// Interceptor that retries failed requests on timeout/connection errors
@@ -8,10 +10,7 @@ class RetryInterceptor extends Interceptor {
   RetryInterceptor({
     required this.dio,
     this.maxRetries = 2,
-    this.retryDelays = const [
-      Duration(seconds: 1),
-      Duration(seconds: 2),
-    ],
+    this.retryDelays = const [Duration(seconds: 1), Duration(seconds: 2)],
   });
 
   final Dio dio;
@@ -23,6 +22,12 @@ class RetryInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+    // Multipart/stream bodies are consumed by Dio once a request starts, so
+    // replaying the same RequestOptions would fail before reaching the server.
+    if (_hasOneShotBody(err.requestOptions.data)) {
+      return handler.next(err);
+    }
+
     // Only retry on timeout or connection errors
     if (_shouldRetry(err)) {
       final retryCount = err.requestOptions.extra['retryCount'] ?? 0;
@@ -69,5 +74,9 @@ class RetryInterceptor extends Interceptor {
     }
 
     return false;
+  }
+
+  bool _hasOneShotBody(dynamic data) {
+    return data is FormData || data is Stream;
   }
 }

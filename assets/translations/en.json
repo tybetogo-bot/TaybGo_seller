@@ -162,6 +162,7 @@
     "markOutForDelivery": "Out for Delivery",
     "markDelivered": "Mark Delivered",
     "noItems": "No items added",
+    "emptyItemsWarning": "This order has 0 items. You can add items or create it anyway.",
     "orderCreated": "Order created successfully!",
     "reorder": "Reorder",
     "selectItemFromMenu": "Please select an item from the menu",
@@ -294,6 +295,7 @@
       "addGallery": "Gallery",
       "processImages": "Process {count} Image(s)",
       "noImages": "Please capture at least one image",
+      "imageTooLarge": "Each image must be less than 10 MB.",
       "clearAll": "Clear All",
       "tips": {
         "title": "Tips for Best Results",

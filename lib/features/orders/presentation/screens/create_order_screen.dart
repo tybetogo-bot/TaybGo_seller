@@ -408,12 +408,110 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     return true;
   }
 
+  Future<bool> _showEmptyItemsReminder() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final message = _emptyItemsWarningMessage();
+    final shouldCreate = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.warning,
+              size: 24.w,
+            ),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                'common.warning'.tr,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : LightColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: isDark
+                ? DarkColors.textSecondary
+                : LightColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('orders.addItem'.tr),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.warning,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'orders.createOrder'.tr,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return shouldCreate ?? false;
+  }
+
+  String _emptyItemsWarningMessage() {
+    final translated = 'orders.emptyItemsWarning'.tr;
+    if (translated != 'orders.emptyItemsWarning') return translated;
+
+    return switch (TranslationService.instance.currentLanguage) {
+      'ar' =>
+        'هذا الطلب لا يحتوي على عناصر. يمكنك إضافة عناصر أو إنشاؤه على أي حال.',
+      'da' =>
+        'Denne ordre har 0 varer. Du kan tilføje varer eller oprette den alligevel.',
+      'de' =>
+        'Diese Bestellung enthält 0 Artikel. Sie können Artikel hinzufügen oder sie trotzdem erstellen.',
+      'fi' =>
+        'Tässä tilauksessa on 0 tuotetta. Voit lisätä tuotteita tai luoda sen silti.',
+      'fr' =>
+        'Cette commande contient 0 article. Vous pouvez ajouter des articles ou la créer quand même.',
+      'it' =>
+        'Questo ordine ha 0 articoli. Puoi aggiungere articoli o crearlo comunque.',
+      'lb' =>
+        'Dës Bestellung huet 0 Artikelen. Dir kënnt Artikelen derbäisetzen oder se trotzdem erstellen.',
+      'nl' =>
+        'Deze bestelling heeft 0 artikelen. Je kunt artikelen toevoegen of de bestelling toch aanmaken.',
+      'no' =>
+        'Denne bestillingen har 0 elementer. Du kan legge til elementer eller opprette den likevel.',
+      'sv' =>
+        'Den här beställningen har 0 artiklar. Du kan lägga till artiklar eller skapa den ändå.',
+      _ => 'This order has 0 items. You can add items or create it anyway.',
+    };
+  }
+
   Future<void> _submitOrder() async {
     if (!_validateForm()) return;
 
     if (_isEditMode) {
       await _updateOrder();
       return;
+    }
+
+    if (_orderItems.isEmpty) {
+      final shouldCreate = await _showEmptyItemsReminder();
+      if (!mounted) return;
+      if (!shouldCreate) {
+        _showAddItemDialog();
+        return;
+      }
     }
 
     // Get the selected restaurant

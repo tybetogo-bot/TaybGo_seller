@@ -50,7 +50,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
         title: Text('earnings.title'.tr),
-        backgroundColor: isDark ? DarkColors.background : LightColors.background,
+        backgroundColor: isDark
+            ? DarkColors.background
+            : LightColors.background,
         elevation: 0,
       ),
       body: RefreshIndicator(
@@ -61,14 +63,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             _DateFilterBar(isDark: isDark),
             // Summary cards
             if (!earningsState.isLoading || earningsState.earnings.isNotEmpty)
-              _SummarySection(
-                summary: earningsState.summary,
-                isDark: isDark,
-              ),
+              _SummarySection(summary: earningsState.summary, isDark: isDark),
             // Earnings list
-            Expanded(
-              child: _buildBody(earningsState, isDark),
-            ),
+            Expanded(child: _buildBody(earningsState, isDark)),
           ],
         ),
       ),
@@ -119,7 +116,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             Icon(
               Icons.account_balance_wallet_outlined,
               size: 64.w,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             SizedBox(height: 16.h),
             Text(
@@ -139,9 +138,9 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
     return ListView.separated(
       controller: _scrollController,
       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-      itemCount: earningsState.earnings.length +
-          (earningsState.hasMorePages ? 1 : 0),
-      separatorBuilder: (_, __) => SizedBox(height: 8.h),
+      itemCount:
+          earningsState.earnings.length + (earningsState.hasMorePages ? 1 : 0),
+      separatorBuilder: (_, _) => SizedBox(height: 8.h),
       itemBuilder: (context, index) {
         if (index >= earningsState.earnings.length) {
           return Padding(
@@ -214,14 +213,94 @@ class _DateFilterBar extends ConsumerWidget {
   }
 
   Future<void> _showDateRangePicker(BuildContext context, WidgetRef ref) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    final onSurface = isDark ? DarkColors.textPrimary : LightColors.textPrimary;
+    final inRangeText = isDark
+        ? DarkColors.textPrimary
+        : LightColors.textPrimary;
+    final disabledText = isDark
+        ? DarkColors.textDisabled
+        : LightColors.textDisabled;
+    final rangeFill = primary.withValues(alpha: isDark ? 0.24 : 0.14);
+
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme,
+          data: theme.copyWith(
+            colorScheme: theme.colorScheme.copyWith(
+              primary: primary,
+              onPrimary: AppColors.white,
+              secondaryContainer: rangeFill,
+              onSecondaryContainer: inRangeText,
+              surface: isDark ? DarkColors.surface : LightColors.surface,
+              onSurface: onSurface,
+            ),
+            datePickerTheme: DatePickerThemeData(
+              backgroundColor: isDark
+                  ? DarkColors.surface
+                  : LightColors.surface,
+              rangePickerBackgroundColor: isDark
+                  ? DarkColors.surface
+                  : LightColors.surface,
+              rangePickerHeaderBackgroundColor: isDark
+                  ? DarkColors.surface
+                  : LightColors.surface,
+              rangePickerHeaderForegroundColor: onSurface,
+              headerBackgroundColor: isDark
+                  ? DarkColors.surface
+                  : LightColors.surface,
+              headerForegroundColor: onSurface,
+              rangeSelectionBackgroundColor: rangeFill,
+              rangeSelectionOverlayColor: WidgetStateProperty.all(
+                primary.withValues(alpha: 0.08),
+              ),
+              dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return disabledText;
+                }
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.white;
+                }
+                return onSurface;
+              }),
+              dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return primary;
+                }
+                return Colors.transparent;
+              }),
+              todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.white;
+                }
+                return primary;
+              }),
+              todayBorder: BorderSide(color: primary),
+              weekdayStyle: TextStyle(
+                color: onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+              yearForegroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return disabledText;
+                }
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.white;
+                }
+                return onSurface;
+              }),
+              yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return primary;
+                }
+                return Colors.transparent;
+              }),
+            ),
           ),
           child: child!,
         );
@@ -229,10 +308,9 @@ class _DateFilterBar extends ConsumerWidget {
     );
 
     if (picked != null) {
-      ref.read(earningsProvider.notifier).setCustomDateRange(
-            picked.start,
-            picked.end,
-          );
+      ref
+          .read(earningsProvider.notifier)
+          .setCustomDateRange(picked.start, picked.end);
     }
   }
 }
@@ -279,8 +357,8 @@ class _FilterChip extends StatelessWidget {
             color: isSelected
                 ? Colors.white
                 : (isDark
-                    ? DarkColors.textSecondary
-                    : LightColors.textSecondary),
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary),
           ),
         ),
       ),
@@ -290,10 +368,7 @@ class _FilterChip extends StatelessWidget {
 
 /// Summary section with stat cards
 class _SummarySection extends StatelessWidget {
-  const _SummarySection({
-    required this.summary,
-    required this.isDark,
-  });
+  const _SummarySection({required this.summary, required this.isDark});
 
   final EarningsSummary summary;
   final bool isDark;
@@ -427,7 +502,9 @@ class _MiniStatCard extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 11.sp,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -440,10 +517,7 @@ class _MiniStatCard extends StatelessWidget {
 
 /// Earning item card
 class _EarningItemCard extends StatelessWidget {
-  const _EarningItemCard({
-    required this.item,
-    required this.isDark,
-  });
+  const _EarningItemCard({required this.item, required this.isDark});
 
   final EarningItem item;
   final bool isDark;
@@ -451,8 +525,9 @@ class _EarningItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy - hh:mm a');
-    final formattedDate =
-        item.earnedAt != null ? dateFormat.format(item.earnedAt!) : '-';
+    final formattedDate = item.earnedAt != null
+        ? dateFormat.format(item.earnedAt!)
+        : '-';
 
     return Container(
       padding: EdgeInsets.all(14.w),
@@ -509,16 +584,10 @@ class _EarningItemCard extends StatelessWidget {
                 isDark: isDark,
               ),
               SizedBox(width: 8.w),
-              _StatusBadge(
-                isPaid: item.isPaid,
-              ),
+              _StatusBadge(isPaid: item.isPaid),
               if (item.couponApplied) ...[
                 SizedBox(width: 8.w),
-                Icon(
-                  Icons.local_offer,
-                  size: 14.w,
-                  color: AppColors.warning,
-                ),
+                Icon(Icons.local_offer, size: 14.w, color: AppColors.warning),
               ],
             ],
           ),
@@ -548,10 +617,7 @@ class _EarningItemCard extends StatelessWidget {
               if (item.discountAmount > 0)
                 Text(
                   '-\$${item.discountAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.error,
-                  ),
+                  style: TextStyle(fontSize: 12.sp, color: AppColors.error),
                 ),
             ],
           ),
@@ -588,7 +654,9 @@ class _InfoTag extends StatelessWidget {
           text,
           style: TextStyle(
             fontSize: 12.sp,
-            color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+            color: isDark
+                ? DarkColors.textSecondary
+                : LightColors.textSecondary,
           ),
         ),
       ],
@@ -607,9 +675,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
       decoration: BoxDecoration(
-        color: isPaid
-            ? AppColors.successLight
-            : AppColors.warningLight,
+        color: isPaid ? AppColors.successLight : AppColors.warningLight,
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Text(

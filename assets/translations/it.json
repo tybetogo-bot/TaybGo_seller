@@ -163,6 +163,7 @@
     "markOutForDelivery": "In consegna",
     "markDelivered": "Segna consegnato",
     "noItems": "Nessun articolo aggiunto",
+    "emptyItemsWarning": "Questo ordine ha 0 articoli. Puoi aggiungere articoli o crearlo comunque.",
     "orderCreated": "Ordine creato con successo!",
     "reorder": "Riordina",
     "selectItemFromMenu": "Seleziona un articolo dal menu",
@@ -295,6 +296,7 @@
       "addGallery": "Galleria",
       "processImages": "Elabora {count} immagine/i",
       "noImages": "Acquisisci almeno un'immagine",
+      "imageTooLarge": "Ogni immagine deve essere inferiore a 10 MB.",
       "clearAll": "Cancella tutto",
       "tips": {
         "title": "Consigli per i migliori risultati",

@@ -163,6 +163,7 @@
     "markOutForDelivery": "Ude til levering",
     "markDelivered": "Markér leveret",
     "noItems": "Ingen varer tilføjet",
+    "emptyItemsWarning": "Denne ordre har 0 varer. Du kan tilføje varer eller oprette den alligevel.",
     "orderCreated": "Ordre oprettet!",
     "reorder": "Bestil igen",
     "selectItemFromMenu": "Vælg venligst en vare fra menuen",
@@ -295,6 +296,7 @@
       "addGallery": "Galleri",
       "processImages": "Behandl {count} billede(r)",
       "noImages": "Tag venligst mindst ét billede",
+      "imageTooLarge": "Hvert billede skal være under 10 MB.",
       "clearAll": "Ryd alle",
       "tips": {
         "title": "Tips til bedste resultat",

@@ -163,6 +163,7 @@
     "markOutForDelivery": "Ute för leverans",
     "markDelivered": "Markera som levererad",
     "noItems": "Inga artiklar tillagda",
+    "emptyItemsWarning": "Den här beställningen har 0 artiklar. Du kan lägga till artiklar eller skapa den ändå.",
     "orderCreated": "Beställning skapad!",
     "reorder": "Beställ igen",
     "selectItemFromMenu": "Välj en artikel från menyn",
@@ -295,6 +296,7 @@
       "addGallery": "Galleri",
       "processImages": "Bearbeta {count} bild(er)",
       "noImages": "Ta minst en bild",
+      "imageTooLarge": "Varje bild måste vara mindre än 10 MB.",
       "clearAll": "Rensa alla",
       "tips": {
         "title": "Tips för bästa resultat",

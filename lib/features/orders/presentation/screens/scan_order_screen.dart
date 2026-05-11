@@ -28,6 +28,8 @@ class ScanOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
+  static const int _maxImageSizeBytes = 10 * 1024 * 1024;
+
   GeminiScanService? _geminiService;
   final List<XFile> _capturedImages = [];
   bool _isProcessing = false;
@@ -58,9 +60,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
 
     final image = await _getService().captureImage();
     if (image != null) {
-      setState(() {
-        _capturedImages.add(image);
-      });
+      await _addImagesWithinSizeLimit([image]);
     }
   }
 
@@ -69,9 +69,7 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
 
     final image = await _getService().pickImageFromGallery();
     if (image != null) {
-      setState(() {
-        _capturedImages.add(image);
-      });
+      await _addImagesWithinSizeLimit([image]);
     }
   }
 
@@ -80,10 +78,29 @@ class _ScanOrderScreenState extends ConsumerState<ScanOrderScreen> {
 
     final images = await _getService().pickMultipleImagesFromGallery();
     if (images.isNotEmpty) {
-      setState(() {
-        _capturedImages.addAll(images);
-      });
+      await _addImagesWithinSizeLimit(images);
     }
+  }
+
+  Future<void> _addImagesWithinSizeLimit(List<XFile> images) async {
+    final acceptedImages = <XFile>[];
+    var rejectedAny = false;
+
+    for (final image in images) {
+      final imageSize = await image.length();
+      if (imageSize > _maxImageSizeBytes) {
+        rejectedAny = true;
+      } else {
+        acceptedImages.add(image);
+      }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _capturedImages.addAll(acceptedImages);
+      _error = rejectedAny ? 'orders.scan.imageTooLarge'.tr : null;
+    });
   }
 
   void _removeImage(int index) {

@@ -163,6 +163,7 @@
     "markOutForDelivery": "Onderweg voor bezorging",
     "markDelivered": "Markeer als bezorgd",
     "noItems": "Geen items toegevoegd",
+    "emptyItemsWarning": "Deze bestelling heeft 0 artikelen. Je kunt artikelen toevoegen of de bestelling toch aanmaken.",
     "orderCreated": "Bestelling succesvol aangemaakt!",
     "reorder": "Opnieuw bestellen",
     "selectItemFromMenu": "Selecteer een item uit het menu",
@@ -295,6 +296,7 @@
       "addGallery": "Galerij",
       "processImages": "{count} afbeelding(en) verwerken",
       "noImages": "Maak minimaal één foto",
+      "imageTooLarge": "Elke afbeelding moet kleiner zijn dan 10 MB.",
       "clearAll": "Alles wissen",
       "tips": {
         "title": "Tips voor beste resultaten",

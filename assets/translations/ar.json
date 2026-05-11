@@ -159,6 +159,7 @@
     "markOutForDelivery": "في الطريق",
     "markDelivered": "وضع علامة تم التسليم",
     "noItems": "لا توجد عناصر",
+    "emptyItemsWarning": "هذا الطلب لا يحتوي على عناصر. يمكنك إضافة عناصر أو إنشاؤه على أي حال.",
     "orderCreated": "تم إنشاء الطلب!",
     "reorder": "إعادة الطلب",
     "selectItemFromMenu": "اختر عنصراً من القائمة",
@@ -291,6 +292,7 @@
       "addGallery": "المعرض",
       "processImages": "معالجة {count} صورة",
       "noImages": "يرجى التقاط صورة واحدة على الأقل",
+      "imageTooLarge": "يجب أن يكون حجم كل صورة أقل من 10 ميجابايت.",
       "clearAll": "مسح الكل",
       "tips": {
         "title": "نصائح للحصول على أفضل النتائج",
