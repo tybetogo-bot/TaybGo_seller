@@ -598,14 +598,14 @@ class _RestaurantSettingsScreenState
         'phone': _phoneController.text.trim(),
       if (_logoUrl != null && _logoUrl!.isNotEmpty) 'logo': _logoUrl,
       'work_hours': _buildWorkHoursPayload(),
-      // Keep existing address ID if we have one
-      if (addressId != null) 'address': addressId,
+      // PUT expects the writable address foreign key as address_id.
+      if (addressId != null) 'address_id': addressId,
     };
 
-    // Call the API to update restaurant
+    // The seller restaurant endpoint accepts PUT for updates; PATCH returns 405.
     await ref
         .read(restaurantProvider.notifier)
-        .patchRestaurant(selectedRestaurant.id, data);
+        .updateRestaurant(selectedRestaurant.id, data);
 
     setState(() => _isSaving = false);
 

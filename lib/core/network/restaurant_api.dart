@@ -1,5 +1,4 @@
-/// Restaurant API service using Dio directly
-library restaurant_api;
+// Restaurant API service using Dio directly.
 
 import 'package:dio/dio.dart';
 
@@ -59,17 +58,13 @@ class RestaurantApi {
   /// GET /api/seller/restaurants/{id}/
   Future<RestaurantModel> getRestaurantById(String id) async {
     final response = await _dio.get('/api/seller/restaurants/$id/');
-    print('🟢 [RestaurantApi] getRestaurantById response: ${response.data}');
-    return RestaurantModel.fromJson(response.data as Map<String, dynamic>);
+    return _restaurantFromResponse(response.data, fallbackId: id);
   }
 
   /// Create new restaurant
   /// POST /api/seller/restaurants/
   Future<RestaurantModel> createRestaurant(Map<String, dynamic> data) async {
-    final response = await _dio.post(
-      '/api/seller/restaurants/',
-      data: data,
-    );
+    final response = await _dio.post('/api/seller/restaurants/', data: data);
     return RestaurantModel.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -79,11 +74,8 @@ class RestaurantApi {
     String id,
     Map<String, dynamic> data,
   ) async {
-    final response = await _dio.put(
-      '/api/seller/restaurants/$id/',
-      data: data,
-    );
-    return RestaurantModel.fromJson(response.data as Map<String, dynamic>);
+    final response = await _dio.put('/api/seller/restaurants/$id/', data: data);
+    return _restaurantFromResponse(response.data, fallbackId: id);
   }
 
   /// Partial update restaurant
@@ -96,12 +88,23 @@ class RestaurantApi {
       '/api/seller/restaurants/$id/',
       data: data,
     );
-    return RestaurantModel.fromJson(response.data as Map<String, dynamic>);
+    return _restaurantFromResponse(response.data, fallbackId: id);
   }
 
   /// Delete restaurant
   /// DELETE /api/seller/restaurants/{id}/
   Future<void> deleteRestaurant(String id) async {
     await _dio.delete('/api/seller/restaurants/$id/');
+  }
+
+  RestaurantModel _restaurantFromResponse(
+    dynamic responseData, {
+    required String fallbackId,
+  }) {
+    final json = Map<String, dynamic>.from(responseData as Map);
+    if ((json['id']?.toString().isEmpty ?? true) && fallbackId.isNotEmpty) {
+      json['id'] = fallbackId;
+    }
+    return RestaurantModel.fromJson(json);
   }
 }

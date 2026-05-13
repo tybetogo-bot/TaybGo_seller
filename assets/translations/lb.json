@@ -492,6 +492,21 @@
     "restaurantName": "Restaurantnumm",
     "restaurantLogo": "Restaurantlogo",
     "businessHours": "Geschäftszäiten",
+    "openTime": "Mécht op",
+    "closeTime": "Mécht zou",
+    "addShift": "Schicht derbäisetzen",
+    "invalidWorkHoursDay": "D’Ëffnungszäiten enthalen en ongëltegen Wochendag.",
+    "invalidWorkHoursFormat": "Benotzt d’24-Stonne-Format HH:mm, zum Beispill 09:00 oder 22:30.",
+    "invalidWorkHoursRange": "{day}: d’Ouvertureszäit muss virun der Zoumaachzäit leien.",
+    "weekdays": {
+      "monday": "Méindeg",
+      "tuesday": "Dënschdeg",
+      "wednesday": "Mëttwoch",
+      "thursday": "Donneschdeg",
+      "friday": "Freideg",
+      "saturday": "Samschdeg",
+      "sunday": "Sonndeg"
+    },
     "settingsSaved": "Astellunge gespäichert",
     "appTour": "App-Tour",
     "appTourSubtitle": "Léiert wéi Dir d'App benotzt",
@@ -580,6 +595,22 @@
     "callSupport": "Support uruffen",
     "liveChat": "Live-Chat",
     "liveChatDesc": "Mat eisem Supportteam chaten"
+  },
+  "earnings": {
+    "title": "Akommes",
+    "totalEarnings": "Gesamtakommes",
+    "orders": "Bestellungen",
+    "subtotal": "Zwëschesumm",
+    "discounts": "Remisen",
+    "empty": "Kee Akommes fir dës Period fonnt",
+    "paid": "Bezuelt",
+    "unpaid": "Net bezuelt",
+    "filter": {
+      "today": "Haut",
+      "thisWeek": "Dës Woch",
+      "thisMonth": "Dëse Mount",
+      "custom": "Benotzerdefinéiert"
+    }
   },
   "statistics": {
     "title": "Statistiken",

@@ -488,6 +488,21 @@
     "restaurantName": "اسم المطعم",
     "restaurantLogo": "شعار المطعم",
     "businessHours": "ساعات العمل",
+    "openTime": "وقت الفتح",
+    "closeTime": "وقت الإغلاق",
+    "addShift": "إضافة فترة",
+    "invalidWorkHoursDay": "تتضمن ساعات العمل يوماً غير صالح.",
+    "invalidWorkHoursFormat": "استخدم تنسيق 24 ساعة HH:mm، مثل 09:00 أو 22:30.",
+    "invalidWorkHoursRange": "{day}: يجب أن يكون وقت الفتح قبل وقت الإغلاق.",
+    "weekdays": {
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت",
+      "sunday": "الأحد"
+    },
     "settingsSaved": "تم الحفظ"
   },
   "profile": {

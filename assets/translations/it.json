@@ -492,6 +492,21 @@
     "restaurantName": "Nome ristorante",
     "restaurantLogo": "Logo ristorante",
     "businessHours": "Orari di apertura",
+    "openTime": "Apertura",
+    "closeTime": "Chiusura",
+    "addShift": "Aggiungi turno",
+    "invalidWorkHoursDay": "Gli orari di apertura includono un giorno della settimana non valido.",
+    "invalidWorkHoursFormat": "Usa il formato 24 ore HH:mm, ad esempio 09:00 o 22:30.",
+    "invalidWorkHoursRange": "{day}: l’orario di apertura deve precedere quello di chiusura.",
+    "weekdays": {
+      "monday": "Lunedì",
+      "tuesday": "Martedì",
+      "wednesday": "Mercoledì",
+      "thursday": "Giovedì",
+      "friday": "Venerdì",
+      "saturday": "Sabato",
+      "sunday": "Domenica"
+    },
     "settingsSaved": "Impostazioni salvate",
     "appTour": "Tour dell'app",
     "appTourSubtitle": "Scopri come usare l'app",
@@ -580,6 +595,22 @@
     "callSupport": "Chiama il supporto",
     "liveChat": "Chat dal vivo",
     "liveChatDesc": "Chatta con il nostro team di supporto"
+  },
+  "earnings": {
+    "title": "Guadagni",
+    "totalEarnings": "Guadagni totali",
+    "orders": "Ordini",
+    "subtotal": "Subtotale",
+    "discounts": "Sconti",
+    "empty": "Nessun guadagno trovato per questo periodo",
+    "paid": "Pagato",
+    "unpaid": "Non pagato",
+    "filter": {
+      "today": "Oggi",
+      "thisWeek": "Questa settimana",
+      "thisMonth": "Questo mese",
+      "custom": "Personalizzato"
+    }
   },
   "statistics": {
     "title": "Statistiche",

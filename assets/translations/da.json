@@ -492,6 +492,21 @@
     "restaurantName": "Restaurantnavn",
     "restaurantLogo": "Restaurantlogo",
     "businessHours": "Åbningstider",
+    "openTime": "Åbner",
+    "closeTime": "Lukker",
+    "addShift": "Tilføj vagt",
+    "invalidWorkHoursDay": "Åbningstiderne indeholder en ugyldig ugedag.",
+    "invalidWorkHoursFormat": "Brug 24-timersformatet HH:mm, f.eks. 09:00 eller 22:30.",
+    "invalidWorkHoursRange": "{day}: åbningstiden skal være før lukketiden.",
+    "weekdays": {
+      "monday": "Mandag",
+      "tuesday": "Tirsdag",
+      "wednesday": "Onsdag",
+      "thursday": "Torsdag",
+      "friday": "Fredag",
+      "saturday": "Lørdag",
+      "sunday": "Søndag"
+    },
     "settingsSaved": "Indstillinger gemt",
     "appTour": "App-rundvisning",
     "appTourSubtitle": "Lær at bruge appen",
@@ -580,6 +595,22 @@
     "callSupport": "Ring til support",
     "liveChat": "Live chat",
     "liveChatDesc": "Chat med vores supportteam"
+  },
+  "earnings": {
+    "title": "Indtjening",
+    "totalEarnings": "Samlet indtjening",
+    "orders": "Ordrer",
+    "subtotal": "Subtotal",
+    "discounts": "Rabatter",
+    "empty": "Ingen indtjening fundet for denne periode",
+    "paid": "Betalt",
+    "unpaid": "Ubetalt",
+    "filter": {
+      "today": "I dag",
+      "thisWeek": "Denne uge",
+      "thisMonth": "Denne måned",
+      "custom": "Brugerdefineret"
+    }
   },
   "statistics": {
     "title": "Statistik",

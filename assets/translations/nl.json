@@ -492,6 +492,21 @@
     "restaurantName": "Restaurantnaam",
     "restaurantLogo": "Restaurantlogo",
     "businessHours": "Openingstijden",
+    "openTime": "Open",
+    "closeTime": "Sluiten",
+    "addShift": "Dienst toevoegen",
+    "invalidWorkHoursDay": "De openingstijden bevatten een ongeldige weekdag.",
+    "invalidWorkHoursFormat": "Gebruik 24-uursnotatie HH:mm, bijvoorbeeld 09:00 of 22:30.",
+    "invalidWorkHoursRange": "{day}: de openingstijd moet vóór de sluitingstijd liggen.",
+    "weekdays": {
+      "monday": "Maandag",
+      "tuesday": "Dinsdag",
+      "wednesday": "Woensdag",
+      "thursday": "Donderdag",
+      "friday": "Vrijdag",
+      "saturday": "Zaterdag",
+      "sunday": "Zondag"
+    },
     "settingsSaved": "Instellingen opgeslagen",
     "appTour": "App-rondleiding",
     "appTourSubtitle": "Leer hoe u de app gebruikt",
@@ -580,6 +595,22 @@
     "callSupport": "Bel ondersteuning",
     "liveChat": "Live chat",
     "liveChatDesc": "Chat met ons ondersteuningsteam"
+  },
+  "earnings": {
+    "title": "Verdiensten",
+    "totalEarnings": "Totale verdiensten",
+    "orders": "Bestellingen",
+    "subtotal": "Subtotaal",
+    "discounts": "Kortingen",
+    "empty": "Geen verdiensten gevonden voor deze periode",
+    "paid": "Betaald",
+    "unpaid": "Onbetaald",
+    "filter": {
+      "today": "Vandaag",
+      "thisWeek": "Deze week",
+      "thisMonth": "Deze maand",
+      "custom": "Aangepast"
+    }
   },
   "statistics": {
     "title": "Statistieken",

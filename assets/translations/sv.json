@@ -492,6 +492,21 @@
     "restaurantName": "Restaurangnamn",
     "restaurantLogo": "Restauranglogotyp",
     "businessHours": "Öppettider",
+    "openTime": "Öppnar",
+    "closeTime": "Stänger",
+    "addShift": "Lägg till pass",
+    "invalidWorkHoursDay": "Öppettiderna innehåller en ogiltig veckodag.",
+    "invalidWorkHoursFormat": "Använd 24-timmarsformatet HH:mm, till exempel 09:00 eller 22:30.",
+    "invalidWorkHoursRange": "{day}: öppningstiden måste vara före stängningstiden.",
+    "weekdays": {
+      "monday": "Måndag",
+      "tuesday": "Tisdag",
+      "wednesday": "Onsdag",
+      "thursday": "Torsdag",
+      "friday": "Fredag",
+      "saturday": "Lördag",
+      "sunday": "Söndag"
+    },
     "settingsSaved": "Inställningar sparade",
     "appTour": "Apprundtur",
     "appTourSubtitle": "Lär dig använda appen",
@@ -580,6 +595,22 @@
     "callSupport": "Ring support",
     "liveChat": "Livechatt",
     "liveChatDesc": "Chatta med vårt supportteam"
+  },
+  "earnings": {
+    "title": "Intäkter",
+    "totalEarnings": "Totala intäkter",
+    "orders": "Beställningar",
+    "subtotal": "Delsumma",
+    "discounts": "Rabatter",
+    "empty": "Inga intäkter hittades för denna period",
+    "paid": "Betald",
+    "unpaid": "Obetald",
+    "filter": {
+      "today": "Idag",
+      "thisWeek": "Denna vecka",
+      "thisMonth": "Denna månad",
+      "custom": "Anpassad"
+    }
   },
   "statistics": {
     "title": "Statistik",

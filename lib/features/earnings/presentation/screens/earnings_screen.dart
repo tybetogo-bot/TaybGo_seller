@@ -229,6 +229,7 @@ class _DateFilterBar extends ConsumerWidget {
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      keyboardType: TextInputType.text,
       builder: (context, child) {
         return Theme(
           data: theme.copyWith(

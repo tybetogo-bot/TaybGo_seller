@@ -476,6 +476,21 @@
     "restaurantName": "Nom",
     "restaurantLogo": "Logo du restaurant",
     "businessHours": "Horaires",
+    "openTime": "Ouverture",
+    "closeTime": "Fermeture",
+    "addShift": "Ajouter un créneau",
+    "invalidWorkHoursDay": "Les horaires contiennent un jour de semaine invalide.",
+    "invalidWorkHoursFormat": "Utilisez le format 24 h HH:mm, par exemple 09:00 ou 22:30.",
+    "invalidWorkHoursRange": "{day} : l’heure d’ouverture doit précéder l’heure de fermeture.",
+    "weekdays": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
     "settingsSaved": "Enregistré"
   },
   "profile": {
@@ -553,6 +568,22 @@
     "callSupport": "Appeler",
     "liveChat": "Chat",
     "liveChatDesc": "Discuter avec le support"
+  },
+  "earnings": {
+    "title": "Revenus",
+    "totalEarnings": "Revenus totaux",
+    "orders": "Commandes",
+    "subtotal": "Sous-total",
+    "discounts": "Remises",
+    "empty": "Aucun revenu trouvé pour cette période",
+    "paid": "Payé",
+    "unpaid": "Non payé",
+    "filter": {
+      "today": "Aujourd'hui",
+      "thisWeek": "Cette semaine",
+      "thisMonth": "Ce mois-ci",
+      "custom": "Personnalisé"
+    }
   },
   "statistics": {
     "title": "Statistiques",

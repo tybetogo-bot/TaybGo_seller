@@ -492,6 +492,21 @@
     "restaurantName": "Restaurantnavn",
     "restaurantLogo": "Restaurantlogo",
     "businessHours": "Åpningstider",
+    "openTime": "Åpner",
+    "closeTime": "Stenger",
+    "addShift": "Legg til vakt",
+    "invalidWorkHoursDay": "Åpningstidene inneholder en ugyldig ukedag.",
+    "invalidWorkHoursFormat": "Bruk 24-timersformatet HH:mm, for eksempel 09:00 eller 22:30.",
+    "invalidWorkHoursRange": "{day}: åpningstiden må være før stengetiden.",
+    "weekdays": {
+      "monday": "Mandag",
+      "tuesday": "Tirsdag",
+      "wednesday": "Onsdag",
+      "thursday": "Torsdag",
+      "friday": "Fredag",
+      "saturday": "Lørdag",
+      "sunday": "Søndag"
+    },
     "settingsSaved": "Innstillinger lagret",
     "appTour": "App-omvisning",
     "appTourSubtitle": "Lær hvordan du bruker appen",
@@ -580,6 +595,22 @@
     "callSupport": "Ring support",
     "liveChat": "Live-chat",
     "liveChatDesc": "Chat med supportteamet vårt"
+  },
+  "earnings": {
+    "title": "Inntekter",
+    "totalEarnings": "Totale inntekter",
+    "orders": "Bestillinger",
+    "subtotal": "Delsum",
+    "discounts": "Rabatter",
+    "empty": "Ingen inntekter funnet for denne perioden",
+    "paid": "Betalt",
+    "unpaid": "Ubetalt",
+    "filter": {
+      "today": "I dag",
+      "thisWeek": "Denne uken",
+      "thisMonth": "Denne måneden",
+      "custom": "Egendefinert"
+    }
   },
   "statistics": {
     "title": "Statistikk",

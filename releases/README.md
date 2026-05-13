@@ -4,7 +4,7 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.5+6`
+**Current Version:** `1.0.7+8`
 
 ---
 
@@ -13,21 +13,21 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ### Prod Split APKs
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
-| `taybgo-seller-v1.0.5+6-2026-05-11-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
-| `taybgo-seller-v1.0.5+6-2026-05-11-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
-| `taybgo-seller-v1.0.5+6-2026-05-11-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
 
 ### Dev Split APKs
 | File | Architecture | Target Use |
 |------|--------------|------------|
-| `taybgo-seller-v1.0.5+6-2026-05-11-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
-| `taybgo-seller-v1.0.5+6-2026-05-11-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
-| `taybgo-seller-v1.0.5+6-2026-05-11-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 ### Web Build
 | File | Description |
 |------|-------------|
-| `taybgo-seller-v1.0.5+6-2026-05-11-prod-web.zip` | Zipped production web build matching the deployed hosting release. |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-web.zip` | Zipped production web build matching the deployed hosting release. |
 
 ---
 
@@ -63,6 +63,12 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ---
 
 ## Changelog
+
+### v1.0.7 (13 May, 2026)
+- Fixed repeated restaurant settings edits by preserving restaurant IDs after update responses
+- Aligned restaurant settings update payloads with the seller restaurant API contract
+- Added missing working-hours translations across supported locales
+- Published dated prod web and dev/prod split APK release artifacts
 
 ### v1.0.5 (11 May, 2026)
 - Added Firebase Crashlytics integration for Android and iOS
@@ -101,4 +107,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-05-11*
+*Last updated: 2026-05-13*

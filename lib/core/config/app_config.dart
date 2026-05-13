@@ -10,7 +10,7 @@ class AppConfig {
   // App Info (environment-aware)
   static String get appName => EnvConfig.appName;
   static String get appNameAr => EnvConfig.appNameAr;
-  static const String appVersion = '1.0.6+7';
+  static const String appVersion = '1.0.7+8';
 
   // API Configuration (environment-aware)
   static String get apiBaseUrl => EnvConfig.apiBaseUrl;

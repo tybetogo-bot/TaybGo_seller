@@ -492,6 +492,21 @@
     "restaurantName": "Ravintolan nimi",
     "restaurantLogo": "Ravintolan logo",
     "businessHours": "Aukioloajat",
+    "openTime": "Aukeaa",
+    "closeTime": "Sulkeutuu",
+    "addShift": "Lisää vuoro",
+    "invalidWorkHoursDay": "Aukioloajoissa on virheellinen viikonpäivä.",
+    "invalidWorkHoursFormat": "Käytä 24 tunnin muotoa HH:mm, esimerkiksi 09:00 tai 22:30.",
+    "invalidWorkHoursRange": "{day}: avaamisajan on oltava ennen sulkemisaikaa.",
+    "weekdays": {
+      "monday": "Maanantai",
+      "tuesday": "Tiistai",
+      "wednesday": "Keskiviikko",
+      "thursday": "Torstai",
+      "friday": "Perjantai",
+      "saturday": "Lauantai",
+      "sunday": "Sunnuntai"
+    },
     "settingsSaved": "Asetukset tallennettu",
     "appTour": "Sovelluskierros",
     "appTourSubtitle": "Opi käyttämään sovellusta",
@@ -580,6 +595,22 @@
     "callSupport": "Soita tukeen",
     "liveChat": "Live-chat",
     "liveChatDesc": "Chatta tukitiimimme kanssa"
+  },
+  "earnings": {
+    "title": "Ansiot",
+    "totalEarnings": "Kokonaisansiot",
+    "orders": "Tilaukset",
+    "subtotal": "Välisumma",
+    "discounts": "Alennukset",
+    "empty": "Tältä jaksolta ei löytynyt ansioita",
+    "paid": "Maksettu",
+    "unpaid": "Maksamaton",
+    "filter": {
+      "today": "Tänään",
+      "thisWeek": "Tällä viikolla",
+      "thisMonth": "Tässä kuussa",
+      "custom": "Mukautettu"
+    }
   },
   "statistics": {
     "title": "Tilastot",
