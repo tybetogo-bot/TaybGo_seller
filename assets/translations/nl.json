@@ -163,7 +163,7 @@
     "markOutForDelivery": "Onderweg voor bezorging",
     "markDelivered": "Markeer als bezorgd",
     "noItems": "Geen items toegevoegd",
-    "emptyItemsWarning": "Deze bestelling heeft 0 artikelen. Je kunt artikelen toevoegen of de bestelling toch aanmaken.",
+    "emptyItemsWarning": "Deze bestelling heeft geen artikelen. Voeg ten minste één artikel toe om door te gaan.",
     "orderCreated": "Bestelling succesvol aangemaakt!",
     "reorder": "Opnieuw bestellen",
     "selectItemFromMenu": "Selecteer een item uit het menu",
