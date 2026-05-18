@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 
@@ -50,9 +51,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         title: 'auth.forgotPassword'.tr,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppSpacing.screenPadding,
-          child: _emailSent ? _buildSuccessContent(isDark) : _buildFormContent(isDark),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxNarrowContentWidth,
+            ),
+            child: SingleChildScrollView(
+              padding: AppSpacing.screenPadding,
+              child: _emailSent ? _buildSuccessContent(isDark) : _buildFormContent(isDark),
+            ),
+          ),
         ),
       ),
     );

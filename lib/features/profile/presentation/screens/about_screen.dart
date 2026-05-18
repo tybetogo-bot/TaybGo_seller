@@ -8,6 +8,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/config/env_config.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 
 /// About screen
@@ -73,7 +74,12 @@ class AboutScreen extends ConsumerWidget {
             : LightColors.background,
         elevation: 0,
       ),
-      body: ListView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: ListView(
         padding: EdgeInsets.all(24.w),
         children: [
           Container(
@@ -235,6 +241,8 @@ class AboutScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

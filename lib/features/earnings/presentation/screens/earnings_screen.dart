@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/earnings_notifier.dart';
 import '../../data/models/earning_model.dart';
@@ -55,18 +56,25 @@ class _EarningsScreenState extends ConsumerState<EarningsScreen> {
             : LightColors.background,
         elevation: 0,
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(earningsProvider.notifier).refreshEarnings(),
-        child: Column(
-          children: [
-            // Date filter chips
-            _DateFilterBar(isDark: isDark),
-            // Summary cards
-            if (!earningsState.isLoading || earningsState.earnings.isNotEmpty)
-              _SummarySection(summary: earningsState.summary, isDark: isDark),
-            // Earnings list
-            Expanded(child: _buildBody(earningsState, isDark)),
-          ],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxWideContentWidth,
+          ),
+          child: RefreshIndicator(
+            onRefresh: () => ref.read(earningsProvider.notifier).refreshEarnings(),
+            child: Column(
+              children: [
+                // Date filter chips
+                _DateFilterBar(isDark: isDark),
+                // Summary cards
+                if (!earningsState.isLoading || earningsState.earnings.isNotEmpty)
+                  _SummarySection(summary: earningsState.summary, isDark: isDark),
+                // Earnings list
+                Expanded(child: _buildBody(earningsState, isDark)),
+              ],
+            ),
+          ),
         ),
       ),
     );

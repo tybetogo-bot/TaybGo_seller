@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/presentation/widgets/country_picker_widget.dart';
@@ -783,7 +784,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         ),
         body: _isLoadingEditOrder
             ? const Center(child: CircularProgressIndicator())
-            : Form(
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: Breakpoints.maxContentWidth,
+                  ),
+                  child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   padding: AppSpacing.screenPadding,
@@ -1139,6 +1145,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                       SizedBox(height: 24.h),
                     ],
                   ),
+                ),
+              ),
                 ),
               ),
       ),

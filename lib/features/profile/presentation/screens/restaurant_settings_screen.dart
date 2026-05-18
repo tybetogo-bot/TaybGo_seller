@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -96,7 +97,12 @@ class _RestaurantSettingsScreenState
       ),
       body: selectedRestaurant == null
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxContentWidth,
+                ),
+                child: ListView(
               padding: EdgeInsets.all(16.w),
               children: [
                 // Restaurant info
@@ -307,6 +313,8 @@ class _RestaurantSettingsScreenState
                   ),
                 ),
               ],
+            ),
+              ),
             ),
     );
   }

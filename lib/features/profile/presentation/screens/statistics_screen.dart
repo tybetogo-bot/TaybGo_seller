@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -51,7 +52,12 @@ class StatisticsScreen extends ConsumerWidget {
         backgroundColor: isDark ? DarkColors.background : LightColors.background,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,6 +90,8 @@ class StatisticsScreen extends ConsumerWidget {
               ],
             ),
           ],
+        ),
+      ),
         ),
       ),
     );

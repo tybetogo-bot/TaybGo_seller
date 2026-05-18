@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../profile/application/user_profile_notifier.dart';
@@ -253,116 +254,128 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
       ),
       body: ordersState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      _searchDebounce?.cancel();
-                      _searchDebounce = Timer(
-                        const Duration(milliseconds: 300),
-                        () {
-                          ref
-                              .read(ordersProvider.notifier)
-                              .setSearchQuery(value);
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxWideContentWidth,
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (value) {
+                          _searchDebounce?.cancel();
+                          _searchDebounce = Timer(
+                            const Duration(milliseconds: 300),
+                            () {
+                              ref
+                                  .read(ordersProvider.notifier)
+                                  .setSearchQuery(value);
+                            },
+                          );
                         },
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'orders.searchHint'.tr,
-                      hintStyle: TextStyle(
-                        color: isDark
-                            ? DarkColors.textTertiary
-                            : LightColors.textTertiary,
-                        fontSize: 14.sp,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search_rounded,
-                        color: isDark
-                            ? DarkColors.textSecondary
-                            : LightColors.textSecondary,
-                        size: 20.w,
-                      ),
-                      suffixIcon: ordersState.searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.clear_rounded,
-                                color: isDark
-                                    ? DarkColors.textSecondary
-                                    : LightColors.textSecondary,
-                                size: 20.w,
-                              ),
-                              onPressed: () {
-                                _searchController.clear();
-                                ref.read(ordersProvider.notifier).clearSearch();
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: isDark
-                          ? DarkColors.surface
-                          : LightColors.surface,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: primaryColor, width: 1.5),
+                        decoration: InputDecoration(
+                          hintText: 'orders.searchHint'.tr,
+                          hintStyle: TextStyle(
+                            color: isDark
+                                ? DarkColors.textTertiary
+                                : LightColors.textTertiary,
+                            fontSize: 14.sp,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: isDark
+                                ? DarkColors.textSecondary
+                                : LightColors.textSecondary,
+                            size: 20.w,
+                          ),
+                          suffixIcon: ordersState.searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear_rounded,
+                                    color: isDark
+                                        ? DarkColors.textSecondary
+                                        : LightColors.textSecondary,
+                                    size: 20.w,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    ref
+                                        .read(ordersProvider.notifier)
+                                        .clearSearch();
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: isDark
+                              ? DarkColors.surface
+                              : LightColors.surface,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            borderSide: BorderSide(
+                              color: primaryColor,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        style: TextStyle(
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ),
-                    style: TextStyle(
-                      color: isDark
-                          ? DarkColors.textPrimary
-                          : LightColors.textPrimary,
-                      fontSize: 14.sp,
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _CurrentOrdersTab(
+                            orders: filteredCurrentOrders,
+                            selectedFilter: _currentOrdersFilter,
+                            onFilterSelected: (filter) {
+                              setState(() => _currentOrdersFilter = filter);
+                            },
+                            isDark: isDark,
+                            emptyMessage: ordersState.searchQuery.isNotEmpty
+                                ? 'orders.noSearchResults'.tr
+                                : currentEmptyMessage,
+                          ),
+                          _OrdersList(
+                            key: TourKeys.activeOrdersListKey,
+                            orders: ordersState.completedOrders,
+                            isDark: isDark,
+                            emptyMessage: ordersState.searchQuery.isNotEmpty
+                                ? 'orders.noSearchResults'.tr
+                                : 'orders.noCompletedOrders'.tr,
+                          ),
+                          _OrdersList(
+                            orders: ordersState.expiredOrders,
+                            isDark: isDark,
+                            emptyMessage: ordersState.searchQuery.isNotEmpty
+                                ? 'orders.noSearchResults'.tr
+                                : 'orders.noExpiredOrders'.tr,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _CurrentOrdersTab(
-                        orders: filteredCurrentOrders,
-                        selectedFilter: _currentOrdersFilter,
-                        onFilterSelected: (filter) {
-                          setState(() => _currentOrdersFilter = filter);
-                        },
-                        isDark: isDark,
-                        emptyMessage: ordersState.searchQuery.isNotEmpty
-                            ? 'orders.noSearchResults'.tr
-                            : currentEmptyMessage,
-                      ),
-                      _OrdersList(
-                        key: TourKeys.activeOrdersListKey,
-                        orders: ordersState.completedOrders,
-                        isDark: isDark,
-                        emptyMessage: ordersState.searchQuery.isNotEmpty
-                            ? 'orders.noSearchResults'.tr
-                            : 'orders.noCompletedOrders'.tr,
-                      ),
-                      _OrdersList(
-                        orders: ordersState.expiredOrders,
-                        isDark: isDark,
-                        emptyMessage: ordersState.searchQuery.isNotEmpty
-                            ? 'orders.noSearchResults'.tr
-                            : 'orders.noExpiredOrders'.tr,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
     );
   }

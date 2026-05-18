@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/scanned_order_data.dart';
@@ -327,14 +328,19 @@ class _OrderVerificationScreenState
             : LightColors.background,
         elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // AI scan summary banner
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // AI scan summary banner
               if (widget.extractedFields.isNotEmpty) ...[
                 _buildScanSummary(isDark),
                 SizedBox(height: 16.h),
@@ -673,6 +679,8 @@ class _OrderVerificationScreenState
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

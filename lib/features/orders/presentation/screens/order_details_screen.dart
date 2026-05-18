@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
@@ -376,93 +377,109 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         //   ),
         // ],
       ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Status timeline
-              KeyedSubtree(
-                key: TourKeys.orderStatusTimelineKey,
-                child: _OrderStatusTimeline(order: order, isDark: isDark),
-              ),
-              SizedBox(height: 24.h),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              padding: AppSpacing.screenPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status timeline
+                  KeyedSubtree(
+                    key: TourKeys.orderStatusTimelineKey,
+                    child: _OrderStatusTimeline(order: order, isDark: isDark),
+                  ),
+                  SizedBox(height: 24.h),
 
-              // Order info (type, manual indicator)
-              _OrderInfoCard(order: order, isDark: isDark),
-              SizedBox(height: 20.h),
+                  // Order info (type, manual indicator)
+                  _OrderInfoCard(order: order, isDark: isDark),
+                  SizedBox(height: 20.h),
 
-              // Pickup & Dropoff Addresses
-              _SectionTitle(title: 'orders.addresses'.tr, isDark: isDark),
-              SizedBox(height: 12.h),
-              _AddressesCard(order: order, isDark: isDark),
-              SizedBox(height: 20.h),
+                  // Pickup & Dropoff Addresses
+                  _SectionTitle(title: 'orders.addresses'.tr, isDark: isDark),
+                  SizedBox(height: 12.h),
+                  _AddressesCard(order: order, isDark: isDark),
+                  SizedBox(height: 20.h),
 
-              // Driver info (if assigned)
-              if (order.driver != null) ...[
-                _SectionTitle(title: 'orders.driverInfo'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-                _DriverCard(driver: order.driver!, isDark: isDark),
-                SizedBox(height: 20.h),
-              ],
-
-              // Delivery options (vehicle type)
-              if (order.requestedVehicleType != null ||
-                  order.requestedDeliveryType != null) ...[
-                _SectionTitle(
-                  title: 'orders.deliveryOptions'.tr,
-                  isDark: isDark,
-                ),
-                SizedBox(height: 12.h),
-                _DeliveryOptionsCard(order: order, isDark: isDark),
-                SizedBox(height: 20.h),
-              ],
-
-              // Order items
-              KeyedSubtree(
-                key: TourKeys.orderItemsSectionKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  // Driver info (if assigned)
+                  if (order.driver != null) ...[
                     _SectionTitle(
-                      title: 'orders.orderItems'.tr,
+                      title: 'orders.driverInfo'.tr,
                       isDark: isDark,
                     ),
                     SizedBox(height: 12.h),
-                    _OrderItemsCard(order: order, isDark: isDark),
+                    _DriverCard(driver: order.driver!, isDark: isDark),
+                    SizedBox(height: 20.h),
                   ],
-                ),
-              ),
-              SizedBox(height: 20.h),
 
-              // Coupon info (if applied)
-              if (order.coupon != null) ...[
-                _SectionTitle(title: 'orders.couponApplied'.tr, isDark: isDark),
-                SizedBox(height: 12.h),
-                _CouponCard(coupon: order.coupon!, isDark: isDark),
-                SizedBox(height: 20.h),
-              ],
-
-              // Payment summary
-              KeyedSubtree(
-                key: TourKeys.orderPaymentSummaryKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
+                  // Delivery options (vehicle type)
+                  if (order.requestedVehicleType != null ||
+                      order.requestedDeliveryType != null) ...[
+                    _SectionTitle(
+                      title: 'orders.deliveryOptions'.tr,
+                      isDark: isDark,
+                    ),
                     SizedBox(height: 12.h),
-                    _PaymentSummaryCard(order: order, isDark: isDark),
+                    _DeliveryOptionsCard(order: order, isDark: isDark),
+                    SizedBox(height: 20.h),
                   ],
-                ),
-              ),
-              SizedBox(height: 24.h),
 
-              // Action buttons based on status
-              _buildActionButtons(order, isDark),
-              SizedBox(height: 24.h),
-            ],
+                  // Order items
+                  KeyedSubtree(
+                    key: TourKeys.orderItemsSectionKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionTitle(
+                          title: 'orders.orderItems'.tr,
+                          isDark: isDark,
+                        ),
+                        SizedBox(height: 12.h),
+                        _OrderItemsCard(order: order, isDark: isDark),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+
+                  // Coupon info (if applied)
+                  if (order.coupon != null) ...[
+                    _SectionTitle(
+                      title: 'orders.couponApplied'.tr,
+                      isDark: isDark,
+                    ),
+                    SizedBox(height: 12.h),
+                    _CouponCard(coupon: order.coupon!, isDark: isDark),
+                    SizedBox(height: 20.h),
+                  ],
+
+                  // Payment summary
+                  KeyedSubtree(
+                    key: TourKeys.orderPaymentSummaryKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SectionTitle(
+                          title: 'orders.payment'.tr,
+                          isDark: isDark,
+                        ),
+                        SizedBox(height: 12.h),
+                        _PaymentSummaryCard(order: order, isDark: isDark),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Action buttons based on status
+                  _buildActionButtons(order, isDark),
+                  SizedBox(height: 24.h),
+                ],
+              ),
+            ),
           ),
         ),
       ),

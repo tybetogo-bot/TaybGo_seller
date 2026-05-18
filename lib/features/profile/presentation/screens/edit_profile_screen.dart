@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/user_api.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
@@ -85,7 +86,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ),
       body: userProfileState.isLoading && userProfile == null
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxContentWidth,
+                ),
+                child: ListView(
               padding: EdgeInsets.all(16.w),
               children: [
                 Container(
@@ -392,6 +398,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onOpenDocument: _openDocument,
                 ),
               ],
+            ),
+              ),
             ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
@@ -241,11 +242,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
             // Main content - using separate AnimatedBuilders to reduce rebuilds
             Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxNarrowContentWidth,
+                ),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                     // Logo with slide and scale animations
                     AnimatedBuilder(
                       animation: _mainController,
@@ -324,6 +329,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     // Loading indicator
                     _buildLoadingIndicator(),
                   ],
+                ),
                 ),
               ),
             ),
