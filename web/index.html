@@ -32,28 +32,7 @@
   <title>TaybGo Seller</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Firebase Configuration -->
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyCftvY9C016g1qAFyK8Ml3_OSvm-ZGUW74",
-      authDomain: "tybetogoseller.firebaseapp.com",
-      projectId: "tybetogoseller",
-      storageBucket: "tybetogoseller.firebasestorage.app",
-      messagingSenderId: "861868751268",
-      appId: "1:861868751268:web:79f3ff23d9712bc0352931",
-      measurementId: "G-VDPLRZ1852"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
+  <!-- Firebase is initialized by Flutter's firebase_core package -->
 </head>
 <body>
   <!-- Loading screen shown while Flutter initializes -->
@@ -100,6 +79,21 @@
     }
   </style>
 
+  <script>
+    window.flutterfire_web_sdk_version = '11.9.1';
+    window.flutterfire_ignore_scripts = ['core', 'messaging'];
+    window.__flutterFirebaseReady = Promise.resolve();
+  </script>
+  <script type="module">
+    window.__flutterFirebaseReady = Promise.all([
+      import('/firebasejs/11.9.1/firebase-app.js'),
+      import('/firebasejs/11.9.1/firebase-messaging.js'),
+    ]).then(function (modules) {
+      window.firebase_core = modules[0];
+      window.firebase_messaging = modules[1];
+    });
+  </script>
+
   <div id="loading">
     <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
       <text x="512" y="540" text-anchor="middle" dominant-baseline="middle"
@@ -119,6 +113,18 @@
       }
     });
   </script>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.__flutterFirebaseReady
+      .catch(function (error) {
+        console.error('Failed to preload Firebase web SDK locally', error);
+        window.flutterfire_ignore_scripts = [];
+      })
+      .finally(function () {
+        var script = document.createElement('script');
+        script.src = 'flutter_bootstrap.js';
+        script.async = true;
+        document.body.appendChild(script);
+      });
+  </script>
 </body>
 </html>

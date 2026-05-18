@@ -7,6 +7,9 @@ enum Environment { dev, prod }
 class EnvConfig {
   EnvConfig._();
 
+  static const String websiteUrl = 'https://taybgo.com';
+  static const String supportEmail = 'support@taybgo.com';
+
   static const String _env = String.fromEnvironment('ENV', defaultValue: 'dev');
 
   static Environment get environment =>
@@ -16,9 +19,8 @@ class EnvConfig {
   static bool get isProd => environment == Environment.prod;
 
   /// API base URL
-  static String get apiBaseUrl => isDev
-      ? 'https://dev.taybgo.com'
-      : 'https://taybat-backend-dev.onrender.com';
+  static String get apiBaseUrl =>
+      isDev ? 'https://dev.taybgo.com' : 'https://taybgo.com';
 
   /// App display name
   static String get appName => isDev ? 'Seller Dev' : 'TaybGo Seller';
@@ -27,9 +29,10 @@ class EnvConfig {
   static String get appNameAr => isDev ? 'البائع تطوير' : 'طيب قو البائع';
 
   /// Web deployment base URL
-  static String get webBaseUrl => isDev
-      ? 'https://dev-seller.taybgo.com'
-      : 'https://taybatseller.web.app';
+  static String get webBaseUrl =>
+      isDev
+          ? 'https://dev-seller.taybgo.com'
+          : 'https://tybetogoseller.web.app';
 
   /// Whether to show debug banner and verbose logging
   static bool get showDebugBanner => isDev;

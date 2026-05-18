@@ -1,19 +1,21 @@
 /// Screen for verifying and correcting OCR-scanned order data
 library;
 
-import 'dart:io';
+import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/scanned_order_data.dart';
 import '../../data/services/order_form_parser.dart';
 import '../../application/orders_notifier.dart';
+import '../widgets/order_image_preview.dart';
 
 /// Order verification screen
 class OrderVerificationScreen extends ConsumerStatefulWidget {
@@ -55,6 +57,43 @@ class _OrderVerificationScreenState
   late final TextEditingController _deliveryTimeController;
   late final TextEditingController _paymentStatusController;
   late final TextEditingController _totalController;
+  late final TextEditingController _notesController;
+
+  List<TextEditingController> get _watchedControllers => [
+    _customerNameController,
+    _phoneController,
+    _streetController,
+    _postalCodeController,
+    _cityController,
+    _deliveryTimeController,
+    _paymentStatusController,
+    _totalController,
+    _notesController,
+  ];
+
+  List<String> get _missingFieldsForSubmit {
+    final missing = <String>[];
+
+    if (_customerNameController.text.trim().isEmpty) {
+      missing.add('orders.verify.customerName'.tr);
+    }
+    if (_phoneController.text.trim().isEmpty) {
+      missing.add('orders.verify.phoneNumber'.tr);
+    }
+    if (_streetController.text.trim().isEmpty) {
+      missing.add('orders.verify.streetAndNumber'.tr);
+    }
+    if (_cityController.text.trim().isEmpty) {
+      missing.add('orders.verify.city'.tr);
+    }
+
+    return missing;
+  }
+
+  void _handleFieldChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -77,10 +116,19 @@ class _OrderVerificationScreenState
     _totalController = TextEditingController(
       text: data.total?.toStringAsFixed(2) ?? '',
     );
+    _notesController = TextEditingController(text: data.notes ?? '');
+
+    for (final controller in _watchedControllers) {
+      controller.addListener(_handleFieldChanged);
+    }
   }
 
   @override
   void dispose() {
+    for (final controller in _watchedControllers) {
+      controller.removeListener(_handleFieldChanged);
+    }
+
     _customerNameController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -89,6 +137,7 @@ class _OrderVerificationScreenState
     _deliveryTimeController.dispose();
     _paymentStatusController.dispose();
     _totalController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -123,6 +172,9 @@ class _OrderVerificationScreenState
             ? _paymentStatusController.text.trim()
             : null,
         'total': double.tryParse(_totalController.text.trim()),
+        'notes': _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
         'items': widget.parsedData.items
             .map(
               (item) => {
@@ -158,8 +210,9 @@ class _OrderVerificationScreenState
         Navigator.of(context).pop(); // Close verification screen
         Navigator.of(context).pop(); // Close scan screen
       } else {
+        final error = ref.read(ordersProvider).error;
         setState(() {
-          _submitError = 'orders.verify.orderLogFailed'.tr;
+          _submitError = error ?? 'orders.verify.orderLogFailed'.tr;
         });
       }
     } catch (e) {
@@ -189,7 +242,9 @@ class _OrderVerificationScreenState
     String street = streetText;
     String building = '';
 
-    final streetMatch = RegExp(r'^(.+?)\s+(\d+\s*[a-zA-Z]?)$').firstMatch(streetText);
+    final streetMatch = RegExp(
+      r'^(.+?)\s+(\d+\s*[a-zA-Z]?)$',
+    ).firstMatch(streetText);
     if (streetMatch != null) {
       street = streetMatch.group(1) ?? streetText;
       building = streetMatch.group(2) ?? '';
@@ -199,31 +254,40 @@ class _OrderVerificationScreenState
     final address = AddressModel(
       street: street,
       building: building,
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-      postalCode: _postalCodeController.text.trim().isNotEmpty ? _postalCodeController.text.trim() : null,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
+      postalCode: _postalCodeController.text.trim().isNotEmpty
+          ? _postalCodeController.text.trim()
+          : null,
     );
 
     // Convert items
-    final items = widget.parsedData.items.map((item) => ScannedOrderItem(
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-      notes: item.toppings.isNotEmpty ? item.toppings.join(', ') : null,
-    )).toList();
+    final items = widget.parsedData.items
+        .map(
+          (item) => ScannedOrderItem(
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            notes: item.toppings.isNotEmpty ? item.toppings.join(', ') : null,
+          ),
+        )
+        .toList();
 
     // Determine if paid - check for online/paid indicators
     final paymentStatus = _paymentStatusController.text.trim().toLowerCase();
     bool? isPaid;
     if (paymentStatus.isNotEmpty) {
-      isPaid = paymentStatus.contains('paid') ||
-               paymentStatus.contains('betaald') ||
-               paymentStatus.contains('online') ||
-               paymentStatus.contains('ideal') ||
-               paymentStatus.contains('card') ||
-               paymentStatus.contains('kaart') ||
-               paymentStatus.contains('pin') ||
-               paymentStatus.contains('creditcard') ||
-               paymentStatus.contains('debit');
+      isPaid =
+          paymentStatus.contains('paid') ||
+          paymentStatus.contains('betaald') ||
+          paymentStatus.contains('online') ||
+          paymentStatus.contains('ideal') ||
+          paymentStatus.contains('card') ||
+          paymentStatus.contains('kaart') ||
+          paymentStatus.contains('pin') ||
+          paymentStatus.contains('creditcard') ||
+          paymentStatus.contains('debit');
     }
 
     // Build scanned data
@@ -237,8 +301,8 @@ class _OrderVerificationScreenState
       items: items,
       total: double.tryParse(_totalController.text.trim()),
       isPaid: isPaid,
-      notes: _deliveryTimeController.text.trim().isNotEmpty
-          ? 'Delivery time: ${_deliveryTimeController.text.trim()}'
+      notes: _notesController.text.trim().isNotEmpty
+          ? _notesController.text.trim()
           : null,
       extractedFields: widget.extractedFields,
     );
@@ -264,14 +328,19 @@ class _OrderVerificationScreenState
             : LightColors.background,
         elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // AI scan summary banner
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // AI scan summary banner
               if (widget.extractedFields.isNotEmpty) ...[
                 _buildScanSummary(isDark),
                 SizedBox(height: 16.h),
@@ -332,21 +401,11 @@ class _OrderVerificationScreenState
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.r),
-                    child: kIsWeb
-                        ? Image.network(
-                            widget.imagePath!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
-                              ),
-                            ),
-                          )
-                        : Image.file(
-                            File(widget.imagePath!),
-                            fit: BoxFit.contain,
-                          ),
+                    child: buildOrderImagePreview(
+                      widget.imagePath!,
+                      fit: BoxFit.contain,
+                      isDark: isDark,
+                    ),
                   ),
                 ),
                 SizedBox(height: 24.h),
@@ -373,7 +432,9 @@ class _OrderVerificationScreenState
                 required: true,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'orders.verify.requiredField'.trParams({'field': 'orders.verify.customerName'.tr});
+                    return 'orders.verify.requiredField'.trParams({
+                      'field': 'orders.verify.customerName'.tr,
+                    });
                   }
                   return null;
                 },
@@ -390,7 +451,9 @@ class _OrderVerificationScreenState
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'orders.verify.requiredField'.trParams({'field': 'orders.verify.phoneNumber'.tr});
+                    return 'orders.verify.requiredField'.trParams({
+                      'field': 'orders.verify.phoneNumber'.tr,
+                    });
                   }
                   return null;
                 },
@@ -478,12 +541,21 @@ class _OrderVerificationScreenState
                   decimal: true,
                 ),
               ),
+              SizedBox(height: 12.h),
+
+              _buildTextField(
+                controller: _notesController,
+                label: 'orders.verify.deliveryInstructions'.tr,
+                icon: Icons.notes,
+              ),
               SizedBox(height: 16.h),
 
               // Items section
               if (widget.parsedData.items.isNotEmpty) ...[
                 Text(
-                  'orders.verify.orderItems'.trParams({'count': widget.parsedData.items.length.toString()}),
+                  'orders.verify.orderItems'.trParams({
+                    'count': widget.parsedData.items.length.toString(),
+                  }),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -509,7 +581,7 @@ class _OrderVerificationScreenState
               ],
 
               // Missing fields warning
-              if (!widget.parsedData.isValid) ...[
+              if (_missingFieldsForSubmit.isNotEmpty) ...[
                 Container(
                   padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
@@ -541,7 +613,7 @@ class _OrderVerificationScreenState
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              widget.parsedData.missingFields.join(', '),
+                              _missingFieldsForSubmit.join(', '),
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: AppColors.error,
@@ -581,9 +653,9 @@ class _OrderVerificationScreenState
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
-                  disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(
-                    alpha: 0.5,
-                  ),
+                  disabledBackgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.5),
                 ),
                 child: _isSubmitting
                     ? SizedBox(
@@ -609,32 +681,34 @@ class _OrderVerificationScreenState
           ),
         ),
       ),
+        ),
+      ),
     );
   }
 
   Widget _buildScanSummary(bool isDark) {
-    final extracted = widget.extractedFields.entries.where((e) => e.value).map((e) => e.key).toList();
-    final notExtracted = widget.extractedFields.entries.where((e) => !e.value).map((e) => e.key).toList();
+    final extracted = widget.extractedFields.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    final notExtracted = widget.extractedFields.entries
+        .where((e) => !e.value)
+        .map((e) => e.key)
+        .toList();
 
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(
-          color: AppColors.success.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.auto_awesome,
-                color: AppColors.success,
-                size: 20.w,
-              ),
+              Icon(Icons.auto_awesome, color: AppColors.success, size: 20.w),
               SizedBox(width: 8.w),
               Text(
                 'orders.verify.aiScanComplete'.tr,
@@ -651,18 +725,16 @@ class _OrderVerificationScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.success,
-                  size: 16.w,
-                ),
+                Icon(Icons.check_circle, color: AppColors.success, size: 16.w),
                 SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     '${'orders.verify.fieldsExtracted'.tr}: ${_getFieldLabels(extracted).join(', ')}',
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ),
@@ -674,19 +746,12 @@ class _OrderVerificationScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.edit,
-                  color: AppColors.warning,
-                  size: 16.w,
-                ),
+                Icon(Icons.edit, color: AppColors.warning, size: 16.w),
                 SizedBox(width: 6.w),
                 Expanded(
                   child: Text(
                     '${'orders.verify.fieldsToFill'.tr}: ${_getFieldLabels(notExtracted).join(', ')}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: AppColors.warning,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: AppColors.warning),
                   ),
                 ),
               ],
@@ -725,6 +790,12 @@ class _OrderVerificationScreenState
         case 'total':
           labels.add('orders.verify.totalAmount'.tr);
           break;
+        case 'deliveryInstructions':
+        case 'delivery_instructions':
+        case 'deliveryisntructions':
+        case 'notes':
+          labels.add('orders.verify.deliveryInstructions'.tr);
+          break;
         case 'items':
           labels.add('orders.verify.orderItemsLabel'.tr);
           break;
@@ -743,19 +814,26 @@ class _OrderVerificationScreenState
     String? Function(String?)? validator,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isLowConfidence = confidence != null && confidence < 0.8;
+    final isLowConfidence =
+        confidence != null &&
+        confidence < 0.8 &&
+        controller.text.trim().isEmpty;
+    final textDirection = _textDirectionForKeyboardType(keyboardType);
 
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      textDirection: textDirection,
+      inputFormatters: _inputFormattersForKeyboardType(keyboardType),
       validator: validator,
       decoration: InputDecoration(
         labelText: '$label${required ? ' *' : ''}',
         prefixIcon: Icon(icon, size: 20.w),
         suffixIcon: isLowConfidence
             ? Tooltip(
-                message:
-                    'orders.verify.lowConfidence'.trParams({'percent': (confidence * 100).toStringAsFixed(0)}),
+                message: 'orders.verify.lowConfidence'.trParams({
+                  'percent': (confidence * 100).toStringAsFixed(0),
+                }),
                 child: Icon(
                   Icons.warning_amber_rounded,
                   color: AppColors.warning,
@@ -786,7 +864,9 @@ class _OrderVerificationScreenState
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide: BorderSide(
-            color: isLowConfidence ? AppColors.warning : Theme.of(context).colorScheme.primary,
+            color: isLowConfidence
+                ? AppColors.warning
+                : Theme.of(context).colorScheme.primary,
             width: 2,
           ),
         ),
@@ -797,6 +877,26 @@ class _OrderVerificationScreenState
         contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       ),
     );
+  }
+
+  /// Keep phone and numeric inputs left-to-right so values like `+43...` stay readable in RTL locales.
+  TextDirection? _textDirectionForKeyboardType(TextInputType? keyboardType) {
+    final shouldForceLtr =
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.number ||
+        keyboardType?.toString().contains('numberWithOptions') == true;
+
+    return shouldForceLtr ? ui.TextDirection.ltr : null;
+  }
+
+  List<TextInputFormatter>? _inputFormattersForKeyboardType(
+    TextInputType? keyboardType,
+  ) {
+    if (keyboardType != TextInputType.phone) {
+      return null;
+    }
+
+    return [FilteringTextInputFormatter.digitsOnly];
   }
 
   Widget _buildItemTile(ParsedOrderItem item, bool isDark) {
@@ -810,7 +910,9 @@ class _OrderVerificationScreenState
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4.r),
                 ),
                 child: Text(

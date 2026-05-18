@@ -15,6 +15,7 @@ class TranslationService {
   static TranslationService get instance => _instance;
 
   Map<String, dynamic> _translations = {};
+  Map<String, dynamic> _englishTranslations = {};
   String _currentLanguage = 'en';
   bool _isLoaded = false;
 
@@ -31,7 +32,7 @@ class TranslationService {
     try {
       // Clear asset cache to ensure fresh load
       rootBundle.evict('assets/translations/$languageCode.json');
-      
+
       // Load the translation file
       final jsonString = await rootBundle.loadString(
         'assets/translations/$languageCode.json',
@@ -39,38 +40,54 @@ class TranslationService {
       _translations = json.decode(jsonString) as Map<String, dynamic>;
       _currentLanguage = languageCode;
       _isLoaded = true;
+
+      if (languageCode == 'en') {
+        _englishTranslations = _translations;
+      } else {
+        await _loadEnglishFallback();
+      }
+
       debugPrint('Loaded translations for $languageCode');
     } catch (e) {
       // Fallback to English if translation file not found
       if (languageCode != 'en') {
-        debugPrint('Translation file for $languageCode not found, falling back to English');
+        debugPrint(
+          'Translation file for $languageCode not found, falling back to English',
+        );
         await load(AppLocales.english);
       } else {
         debugPrint('Error loading translations: $e');
         _translations = {};
+        _englishTranslations = {};
         _isLoaded = false;
       }
+    }
+  }
+
+  Future<void> _loadEnglishFallback() async {
+    if (_englishTranslations.isNotEmpty) return;
+
+    try {
+      final jsonString = await rootBundle.loadString(
+        'assets/translations/en.json',
+      );
+      _englishTranslations = json.decode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('Unable to load English fallback translations: $e');
+      _englishTranslations = {};
     }
   }
 
   /// Get a translated string by key
   /// Key format: 'category.subcategory.key' e.g., 'common.save', 'orders.status.pending'
   String translate(String key, {Map<String, String>? params}) {
-    final keys = key.split('.');
-    dynamic value = _translations;
+    final value =
+        _lookupTranslation(_translations, key) ??
+        (_currentLanguage != 'en'
+            ? _lookupTranslation(_englishTranslations, key)
+            : null);
 
-    for (final k in keys) {
-      if (value is Map<String, dynamic> && value.containsKey(k)) {
-        value = value[k];
-      } else {
-        // Return key if translation not found
-        return key;
-      }
-    }
-
-    if (value is! String) {
-      return key;
-    }
+    if (value == null) return key;
 
     // Replace parameters in the string
     var result = value;
@@ -83,10 +100,27 @@ class TranslationService {
     return result;
   }
 
+  String? _lookupTranslation(Map<String, dynamic> translations, String key) {
+    if (translations.isEmpty) return null;
+
+    final keys = key.split('.');
+    dynamic value = translations;
+
+    for (final k in keys) {
+      if (value is Map<String, dynamic> && value.containsKey(k)) {
+        value = value[k];
+      } else {
+        return null;
+      }
+    }
+
+    return value is String ? value : null;
+  }
+
   /// Get translation with pluralization
   String translatePlural(String key, int count, {Map<String, String>? params}) {
     final baseParams = {'count': count.toString(), ...?params};
-    
+
     // Try to get plural form first
     if (count == 0) {
       final zeroKey = '${key}_zero';
@@ -97,12 +131,12 @@ class TranslationService {
       final oneTranslation = translate(oneKey, params: baseParams);
       if (oneTranslation != oneKey) return oneTranslation;
     }
-    
+
     // Fallback to regular or plural form
     final pluralKey = '${key}_other';
     final pluralTranslation = translate(pluralKey, params: baseParams);
     if (pluralTranslation != pluralKey) return pluralTranslation;
-    
+
     return translate(key, params: baseParams);
   }
 }
@@ -134,17 +168,17 @@ extension TranslationExtension on String {
   /// Translate with pluralization
   /// Usage: 'orders.itemCount'.trPlural(5)
   String trPlural(int count, {Map<String, String>? params}) {
-    return TranslationService.instance.translatePlural(this, count, params: params);
+    return TranslationService.instance.translatePlural(
+      this,
+      count,
+      params: params,
+    );
   }
 }
 
 /// Widget that ensures translations are loaded before building
 class TranslationLoader extends ConsumerWidget {
-  const TranslationLoader({
-    super.key,
-    required this.child,
-    this.loader,
-  });
+  const TranslationLoader({super.key, required this.child, this.loader});
 
   final Widget child;
   final Widget? loader;
@@ -156,7 +190,7 @@ class TranslationLoader extends ConsumerWidget {
     return translationsAsync.when(
       data: (_) => child,
       loading: () => loader ?? const SizedBox.shrink(),
-      error: (_, __) => child, // Fallback to child even on error
+      error: (_, stackTrace) => child, // Fallback to child even on error
     );
   }
 }
@@ -179,6 +213,7 @@ class Tr {
   static String get ok => 'common.ok'.tr;
   static String get close => 'common.close'.tr;
   static String get search => 'common.search'.tr;
+  static String get select => 'common.select'.tr;
   static String get add => 'common.add'.tr;
   static String get update => 'common.update'.tr;
   static String get submit => 'common.submit'.tr;
@@ -202,7 +237,8 @@ class Tr {
   static String get sendOtp => 'auth.sendOtp'.tr;
   static String get verifyOtp => 'auth.verifyOtp'.tr;
   static String get resendOtp => 'auth.resendOtp'.tr;
-  static String resendIn(int seconds) => 'auth.resendIn'.trParams({'seconds': seconds.toString()});
+  static String resendIn(int seconds) =>
+      'auth.resendIn'.trParams({'seconds': seconds.toString()});
   static String get logout => 'auth.logout'.tr;
   static String get logoutConfirm => 'auth.logoutConfirm'.tr;
 

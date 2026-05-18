@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/public_menu_notifier.dart';
 import '../../application/public_menu_state.dart';
@@ -32,8 +33,13 @@ class PublicMenuScreen extends ConsumerWidget {
         backgroundColor: isDark ? DarkColors.background : LightColors.background,
         elevation: 0,
       ),
-      body: menuAsync.when(
-        data: (state) {
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxWideContentWidth,
+          ),
+          child: menuAsync.when(
+            data: (state) {
           if (state is PublicMenuLoaded) {
             return RefreshIndicator(
               onRefresh: () async {
@@ -88,14 +94,16 @@ class PublicMenuScreen extends ConsumerWidget {
             );
           }
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stack) => _ErrorView(
-          message: error.toString(),
-          onRetry: () {
-            ref.invalidate(publicMenuProvider(restaurantId));
-          },
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (error, stack) => _ErrorView(
+              message: error.toString(),
+              onRetry: () {
+                ref.invalidate(publicMenuProvider(restaurantId));
+              },
+            ),
+          ),
         ),
       ),
     );

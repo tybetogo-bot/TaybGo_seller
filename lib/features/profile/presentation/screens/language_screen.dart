@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 
 /// Language selection screen
@@ -38,7 +39,12 @@ class LanguageScreen extends ConsumerWidget {
             : LightColors.background,
         elevation: 0,
       ),
-      body: ListView.separated(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: ListView.separated(
         padding: EdgeInsets.all(16.w),
         itemCount: languages.length,
         separatorBuilder: (context, index) => Divider(
@@ -85,6 +91,8 @@ class LanguageScreen extends ConsumerWidget {
             },
           );
         },
+      ),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/menu_notifier.dart';
 import '../widgets/customization_editor.dart';
@@ -56,7 +57,12 @@ class MenuItemDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
-      body: CustomScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: CustomScrollView(
         slivers: [
           // App bar with image
           SliverAppBar(
@@ -226,6 +232,8 @@ class MenuItemDetailsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

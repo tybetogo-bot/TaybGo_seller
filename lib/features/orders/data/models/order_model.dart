@@ -17,6 +17,8 @@ enum OrderStatusEnum {
   onTheWay,
   @JsonValue('DELIVERED')
   delivered,
+  @JsonValue('EXPIRED')
+  expired,
   @JsonValue('REJECTED')
   rejected,
   @JsonValue('CANCELLED')
@@ -39,6 +41,8 @@ extension OrderStatusExtension on OrderStatusEnum {
         return 'On the Way';
       case OrderStatusEnum.delivered:
         return 'Delivered';
+      case OrderStatusEnum.expired:
+        return 'Expired';
       case OrderStatusEnum.rejected:
         return 'Rejected';
       case OrderStatusEnum.cancelled:
@@ -66,6 +70,7 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return newStatus == OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return false;
@@ -87,6 +92,7 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return null;
@@ -108,6 +114,7 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.searchingForDriver:
         return OrderStatusEnum.pending;
       case OrderStatusEnum.pending:
+      case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return null;
@@ -171,7 +178,9 @@ class OrderRestaurantModel {
     // Parse address - can be a nested object or a string
     OrderAddressModel? parsedAddress;
     if (json['address'] is Map<String, dynamic>) {
-      parsedAddress = OrderAddressModel.fromJson(json['address'] as Map<String, dynamic>);
+      parsedAddress = OrderAddressModel.fromJson(
+        json['address'] as Map<String, dynamic>,
+      );
     }
 
     return OrderRestaurantModel(
@@ -516,7 +525,8 @@ sealed class OrderItemModel with _$OrderItemModel {
       unitPrice: (priceValue is num)
           ? priceValue.toDouble()
           : (double.tryParse(priceValue.toString()) ?? 0.0),
-      notes: json['notes'] as String?,
+      notes:
+          json['delivery_instructions'] as String? ?? json['notes'] as String?,
       customizations: customizationsList,
       customizationsText: customizationsText,
     );
@@ -594,6 +604,8 @@ sealed class OrderModel with _$OrderModel {
         case 'COMPLETED':
           // Map legacy COMPLETED to DELIVERED since completed status was removed
           return OrderStatusEnum.delivered;
+        case 'EXPIRED':
+          return OrderStatusEnum.expired;
         case 'REJECTED':
           return OrderStatusEnum.rejected;
         case 'CANCELLED':
@@ -792,7 +804,7 @@ sealed class OrderModel with _$OrderModel {
           0.0,
       isPaid: json['is_paid'] ?? json['isPaid'] ?? json['paid'] ?? false,
       status: parseStatus(json['status'] as String?),
-      notes: json['notes'] as String?,
+      notes: (json['notes'] ?? json['delivery_instructions']) as String?,
       rejectionReason:
           json['rejection_reason'] ?? json['rejectionReason'] as String?,
       createdAt: json['created_at'] != null
@@ -847,6 +859,7 @@ extension OrderModelExtension on OrderModel {
   /// Check if order is active (not completed or cancelled)
   bool get isActive =>
       status != OrderStatusEnum.delivered &&
+      status != OrderStatusEnum.expired &&
       status != OrderStatusEnum.rejected &&
       status != OrderStatusEnum.cancelled;
 
@@ -858,6 +871,7 @@ extension OrderModelExtension on OrderModel {
   /// Check if order is completed
   bool get isCompleted =>
       status == OrderStatusEnum.delivered ||
+      status == OrderStatusEnum.expired ||
       status == OrderStatusEnum.rejected ||
       status == OrderStatusEnum.cancelled;
 

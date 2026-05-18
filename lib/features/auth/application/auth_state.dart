@@ -1,6 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/constants.dart';
+import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/location_permission_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/repositories/auth_repository.dart';
 
@@ -23,12 +27,15 @@ class AuthLoading extends AuthState {
 class AuthOtpSent extends AuthState {
   const AuthOtpSent({
     required this.phone,
+    required this.targetRole,
     this.expiresInSeconds = 60,
     this.debugOtp,
   });
 
   final String phone;
+  final String targetRole;
   final int expiresInSeconds;
+
   /// Debug OTP (only available in dev/test environments)
   final String? debugOtp;
 
@@ -56,9 +63,12 @@ class AuthError extends AuthState {
   final AuthState? previousState;
 }
 
+enum SellerAccessStatus { seller, needsOnboarding, forbidden }
+
 /// Auth notifier for managing authentication state (Riverpod 3.x compatible)
 class AuthNotifier extends Notifier<AuthState> {
   late final AuthRepository _repository;
+  bool _isValidatingSession = false;
 
   @override
   AuthState build() {
@@ -92,10 +102,16 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Request OTP for phone number
-  Future<void> requestOtp({required String phone}) async {
+  Future<void> requestOtp({
+    required String phone,
+    String targetRole = UserRoles.seller,
+  }) async {
     state = const AuthLoading();
 
-    final result = await _repository.requestOtp(phone: phone);
+    final result = await _repository.requestOtp(
+      phone: phone,
+      targetRole: targetRole,
+    );
 
     if (result.failure != null) {
       state = AuthError(
@@ -105,6 +121,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } else {
       state = AuthOtpSent(
         phone: phone,
+        targetRole: targetRole,
         expiresInSeconds: 60,
         debugOtp: result.data?.otp,
       );
@@ -119,15 +136,14 @@ class AuthNotifier extends Notifier<AuthState> {
     AuthOtpSent? otpState;
     if (currentState is AuthOtpSent) {
       otpState = currentState;
-    } else if (currentState is AuthError && currentState.previousState is AuthOtpSent) {
+    } else if (currentState is AuthError &&
+        currentState.previousState is AuthOtpSent) {
       // Allow retry after error by using the previous OTP state
       otpState = currentState.previousState as AuthOtpSent;
     }
 
     if (otpState == null) {
-      state = const AuthError(
-        message: 'Invalid state for OTP verification',
-      );
+      state = const AuthError(message: 'Invalid state for OTP verification');
       return;
     }
 
@@ -136,6 +152,7 @@ class AuthNotifier extends Notifier<AuthState> {
     final result = await _repository.verifyOtp(
       phone: otpState.phone,
       code: code,
+      targetRole: otpState.targetRole,
     );
 
     if (result.failure != null) {
@@ -144,10 +161,28 @@ class AuthNotifier extends Notifier<AuthState> {
         previousState: otpState,
       );
     } else {
+      final accessStatus = await _getSellerAccessStatus();
+      if (accessStatus == SellerAccessStatus.forbidden) {
+        await _repository.clearAuthData();
+        state = AuthError(
+          message: 'errors.auth.forbidden'.tr,
+          previousState: otpState,
+        );
+        return;
+      }
+
       state = AuthAuthenticated(phone: otpState.phone);
 
-      // Trigger restaurant fetch after successful login
-      ref.read(restaurantProvider.notifier).fetchRestaurants();
+      ref
+          .read(locationPermissionAutoRequestProvider.notifier)
+          .queueAfterLogin();
+
+      if (accessStatus == SellerAccessStatus.needsOnboarding) {
+        ref.read(restaurantProvider.notifier).setOnboardingPending();
+      } else {
+        // Trigger restaurant fetch after successful login
+        ref.read(restaurantProvider.notifier).fetchRestaurants();
+      }
     }
   }
 
@@ -156,7 +191,10 @@ class AuthNotifier extends Notifier<AuthState> {
     final currentState = state;
     if (currentState is! AuthOtpSent) return;
 
-    await requestOtp(phone: currentState.phone);
+    await requestOtp(
+      phone: currentState.phone,
+      targetRole: currentState.targetRole,
+    );
   }
 
   /// Go back to phone input (from OTP screen)
@@ -168,7 +206,48 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> logout() async {
     state = const AuthLoading();
 
+    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
     await _repository.logout();
+    state = const AuthUnauthenticated();
+  }
+
+  /// Proactively validate the stored session before using protected routes.
+  Future<bool> validateSession() async {
+    if (_isValidatingSession) {
+      return state is AuthAuthenticated;
+    }
+
+    if (state is! AuthAuthenticated) {
+      return false;
+    }
+
+    _isValidatingSession = true;
+    try {
+      final isValid = await _repository.validateStoredSession();
+      final accessStatus = isValid
+          ? await _getSellerAccessStatus()
+          : SellerAccessStatus.forbidden;
+      if (!isValid || accessStatus == SellerAccessStatus.forbidden) {
+        ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+        await _repository.clearAuthData();
+        state = const AuthUnauthenticated();
+        return false;
+      }
+
+      if (accessStatus == SellerAccessStatus.needsOnboarding) {
+        ref.read(restaurantProvider.notifier).setOnboardingPending();
+      }
+
+      return true;
+    } finally {
+      _isValidatingSession = false;
+    }
+  }
+
+  /// Clear local auth state after an unauthorized response elsewhere in the app.
+  Future<void> handleUnauthorized() async {
+    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+    await _repository.clearAuthData();
     state = const AuthUnauthenticated();
   }
 
@@ -180,6 +259,29 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Check if user is logged in
   bool get isLoggedIn => state is AuthAuthenticated;
+
+  Future<SellerAccessStatus> _getSellerAccessStatus() async {
+    try {
+      final profile = await ref.read(userApiProvider).getProfile();
+      if (profile.hasRole(UserRoles.seller)) {
+        return SellerAccessStatus.seller;
+      }
+
+      if (profile.roles.isEmpty) {
+        return SellerAccessStatus.needsOnboarding;
+      }
+
+      return SellerAccessStatus.forbidden;
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401 || statusCode == 403) {
+        return SellerAccessStatus.forbidden;
+      }
+      return SellerAccessStatus.seller;
+    } catch (_) {
+      return SellerAccessStatus.seller;
+    }
+  }
 }
 
 /// Provider for auth state (Riverpod 3.x style)

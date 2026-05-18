@@ -3,6 +3,7 @@
 library auth_api;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../features/auth/data/models/auth_model.dart';
 
@@ -19,6 +20,7 @@ class AuthApi {
       '/api/auth/otp/request/',
       data: request.toJson(),
     );
+    debugPrint('[requestOtp] response: ${response.data}');
     return OtpRequestResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -42,12 +44,15 @@ class AuthApi {
     return TokenRefreshResponse.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// Verify access token
+  /// POST /api/auth/token/verify/
+  Future<void> verifyToken(TokenVerifyRequest request) async {
+    await _dio.post('/api/auth/token/verify/', data: request.toJson());
+  }
+
   /// Blacklist token (logout)
   /// POST /api/auth/token/blacklist/
   Future<void> blacklistToken(TokenBlacklistRequest request) async {
-    await _dio.post(
-      '/api/auth/token/blacklist/',
-      data: request.toJson(),
-    );
+    await _dio.post('/api/auth/token/blacklist/', data: request.toJson());
   }
 }

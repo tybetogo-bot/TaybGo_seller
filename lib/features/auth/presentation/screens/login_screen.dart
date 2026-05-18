@@ -4,8 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/constants.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/auth_state.dart';
 import '../widgets/country_picker_widget.dart';
@@ -35,7 +37,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final fullPhone =
         '${_selectedCountry.dialCode}${_phoneController.text.trim()}';
-    ref.read(authProvider.notifier).requestOtp(phone: fullPhone);
+    ref
+        .read(authProvider.notifier)
+        .requestOtp(phone: fullPhone, targetRole: UserRoles.seller);
   }
 
   @override
@@ -71,13 +75,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxNarrowContentWidth,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
                     children: [
                       // Top bar with language selector
                       Padding(
@@ -281,8 +292,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
-            );
-          },
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

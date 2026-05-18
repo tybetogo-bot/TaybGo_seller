@@ -2,6 +2,33 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'coupon_model.freezed.dart';
 
+DateTime? _parseCouponDate(dynamic value) {
+  final raw = value?.toString().trim();
+  if (raw == null || raw.isEmpty) return null;
+
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null) return null;
+
+  final hasExplicitTimezone =
+      raw.endsWith('Z') || RegExp(r'[+-]\d{2}:\d{2}$').hasMatch(raw);
+
+  if (parsed.isUtc || hasExplicitTimezone) {
+    return parsed.toLocal();
+  }
+
+  // Coupon timestamps from the backend are UTC, even when the offset is omitted.
+  return DateTime.utc(
+    parsed.year,
+    parsed.month,
+    parsed.day,
+    parsed.hour,
+    parsed.minute,
+    parsed.second,
+    parsed.millisecond,
+    parsed.microsecond,
+  ).toLocal();
+}
+
 /// Coupon model for discounts and promotions
 @freezed
 sealed class CouponModel with _$CouponModel {
@@ -37,34 +64,44 @@ sealed class CouponModel with _$CouponModel {
       code: json['code'] as String? ?? '',
       percentDiscount:
           double.tryParse(
-            (json['percentage'] ?? json['percent_discount'] ?? json['percentDiscount'] ?? '0')
+            (json['percentage'] ??
+                    json['percent_discount'] ??
+                    json['percentDiscount'] ??
+                    '0')
                 .toString(),
           ) ??
           0.0,
       minimumOrderPrice:
           double.tryParse(
-            (json['min_price'] ?? json['minimum_order_price'] ?? json['minimumOrderPrice'] ?? '0')
+            (json['min_price'] ??
+                    json['minimum_order_price'] ??
+                    json['minimumOrderPrice'] ??
+                    '0')
                 .toString(),
           ) ??
           0.0,
       maxTotalUsage: int.tryParse(
-        (json['max_total_users'] ?? json['max_total_usage'] ?? json['maxTotalUsage'] ?? '').toString(),
+        (json['max_total_users'] ??
+                json['max_total_usage'] ??
+                json['maxTotalUsage'] ??
+                '')
+            .toString(),
       ),
       maxUsagePerUser: int.tryParse(
-        (json['max_per_customer'] ?? json['max_usage_per_user'] ?? json['maxUsagePerUser'] ?? '').toString(),
+        (json['max_per_customer'] ??
+                json['max_usage_per_user'] ??
+                json['maxUsagePerUser'] ??
+                '')
+            .toString(),
       ),
       currentUsageCount:
           (json['current_usage_count'] ?? json['currentUsageCount'] ?? 0)
               as int,
       startDate:
-          DateTime.tryParse(
-            (json['start_date'] ?? json['startDate'] ?? '').toString(),
-          ) ??
+          _parseCouponDate(json['start_date'] ?? json['startDate']) ??
           DateTime.now(),
       endDate:
-          DateTime.tryParse(
-            (json['end_date'] ?? json['endDate'] ?? '').toString(),
-          ) ??
+          _parseCouponDate(json['end_date'] ?? json['endDate']) ??
           DateTime.now(),
       isActive: json['is_active'] ?? json['isActive'] ?? true,
       restaurantId: (json['restaurant_id'] ?? json['restaurantId'])?.toString(),
@@ -74,12 +111,8 @@ sealed class CouponModel with _$CouponModel {
       descriptionAr: json['description_ar'] as String?,
       descriptionDe: json['description_de'] as String?,
       descriptionFr: json['description_fr'] as String?,
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'].toString())
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'].toString())
-          : null,
+      createdAt: _parseCouponDate(json['created_at']),
+      updatedAt: _parseCouponDate(json['updated_at']),
     );
   }
 }
@@ -187,10 +220,7 @@ sealed class CouponUsage with _$CouponUsage {
           ) ??
           0.0,
       usedAt:
-          DateTime.tryParse(
-            (json['used_at'] ?? json['usedAt'] ?? '').toString(),
-          ) ??
-          DateTime.now(),
+          _parseCouponDate(json['used_at'] ?? json['usedAt']) ?? DateTime.now(),
     );
   }
 }

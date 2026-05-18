@@ -11,11 +11,7 @@ import '../data/repositories/user_repository.dart';
 
 /// User profile state
 class UserProfileState {
-  const UserProfileState({
-    this.profile,
-    this.isLoading = false,
-    this.error,
-  });
+  const UserProfileState({this.profile, this.isLoading = false, this.error});
 
   final UserProfile? profile;
   final bool isLoading;
@@ -61,10 +57,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         return;
       }
 
-      state = state.copyWith(
-        profile: result.data,
-        isLoading: false,
-      );
+      state = state.copyWith(profile: result.data, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -74,11 +67,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   }
 
   /// Update user profile
-  Future<bool> updateProfile({
-    String? name,
-    String? email,
-    int? age,
-  }) async {
+  Future<bool> updateProfile({String? name, String? email, int? age}) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -97,10 +86,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         return false;
       }
 
-      state = state.copyWith(
-        profile: result.data,
-        isLoading: false,
-      );
+      state = state.copyWith(profile: result.data, isLoading: false);
 
       return true;
     } catch (e) {
@@ -127,7 +113,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         return false;
       }
 
-      // Seller profile update returns BasicProfile (name, phone, age only)
+      // Seller profile update returns BasicProfile with name/phone/birthdate/document.
       // Update the existing profile with the new values if we have a profile
       if (state.profile != null && result.data != null) {
         final updatedProfile = UserProfile(
@@ -135,15 +121,13 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
           name: result.data!.name,
           email: state.profile!.email,
           phone: result.data!.phone,
+          birthdate: result.data!.birthdate ?? state.profile!.birthdate,
           age: result.data!.age,
           roles: state.profile!.roles,
           createdAt: state.profile!.createdAt,
           updatedAt: DateTime.now(),
         );
-        state = state.copyWith(
-          profile: updatedProfile,
-          isLoading: false,
-        );
+        state = state.copyWith(profile: updatedProfile, isLoading: false);
       } else {
         state = state.copyWith(isLoading: false);
       }
@@ -203,10 +187,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
       // Check if data has actually changed
       if (_hasProfileChanged(newProfile)) {
-        state = state.copyWith(
-          profile: newProfile,
-          clearError: true,
-        );
+        state = state.copyWith(profile: newProfile, clearError: true);
         return true;
       }
 
@@ -227,8 +208,61 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         oldProfile.name != newProfile.name ||
         oldProfile.email != newProfile.email ||
         oldProfile.phone != newProfile.phone ||
+        oldProfile.birthdate != newProfile.birthdate ||
         oldProfile.age != newProfile.age ||
         oldProfile.updatedAt != newProfile.updatedAt;
+  }
+
+  /// Update address (PATCH /api/addresses/{id}/)
+  Future<bool> updateAddress(int addressId, Map<String, dynamic> data) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final result = await _repository.updateAddress(addressId, data);
+
+      if (result.failure != null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: result.failure!.message,
+        );
+        return false;
+      }
+
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to update address: $e',
+      );
+      return false;
+    }
+  }
+
+  /// Create address (POST /api/addresses/)
+  Future<Map<String, dynamic>?> createAddress(Map<String, dynamic> data) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final result = await _repository.createAddress(data);
+
+      if (result.failure != null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: result.failure!.message,
+        );
+        return null;
+      }
+
+      state = state.copyWith(isLoading: false);
+      return result.data;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to create address: $e',
+      );
+      return null;
+    }
   }
 
   /// Clear error
@@ -250,9 +284,20 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 });
 
 /// Provider for user profile state
-final userProfileProvider = NotifierProvider<UserProfileNotifier, UserProfileState>(
-  UserProfileNotifier.new,
-);
+final userProfileProvider =
+    NotifierProvider<UserProfileNotifier, UserProfileState>(
+      UserProfileNotifier.new,
+    );
+
+/// Provider for seller profile basics (including registration document URL)
+final sellerProfileProvider = FutureProvider<BasicProfile?>((ref) async {
+  final repository = ref.watch(userRepositoryProvider);
+  final result = await repository.getSellerProfile();
+  if (result.failure != null) {
+    throw Exception(result.failure!.message);
+  }
+  return result.data;
+});
 
 /// Provider for profile polling service
 ///
@@ -267,8 +312,8 @@ final userProfileProvider = NotifierProvider<UserProfileNotifier, UserProfileSta
 /// ```
 final userProfilePollingProvider =
     NotifierProvider<UserProfilePollingNotifier, PollingState>(
-  UserProfilePollingNotifier.new,
-);
+      UserProfilePollingNotifier.new,
+    );
 
 /// Notifier for user profile polling
 class UserProfilePollingNotifier extends Notifier<PollingState> {

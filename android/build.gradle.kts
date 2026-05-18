@@ -5,6 +5,22 @@ allprojects {
     }
 }
 
+subprojects {
+    buildscript {
+        configurations.configureEach {
+            resolutionStrategy.eachDependency {
+                when {
+                    requested.group == "com.android.tools.build" && requested.name == "gradle" ->
+                        useVersion("8.13.1")
+
+                    requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-gradle-plugin" ->
+                        useVersion("2.2.20")
+                }
+            }
+        }
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

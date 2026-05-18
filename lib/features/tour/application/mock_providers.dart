@@ -23,11 +23,10 @@ class MockOrdersNotifier extends OrdersNotifier {
     _mockLog('MockOrdersNotifier.build() called');
     // Generate mock orders immediately
     final mockOrders = MockDataGenerator.generateMockOrders(12);
-    _mockLog('MockOrdersNotifier.build() → generated ${mockOrders.length} mock orders');
-    return OrdersState(
-      orders: mockOrders,
-      isLoading: false,
+    _mockLog(
+      'MockOrdersNotifier.build() → generated ${mockOrders.length} mock orders',
     );
+    return OrdersState(orders: mockOrders, isLoading: false);
   }
 
   /// Refresh orders - simulate loading
@@ -39,10 +38,7 @@ class MockOrdersNotifier extends OrdersNotifier {
 
     // Return same mock data
     final mockOrders = MockDataGenerator.generateMockOrders(12);
-    state = state.copyWith(
-      orders: mockOrders,
-      isLoading: false,
-    );
+    state = state.copyWith(orders: mockOrders, isLoading: false);
   }
 
   /// Silent refresh - used by polling
@@ -54,16 +50,19 @@ class MockOrdersNotifier extends OrdersNotifier {
   }
 
   /// Set search query
+  @override
   void setSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
   }
 
   /// Clear search
+  @override
   void clearSearch() {
     state = state.copyWith(searchQuery: '');
   }
 
   /// Cancel order - simulate status update
+  @override
   Future<bool> cancelOrder(String orderId, {String? reason}) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -80,6 +79,7 @@ class MockOrdersNotifier extends OrdersNotifier {
   }
 
   /// Move order to next status - simulate progression
+  @override
   Future<bool> moveToNextStatus(String orderId) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -92,9 +92,7 @@ class MockOrdersNotifier extends OrdersNotifier {
     if (nextStatus == null) return false;
 
     final updatedOrders = List<OrderModel>.from(state.orders);
-    updatedOrders[index] = updatedOrders[index].copyWith(
-      status: nextStatus,
-    );
+    updatedOrders[index] = updatedOrders[index].copyWith(status: nextStatus);
 
     state = state.copyWith(orders: updatedOrders);
     return true;
@@ -120,6 +118,8 @@ class MockOrdersNotifier extends OrdersNotifier {
       case 'DELIVERED':
       case 'COMPLETED':
         parsedStatus = OrderStatusEnum.delivered;
+      case 'EXPIRED':
+        parsedStatus = OrderStatusEnum.expired;
       case 'CANCELLED':
         parsedStatus = OrderStatusEnum.cancelled;
       default:
@@ -127,20 +127,20 @@ class MockOrdersNotifier extends OrdersNotifier {
     }
 
     final updatedOrders = List<OrderModel>.from(state.orders);
-    updatedOrders[index] = updatedOrders[index].copyWith(
-      status: parsedStatus,
-    );
+    updatedOrders[index] = updatedOrders[index].copyWith(status: parsedStatus);
 
     state = state.copyWith(orders: updatedOrders);
     return true;
   }
 
   /// Mark order as on the way
+  @override
   Future<bool> markOnTheWay(String orderId) async {
     return updateOrderStatus(orderId, 'ON_THE_WAY');
   }
 
   /// Mark order as delivered
+  @override
   Future<bool> markDelivered(String orderId) async {
     return updateOrderStatus(orderId, 'DELIVERED');
   }
@@ -151,6 +151,7 @@ class MockOrdersNotifier extends OrdersNotifier {
   }
 
   /// Accept order (for tour demo)
+  @override
   Future<bool> acceptOrder(String orderId) async {
     return updateOrderStatus(orderId, 'ACCEPTED');
   }
@@ -177,10 +178,7 @@ class MockMenuNotifier extends MenuNotifier {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final mockItems = MockDataGenerator.generateMockMenuItems(20);
-    state = state.copyWith(
-      items: mockItems,
-      isLoading: false,
-    );
+    state = state.copyWith(items: mockItems, isLoading: false);
   }
 
   /// Toggle item availability
@@ -314,9 +312,11 @@ class MockUserProfileNotifier extends UserProfileNotifier {
 }
 
 /// Provider for mock orders (used during tour)
-final mockOrdersProvider = NotifierProvider<MockOrdersNotifier, OrdersState>(() {
-  return MockOrdersNotifier();
-});
+final mockOrdersProvider = NotifierProvider<MockOrdersNotifier, OrdersState>(
+  () {
+    return MockOrdersNotifier();
+  },
+);
 
 /// Provider for mock menu (used during tour)
 final mockMenuProvider = NotifierProvider<MockMenuNotifier, MenuState>(() {
@@ -324,6 +324,7 @@ final mockMenuProvider = NotifierProvider<MockMenuNotifier, MenuState>(() {
 });
 
 /// Provider for mock restaurant (used during tour)
-final mockRestaurantProvider = NotifierProvider<MockRestaurantNotifier, RestaurantState>(() {
-  return MockRestaurantNotifier();
-});
+final mockRestaurantProvider =
+    NotifierProvider<MockRestaurantNotifier, RestaurantState>(() {
+      return MockRestaurantNotifier();
+    });

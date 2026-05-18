@@ -137,6 +137,7 @@ class _OtpVerifyFormState extends State<OtpVerifyForm> {
             enabled: !widget.isLoading,
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
+            textDirection: TextDirection.ltr,
             onFieldSubmitted: (_) => _handleSubmit(),
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,

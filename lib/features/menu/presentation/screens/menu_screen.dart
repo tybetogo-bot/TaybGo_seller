@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/utils/tour_keys.dart';
@@ -45,12 +46,17 @@ class MenuScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.read(menuProvider.notifier).refresh();
-        },
-        child: Column(
-          children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxWideContentWidth,
+          ),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await ref.read(menuProvider.notifier).refresh();
+            },
+            child: Column(
+              children: [
             // Category filter
             if (categories.isNotEmpty) ...[
               SizedBox(
@@ -260,9 +266,10 @@ class MenuScreen extends ConsumerWidget {
             // Menu items list
             else
               Expanded(
-                child: ListView.builder(
+                child: ResponsiveListGrid(
                   key: TourKeys.menuItemsListKey,
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  minItemWidth: 380,
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
@@ -274,7 +281,9 @@ class MenuScreen extends ConsumerWidget {
                   },
                 ),
               ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

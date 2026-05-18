@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,6 +34,7 @@ class AppTextField extends StatefulWidget {
     this.validator,
     this.focusNode,
     this.textCapitalization = TextCapitalization.none,
+    this.textDirection,
     this.fillColor,
     this.borderRadius,
   });
@@ -60,6 +63,7 @@ class AppTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final TextCapitalization textCapitalization;
+  final TextDirection? textDirection;
   final Color? fillColor;
   final double? borderRadius;
 
@@ -107,8 +111,9 @@ class _AppTextFieldState extends State<AppTextField> {
           minLines: widget.minLines,
           maxLength: widget.maxLength,
           keyboardType: widget.keyboardType,
+          textDirection: _effectiveTextDirection(),
           textInputAction: widget.textInputAction,
-          inputFormatters: widget.inputFormatters,
+          inputFormatters: _effectiveInputFormatters(),
           textCapitalization: widget.textCapitalization,
           onChanged: widget.onChanged,
           onFieldSubmitted: widget.onSubmitted,
@@ -124,18 +129,29 @@ class _AppTextFieldState extends State<AppTextField> {
             hintStyle: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w400,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             errorText: widget.errorText,
             helperText: widget.helperText,
             filled: true,
-            fillColor: widget.fillColor ?? (isDark ? DarkColors.inputBackground : LightColors.inputBackground),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            fillColor:
+                widget.fillColor ??
+                (isDark
+                    ? DarkColors.inputBackground
+                    : LightColors.inputBackground),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 14.h,
+            ),
             prefixIcon: widget.prefixIcon != null
                 ? Icon(
                     widget.prefixIcon,
                     size: 20.w,
-                    color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                    color: isDark
+                        ? DarkColors.textTertiary
+                        : LightColors.textTertiary,
                   )
                 : null,
             suffixIcon: _buildSuffixIcon(isDark),
@@ -151,11 +167,38 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 
+  /// Keep phone, number, and email inputs left-to-right so symbols stay in the right order in RTL locales.
+  TextDirection? _effectiveTextDirection() {
+    if (widget.textDirection != null) {
+      return widget.textDirection;
+    }
+
+    final keyboardType = widget.keyboardType;
+    final shouldForceLtr =
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.emailAddress ||
+        keyboardType == TextInputType.url ||
+        keyboardType == TextInputType.number ||
+        keyboardType?.toString().contains('numberWithOptions') == true;
+
+    return shouldForceLtr ? ui.TextDirection.ltr : null;
+  }
+
+  List<TextInputFormatter>? _effectiveInputFormatters() {
+    if (widget.keyboardType != TextInputType.phone) {
+      return widget.inputFormatters;
+    }
+
+    return [FilteringTextInputFormatter.digitsOnly, ...?widget.inputFormatters];
+  }
+
   Widget? _buildSuffixIcon(bool isDark) {
     if (widget.obscureText) {
       return IconButton(
         icon: Icon(
-          _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscureText
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           size: 20.w,
           color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
         ),
@@ -180,9 +223,13 @@ class _AppTextFieldState extends State<AppTextField> {
   OutlineInputBorder _buildBorder(bool isDark, bool isFocused) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? AppSpacing.radiusMd),
+      borderRadius: BorderRadius.circular(
+        widget.borderRadius ?? AppSpacing.radiusMd,
+      ),
       borderSide: BorderSide(
-        color: isFocused ? primaryColor : (isDark ? DarkColors.border : LightColors.border),
+        color: isFocused
+            ? primaryColor
+            : (isDark ? DarkColors.border : LightColors.border),
         width: isFocused ? 1.5 : 1,
       ),
     );
@@ -190,11 +237,10 @@ class _AppTextFieldState extends State<AppTextField> {
 
   OutlineInputBorder _buildErrorBorder() {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(widget.borderRadius ?? AppSpacing.radiusMd),
-      borderSide: const BorderSide(
-        color: AppColors.error,
-        width: 1.5,
+      borderRadius: BorderRadius.circular(
+        widget.borderRadius ?? AppSpacing.radiusMd,
       ),
+      borderSide: const BorderSide(color: AppColors.error, width: 1.5),
     );
   }
 }

@@ -11,6 +11,7 @@ import '../network/restaurant_api.dart';
 import '../network/menu_api.dart';
 import '../network/orders_api.dart';
 import '../network/coupons_api.dart';
+import '../network/earnings_api.dart';
 import '../network/support_api.dart';
 import '../network/user_api.dart';
 import '../../features/support/data/repositories/support_repository.dart';
@@ -26,7 +27,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 /// Global callback for handling unauthorized access (401 errors)
 /// This is set from the main app initialization to avoid circular dependencies
-void Function()? globalUnauthorizedCallback;
+Future<void> Function()? globalUnauthorizedCallback;
 
 /// Provider for Dio instance
 final dioProvider = Provider<Dio>((ref) {
@@ -36,7 +37,7 @@ final dioProvider = Provider<Dio>((ref) {
     prefs,
     onUnauthorized: () async {
       // Call the global callback if set
-      globalUnauthorizedCallback?.call();
+      await globalUnauthorizedCallback?.call();
     },
   );
 });
@@ -82,6 +83,12 @@ final ordersApiProvider = Provider<OrdersApi>((ref) {
 final couponsApiProvider = Provider<CouponsApi>((ref) {
   final dio = ref.watch(dioProvider);
   return CouponsApi(dio);
+});
+
+/// Provider for EarningsApi
+final earningsApiProvider = Provider<EarningsApi>((ref) {
+  final dio = ref.watch(dioProvider);
+  return EarningsApi(dio);
 });
 
 /// Provider for UserApi

@@ -46,13 +46,13 @@ flutter run -d chrome -t lib/main_dev.dart --dart-define=ENV=dev
 
 ```bash
 # Android APK (dev)
-flutter build apk --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev
+flutter build apk --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev --split-per-abi --release
 
 # Android APK (prod)
-flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=ENV=prod
+flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=ENV=prod --split-per-abi --release
 
 # Web (prod)
-flutter build web -t lib/main_prod.dart --dart-define=ENV=prod
+flutter build web --release --no-wasm-dry-run -t lib/main_prod.dart --dart-define=ENV=prod
 
 # iOS (prod)
 flutter build ios --flavor prod -t lib/main_prod.dart --dart-define=ENV=prod
@@ -129,7 +129,7 @@ lib/
 
 ```bash
 # Build and deploy web to Firebase Hosting
-flutter build web -t lib/main_prod.dart --dart-define=ENV=prod
+flutter build web --release --no-wasm-dry-run -t lib/main_prod.dart --dart-define=ENV=prod
 firebase deploy --only hosting
 ```
 

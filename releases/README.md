@@ -4,32 +4,38 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.0+1`
+**Current Version:** `1.0.7+8`
 
 ---
 
-## Available APKs
+## Available Artifacts
 
-### Universal APK
-| File | Description |
-|------|-------------|
-| `tybetogoSeller-v1.0.0-release.apk` | Universal APK that works on all Android devices. Larger file size but maximum compatibility. |
-
-### Split APKs (Recommended for smaller file size)
+### Prod Split APKs
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
-| `tybetogoSeller-v1.0.0-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
-| `tybetogoSeller-v1.0.0-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
-| `tybetogoSeller-v1.0.0-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+
+### Dev Split APKs
+| File | Architecture | Target Use |
+|------|--------------|------------|
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.7+8-2026-05-13-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+
+### Web Build
+| File | Description |
+|------|-------------|
+| `taybgo-seller-v1.0.7+8-2026-05-13-prod-web.zip` | Zipped production web build matching the deployed hosting release. |
 
 ---
 
 ## Which APK Should I Download?
 
-1. **If unsure:** Download the **Universal APK** - it works on all devices
-2. **For most modern phones:** Download **arm64-v8a** - smaller and optimized
-3. **For older/budget phones:** Download **armeabi-v7a**
-4. **For emulators/testing:** Download **x86_64**
+1. **For most phones:** Download **arm64-v8a**.
+2. **For older/budget phones:** Download **armeabi-v7a**.
+3. **For emulators/testing:** Download **x86_64**.
 
 ### How to check your device architecture:
 1. Go to Settings > About Phone
@@ -52,11 +58,30 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 - **Built with:** Flutter
 - **Min SDK:** Android 5.0 (API 21)
-- **Target SDK:** Android 14 (API 34)
+- **Target SDK:** Android 16 (API 36)
 
 ---
 
 ## Changelog
+
+### v1.0.7 (13 May, 2026)
+- Fixed repeated restaurant settings edits by preserving restaurant IDs after update responses
+- Aligned restaurant settings update payloads with the seller restaurant API contract
+- Added missing working-hours translations across supported locales
+- Published dated prod web and dev/prod split APK release artifacts
+
+### v1.0.5 (11 May, 2026)
+- Added Firebase Crashlytics integration for Android and iOS
+- Added dev-only mobile Crashlytics test controls for non-fatal and forced crash reports
+- Aligned iOS bundle identifier and Crashlytics dSYM upload configuration with Firebase
+- Published dated prod web and dev/prod split APK release artifacts
+
+### v1.0.1 (16 April, 2026)
+- Added support for expired order status handling
+- Added reorder action for expired orders in history and order details
+- Refreshed About page release metadata for the 16 April 2026 release
+- Added seller role/account-type guardrails in auth and seller-only flows
+- Published dated prod web and dev/prod split APK release artifacts
 
 ### v1.0.0 (Initial Release)
 - Restaurant management features
@@ -82,4 +107,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-01-24*
+*Last updated: 2026-05-13*

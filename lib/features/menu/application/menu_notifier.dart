@@ -53,8 +53,9 @@ class MenuState {
   bool _matchesSearch(MenuItemModel item, String query) {
     if (item.name.toLowerCase().contains(query)) return true;
     if (item.description?.toLowerCase().contains(query) ?? false) return true;
-    if (item.ingredients.any((i) => i.toLowerCase().contains(query)))
+    if (item.ingredients.any((i) => i.toLowerCase().contains(query))) {
       return true;
+    }
     return false;
   }
 
@@ -108,7 +109,7 @@ class MenuNotifier extends Notifier<MenuState> {
 
     // Watch for restaurant selection changes
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && previous != next) {
+      if (previous != next) {
         Future.microtask(() => _loadInitialData());
       }
     });
@@ -141,6 +142,10 @@ class MenuNotifier extends Notifier<MenuState> {
       // Load categories and items in parallel
       final categoriesResult = await _repository.getCategories(restaurantId);
       final itemsResult = await _repository.getMenuItems(restaurantId);
+
+      if (ref.read(selectedRestaurantIdProvider) != restaurantId) {
+        return;
+      }
 
       if (categoriesResult.failure != null) {
         state = state.copyWith(

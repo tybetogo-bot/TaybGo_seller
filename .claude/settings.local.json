@@ -31,7 +31,18 @@
       "Bash(dart pub global run:*)",
       "Bash(dir:*)",
       "Bash(git config:*)",
-      "Bash(GRADLE_OPTS=\"-Xmx1024m -XX:MaxMetaspaceSize=256m\" flutter build:*)"
+      "Bash(GRADLE_OPTS=\"-Xmx1024m -XX:MaxMetaspaceSize=256m\" flutter build:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(node -e:*)",
+      "Bash(flutter --version)",
+      "Bash(chmod +x /c/Users/abdul/teybatseller/scripts/build_web.sh)",
+      "Bash(bash scripts/build_web.sh)",
+      "Bash(firebase deploy --only hosting)",
+      "Bash(firebase --version)",
+      "Bash(firebase hosting:channel:deploy live --only hosting)",
+      "Bash(git:*)",
+      "WebFetch(domain:dev.taybgo.com)"
     ]
   }
 }

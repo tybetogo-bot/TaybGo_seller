@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
@@ -63,18 +64,23 @@ class _PendingReviewScreenState extends ConsumerState<PendingReviewScreen> {
 
     return AppScaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header with language selector
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const LanguageSelector(),
-                ],
-              ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxNarrowContentWidth,
             ),
+            child: Column(
+              children: [
+                // Header with language selector
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const LanguageSelector(),
+                    ],
+                  ),
+                ),
 
             Expanded(
               child: SingleChildScrollView(
@@ -201,6 +207,8 @@ class _PendingReviewScreenState extends ConsumerState<PendingReviewScreen> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

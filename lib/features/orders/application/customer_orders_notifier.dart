@@ -56,24 +56,31 @@ class CustomerOrdersState {
   }
 
   /// Get orders by status
-  List<OrderModel> get pendingOrders =>
-      orders.where((o) =>
-          o.status == OrderStatusEnum.pending ||
-          o.status == OrderStatusEnum.searchingForDriver
-      ).toList();
+  List<OrderModel> get pendingOrders => orders
+      .where(
+        (o) =>
+            o.status == OrderStatusEnum.pending ||
+            o.status == OrderStatusEnum.searchingForDriver,
+      )
+      .toList();
 
   List<OrderModel> get activeOrders => orders
-      .where((o) =>
-          o.status == OrderStatusEnum.accepted ||
-          o.status == OrderStatusEnum.driverNotificationSent ||
-          o.status == OrderStatusEnum.onTheWay)
+      .where(
+        (o) =>
+            o.status == OrderStatusEnum.accepted ||
+            o.status == OrderStatusEnum.driverNotificationSent ||
+            o.status == OrderStatusEnum.onTheWay,
+      )
       .toList();
 
   List<OrderModel> get completedOrders => orders
-      .where((o) =>
-          o.status == OrderStatusEnum.delivered ||
-          o.status == OrderStatusEnum.rejected ||
-          o.status == OrderStatusEnum.cancelled)
+      .where(
+        (o) =>
+            o.status == OrderStatusEnum.delivered ||
+            o.status == OrderStatusEnum.expired ||
+            o.status == OrderStatusEnum.rejected ||
+            o.status == OrderStatusEnum.cancelled,
+      )
       .toList();
 }
 
@@ -169,14 +176,15 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       // Add to local state at the beginning
       final updatedOrders = [result.data!, ...state.orders];
-      state = state.copyWith(
-        orders: updatedOrders,
-        isCreating: false,
-      );
+      state = state.copyWith(orders: updatedOrders, isCreating: false);
 
       return result.data;
     } catch (e, stackTrace) {
-      _log('=== CREATE FOOD ORDER EXCEPTION ===', error: e, stackTrace: stackTrace);
+      _log(
+        '=== CREATE FOOD ORDER EXCEPTION ===',
+        error: e,
+        stackTrace: stackTrace,
+      );
       state = state.copyWith(
         isCreating: false,
         error: 'Failed to create order: $e',
@@ -205,10 +213,7 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
       if (index != -1) {
         final updatedOrders = List<OrderModel>.from(state.orders);
         updatedOrders[index] = result.data!;
-        state = state.copyWith(
-          orders: updatedOrders,
-          isUpdating: false,
-        );
+        state = state.copyWith(orders: updatedOrders, isUpdating: false);
       } else {
         state = state.copyWith(isUpdating: false);
       }
@@ -243,10 +248,7 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
       if (index != -1) {
         final updatedOrders = List<OrderModel>.from(state.orders);
         updatedOrders[index] = result.data!;
-        state = state.copyWith(
-          orders: updatedOrders,
-          isUpdating: false,
-        );
+        state = state.copyWith(orders: updatedOrders, isUpdating: false);
       } else {
         state = state.copyWith(isUpdating: false);
       }
@@ -278,10 +280,7 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       // Remove from local state
       final updatedOrders = state.orders.where((o) => o.id != id).toList();
-      state = state.copyWith(
-        orders: updatedOrders,
-        isDeleting: false,
-      );
+      state = state.copyWith(orders: updatedOrders, isDeleting: false);
 
       return true;
     } catch (e) {
@@ -342,24 +341,32 @@ final customerOrdersApiProvider = Provider<CustomerOrdersApi>((ref) {
 });
 
 /// Provider for customer orders data source
-final customerOrdersDataSourceProvider = Provider<CustomerOrdersDataSource>((ref) {
+final customerOrdersDataSourceProvider = Provider<CustomerOrdersDataSource>((
+  ref,
+) {
   final api = ref.watch(customerOrdersApiProvider);
   return CustomerOrdersRemoteDataSource(api);
 });
 
 /// Provider for customer orders repository
-final customerOrdersRepositoryProvider = Provider<CustomerOrdersRepository>((ref) {
+final customerOrdersRepositoryProvider = Provider<CustomerOrdersRepository>((
+  ref,
+) {
   final dataSource = ref.watch(customerOrdersDataSourceProvider);
   return CustomerOrdersRepositoryImpl(remoteDataSource: dataSource);
 });
 
 /// Provider for customer orders state (Riverpod 3.x)
-final customerOrdersProvider = NotifierProvider<CustomerOrdersNotifier, CustomerOrdersState>(
-  CustomerOrdersNotifier.new,
-);
+final customerOrdersProvider =
+    NotifierProvider<CustomerOrdersNotifier, CustomerOrdersState>(
+      CustomerOrdersNotifier.new,
+    );
 
 /// Provider for a specific customer order by ID
-final customerOrderByIdProvider = Provider.family<OrderModel?, String>((ref, id) {
+final customerOrderByIdProvider = Provider.family<OrderModel?, String>((
+  ref,
+  id,
+) {
   final ordersState = ref.watch(customerOrdersProvider);
   try {
     return ordersState.orders.firstWhere((o) => o.id == id);

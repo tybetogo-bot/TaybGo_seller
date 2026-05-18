@@ -12,8 +12,11 @@ class AuthRemoteDataSource implements AuthDataSource {
   final AuthApi _authApi;
 
   @override
-  Future<OtpRequestResponse> requestOtp({required String phone}) async {
-    final request = OtpRequest(phone: phone);
+  Future<OtpRequestResponse> requestOtp({
+    required String phone,
+    required String targetRole,
+  }) async {
+    final request = OtpRequest(phone: phone, targetRole: targetRole);
     return await _authApi.requestOtp(request);
   }
 
@@ -21,8 +24,13 @@ class AuthRemoteDataSource implements AuthDataSource {
   Future<OtpVerifyResponse> verifyOtp({
     required String phone,
     required String code,
+    required String targetRole,
   }) async {
-    final request = OtpVerifyRequest(phone: phone, code: code);
+    final request = OtpVerifyRequest(
+      phone: phone,
+      code: code,
+      targetRole: targetRole,
+    );
     return await _authApi.verifyOtp(request);
   }
 
@@ -30,6 +38,12 @@ class AuthRemoteDataSource implements AuthDataSource {
   Future<TokenRefreshResponse> refreshToken(String refreshToken) async {
     final request = TokenRefreshRequest(refresh: refreshToken);
     return await _authApi.refreshToken(request);
+  }
+
+  @override
+  Future<void> verifyToken(String accessToken) async {
+    final request = TokenVerifyRequest(token: accessToken);
+    await _authApi.verifyToken(request);
   }
 
   @override

@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:geolocator/geolocator.dart';
@@ -17,14 +18,13 @@ class _SupportedCountry {
   final String code;
   final String name;
 
-  const _SupportedCountry({
-    required this.code,
-    required this.name,
-  });
+  const _SupportedCountry({required this.code, required this.name});
 
   /// Generate flag emoji from ISO country code
   String get flag {
-    final codePoints = code.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 0x41);
+    final codePoints = code.toUpperCase().codeUnits.map(
+      (c) => 0x1F1E6 + c - 0x41,
+    );
     return String.fromCharCodes(codePoints);
   }
 }
@@ -228,74 +228,89 @@ const List<_SupportedCountry> _supportedCountries = [
 ];
 
 /// Google Places API key
-const String _placesApiKey = 'AIzaSyC2AE-hUVzVqtd-LP3QcVED_XQP9c7OCHc';
+const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
-/// CORS proxy for web platform
-const String _corsProxy = 'https://corsproxy.io/?';
-
-/// Google Places API service
+/// Google Places API service using Places API (New) v1.
+///
+/// The legacy `maps.googleapis.com/maps/api/place/*` endpoints don't send
+/// CORS headers, so browsers block them. The new `places.googleapis.com/v1`
+/// endpoints support CORS. Enable "Places API (New)" in your GCP console.
 class _PlacesApiService {
-  static final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
-  ));
-
-  /// Check if running on web platform
-  static bool get _isWeb => kIsWeb;
+  static final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
 
   /// Search for place predictions (autocomplete)
-  static Future<List<_PlacePrediction>> getAutocomplete(String query, {String? countryCode}) async {
+  static Future<List<_PlacePrediction>> getAutocomplete(
+    String query, {
+    String? countryCode,
+  }) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
-      final params = {
+      const url = 'https://places.googleapis.com/v1/places:autocomplete';
+      final body = <String, dynamic>{
         'input': query,
-        'key': _placesApiKey,
-        'types': 'geocode|establishment',
-        'language': 'en',
-        if (countryCode != null) 'components': 'country:$countryCode',
+        'languageCode': 'en',
+        if (countryCode != null)
+          'includedRegionCodes': [countryCode.toLowerCase()],
       };
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
-
       if (kDebugMode) {
-        print('[PlacesAPI-Widget] Searching for: $query');
-        print('[PlacesAPI-Widget] Platform: ${_isWeb ? "Web (CORS proxy)" : "Native"}');
+        print('[PlacesAPI-Widget] Searching for: $query (new API)');
       }
 
-      final response = await _dio.get(requestUrl);
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+          },
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
+        final suggestions = data['suggestions'] as List<dynamic>? ?? [];
 
-        // Check for API errors
-        final status = data['status'] as String?;
         if (kDebugMode) {
-          print('[PlacesAPI-Widget] Response status: $status');
+          print('[PlacesAPI-Widget] Found ${suggestions.length} suggestions');
         }
 
-        if (status != 'OK' && status != 'ZERO_RESULTS') {
-          if (kDebugMode) {
-            print('[PlacesAPI-Widget] API error status: $status');
-            print('[PlacesAPI-Widget] Error message: ${data['error_message']}');
-          }
-          return [];
-        }
+        return suggestions
+            .map((s) {
+              final prediction =
+                  (s as Map<String, dynamic>)['placePrediction']
+                      as Map<String, dynamic>?;
+              if (prediction == null) return null;
 
-        final predictions = data['predictions'] as List<dynamic>? ?? [];
-        if (kDebugMode) {
-          print('[PlacesAPI-Widget] Found ${predictions.length} predictions');
-        }
+              final placeResource = prediction['place'] as String? ?? '';
+              final placeId = prediction['placeId'] as String? ??
+                  (placeResource.startsWith('places/')
+                      ? placeResource.substring(7)
+                      : placeResource);
 
-        return predictions.map((p) {
-          final structured = p['structured_formatting'] as Map<String, dynamic>? ?? {};
-          return _PlacePrediction(
-            placeId: p['place_id'] as String? ?? '',
-            description: p['description'] as String? ?? '',
-            mainText: structured['main_text'] as String? ?? p['description'] as String? ?? '',
-            secondaryText: structured['secondary_text'] as String? ?? '',
-          );
-        }).toList();
+              final text = prediction['text'] as Map<String, dynamic>?;
+              final structured =
+                  prediction['structuredFormat'] as Map<String, dynamic>?;
+              final mainTextObj =
+                  structured?['mainText'] as Map<String, dynamic>?;
+              final secondaryTextObj =
+                  structured?['secondaryText'] as Map<String, dynamic>?;
+
+              final description = text?['text'] as String? ?? '';
+              return _PlacePrediction(
+                placeId: placeId,
+                description: description,
+                mainText: mainTextObj?['text'] as String? ?? description,
+                secondaryText: secondaryTextObj?['text'] as String? ?? '',
+              );
+            })
+            .whereType<_PlacePrediction>()
+            .toList();
       }
       return [];
     } catch (e) {
@@ -306,32 +321,49 @@ class _PlacesApiService {
     }
   }
 
-  /// Reverse geocode coordinates to get country code (for web)
+  /// Reverse geocode coordinates to a country ISO code.
   static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
-      final params = {
-        'latlng': '$lat,$lng',
-        'key': _placesApiKey,
-        'result_type': 'country',
+      const url = 'https://places.googleapis.com/v1/places:searchNearby';
+      final body = <String, dynamic>{
+        'locationRestriction': {
+          'circle': {
+            'center': {'latitude': lat, 'longitude': lng},
+            'radius': 50.0,
+          },
+        },
+        'maxResultCount': 1,
       };
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask': 'places.addressComponents',
+          },
+        ),
+      );
 
-      final response = await _dio.get(requestUrl);
+      if (response.statusCode != 200) return null;
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final results = data['results'] as List<dynamic>? ?? [];
-        if (results.isNotEmpty) {
-          final components = results[0]['address_components'] as List<dynamic>? ?? [];
-          for (final component in components) {
-            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
-            if (types.contains('country')) {
-              return (component['short_name'] as String?)?.toLowerCase();
-            }
-          }
+      final data = response.data as Map<String, dynamic>;
+      final places = data['places'] as List<dynamic>? ?? [];
+      if (places.isEmpty) return null;
+
+      final components =
+          (places[0] as Map<String, dynamic>)['addressComponents']
+              as List<dynamic>? ??
+              [];
+      for (final component in components) {
+        final types =
+            ((component as Map<String, dynamic>)['types'] as List<dynamic>?)
+                    ?.cast<String>() ??
+                [];
+        if (types.contains('country')) {
+          return (component['shortText'] as String?)?.toLowerCase();
         }
       }
       return null;
@@ -343,35 +375,41 @@ class _PlacesApiService {
     }
   }
 
-  /// Forward geocode an address string to coordinates (for web)
-  static Future<({double lat, double lng})?> geocodeAddress(String address) async {
+  /// Forward geocode an address string to coordinates.
+  static Future<({double lat, double lng})?> geocodeAddress(
+    String address,
+  ) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
-      final params = {
-        'address': address,
-        'key': _placesApiKey,
-      };
+      const url = 'https://places.googleapis.com/v1/places:searchText';
+      final body = <String, dynamic>{'textQuery': address};
 
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask': 'places.location',
+          },
+        ),
+      );
 
-      final response = await _dio.get(requestUrl);
+      if (response.statusCode != 200) return null;
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final results = data['results'] as List<dynamic>? ?? [];
-        if (results.isNotEmpty) {
-          final geometry = results[0]['geometry'] as Map<String, dynamic>?;
-          final location = geometry?['location'] as Map<String, dynamic>?;
-          if (location != null) {
-            return (
-              lat: (location['lat'] as num).toDouble(),
-              lng: (location['lng'] as num).toDouble(),
-            );
-          }
-        }
-      }
-      return null;
+      final data = response.data as Map<String, dynamic>;
+      final places = data['places'] as List<dynamic>? ?? [];
+      if (places.isEmpty) return null;
+
+      final location =
+          (places[0] as Map<String, dynamic>)['location']
+              as Map<String, dynamic>?;
+      if (location == null) return null;
+
+      return (
+        lat: (location['latitude'] as num).toDouble(),
+        lng: (location['longitude'] as num).toDouble(),
+      );
     } catch (e) {
       if (kDebugMode) {
         print('[PlacesAPI-Widget] Geocode error: $e');
@@ -383,79 +421,71 @@ class _PlacesApiService {
   /// Get place details including lat/lng
   static Future<_PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
-      final baseUrl = 'https://maps.googleapis.com/maps/api/place/details/json';
-      final params = {
-        'place_id': placeId,
-        'key': _placesApiKey,
-        'fields': 'geometry,address_components,formatted_address',
-      };
-
-      final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-      final requestUrl = _isWeb ? '$_corsProxy${Uri.encodeComponent(uri.toString())}' : uri.toString();
+      final url = 'https://places.googleapis.com/v1/places/$placeId';
 
       if (kDebugMode) {
-        print('[PlacesAPI-Widget] Getting details for placeId: $placeId');
+        print(
+          '[PlacesAPI-Widget] Getting details for placeId: $placeId (new API)',
+        );
       }
 
-      final response = await _dio.get(requestUrl);
+      final response = await _dio.get(
+        url,
+        options: Options(
+          headers: {
+            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-FieldMask':
+                'id,location,addressComponents,formattedAddress',
+          },
+        ),
+      );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
+        final location = data['location'] as Map<String, dynamic>?;
+        final components =
+            data['addressComponents'] as List<dynamic>? ?? [];
 
-        // Check for API errors
-        final status = data['status'] as String?;
-        if (status != 'OK') {
-          if (kDebugMode) {
-            print('[PlacesAPI-Widget] Details error: $status');
+        String? streetNumber;
+        String? streetName;
+        String? city;
+        String? postalCode;
+        String? country;
+
+        for (final component in components) {
+          final map = component as Map<String, dynamic>;
+          final types = (map['types'] as List<dynamic>?)?.cast<String>() ?? [];
+          final longText = map['longText'] as String?;
+
+          if (types.contains('street_number')) {
+            streetNumber = longText;
+          } else if (types.contains('route')) {
+            streetName = longText;
+          } else if (types.contains('locality')) {
+            city = longText;
+          } else if (types.contains('postal_code')) {
+            postalCode = longText;
+          } else if (types.contains('country')) {
+            country = longText;
           }
-          return null;
         }
 
-        final result = data['result'] as Map<String, dynamic>?;
-
-        if (result != null) {
-          final geometry = result['geometry'] as Map<String, dynamic>?;
-          final location = geometry?['location'] as Map<String, dynamic>?;
-          final components = result['address_components'] as List<dynamic>? ?? [];
-
-          String? streetNumber;
-          String? streetName;
-          String? city;
-          String? postalCode;
-          String? country;
-
-          for (final component in components) {
-            final types = (component['types'] as List<dynamic>?)?.cast<String>() ?? [];
-            final longName = component['long_name'] as String?;
-
-            if (types.contains('street_number')) {
-              streetNumber = longName;
-            } else if (types.contains('route')) {
-              streetName = longName;
-            } else if (types.contains('locality')) {
-              city = longName;
-            } else if (types.contains('postal_code')) {
-              postalCode = longName;
-            } else if (types.contains('country')) {
-              country = longName;
-            }
-          }
-
-          if (kDebugMode) {
-            print('[PlacesAPI-Widget] Got details - lat: ${location?['lat']}, lng: ${location?['lng']}');
-          }
-
-          return _PlaceDetails(
-            latitude: (location?['lat'] as num?)?.toDouble(),
-            longitude: (location?['lng'] as num?)?.toDouble(),
-            formattedAddress: result['formatted_address'] as String?,
-            streetName: streetName,
-            streetNumber: streetNumber,
-            city: city,
-            postalCode: postalCode,
-            country: country,
+        if (kDebugMode) {
+          print(
+            '[PlacesAPI-Widget] Got details - lat: ${location?['latitude']}, lng: ${location?['longitude']}',
           );
         }
+
+        return _PlaceDetails(
+          latitude: (location?['latitude'] as num?)?.toDouble(),
+          longitude: (location?['longitude'] as num?)?.toDouble(),
+          formattedAddress: data['formattedAddress'] as String?,
+          streetName: streetName,
+          streetNumber: streetNumber,
+          city: city,
+          postalCode: postalCode,
+          country: country,
+        );
       }
       return null;
     } catch (e) {
@@ -492,7 +522,7 @@ class _PlaceDetails {
 
 /// Address search widget using Google Places API
 /// Note: Requires Google Places API key to be configured
-class AddressSearchWidget extends StatefulWidget {
+class AddressSearchWidget extends ConsumerStatefulWidget {
   const AddressSearchWidget({
     super.key,
     required this.onAddressSelected,
@@ -503,10 +533,11 @@ class AddressSearchWidget extends StatefulWidget {
   final AddressModel? initialAddress;
 
   @override
-  State<AddressSearchWidget> createState() => _AddressSearchWidgetState();
+  ConsumerState<AddressSearchWidget> createState() =>
+      _AddressSearchWidgetState();
 }
 
-class _AddressSearchWidgetState extends State<AddressSearchWidget> {
+class _AddressSearchWidgetState extends ConsumerState<AddressSearchWidget> {
   final _searchController = TextEditingController();
   final _streetController = TextEditingController();
   final _buildingController = TextEditingController();
@@ -603,7 +634,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
       _log('Detected country: $isoCode');
       if (isoCode != null && mounted) {
-        final matchedCountry = _supportedCountries.where((c) => c.code == isoCode);
+        final matchedCountry = _supportedCountries.where(
+          (c) => c.code == isoCode,
+        );
         if (matchedCountry.isNotEmpty) {
           setState(() {
             _selectedCountryCode = isoCode!;
@@ -722,7 +755,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   Future<void> _selectPlace(_PlacePrediction prediction) async {
-    _log('Selecting place: ${prediction.description} (placeId: ${prediction.placeId})');
+    _log(
+      'Selecting place: ${prediction.description} (placeId: ${prediction.placeId})',
+    );
 
     setState(() {
       _isSearching = true;
@@ -734,8 +769,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     final details = await _PlacesApiService.getPlaceDetails(prediction.placeId);
 
     if (details != null) {
-      _log('Got place details - lat: ${details.latitude}, lng: ${details.longitude}');
-      _log('Street: ${details.streetName} ${details.streetNumber}, City: ${details.city}');
+      _log(
+        'Got place details - lat: ${details.latitude}, lng: ${details.longitude}',
+      );
+      _log(
+        'Street: ${details.streetName} ${details.streetNumber}, City: ${details.city}',
+      );
 
       setState(() {
         _showManualEntry = true;
@@ -767,17 +806,22 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     // so didUpdateWidget won't re-trigger a search.
     _selfUpdated = true;
     // Use the selected country from dropdown as fallback
-    final countryName = _country ??
+    final countryName =
+        _country ??
         _supportedCountries
             .firstWhere((c) => c.code == _selectedCountryCode)
             .name;
     final address = AddressModel(
       street: _streetController.text,
       building: _buildingController.text,
-      apartment: _apartmentController.text.isNotEmpty ? _apartmentController.text : null,
+      apartment: _apartmentController.text.isNotEmpty
+          ? _apartmentController.text
+          : null,
       floor: _floorController.text.isNotEmpty ? _floorController.text : null,
       city: _cityController.text.isNotEmpty ? _cityController.text : null,
-      postalCode: _postalCodeController.text.isNotEmpty ? _postalCodeController.text : null,
+      postalCode: _postalCodeController.text.isNotEmpty
+          ? _postalCodeController.text
+          : null,
       country: countryName,
       latitude: _latitude,
       longitude: _longitude,
@@ -832,6 +876,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -840,10 +885,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
         // Country selector
         InputDecorator(
           decoration: InputDecoration(
-            labelText: 'Country',
+            labelText: 'address.country'.tr,
             isDense: true,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
@@ -856,7 +903,10 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                 color: isDark ? DarkColors.border : LightColors.border,
               ),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 4.h,
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -918,18 +968,20 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     ),
                   )
                 : _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear, size: 20.w),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _predictions = [];
-                          });
-                        },
-                      )
-                    : null,
+                ? IconButton(
+                    icon: Icon(Icons.clear, size: 20.w),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _predictions = [];
+                      });
+                    },
+                  )
+                : null,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
@@ -944,7 +996,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ),
@@ -971,7 +1025,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _predictions.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (context, index) => Divider(
                 height: 1,
                 color: isDark ? DarkColors.border : LightColors.border,
               ),
@@ -989,14 +1043,18 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
                   ),
                   subtitle: Text(
                     prediction.secondaryText,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                   onTap: () => _selectPlace(prediction),
@@ -1102,17 +1160,19 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
           ),
 
           // Get coordinates button (useful for manual entry, especially on web)
-          if (_latitude == null && _streetController.text.isNotEmpty) ...[
+          if (_streetController.text.isNotEmpty) ...[
             SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _geocodeCurrentAddress,
                 icon: Icon(Icons.my_location, size: 18.w),
-                label: const Text('Get Location Coordinates'),
+                label: Text('address.getLocationCoordinates'.tr),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.primary,
-                  side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                 ),
               ),
@@ -1125,16 +1185,22 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 20.w),
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20.w,
+                  ),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
-                      'Location: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
+                      '${'address.coordinates'.tr}: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Theme.of(context).colorScheme.primary,
@@ -1180,16 +1246,15 @@ class _AddressField extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
             if (isRequired)
               Text(
                 ' *',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.error,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: AppColors.error),
               ),
           ],
         ),
@@ -1201,7 +1266,9 @@ class _AddressField extends StatelessWidget {
             hintText: hint,
             isDense: true,
             filled: true,
-            fillColor: isDark ? DarkColors.inputBackground : LightColors.inputBackground,
+            fillColor: isDark
+                ? DarkColors.inputBackground
+                : LightColors.inputBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.r),
               borderSide: BorderSide(
@@ -1216,9 +1283,14 @@ class _AddressField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 10.h,
+            ),
           ),
         ),
       ],

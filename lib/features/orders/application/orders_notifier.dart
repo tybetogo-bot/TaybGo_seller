@@ -5,8 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
+import 'customer_orders_notifier.dart';
 import '../data/datasources/orders_remote_data_source.dart';
+import '../data/models/food_checkout_model.dart';
 import '../data/models/order_model.dart';
+import '../data/repositories/customer_orders_repository.dart';
 import '../data/repositories/orders_repository.dart';
 
 /// Orders state with cached filtered lists for performance
@@ -31,17 +34,21 @@ class OrdersState {
   final String searchQuery;
 
   // Cached filtered lists
+  late final List<OrderModel> _currentOrders;
   late final List<OrderModel> _pendingOrders;
   late final List<OrderModel> _activeOrders;
   late final List<OrderModel> _completedOrders;
+  late final List<OrderModel> _expiredOrders;
 
   void _computeFilteredLists() {
     final query = searchQuery.toLowerCase();
     final bool hasSearch = searchQuery.isNotEmpty;
 
+    final current = <OrderModel>[];
     final pending = <OrderModel>[];
     final active = <OrderModel>[];
     final completed = <OrderModel>[];
+    final expired = <OrderModel>[];
 
     for (final order in orders) {
       // Apply search filter once
@@ -51,21 +58,27 @@ class OrdersState {
       switch (order.status) {
         case OrderStatusEnum.pending:
         case OrderStatusEnum.searchingForDriver:
+        case OrderStatusEnum.driverNotificationSent:
+          current.add(order);
           pending.add(order);
         case OrderStatusEnum.accepted:
-        case OrderStatusEnum.driverNotificationSent:
         case OrderStatusEnum.onTheWay:
+          current.add(order);
           active.add(order);
         case OrderStatusEnum.delivered:
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           completed.add(order);
+        case OrderStatusEnum.expired:
+          expired.add(order);
       }
     }
 
+    _currentOrders = current;
     _pendingOrders = pending;
     _activeOrders = active;
     _completedOrders = completed;
+    _expiredOrders = expired;
   }
 
   bool _matchesSearch(OrderModel order, String query) {
@@ -101,18 +114,22 @@ class OrdersState {
   }
 
   /// Cached getters - no computation on access
+  List<OrderModel> get currentOrders => _currentOrders;
   List<OrderModel> get pendingOrders => _pendingOrders;
   List<OrderModel> get activeOrders => _activeOrders;
   List<OrderModel> get completedOrders => _completedOrders;
+  List<OrderModel> get expiredOrders => _expiredOrders;
 }
 
 /// Orders notifier for managing order state (Riverpod 3.x)
 class OrdersNotifier extends Notifier<OrdersState> {
   late final OrdersRepository _repository;
+  late final CustomerOrdersRepository _customerOrdersRepository;
 
   @override
   OrdersState build() {
     _repository = ref.watch(ordersRepositoryProvider);
+    _customerOrdersRepository = ref.watch(customerOrdersRepositoryProvider);
 
     // Listen to restaurant selection changes
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
@@ -128,17 +145,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Load orders from API
   /// Note: API auto-scopes to seller's restaurants
-  Future<void> _loadOrders({
-    int page = 1,
-    String? status,
-  }) async {
+  Future<void> _loadOrders({int page = 1, String? status}) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final result = await _repository.getOrders(
-        page: page,
-        status: status,
-      );
+      final result = await _repository.getOrders(page: page, status: status);
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -331,6 +342,104 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
   }
 
+  /// Update an app-created order through the authenticated order endpoint.
+  Future<OrderModel?> updateManualOrder(
+    String orderId,
+    OrderUpdateRequest request,
+  ) async {
+    state = state.copyWith(clearError: true);
+
+    try {
+      final result = await _customerOrdersRepository.updateOrder(
+        orderId,
+        request,
+      );
+
+      if (result.failure != null) {
+        state = state.copyWith(error: result.failure!.message);
+        return null;
+      }
+
+      var updatedOrder = result.data!;
+      final verifiedResult = await _repository.getOrderById(orderId);
+      if (verifiedResult.failure == null && verifiedResult.data != null) {
+        updatedOrder = verifiedResult.data!;
+      }
+
+      final index = state.orders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        final updatedOrders = List<OrderModel>.from(state.orders);
+        updatedOrders[index] = updatedOrder;
+        state = state.copyWith(orders: updatedOrders);
+      } else {
+        await refreshOrders();
+      }
+
+      return updatedOrder;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to update order: $e');
+      return null;
+    }
+  }
+
+  /// Recreate an expired order using the regular create-order API.
+  Future<OrderModel?> reorderExpiredOrder(String orderId) async {
+    state = state.copyWith(clearError: true);
+
+    try {
+      OrderModel? sourceOrder = getOrder(orderId);
+
+      final detailResult = await _repository.getOrderById(orderId);
+      if (detailResult.failure == null && detailResult.data != null) {
+        sourceOrder = detailResult.data;
+
+        final index = state.orders.indexWhere((o) => o.id == orderId);
+        if (index != -1) {
+          final updatedOrders = List<OrderModel>.from(state.orders);
+          updatedOrders[index] = detailResult.data!;
+          state = state.copyWith(orders: updatedOrders);
+        }
+      }
+
+      if (sourceOrder == null) {
+        state = state.copyWith(
+          error:
+              detailResult.failure?.message ??
+              'Unable to load the order for reordering.',
+        );
+        return null;
+      }
+
+      if (sourceOrder.status != OrderStatusEnum.expired) {
+        state = state.copyWith(error: 'Only expired orders can be reordered.');
+        return null;
+      }
+
+      final reorderRequest = sourceOrder.toReorderRequest();
+      final createResult = await _customerOrdersRepository.createFoodOrder(
+        reorderRequest,
+      );
+
+      if (createResult.failure != null) {
+        state = state.copyWith(error: createResult.failure!.message);
+        return null;
+      }
+
+      await refreshOrders();
+      return createResult.data;
+    } on FormatException catch (e) {
+      state = state.copyWith(
+        error: e.message.isNotEmpty
+            ? e.message
+            : 'This order cannot be reordered because some data is missing.',
+      );
+      return null;
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to reorder order: $e');
+      return null;
+    }
+  }
+
   /// Move order to next status in the flow
   /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED
   Future<bool> moveToNextStatus(String orderId) async {
@@ -366,6 +475,8 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return 'ON_THE_WAY';
       case OrderStatusEnum.delivered:
         return 'DELIVERED';
+      case OrderStatusEnum.expired:
+        return 'EXPIRED';
       case OrderStatusEnum.rejected:
         return 'REJECTED';
       case OrderStatusEnum.cancelled:
@@ -436,8 +547,8 @@ final orderByIdProvider = Provider.family<OrderModel?, String>((ref, id) {
 /// ```
 final ordersPollingProvider =
     NotifierProvider<OrdersPollingNotifier, PollingState>(
-  OrdersPollingNotifier.new,
-);
+      OrdersPollingNotifier.new,
+    );
 
 /// Notifier for orders polling
 class OrdersPollingNotifier extends Notifier<PollingState> {

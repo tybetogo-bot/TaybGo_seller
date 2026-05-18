@@ -1,4 +1,4 @@
-/// Food checkout request models for creating food orders
+/// Food order creation models for manual order entry
 library;
 
 import '../../../addresses/data/models/address_model.dart';
@@ -91,7 +91,10 @@ class OrderAddressData {
   }
 
   /// Create from AddressModel (from places search widget)
-  factory OrderAddressData.fromAddressModel(AddressModel address, {String label = 'Delivery'}) {
+  factory OrderAddressData.fromAddressModel(
+    AddressModel address, {
+    String label = 'Delivery',
+  }) {
     // Build full address from components
     final parts = <String>[
       address.street,
@@ -109,6 +112,24 @@ class OrderAddressData {
       fullAddress: fullAddress,
       streetName: address.street,
       houseNumber: address.building,
+      city: address.city,
+      postalCode: address.postalCode,
+      country: address.country,
+    );
+  }
+
+  /// Create from the order API's address shape.
+  factory OrderAddressData.fromOrderAddress(
+    OrderAddressModel address, {
+    String? fallbackLabel,
+  }) {
+    return OrderAddressData(
+      label: address.label ?? fallbackLabel ?? 'Delivery',
+      lat: (address.lat ?? 0.0).toStringAsFixed(6),
+      lng: (address.lng ?? 0.0).toStringAsFixed(6),
+      fullAddress: address.displayAddress,
+      streetName: address.streetName,
+      houseNumber: address.houseNumber,
       city: address.city,
       postalCode: address.postalCode,
       country: address.country,
@@ -149,6 +170,22 @@ enum VehicleType {
         return 'Van';
     }
   }
+
+  static VehicleType? fromApiValue(String? value) {
+    switch (value?.trim().toUpperCase()) {
+      case 'BIKE':
+        return VehicleType.bike;
+      case 'MOTOR':
+      case 'MOTORCYCLE':
+        return VehicleType.motorcycle;
+      case 'CAR':
+        return VehicleType.car;
+      case 'VAN':
+        return VehicleType.van;
+      default:
+        return null;
+    }
+  }
 }
 
 /// Cart item for food checkout
@@ -181,7 +218,7 @@ class CartItem {
   }
 }
 
-/// Food checkout request model - matches API POST /api/customer/checkout/food/
+/// Food order request model - matches API POST /api/orders/
 class FoodCheckoutRequest {
   final OrderType orderType;
   final String status;
@@ -195,10 +232,11 @@ class FoodCheckoutRequest {
   final VehicleType? requestedDeliveryType;
   final int? driverId;
   final bool isManual;
-  // Address IDs (required by API)
+  // Legacy checkout fields kept for compatibility with older flows.
+  // The manual create-order endpoint only uses the drop-off address.
   final int? pickupAddressId;
   final int? dropoffAddressId;
-  // Embedded address data (optional, for creating addresses inline if API supports it)
+  // Embedded address data (optional, used if the address must be created first)
   final OrderAddressData? pickupAddressData;
   final OrderAddressData? dropoffAddressData;
   final List<CartItem>? items;
@@ -237,11 +275,16 @@ class FoodCheckoutRequest {
     this.customerPhoneNumber,
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson({int? dropoffId}) {
     return {
       'order_type': orderType.value,
       'status': status,
       'restaurant': restaurantId,
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
+      if (notes != null && notes!.isNotEmpty) 'delivery_instructions': notes,
       'subtotal_amount': subtotalAmount,
       if (discountAmount != null) 'discount_amount': discountAmount,
       'delivery_fee': deliveryFee,
@@ -254,97 +297,212 @@ class FoodCheckoutRequest {
       if (driverId != null) 'driver': driverId,
       'is_manual': isManual,
       'is_paid': isPaid,
-      if (pickupAddressId != null) 'pickup_address': pickupAddressId,
-      if (dropoffAddressId != null) 'dropoff_address': dropoffAddressId,
-      if (pickupAddressData != null)
-        'pickup_address_data': pickupAddressData!.toJson(),
-      if (dropoffAddressData != null)
+      if (dropoffId != null) 'dropoff_address': dropoffId,
+      if (dropoffId == null && dropoffAddressId != null)
+        'dropoff_address': dropoffAddressId,
+      if (dropoffId == null &&
+          dropoffAddressId == null &&
+          dropoffAddressData != null)
         'dropoff_address_data': dropoffAddressData!.toJson(),
       if (items != null && items!.isNotEmpty)
         'items': items!.map((item) => item.toJson()).toList(),
       if (couponId != null) 'coupon': couponId,
-      if (couponCode != null && couponCode!.isNotEmpty && couponId == null)
-        'coupon_code': couponCode,
-      if (notes != null && notes!.isNotEmpty) 'notes': notes,
-      if (paymentMethodId != null) 'payment_method': paymentMethodId,
-      if (customerName != null && customerName!.isNotEmpty)
-        'customer_name': customerName,
-      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
-        'customer_phone_number': customerPhoneNumber,
     };
   }
 
-  /// Build JSON with pre-created address IDs instead of nested address data
-  Map<String, dynamic> toJsonWithAddressIds({int? pickupId, int? dropoffId}) {
-    return {
-      'order_type': orderType.value,
-      'status': status,
-      'restaurant': restaurantId,
-      'subtotal_amount': subtotalAmount,
-      if (discountAmount != null) 'discount_amount': discountAmount,
-      'delivery_fee': deliveryFee,
-      if (tip != null) 'tip': tip,
-      'total_amount': totalAmount,
-      if (requestedVehicleType != null)
-        'requested_vehicle_type': requestedVehicleType!.value,
-      if (requestedDeliveryType != null)
-        'requested_delivery_type': requestedDeliveryType!.value,
-      if (driverId != null) 'driver': driverId,
-      'is_manual': isManual,
-      'is_paid': isPaid,
-      if (pickupId != null) 'pickup_address': pickupId,
-      if (dropoffId != null) 'dropoff_address': dropoffId,
-      if (items != null && items!.isNotEmpty)
-        'items': items!.map((item) => item.toJson()).toList(),
-      if (couponId != null) 'coupon': couponId,
-      if (couponCode != null && couponCode!.isNotEmpty && couponId == null)
-        'coupon_code': couponCode,
-      if (notes != null && notes!.isNotEmpty) 'notes': notes,
-      if (paymentMethodId != null) 'payment_method': paymentMethodId,
-      if (customerName != null && customerName!.isNotEmpty)
-        'customer_name': customerName,
-      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
-        'customer_phone_number': customerPhoneNumber,
-    };
+  /// Build JSON with pre-created address IDs instead of nested address data.
+  Map<String, dynamic> toJsonWithAddressIds({int? dropoffId}) {
+    return toJson(dropoffId: dropoffId);
+  }
+}
+
+String? _buildCustomerPhoneNumber(OrderModel order) {
+  final phone = order.phoneNumber.trim();
+  final countryCode = order.countryCode.trim();
+
+  if (phone.isEmpty) return null;
+  if (phone.startsWith('+')) return phone;
+  if (countryCode.isNotEmpty && phone.startsWith(countryCode)) return phone;
+
+  return '$countryCode$phone';
+}
+
+String? _buildCartItemCustomizations(OrderItemModel item) {
+  final parts = <String>[];
+
+  final customizationsText = item.customizationsText?.trim();
+  if (customizationsText != null && customizationsText.isNotEmpty) {
+    parts.add(customizationsText);
+  }
+
+  final notes = item.notes?.trim();
+  if (notes != null && notes.isNotEmpty && !parts.contains(notes)) {
+    parts.add(notes);
+  }
+
+  if (item.customizations.isNotEmpty) {
+    final structuredCustomizations = item.customizations
+        .map(
+          (customization) => switch (customization.type) {
+            CustomizationType.addition => '+ ${customization.name}',
+            CustomizationType.removal => '- ${customization.name}',
+          },
+        )
+        .join(', ');
+
+    if (structuredCustomizations.isNotEmpty &&
+        !parts.contains(structuredCustomizations)) {
+      parts.add(structuredCustomizations);
+    }
+  }
+
+  if (parts.isEmpty) return null;
+  return parts.join('\n');
+}
+
+OrderAddressData _buildDropoffAddressData(OrderModel order) {
+  final label =
+      order.dropoffAddress?.label ?? 'Customer: ${order.customerName}';
+
+  if (order.dropoffAddress != null) {
+    return OrderAddressData.fromOrderAddress(
+      order.dropoffAddress!,
+      fallbackLabel: label,
+    );
+  }
+
+  return OrderAddressData.fromAddressModel(order.address, label: label);
+}
+
+extension OrderReorderRequestExtension on OrderModel {
+  FoodCheckoutRequest toReorderRequest() {
+    final parsedRestaurantId = int.tryParse(
+      restaurantId ?? restaurant?.id.toString() ?? '',
+    );
+
+    if (parsedRestaurantId == null || parsedRestaurantId <= 0) {
+      throw const FormatException('Missing restaurant for reorder.');
+    }
+
+    final cartItems = items.map((item) {
+      final parsedItemId = int.tryParse(item.menuItemId);
+      if (parsedItemId == null || parsedItemId <= 0) {
+        throw FormatException(
+          'Order item "${item.name}" is missing a valid menu item id.',
+        );
+      }
+
+      return CartItem(
+        itemId: parsedItemId,
+        quantity: item.quantity,
+        customizations: _buildCartItemCustomizations(item),
+      );
+    }).toList();
+
+    if (cartItems.isEmpty) {
+      throw const FormatException('This order has no items to reorder.');
+    }
+
+    final effectiveSubtotal = subtotal > 0 ? subtotal : calculatedSubtotal;
+    final effectiveTotal = total > 0
+        ? total
+        : effectiveSubtotal + deliveryFee + tips - discountAmount;
+    final requestedVehicle = VehicleType.fromApiValue(requestedVehicleType);
+    final requestedDelivery =
+        VehicleType.fromApiValue(requestedDeliveryType) ?? requestedVehicle;
+
+    return FoodCheckoutRequest(
+      restaurantId: parsedRestaurantId,
+      customerName: customerName.trim().isEmpty ? null : customerName.trim(),
+      customerPhoneNumber: _buildCustomerPhoneNumber(this),
+      subtotalAmount: effectiveSubtotal.toStringAsFixed(2),
+      discountAmount: discountAmount > 0
+          ? discountAmount.toStringAsFixed(2)
+          : null,
+      deliveryFee: deliveryFee.toStringAsFixed(2),
+      tip: tips > 0 ? tips.toStringAsFixed(2) : null,
+      totalAmount: effectiveTotal.toStringAsFixed(2),
+      requestedVehicleType: requestedVehicle,
+      requestedDeliveryType: requestedDelivery,
+      isManual: true,
+      isPaid: isPaid,
+      dropoffAddressData: _buildDropoffAddressData(this),
+      items: cartItems,
+      couponId: coupon?.id,
+      notes: notes,
+    );
   }
 }
 
 /// Order update request model for editing orders
 class OrderUpdateRequest {
+  final String? orderType;
+  final String? customerName;
+  final String? customerPhoneNumber;
   final OrderAddressData? dropoffAddressData;
   final List<CartItem>? items;
   final String? notes;
   final String? status;
+  final int? restaurantId;
+  final int? couponId;
+  final bool includeCoupon;
   final String? subtotalAmount;
   final String? discountAmount;
   final String? deliveryFee;
   final String? tip;
   final String? totalAmount;
+  final VehicleType? requestedVehicleType;
+  final VehicleType? requestedDeliveryType;
+  final bool? isManual;
+  final bool? isPaid;
 
   const OrderUpdateRequest({
+    this.orderType,
+    this.customerName,
+    this.customerPhoneNumber,
     this.dropoffAddressData,
     this.items,
     this.notes,
     this.status,
+    this.restaurantId,
+    this.couponId,
+    this.includeCoupon = false,
     this.subtotalAmount,
     this.discountAmount,
     this.deliveryFee,
     this.tip,
     this.totalAmount,
+    this.requestedVehicleType,
+    this.requestedDeliveryType,
+    this.isManual,
+    this.isPaid,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      if (orderType != null) 'order_type': orderType,
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
       if (dropoffAddressData != null)
         'dropoff_address_data': dropoffAddressData!.toJson(),
       if (items != null) 'items': items!.map((item) => item.toJson()).toList(),
-      if (notes != null) 'notes': notes,
+      if (notes != null) 'delivery_instructions': notes,
       if (status != null) 'status': status,
+      if (restaurantId != null) 'restaurant': restaurantId,
+      if (includeCoupon) 'coupon': couponId,
       if (subtotalAmount != null) 'subtotal_amount': subtotalAmount,
       if (discountAmount != null) 'discount_amount': discountAmount,
       if (deliveryFee != null) 'delivery_fee': deliveryFee,
       if (tip != null) 'tip': tip,
       if (totalAmount != null) 'total_amount': totalAmount,
+      if (requestedVehicleType != null)
+        'requested_vehicle_type': requestedVehicleType!.value,
+      if (requestedDeliveryType != null)
+        'requested_delivery_type': requestedDeliveryType!.value,
+      if (isManual != null) 'is_manual': isManual,
+      if (isPaid != null) 'is_paid': isPaid,
     };
   }
 }

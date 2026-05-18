@@ -9,6 +9,10 @@ import '../data/repositories/coupons_repository.dart';
 /// Filter for coupon list
 enum CouponFilter { all, active, expired }
 
+String _serializeCouponDate(DateTime dateTime) {
+  return dateTime.toUtc().toIso8601String();
+}
+
 /// Coupons state containing coupons and filters
 class CouponsState {
   const CouponsState({
@@ -69,11 +73,14 @@ class CouponsState {
     // Filter by search query
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
-      result = result.where((c) =>
-        c.title.toLowerCase().contains(query) ||
-        c.code.toLowerCase().contains(query) ||
-        (c.description?.toLowerCase().contains(query) ?? false)
-      ).toList();
+      result = result
+          .where(
+            (c) =>
+                c.title.toLowerCase().contains(query) ||
+                c.code.toLowerCase().contains(query) ||
+                (c.description?.toLowerCase().contains(query) ?? false),
+          )
+          .toList();
     }
 
     return result;
@@ -83,7 +90,8 @@ class CouponsState {
   int get activeCount => coupons.where((c) => c.isValid).length;
 
   /// Count of expired coupons
-  int get expiredCount => coupons.where((c) => c.isExpired || !c.isActive).length;
+  int get expiredCount =>
+      coupons.where((c) => c.isExpired || !c.isActive).length;
 }
 
 /// Coupons state notifier for managing coupons (Riverpod 3.x)
@@ -103,7 +111,7 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
     // Listen for restaurant selection changes
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && previous != next) {
+      if (previous != next) {
         Future.microtask(() => _loadCoupons());
       }
     });
@@ -116,25 +124,19 @@ class CouponsNotifier extends Notifier<CouponsState> {
   String? get _restaurantId => ref.read(selectedRestaurantIdProvider);
 
   /// Load coupons from API
-  Future<void> _loadCoupons({
-    int page = 1,
-    bool? active,
-    String? code,
-  }) async {
+  Future<void> _loadCoupons({int page = 1, bool? active, String? code}) async {
     final restaurantState = ref.read(restaurantProvider);
 
     // If restaurant state is still loading, keep coupons in loading state
-    if (restaurantState is RestaurantInitial || restaurantState is RestaurantLoading) {
+    if (restaurantState is RestaurantInitial ||
+        restaurantState is RestaurantLoading) {
       state = state.copyWith(isLoading: true, clearError: true);
       return;
     }
 
     final restaurantId = _restaurantId;
     if (restaurantId == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'No restaurant selected',
-      );
+      state = state.copyWith(isLoading: false, error: 'No restaurant selected');
       return;
     }
 
@@ -147,6 +149,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         active: active,
         code: code,
       );
+
+      if (_restaurantId != restaurantId) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -188,10 +194,7 @@ class CouponsNotifier extends Notifier<CouponsState> {
   Future<void> addCoupon(CouponModel coupon) async {
     final restaurantId = _restaurantId;
     if (restaurantId == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'No restaurant selected',
-      );
+      state = state.copyWith(isLoading: false, error: 'No restaurant selected');
       return;
     }
 
@@ -205,12 +208,14 @@ class CouponsNotifier extends Notifier<CouponsState> {
         'code': coupon.code,
         'percentage': coupon.percentDiscount.toInt(),
         'min_price': coupon.minimumOrderPrice.toStringAsFixed(2),
-        'start_date': coupon.startDate.toIso8601String(),
-        'end_date': coupon.endDate.toIso8601String(),
+        'start_date': _serializeCouponDate(coupon.startDate),
+        'end_date': _serializeCouponDate(coupon.endDate),
         'is_active': coupon.isActive,
         if (coupon.description != null) 'description': coupon.description,
-        if (coupon.maxTotalUsage != null) 'max_total_users': coupon.maxTotalUsage,
-        if (coupon.maxUsagePerUser != null) 'max_per_customer': coupon.maxUsagePerUser,
+        if (coupon.maxTotalUsage != null)
+          'max_total_users': coupon.maxTotalUsage,
+        if (coupon.maxUsagePerUser != null)
+          'max_per_customer': coupon.maxUsagePerUser,
       };
 
       final result = await _repository.createCoupon(
@@ -249,12 +254,14 @@ class CouponsNotifier extends Notifier<CouponsState> {
         'code': coupon.code,
         'percentage': coupon.percentDiscount.toInt(),
         'min_price': coupon.minimumOrderPrice.toStringAsFixed(2),
-        'start_date': coupon.startDate.toIso8601String(),
-        'end_date': coupon.endDate.toIso8601String(),
+        'start_date': _serializeCouponDate(coupon.startDate),
+        'end_date': _serializeCouponDate(coupon.endDate),
         'is_active': coupon.isActive,
         if (coupon.description != null) 'description': coupon.description,
-        if (coupon.maxTotalUsage != null) 'max_total_users': coupon.maxTotalUsage,
-        if (coupon.maxUsagePerUser != null) 'max_per_customer': coupon.maxUsagePerUser,
+        if (coupon.maxTotalUsage != null)
+          'max_total_users': coupon.maxTotalUsage,
+        if (coupon.maxUsagePerUser != null)
+          'max_per_customer': coupon.maxUsagePerUser,
       };
 
       final result = await _repository.patchCoupon(coupon.id, data);
@@ -271,10 +278,7 @@ class CouponsNotifier extends Notifier<CouponsState> {
           .map((c) => c.id == coupon.id ? result.data! : c)
           .toList();
 
-      state = state.copyWith(
-        coupons: updatedCoupons,
-        isLoading: false,
-      );
+      state = state.copyWith(coupons: updatedCoupons, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -298,12 +302,11 @@ class CouponsNotifier extends Notifier<CouponsState> {
         return;
       }
 
-      final updatedCoupons = state.coupons.where((c) => c.id != couponId).toList();
+      final updatedCoupons = state.coupons
+          .where((c) => c.id != couponId)
+          .toList();
 
-      state = state.copyWith(
-        coupons: updatedCoupons,
-        isLoading: false,
-      );
+      state = state.copyWith(coupons: updatedCoupons, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -320,10 +323,9 @@ class CouponsNotifier extends Notifier<CouponsState> {
       final coupon = state.coupons.firstWhere((c) => c.id == couponId);
 
       // Use patch to update only the is_active field
-      final result = await _repository.patchCoupon(
-        couponId,
-        {'is_active': !coupon.isActive},
-      );
+      final result = await _repository.patchCoupon(couponId, {
+        'is_active': !coupon.isActive,
+      });
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -353,7 +355,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
   String generateCouponCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = DateTime.now().millisecondsSinceEpoch;
-    final code = List.generate(8, (i) => chars[(random + i * 7) % chars.length]).join();
+    final code = List.generate(
+      8,
+      (i) => chars[(random + i * 7) % chars.length],
+    ).join();
     return code;
   }
 

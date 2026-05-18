@@ -35,7 +35,9 @@ class CustomerOrdersApi {
   }
 
   /// Create an address via POST /api/addresses/
-  Future<CustomerAddressModel> _createAddress(OrderAddressData addressData) async {
+  Future<CustomerAddressModel> _createAddress(
+    OrderAddressData addressData,
+  ) async {
     final data = addressData.toJson();
     _log('Creating address with data: $data');
     final response = await _dio.post('/api/addresses/', data: data);
@@ -44,39 +46,26 @@ class CustomerOrdersApi {
   }
 
   /// Create a food order
-  /// First creates pickup/dropoff addresses, then creates order with address IDs
+  /// Creates the drop-off address if needed, then creates the order
   /// POST /api/orders/
   Future<OrderModel> createFoodOrder(FoodCheckoutRequest request) async {
     try {
-      // Step 1: Create addresses and get their IDs
-      int? pickupId = request.pickupAddressId;
       int? dropoffId = request.dropoffAddressId;
-
-      if (pickupId == null && request.pickupAddressData != null) {
-        _log('Creating pickup address...');
-        final pickupAddress = await _createAddress(request.pickupAddressData!);
-        pickupId = pickupAddress.id;
-        _log('Created pickup address with ID: $pickupId');
-      }
 
       if (dropoffId == null && request.dropoffAddressData != null) {
         _log('Creating dropoff address...');
-        final dropoffAddress = await _createAddress(request.dropoffAddressData!);
+        final dropoffAddress = await _createAddress(
+          request.dropoffAddressData!,
+        );
         dropoffId = dropoffAddress.id;
         _log('Created dropoff address with ID: $dropoffId');
       }
 
-      // Step 2: Build order request with address IDs instead of nested data
-      final requestJson = request.toJsonWithAddressIds(
-        pickupId: pickupId,
-        dropoffId: dropoffId,
-      );
+      // Build the request in the shape expected by POST /api/orders/
+      final requestJson = request.toJson(dropoffId: dropoffId);
       _log('Creating food order with data: $requestJson');
 
-      final response = await _dio.post(
-        '/api/orders/',
-        data: requestJson,
-      );
+      final response = await _dio.post('/api/orders/', data: requestJson);
 
       _log('Create food order response status: ${response.statusCode}');
       _log('Create food order response data: ${response.data}');
@@ -95,7 +84,11 @@ class CustomerOrdersApi {
       _log('Response data: ${e.response?.data}');
       rethrow;
     } catch (e, stackTrace) {
-      _log('Unexpected error creating food order', error: e, stackTrace: stackTrace);
+      _log(
+        'Unexpected error creating food order',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -126,20 +119,14 @@ class CustomerOrdersApi {
   /// Update an order (full update)
   /// PUT /api/orders/{id}/
   Future<OrderModel> updateOrder(String id, OrderUpdateRequest request) async {
-    final response = await _dio.put(
-      '/api/orders/$id/',
-      data: request.toJson(),
-    );
+    final response = await _dio.put('/api/orders/$id/', data: request.toJson());
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// Partial update an order
   /// PATCH /api/orders/{id}/
   Future<OrderModel> patchOrder(String id, Map<String, dynamic> data) async {
-    final response = await _dio.patch(
-      '/api/orders/$id/',
-      data: data,
-    );
+    final response = await _dio.patch('/api/orders/$id/', data: data);
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -158,9 +145,7 @@ class CustomerOrdersApi {
 
   /// List user's orders (generic)
   /// GET /api/orders/
-  Future<PaginatedResponse<OrderModel>> getOrders({
-    int page = 1,
-  }) async {
+  Future<PaginatedResponse<OrderModel>> getOrders({int page = 1}) async {
     final response = await _dio.get(
       '/api/orders/',
       queryParameters: {'page': page},

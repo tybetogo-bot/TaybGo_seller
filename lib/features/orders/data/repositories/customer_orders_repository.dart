@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/i18n/i18n.dart';
 import '../datasources/customer_orders_remote_data_source.dart';
 import '../models/food_checkout_model.dart';
 import '../models/order_model.dart';
@@ -18,19 +19,29 @@ typedef CustomerOrdersResult<T> = ({Failure? failure, T? data});
 /// Customer orders repository interface
 abstract class CustomerOrdersRepository {
   /// Create a food order
-  Future<CustomerOrdersResult<OrderModel>> createFoodOrder(FoodCheckoutRequest request);
+  Future<CustomerOrdersResult<OrderModel>> createFoodOrder(
+    FoodCheckoutRequest request,
+  );
 
   /// Get customer orders list with pagination
-  Future<CustomerOrdersResult<List<OrderModel>>> getCustomerOrders({int page = 1});
+  Future<CustomerOrdersResult<List<OrderModel>>> getCustomerOrders({
+    int page = 1,
+  });
 
   /// Get customer order by ID
   Future<CustomerOrdersResult<OrderModel>> getCustomerOrderById(String id);
 
   /// Update an order
-  Future<CustomerOrdersResult<OrderModel>> updateOrder(String id, OrderUpdateRequest request);
+  Future<CustomerOrdersResult<OrderModel>> updateOrder(
+    String id,
+    OrderUpdateRequest request,
+  );
 
   /// Partial update an order
-  Future<CustomerOrdersResult<OrderModel>> patchOrder(String id, Map<String, dynamic> data);
+  Future<CustomerOrdersResult<OrderModel>> patchOrder(
+    String id,
+    Map<String, dynamic> data,
+  );
 
   /// Delete an order
   Future<CustomerOrdersResult<void>> deleteOrder(String id);
@@ -70,10 +81,12 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       final data = response.data;
       if (data is Map<String, dynamic>) {
         // Try common error field names
-        final errorMsg = data['detail'] ??
+        final errorMsg =
+            data['detail'] ??
             data['message'] ??
             data['error'] ??
             data['non_field_errors']?.toString() ??
+            _formatFieldErrors(data) ??
             data.toString();
         return errorMsg.toString();
       }
@@ -82,8 +95,38 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
     return e.message ?? 'Network error occurred';
   }
 
+  String? _formatFieldErrors(Map<String, dynamic> data) {
+    final fieldErrors = <String>[];
+
+    void collect(String key, dynamic value) {
+      if (value is List && value.isNotEmpty) {
+        fieldErrors.add('$key: ${value.first}');
+      } else if (value is String) {
+        fieldErrors.add('$key: $value');
+      } else if (value is Map) {
+        value.forEach((nestedKey, nestedValue) {
+          collect('$key.$nestedKey', nestedValue);
+        });
+      }
+    }
+
+    data.forEach(collect);
+    if (fieldErrors.isEmpty) return null;
+    return fieldErrors.join(', ');
+  }
+
+  String _extractPatchErrorMessage(DioException e) {
+    final apiError = e.error;
+    if (apiError is ApiException && apiError.message != 'An error occurred') {
+      return apiError.message;
+    }
+    return _extractErrorMessage(e);
+  }
+
   @override
-  Future<CustomerOrdersResult<OrderModel>> createFoodOrder(FoodCheckoutRequest request) async {
+  Future<CustomerOrdersResult<OrderModel>> createFoodOrder(
+    FoodCheckoutRequest request,
+  ) async {
     _log('Creating food order...');
     _log('Request data: ${request.toJson()}');
 
@@ -92,11 +135,7 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       _log('Food order created successfully with ID: ${order.id}');
       return (failure: null, data: order);
     } on DioException catch (e, stackTrace) {
-      _log(
-        'DioException in createFoodOrder',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      _log('DioException in createFoodOrder', error: e, stackTrace: stackTrace);
       _log('Status code: ${e.response?.statusCode}');
       _log('Response data: ${e.response?.data}');
       _log('Error type: ${e.type}');
@@ -105,6 +144,15 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       _log('Extracted error message: $errorMessage');
 
       final apiError = e.error;
+      if (e.response?.statusCode == 409) {
+        return (
+          failure: ValidationFailure(
+            message: 'errors.auth.phoneAlreadyRegistered'.tr,
+          ),
+          data: null,
+        );
+      }
+
       if (apiError is ApiException) {
         _log('ApiException: ${apiError.message}');
         return (
@@ -114,10 +162,7 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       }
 
       // Return detailed error message from API response
-      return (
-        failure: ServerFailure(message: errorMessage),
-        data: null,
-      );
+      return (failure: ServerFailure(message: errorMessage), data: null);
     } catch (e, stackTrace) {
       _log(
         'Unexpected error in createFoodOrder',
@@ -132,17 +177,16 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
   }
 
   @override
-  Future<CustomerOrdersResult<List<OrderModel>>> getCustomerOrders({int page = 1}) async {
+  Future<CustomerOrdersResult<List<OrderModel>>> getCustomerOrders({
+    int page = 1,
+  }) async {
     try {
       final orders = await _remoteDataSource.getCustomerOrders(page: page);
       return (failure: null, data: orders);
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -159,17 +203,16 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
   }
 
   @override
-  Future<CustomerOrdersResult<OrderModel>> getCustomerOrderById(String id) async {
+  Future<CustomerOrdersResult<OrderModel>> getCustomerOrderById(
+    String id,
+  ) async {
     try {
       final order = await _remoteDataSource.getCustomerOrderById(id);
       return (failure: null, data: order);
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -184,7 +227,10 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
   }
 
   @override
-  Future<CustomerOrdersResult<OrderModel>> updateOrder(String id, OrderUpdateRequest request) async {
+  Future<CustomerOrdersResult<OrderModel>> updateOrder(
+    String id,
+    OrderUpdateRequest request,
+  ) async {
     try {
       final order = await _remoteDataSource.updateOrder(id, request);
       return (failure: null, data: order);
@@ -192,12 +238,12 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ValidationFailure(message: apiError.message),
+          failure: ValidationFailure(message: _extractPatchErrorMessage(e)),
           data: null,
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: NetworkFailure(message: _extractPatchErrorMessage(e)),
         data: null,
       );
     } catch (e) {
@@ -209,7 +255,10 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
   }
 
   @override
-  Future<CustomerOrdersResult<OrderModel>> patchOrder(String id, Map<String, dynamic> data) async {
+  Future<CustomerOrdersResult<OrderModel>> patchOrder(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final order = await _remoteDataSource.patchOrder(id, data);
       return (failure: null, data: order);
@@ -217,12 +266,12 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ValidationFailure(message: apiError.message),
+          failure: ValidationFailure(message: _extractPatchErrorMessage(e)),
           data: null,
         );
       }
       return (
-        failure: const NetworkFailure(message: 'Network error occurred'),
+        failure: NetworkFailure(message: _extractPatchErrorMessage(e)),
         data: null,
       );
     } catch (e) {
@@ -241,10 +290,7 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -266,10 +312,7 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),

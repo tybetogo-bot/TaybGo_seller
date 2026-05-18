@@ -19,7 +19,7 @@ class ErrorInterceptor extends Interceptor {
 
     // Convert DioException to custom ApiException
     final exception = _handleError(err);
-    
+
     // Pass the custom exception
     handler.reject(
       DioException(
@@ -45,10 +45,7 @@ class ErrorInterceptor extends Interceptor {
         return _handleStatusCode(error.response);
 
       case DioExceptionType.cancel:
-        return ApiException(
-          message: 'Request cancelled',
-          statusCode: 0,
-        );
+        return ApiException(message: 'Request cancelled', statusCode: 0);
 
       case DioExceptionType.connectionError:
         return ApiException(
@@ -76,7 +73,14 @@ class ErrorInterceptor extends Interceptor {
 
     // Try to extract error message from response
     String message = 'An error occurred';
-    
+
+    if (statusCode == 409) {
+      return ApiException(
+        message: _getDefaultMessageForCode(statusCode),
+        statusCode: statusCode,
+      );
+    }
+
     if (data is Map<String, dynamic>) {
       // API uses 'detail' for error messages
       if (data['detail'] != null) {
@@ -120,11 +124,18 @@ class ErrorInterceptor extends Interceptor {
           errors: _extractValidationErrors(data),
         );
       case 429:
-        return ApiException(message: 'Too many requests. Please wait and try again.', statusCode: 429);
+        return ApiException(
+          message: 'Too many requests. Please wait and try again.',
+          statusCode: 429,
+        );
       case 500:
       case 502:
       case 503:
-        return ServerException(message: message.isEmpty ? 'Server error. Please try again later.' : message);
+        return ServerException(
+          message: message.isEmpty
+              ? 'Server error. Please try again later.'
+              : message,
+        );
       default:
         return ApiException(message: message, statusCode: statusCode);
     }
@@ -132,7 +143,7 @@ class ErrorInterceptor extends Interceptor {
 
   Map<String, List<String>>? _extractValidationErrors(dynamic data) {
     if (data is! Map<String, dynamic>) return null;
-    
+
     final errors = data['errors'];
     if (errors is! Map<String, dynamic>) return null;
 
@@ -154,6 +165,8 @@ class ErrorInterceptor extends Interceptor {
         return 'Access denied.';
       case 404:
         return 'The requested resource was not found.';
+      case 409:
+        return 'This number is already registered.';
       case 422:
         return 'Validation error. Please check your input.';
       case 429:

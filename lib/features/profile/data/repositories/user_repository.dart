@@ -19,23 +19,36 @@ abstract class UserRepository {
   /// Update user profile
   Future<UserResult<UserProfile>> updateProfile(Map<String, dynamic> data);
 
-  /// Get seller profile (returns BasicProfile with name, phone, age)
+  /// Get seller profile (returns BasicProfile with seller basics + document URL)
   Future<UserResult<BasicProfile>> getSellerProfile();
 
-  /// Update seller profile (returns BasicProfile with name, phone, age)
+  /// Update seller profile (returns BasicProfile with seller basics + document URL)
   Future<UserResult<BasicProfile>> updateSellerProfile(
     Map<String, dynamic> data,
   );
 
   /// Delete user account and all related data
   Future<UserResult<void>> deleteAccount();
+
+  /// List saved addresses
+  Future<UserResult<List<Map<String, dynamic>>>> listAddresses();
+
+  /// Create a new address
+  Future<UserResult<Map<String, dynamic>>> createAddress(
+    Map<String, dynamic> data,
+  );
+
+  /// Update an existing address
+  Future<UserResult<Map<String, dynamic>>> updateAddress(
+    int id,
+    Map<String, dynamic> data,
+  );
 }
 
 /// Implementation of user repository
 class UserRepositoryImpl implements UserRepository {
-  UserRepositoryImpl({
-    required UserDataSource remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource;
+  UserRepositoryImpl({required UserDataSource remoteDataSource})
+    : _remoteDataSource = remoteDataSource;
 
   final UserDataSource _remoteDataSource;
 
@@ -47,10 +60,7 @@ class UserRepositoryImpl implements UserRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -101,10 +111,7 @@ class UserRepositoryImpl implements UserRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -155,8 +162,82 @@ class UserRepositoryImpl implements UserRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
+        return (failure: ServerFailure(message: apiError.message), data: null);
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<UserResult<List<Map<String, dynamic>>>> listAddresses() async {
+    try {
+      final addresses = await _remoteDataSource.listAddresses();
+      return (failure: null, data: addresses);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (failure: ServerFailure(message: apiError.message), data: null);
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<UserResult<Map<String, dynamic>>> createAddress(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final address = await _remoteDataSource.createAddress(data);
+      return (failure: null, data: address);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
         return (
-          failure: ServerFailure(message: apiError.message),
+          failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<UserResult<Map<String, dynamic>>> updateAddress(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final address = await _remoteDataSource.updateAddress(id, data);
+      return (failure: null, data: address);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ValidationFailure(message: apiError.message),
           data: null,
         );
       }

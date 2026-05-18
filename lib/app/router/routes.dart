@@ -43,6 +43,9 @@ class Routes {
   static const String createOrder = '/orders/create';
   static const String createOrderName = 'createOrder';
 
+  static const String editOrder = '/orders/edit/:orderId';
+  static const String editOrderName = 'editOrder';
+
   static const String scanOrder = '/orders/scan';
   static const String scanOrderName = 'scanOrder';
 
@@ -60,6 +63,9 @@ class Routes {
   static const String settings = '/profile/settings';
   static const String settingsName = 'settings';
 
+  static const String editProfile = '/profile/edit';
+  static const String editProfileName = 'editProfile';
+
   static const String restaurantSettings = '/profile/restaurant';
   static const String restaurantSettingsName = 'restaurantSettings';
 
@@ -75,6 +81,9 @@ class Routes {
 
   /// Get edit coupon path with id
   static String editCouponPath(String couponId) => '/coupons/edit/$couponId';
+
+  static const String earnings = '/profile/earnings';
+  static const String earningsName = 'earnings';
 
   static const String statistics = '/profile/statistics';
   static const String statisticsName = 'statistics';
@@ -128,6 +137,15 @@ class Routes {
 
   /// Get order details path with id
   static String orderDetailsPath(String orderId) => '/orders/details/$orderId';
+
+  /// Get edit order path with id
+  static String editOrderPath(String orderId) => '/orders/edit/$orderId';
+
+  /// Get orders path with an optional tab query parameter.
+  static String ordersPath({String? tab}) {
+    if (tab == null || tab.isEmpty) return orders;
+    return '$orders?tab=$tab';
+  }
 
   /// Get menu item path with id
   static String menuItemPath(String itemId) => '/menu/item/$itemId';

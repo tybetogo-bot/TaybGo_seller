@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/providers/providers.dart';
 import '../data/models/restaurant_model.dart';
@@ -57,9 +58,12 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   @override
   RestaurantState build() {
-    print('🟡 [RestaurantNotifier] build() called');
+    debugPrint('🟡 [RestaurantNotifier] build() called');
     _repository = ref.watch(restaurantRepositoryProvider);
     _initialized = false;
+    // Auto-initialize so restaurants load even without splash screen
+    // (e.g. on hot restart when already on a protected route)
+    Future.microtask(() => initialize());
     return const RestaurantInitial();
   }
 
@@ -69,74 +73,117 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     if (_initialized) return;
     _initialized = true;
 
-    final storedRestaurantId = _repository.getSelectedRestaurantId();
-    print('🟡 [RestaurantNotifier] Stored restaurant ID: $storedRestaurantId');
+    await fetchRestaurants();
 
-    if (storedRestaurantId != null) {
-      await fetchRestaurantById(storedRestaurantId);
-    } else {
-      await fetchRestaurants();
+    // Refresh selected restaurant details (stats, etc.) while preserving
+    // the full restaurants list for switching in profile.
+    final currentState = state;
+    if (currentState is RestaurantLoaded &&
+        currentState.selectedRestaurant != null) {
+      await fetchRestaurantById(currentState.selectedRestaurant!.id);
     }
+  }
+
+  /// Seed an empty restaurant list so new users can be redirected to onboarding
+  /// without calling seller-scoped restaurant endpoints first.
+  void setOnboardingPending() {
+    _initialized = true;
+    state = const RestaurantLoaded(restaurants: []);
   }
 
   /// Fetch all restaurants for the seller
   Future<void> fetchRestaurants() async {
-    print('🟡 [RestaurantNotifier] fetchRestaurants() called');
+    debugPrint('🟡 [RestaurantNotifier] fetchRestaurants() called');
+    final previousState = state;
+    final storedRestaurantId = _repository.getSelectedRestaurantId();
+    final previousSelectedId = previousState is RestaurantLoaded
+        ? previousState.selectedRestaurant?.id
+        : null;
     state = const RestaurantLoading();
 
     final result = await _repository.getRestaurants();
 
     if (result.failure != null) {
-      print(
+      debugPrint(
         '🔴 [RestaurantNotifier] fetchRestaurants error: ${result.failure!.message}',
       );
       state = RestaurantError(
         message: result.failure!.message,
-        previousState: const RestaurantInitial(),
+        previousState: previousState,
       );
     } else if (result.data != null) {
       final restaurants = result.data!;
-      print(
+      debugPrint(
         '🟢 [RestaurantNotifier] Fetched ${restaurants.length} restaurants',
       );
 
-      // If only one restaurant, auto-select it
+      RestaurantModel? selectedRestaurant;
+      final preferredRestaurantId = previousSelectedId ?? storedRestaurantId;
+
+      if (preferredRestaurantId != null) {
+        for (final restaurant in restaurants) {
+          if (restaurant.id == preferredRestaurantId) {
+            selectedRestaurant = restaurant;
+            break;
+          }
+        }
+      }
+
+      // If there is only one restaurant, always auto-select it.
       if (restaurants.length == 1) {
-        print('🟢 [RestaurantNotifier] Auto-selecting single restaurant');
-        await selectRestaurant(restaurants.first);
-      } else {
-        state = RestaurantLoaded(restaurants: restaurants);
+        selectedRestaurant = restaurants.first;
+      }
+
+      if (selectedRestaurant != null) {
+        await _repository.saveSelectedRestaurantId(selectedRestaurant.id);
+      }
+
+      state = RestaurantLoaded(
+        restaurants: restaurants,
+        selectedRestaurant: selectedRestaurant,
+      );
+
+      if (selectedRestaurant != null) {
+        debugPrint(
+          '🟢 [RestaurantNotifier] Selected restaurant: ${selectedRestaurant.id} - ${selectedRestaurant.name}',
+        );
       }
     }
   }
 
-  /// Fetch restaurant by ID with today's stats
+  /// Fetch restaurant by ID with today's stats.
+  /// Does NOT transition through RestaurantLoading to avoid losing
+  /// the restaurant list while refreshing details.
   Future<void> fetchRestaurantById(String id) async {
-    state = const RestaurantLoading();
+    final previousState = state;
 
     final result = await _repository.getRestaurantById(id);
 
     if (result.failure != null) {
-      state = RestaurantError(
-        message: result.failure!.message,
-        previousState: const RestaurantInitial(),
+      // On error, keep the previous state instead of losing it
+      debugPrint(
+        '🔴 [RestaurantNotifier] fetchRestaurantById error: ${result.failure!.message}',
       );
     } else if (result.data != null) {
-      final currentState = state;
-      final restaurants = currentState is RestaurantLoaded
-          ? currentState.restaurants
-          : [result.data!];
+      final fetchedRestaurant = result.data!;
+      final restaurants = <RestaurantModel>[
+        if (previousState is RestaurantLoaded) ...previousState.restaurants,
+      ];
+
+      // Keep the full list and replace stale selected restaurant details.
+      restaurants.removeWhere((r) => r.id == fetchedRestaurant.id);
+      restaurants.insert(0, fetchedRestaurant);
 
       state = RestaurantLoaded(
         restaurants: restaurants,
-        selectedRestaurant: result.data!,
+        selectedRestaurant: fetchedRestaurant,
       );
     }
   }
 
   /// Select a restaurant
   Future<void> selectRestaurant(RestaurantModel restaurant) async {
-    print(
+    debugPrint(
       '🟢 [RestaurantNotifier] selectRestaurant: ${restaurant.id} - ${restaurant.name}',
     );
     await _repository.saveSelectedRestaurantId(restaurant.id);
@@ -150,7 +197,7 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
         selectedRestaurant: restaurant,
       );
     }
-    print('🟢 [RestaurantNotifier] Restaurant selected and saved!');
+    debugPrint('🟢 [RestaurantNotifier] Restaurant selected and saved!');
   }
 
   /// Clear selected restaurant
@@ -196,7 +243,13 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
       // Refresh the current state with updated restaurant
       final currentState = state;
       if (currentState is RestaurantLoaded) {
-        state = currentState.copyWith(selectedRestaurant: result.data!);
+        state = currentState.copyWith(
+          restaurants: _replaceRestaurant(
+            currentState.restaurants,
+            result.data!,
+          ),
+          selectedRestaurant: result.data!,
+        );
       }
     }
   }
@@ -214,7 +267,13 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
       // Refresh the current state with updated restaurant
       final currentState = state;
       if (currentState is RestaurantLoaded) {
-        state = currentState.copyWith(selectedRestaurant: result.data!);
+        state = currentState.copyWith(
+          restaurants: _replaceRestaurant(
+            currentState.restaurants,
+            result.data!,
+          ),
+          selectedRestaurant: result.data!,
+        );
       }
     }
   }
@@ -231,6 +290,24 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
   /// Get selected restaurant ID (convenience method)
   String? get selectedRestaurantId {
     return selectedRestaurant?.id;
+  }
+
+  List<RestaurantModel> _replaceRestaurant(
+    List<RestaurantModel> restaurants,
+    RestaurantModel updatedRestaurant,
+  ) {
+    var didReplace = false;
+    final updatedRestaurants = restaurants.map((restaurant) {
+      if (restaurant.id != updatedRestaurant.id) return restaurant;
+      didReplace = true;
+      return updatedRestaurant;
+    }).toList();
+
+    if (!didReplace) {
+      updatedRestaurants.insert(0, updatedRestaurant);
+    }
+
+    return updatedRestaurants;
   }
 }
 

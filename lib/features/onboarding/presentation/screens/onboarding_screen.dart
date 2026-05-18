@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
@@ -15,6 +16,7 @@ import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/address_search_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/onboarding_notifier.dart';
+import '../widgets/document_upload_widget.dart';
 
 /// Onboarding screen for new sellers
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -32,7 +34,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Profile fields
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _ageController = TextEditingController();
+  final _birthdateController = TextEditingController();
+  DateTime? _selectedBirthdate;
+  String? _registrationDocumentUrl;
+  bool _isDocumentUploading = false;
 
   // Restaurant fields
   final _restaurantNameController = TextEditingController();
@@ -61,7 +66,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _pageController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
-    _ageController.dispose();
+    _birthdateController.dispose();
     _restaurantNameController.dispose();
     _restaurantPhoneController.dispose();
     super.dispose();
@@ -77,8 +82,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextStep() {
+    if (_isDocumentUploading) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please wait for document upload to finish.'),
+        ),
+      );
+      return;
+    }
+
     if (_currentStep == 0) {
       if (!_profileFormKey.currentState!.validate()) return;
+      if (_registrationDocumentUrl == null ||
+          _registrationDocumentUrl!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('validation.imageRequired'.tr),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
       _goToStep(1);
     }
   }
@@ -91,6 +115,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _submitOnboarding() async {
     if (!_restaurantFormKey.currentState!.validate()) return;
+
+    if (_registrationDocumentUrl == null || _registrationDocumentUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('validation.imageRequired'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     if (_selectedAddress == null ||
         _selectedAddress!.street.isEmpty ||
@@ -121,29 +155,99 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final restaurantPhone =
         '${_restaurantPhoneCountry.dialCode}${_restaurantPhoneController.text.trim()}';
 
-    await ref.read(onboardingProvider.notifier).submitOnboarding(
-      name: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      age: _ageController.text.isNotEmpty
-          ? int.tryParse(_ageController.text.trim())
-          : null,
-      restaurantName: _restaurantNameController.text.trim(),
-      restaurantPhone: restaurantPhone,
-      streetName: address.street,
-      houseNumber: address.building,
-      city: address.city!,
-      postalCode: address.postalCode ?? '',
-      country: address.country,
-      fullAddress: [
-        address.street,
-        address.building,
-        address.city,
-        address.postalCode,
-        address.country,
-      ].where((s) => s != null && s.isNotEmpty).join(', '),
-      lat: address.latitude,
-      lng: address.longitude,
+    await ref
+        .read(onboardingProvider.notifier)
+        .submitOnboarding(
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          birthdate: _selectedBirthdate,
+          registrationDocumentUrl: _registrationDocumentUrl!,
+          restaurantName: _restaurantNameController.text.trim(),
+          restaurantPhone: restaurantPhone,
+          streetName: address.street,
+          houseNumber: address.building,
+          city: address.city!,
+          postalCode: address.postalCode ?? '',
+          country: address.country,
+          fullAddress: [
+            address.street,
+            address.building,
+            address.city,
+            address.postalCode,
+            address.country,
+          ].where((s) => s != null && s.isNotEmpty).join(', '),
+          lat: address.latitude,
+          lng: address.longitude,
+        );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) {
+      context.go(Routes.login);
+    }
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+
+        return AlertDialog(
+          title: Text('auth.logout'.tr),
+          content: Text('auth.logoutConfirm'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'common.cancel'.tr,
+                style: TextStyle(
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _logout();
+              },
+              child: Text(
+                'auth.logout'.tr,
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  Future<void> _pickBirthdate() async {
+    final now = DateTime.now();
+    final initialDate = _selectedBirthdate ?? DateTime(now.year - 18, 1, 1);
+
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+
+    if (!mounted || pickedDate == null) return;
+
+    setState(() {
+      _selectedBirthdate = pickedDate;
+      _birthdateController.text = _formatDate(pickedDate);
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 
   @override
@@ -171,21 +275,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return AppScaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header with language selector
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxNarrowContentWidth,
+            ),
+            child: Column(
+              children: [
+                // Header with language selector
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  if (_currentStep > 0)
-                    IconButton(
-                      onPressed: isLoading ? null : _previousStep,
-                      icon: Icon(Icons.arrow_back, size: 24.w),
-                    )
-                  else
-                    SizedBox(width: 48.w),
                   Text(
                     'onboarding.title'.tr,
                     style: TextStyle(
@@ -196,7 +298,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           : LightColors.textPrimary,
                     ),
                   ),
-                  const LanguageSelector(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_currentStep > 0)
+                        IconButton(
+                          onPressed: isLoading ? null : _previousStep,
+                          icon: Icon(Icons.arrow_back, size: 24.w),
+                        )
+                      else
+                        SizedBox(width: 48.w),
+                      const LanguageSelector(),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -216,6 +330,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );
@@ -281,15 +397,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         SizedBox(height: 4.h),
         Text(
-          step == 0 ? 'onboarding.profileStep'.tr : 'onboarding.restaurantStep'.tr,
+          step == 0
+              ? 'onboarding.profileStep'.tr
+              : 'onboarding.restaurantStep'.tr,
           style: TextStyle(
             fontSize: 11.sp,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
             color: isActive
                 ? primary
                 : (isDark
-                    ? DarkColors.textSecondary
-                    : LightColors.textSecondary),
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary),
           ),
         ),
       ],
@@ -312,7 +430,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 8.h),
@@ -354,20 +474,89 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             SizedBox(height: 16.h),
 
-            // Age (optional)
+            // Birthdate (optional)
             AppTextField(
-              controller: _ageController,
-              label: '${'onboarding.age'.tr} (${'common.optional'.tr})',
-              hint: 'onboarding.enterAge'.tr,
+              controller: _birthdateController,
+              label: 'Birthdate (${'common.optional'.tr})',
+              hint: 'YYYY-MM-DD',
               prefixIcon: Icons.cake_outlined,
-              keyboardType: TextInputType.number,
+              readOnly: true,
+              onTap: _pickBirthdate,
+            ),
+            SizedBox(height: 16.h),
+
+            Text(
+              'onboarding.documentTitle'.tr,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'onboarding.documentDescription'.tr,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            DocumentUploadWidget(
+              titleText: 'onboarding.documentTitle'.tr,
+              helperText: 'onboarding.documentUploadHelper'.tr,
+              icon: Icons.description_outlined,
+              isRequired: true,
+              initialDocumentUrl: _registrationDocumentUrl,
+              onDocumentUploaded: (url) {
+                setState(() => _registrationDocumentUrl = url);
+              },
+              onDocumentRemoved: () {
+                setState(() => _registrationDocumentUrl = null);
+              },
+              onUploadStateChanged: (isUploading) {
+                if (!mounted) return;
+                setState(() => _isDocumentUploading = isUploading);
+              },
             ),
             SizedBox(height: 32.h),
 
             // Next button
             AppButton(
               label: 'common.next'.tr,
-              onPressed: isLoading ? null : _nextStep,
+              onPressed: (isLoading || _isDocumentUploading) ? null : _nextStep,
+            ),
+            SizedBox(height: 12.h),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: isLoading ? null : _showLogoutConfirmation,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  backgroundColor: isDark
+                      ? DarkColors.surface
+                      : LightColors.surface,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    side: BorderSide(
+                      color: AppColors.error.withValues(alpha: 0.35),
+                    ),
+                  ),
+                ),
+                icon: Icon(Icons.logout_rounded, size: 18.w),
+                label: Text(
+                  'auth.logout'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -391,7 +580,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 8.h),
@@ -428,7 +619,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
             ),
             SizedBox(height: 6.h),
@@ -447,7 +640,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
             SizedBox(height: 12.h),

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../application/user_profile_notifier.dart';
@@ -105,7 +106,12 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                 ],
               ),
             )
-          : ListView(
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxContentWidth,
+                ),
+                child: ListView(
               padding: EdgeInsets.all(16.w),
               children: [
                 // Warning card
@@ -312,6 +318,8 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
                 SizedBox(height: 16.h),
               ],
+            ),
+              ),
             ),
     );
   }

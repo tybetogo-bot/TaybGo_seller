@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../auth/application/auth_state.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
@@ -26,6 +27,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _pulseAnimation;
   bool _minimumDelayPassed = false;
   bool _hasNavigated = false;
+  bool _sessionValidationStarted = false;
+  bool _sessionValidationCompleted = false;
 
   @override
   void initState() {
@@ -122,6 +125,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     // Check if user is authenticated
     if (authState is AuthAuthenticated) {
+      if (!_sessionValidationCompleted) {
+        if (!_sessionValidationStarted) {
+          _sessionValidationStarted = true;
+          ref.read(authProvider.notifier).validateSession().then((isValid) {
+            if (!mounted) return;
+            _sessionValidationCompleted = isValid;
+            _sessionValidationStarted = false;
+            _tryNavigate();
+          });
+        }
+
+        print('ðŸŸ¡ [SplashScreen] Session validation in progress, waiting...');
+        return;
+      }
+
       // Kick off restaurant initialization if not yet started
       if (restaurantState is RestaurantInitial) {
         print('🟡 [SplashScreen] Triggering restaurant initialization...');
@@ -148,7 +166,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (restaurantState is RestaurantLoaded) {
         // No restaurants or all pending -> restaurant selection
         if (restaurantState.restaurants.isEmpty) {
-          print('🟢 [SplashScreen] -> No restaurants, going to restaurant selection');
+          print(
+            '🟢 [SplashScreen] -> No restaurants, going to restaurant selection',
+          );
           context.go(Routes.restaurantSelection);
           return;
         }
@@ -157,7 +177,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           (r) => r.status == RestaurantStatus.pending,
         );
         if (allPending) {
-          print('🟢 [SplashScreen] -> All restaurants pending, going to restaurant selection');
+          print(
+            '🟢 [SplashScreen] -> All restaurants pending, going to restaurant selection',
+          );
           context.go(Routes.restaurantSelection);
           return;
         }
@@ -220,11 +242,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
             // Main content - using separate AnimatedBuilders to reduce rebuilds
             Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxNarrowContentWidth,
+                ),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                     // Logo with slide and scale animations
                     AnimatedBuilder(
                       animation: _mainController,
@@ -303,6 +329,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     // Loading indicator
                     _buildLoadingIndicator(),
                   ],
+                ),
                 ),
               ),
             ),

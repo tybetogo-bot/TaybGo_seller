@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../orders/data/services/places_search_service.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
 
 /// Bottom sheet for editing address with better UX
-class EditAddressBottomSheet extends StatefulWidget {
+class EditAddressBottomSheet extends ConsumerStatefulWidget {
   const EditAddressBottomSheet({
     super.key,
     required this.address,
@@ -17,10 +19,12 @@ class EditAddressBottomSheet extends StatefulWidget {
   final Future<void> Function(Map<String, String>) onSave;
 
   @override
-  State<EditAddressBottomSheet> createState() => _EditAddressBottomSheetState();
+  ConsumerState<EditAddressBottomSheet> createState() =>
+      _EditAddressBottomSheetState();
 }
 
-class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
+class _EditAddressBottomSheetState
+    extends ConsumerState<EditAddressBottomSheet> {
   late final TextEditingController _fullAddressController;
   late final TextEditingController _streetNameController;
   late final TextEditingController _houseNumberController;
@@ -31,19 +35,36 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
   late final TextEditingController _lngController;
 
   bool _isSaving = false;
+  bool _isRefreshingCoordinates = false;
+  late final String _initialAddressQuery;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _fullAddressController = TextEditingController(text: widget.address.fullAddress ?? '');
-    _streetNameController = TextEditingController(text: widget.address.streetName ?? '');
-    _houseNumberController = TextEditingController(text: widget.address.houseNumber ?? '');
+    _fullAddressController = TextEditingController(
+      text: widget.address.fullAddress ?? '',
+    );
+    _streetNameController = TextEditingController(
+      text: widget.address.streetName ?? '',
+    );
+    _houseNumberController = TextEditingController(
+      text: widget.address.houseNumber ?? '',
+    );
     _cityController = TextEditingController(text: widget.address.city ?? '');
-    _postalCodeController = TextEditingController(text: widget.address.postalCode ?? '');
-    _countryController = TextEditingController(text: widget.address.country ?? '');
-    _latController = TextEditingController(text: widget.address.lat?.toString() ?? '');
-    _lngController = TextEditingController(text: widget.address.lng?.toString() ?? '');
+    _postalCodeController = TextEditingController(
+      text: widget.address.postalCode ?? '',
+    );
+    _countryController = TextEditingController(
+      text: widget.address.country ?? '',
+    );
+    _latController = TextEditingController(
+      text: widget.address.lat?.toString() ?? '',
+    );
+    _lngController = TextEditingController(
+      text: widget.address.lng?.toString() ?? '',
+    );
+    _initialAddressQuery = _buildAddressQuery();
   }
 
   @override
@@ -61,8 +82,10 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final addressQuery = _buildAddressQuery();
 
     return Container(
       decoration: BoxDecoration(
@@ -106,18 +129,22 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Edit Address',
+                        '${'common.edit'.tr} ${'orders.address'.tr}',
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                       ),
                       Text(
-                        'Update your restaurant location',
+                        'address.enterManually'.tr,
                         style: TextStyle(
                           fontSize: 13.sp,
-                          color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
                         ),
                       ),
                     ],
@@ -126,13 +153,18 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close),
-                  color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                  color: isDark
+                      ? DarkColors.textSecondary
+                      : LightColors.textSecondary,
                 ),
               ],
             ),
           ),
 
-          Divider(height: 1, color: isDark ? DarkColors.border : LightColors.border),
+          Divider(
+            height: 1,
+            color: isDark ? DarkColors.border : LightColors.border,
+          ),
 
           // Form content
           Expanded(
@@ -144,12 +176,12 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                   // Full Address
                   _buildSection(
                     icon: Icons.place,
-                    title: 'Full Address',
+                    title: 'orders.address'.tr,
                     color: primaryColor,
                     child: _buildTextField(
                       controller: _fullAddressController,
-                      label: 'Complete address',
-                      hint: 'Enter the full address',
+                      label: 'orders.address'.tr,
+                      hint: 'address.searchForAddress'.tr,
                       maxLines: 3,
                       isDark: isDark,
                     ),
@@ -160,21 +192,21 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                   // Street Details
                   _buildSection(
                     icon: Icons.signpost,
-                    title: 'Street Details',
+                    title: 'address.street'.tr,
                     color: Colors.blue,
                     child: Column(
                       children: [
                         _buildTextField(
                           controller: _streetNameController,
-                          label: 'Street Name',
-                          hint: 'e.g., Main Street',
+                          label: 'address.streetName'.tr,
+                          hint: 'address.streetName'.tr,
                           isDark: isDark,
                         ),
                         SizedBox(height: 12.h),
                         _buildTextField(
                           controller: _houseNumberController,
-                          label: 'Building/House Number',
-                          hint: 'e.g., 123A',
+                          label: 'address.buildingHouseNumber'.tr,
+                          hint: 'address.buildingHouseNumber'.tr,
                           isDark: isDark,
                         ),
                       ],
@@ -186,15 +218,15 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                   // City & Postal Code
                   _buildSection(
                     icon: Icons.location_city,
-                    title: 'City & Postal Code',
+                    title: '${'address.city'.tr} & ${'address.postalCode'.tr}',
                     color: Colors.orange,
                     child: Row(
                       children: [
                         Expanded(
                           child: _buildTextField(
                             controller: _postalCodeController,
-                            label: 'Postal Code',
-                            hint: 'e.g., 12345',
+                            label: 'address.postalCode'.tr,
+                            hint: 'address.postalCode'.tr,
                             isDark: isDark,
                           ),
                         ),
@@ -203,8 +235,8 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                           flex: 2,
                           child: _buildTextField(
                             controller: _cityController,
-                            label: 'City',
-                            hint: 'e.g., Riyadh',
+                            label: 'address.city'.tr,
+                            hint: 'address.city'.tr,
                             isDark: isDark,
                           ),
                         ),
@@ -217,12 +249,12 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                   // Country
                   _buildSection(
                     icon: Icons.public,
-                    title: 'Country',
+                    title: 'address.country'.tr,
                     color: Colors.green,
                     child: _buildTextField(
                       controller: _countryController,
-                      label: 'Country',
-                      hint: 'e.g., Saudi Arabia',
+                      label: 'address.country'.tr,
+                      hint: 'address.country'.tr,
                       isDark: isDark,
                     ),
                   ),
@@ -232,47 +264,85 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                   // Coordinates
                   _buildSection(
                     icon: Icons.my_location,
-                    title: 'Coordinates',
+                    title: 'address.coordinates'.tr,
                     color: Colors.purple,
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _latController,
-                            label: 'Latitude',
-                            hint: 'e.g., 24.7136',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            isDark: isDark,
-                            validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final lat = double.tryParse(value);
-                                if (lat == null || lat < -90 || lat > 90) {
-                                  return 'Invalid latitude';
-                                }
-                              }
-                              return null;
-                            },
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _latController,
+                                label: 'address.latitude'.tr,
+                                hint: 'address.latitude'.tr,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                isDark: isDark,
+                                validator: (value) {
+                                  if (value != null && value.isNotEmpty) {
+                                    final lat = double.tryParse(value);
+                                    if (lat == null || lat < -90 || lat > 90) {
+                                      return 'address.invalidLatitude'.tr;
+                                    }
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _lngController,
+                                label: 'address.longitude'.tr,
+                                hint: 'address.longitude'.tr,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                isDark: isDark,
+                                validator: (value) {
+                                  if (value != null && value.isNotEmpty) {
+                                    final lng = double.tryParse(value);
+                                    if (lng == null ||
+                                        lng < -180 ||
+                                        lng > 180) {
+                                      return 'address.invalidLongitude'.tr;
+                                    }
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: _buildTextField(
-                            controller: _lngController,
-                            label: 'Longitude',
-                            hint: 'e.g., 46.6753',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            isDark: isDark,
-                            validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final lng = double.tryParse(value);
-                                if (lng == null || lng < -180 || lng > 180) {
-                                  return 'Invalid longitude';
-                                }
-                              }
-                              return null;
-                            },
+                        if (addressQuery.isNotEmpty) ...[
+                          SizedBox(height: 12.h),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: (_isSaving || _isRefreshingCoordinates)
+                                  ? null
+                                  : _refreshCoordinates,
+                              icon: _isRefreshingCoordinates
+                                  ? SizedBox(
+                                      width: 18.w,
+                                      height: 18.w,
+                                      child: const CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Icon(Icons.my_location, size: 18.w),
+                              label: Text('address.getLocationCoordinates'.tr),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: primaryColor,
+                                side: BorderSide(color: primaryColor),
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -298,7 +368,9 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                    onPressed: _isSaving
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       side: BorderSide(
@@ -313,7 +385,9 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
                       ),
                     ),
                   ),
@@ -337,7 +411,9 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
                             height: 20.w,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Text(
@@ -370,18 +446,16 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
       children: [
         Row(
           children: [
-            Icon(
-              icon,
-              size: 18.sp,
-              color: color,
-            ),
+            Icon(icon, size: 18.sp, color: color),
             SizedBox(width: 8.w),
             Text(
               title,
               style: TextStyle(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.w600,
-                color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                color: isDark
+                    ? DarkColors.textPrimary
+                    : LightColors.textPrimary,
               ),
             ),
           ],
@@ -432,16 +506,69 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(
-            color: AppColors.error,
-          ),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 14.h,
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
       ),
     );
+  }
+
+  String _buildAddressQuery() {
+    final parts = <String>[
+      _streetNameController.text.trim(),
+      _houseNumberController.text.trim(),
+      _cityController.text.trim(),
+      _postalCodeController.text.trim(),
+      _countryController.text.trim(),
+    ];
+
+    final fullAddress = _fullAddressController.text.trim();
+    if (parts.any((part) => part.isNotEmpty)) {
+      if (fullAddress.isNotEmpty) {
+        parts.insert(0, fullAddress);
+      }
+      return parts.where((part) => part.isNotEmpty).join(', ');
+    }
+
+    return fullAddress;
+  }
+
+  Future<({double lat, double lng})?> _fetchCoordinates(String query) async {
+    final result = await PlacesSearchService.searchAndGetAddress(query);
+    if (result == null || result.latitude == null || result.longitude == null) {
+      return null;
+    }
+
+    return (lat: result.latitude!, lng: result.longitude!);
+  }
+
+  Future<bool> _refreshCoordinates({bool showError = true}) async {
+    final query = _buildAddressQuery();
+    if (query.isEmpty) {
+      return false;
+    }
+
+    setState(() => _isRefreshingCoordinates = true);
+
+    try {
+      final coordinates = await _fetchCoordinates(query);
+      if (!mounted || coordinates == null) {
+        if (showError && mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('common.error'.tr)));
+        }
+        return false;
+      }
+
+      _latController.text = coordinates.lat.toStringAsFixed(6);
+      _lngController.text = coordinates.lng.toStringAsFixed(6);
+      return true;
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshingCoordinates = false);
+      }
+    }
   }
 
   Future<void> _handleSave() async {
@@ -452,6 +579,18 @@ class _EditAddressBottomSheetState extends State<EditAddressBottomSheet> {
     setState(() => _isSaving = true);
 
     try {
+      final currentQuery = _buildAddressQuery();
+      if (currentQuery.isNotEmpty &&
+          (currentQuery != _initialAddressQuery ||
+              _latController.text.trim().isEmpty ||
+              _lngController.text.trim().isEmpty)) {
+        final coordinates = await _fetchCoordinates(currentQuery);
+        if (coordinates != null) {
+          _latController.text = coordinates.lat.toStringAsFixed(6);
+          _lngController.text = coordinates.lng.toStringAsFixed(6);
+        }
+      }
+
       final data = <String, String>{};
 
       if (_fullAddressController.text.trim().isNotEmpty) {
@@ -510,10 +649,8 @@ Future<void> showEditAddressBottomSheet({
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
-        builder: (context, scrollController) => EditAddressBottomSheet(
-          address: address,
-          onSave: onSave,
-        ),
+        builder: (context, scrollController) =>
+            EditAddressBottomSheet(address: address, onSave: onSave),
       ),
     ),
   );

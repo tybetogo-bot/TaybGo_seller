@@ -27,20 +27,24 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
   @override
   Widget build(BuildContext context) {
     final permissionState = ref.watch(locationPermissionProvider);
+    final autoRequestState = ref.watch(locationPermissionAutoRequestProvider);
 
     // Reset the dismissed flag when the permission state changes
     // (e.g. user returns from settings and status is re-evaluated).
-    ref.listen<LocationPermissionState>(locationPermissionProvider,
-        (previous, next) {
+    ref.listen<LocationPermissionState>(locationPermissionProvider, (
+      previous,
+      next,
+    ) {
       if (previous != next && _dismissed) {
         setState(() => _dismissed = false);
       }
     });
 
     // Don't show the banner when permission is granted, still loading,
-    // or the user has dismissed it.
+    // a post-login prompt is running, or the user has dismissed it.
     if (permissionState == LocationPermissionState.granted ||
         permissionState == LocationPermissionState.loading ||
+        autoRequestState != LocationPermissionAutoRequestState.idle ||
         _dismissed) {
       return const SizedBox.shrink();
     }
@@ -139,8 +143,9 @@ class _LocationWarningBannerState extends ConsumerState<LocationWarningBanner> {
                       },
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
-                        backgroundColor:
-                            AppColors.warning.withValues(alpha: 0.15),
+                        backgroundColor: AppColors.warning.withValues(
+                          alpha: 0.15,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6.r),
                         ),

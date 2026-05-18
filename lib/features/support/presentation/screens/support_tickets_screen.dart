@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/support_notifier.dart';
 import '../../data/models/support_ticket_model.dart';
@@ -52,8 +53,9 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
       appBar: AppBar(
         title: Text('support.title'.tr),
         centerTitle: true,
-        backgroundColor:
-            isDark ? DarkColors.background : LightColors.background,
+        backgroundColor: isDark
+            ? DarkColors.background
+            : LightColors.background,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
@@ -61,67 +63,72 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
         backgroundColor: primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: Column(
-        children: [
-          // Status filter chips
-          _StatusFilterBar(
-            selected: state.statusFilter,
-            isDark: isDark,
-            onSelected: (status) {
-              ref.read(supportProvider.notifier).setStatusFilter(status);
-            },
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxWideContentWidth,
           ),
+          child: Column(
+            children: [
+              // Status filter chips
+              _StatusFilterBar(
+                selected: state.statusFilter,
+                isDark: isDark,
+                onSelected: (status) {
+                  ref.read(supportProvider.notifier).setStatusFilter(status);
+                },
+              ),
 
           // Tickets list
           Expanded(
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.error != null
-                    ? _ErrorView(
-                        error: state.error!,
-                        isDark: isDark,
-                        onRetry: () =>
-                            ref.read(supportProvider.notifier).loadTickets(),
-                      )
-                    : state.filteredTickets.isEmpty
-                        ? _EmptyView(isDark: isDark)
-                        : RefreshIndicator(
-                            onRefresh: () => ref
-                                .read(supportProvider.notifier)
-                                .loadTickets(),
-                            child: ListView.separated(
-                              controller: _scrollController,
-                              padding: EdgeInsets.fromLTRB(
-                                  16.w, 8.h, 16.w, 80.h),
-                              itemCount: state.filteredTickets.length +
-                                  (state.isLoadingMore ? 1 : 0),
-                              separatorBuilder: (_, __) =>
-                                  SizedBox(height: 10.h),
-                              itemBuilder: (context, index) {
-                                if (index == state.filteredTickets.length) {
-                                  return Center(
-                                    child: Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 16.h),
-                                      child:
-                                          const CircularProgressIndicator(),
-                                    ),
-                                  );
-                                }
-                                final ticket = state.filteredTickets[index];
-                                return _TicketCard(
-                                  ticket: ticket,
-                                  isDark: isDark,
-                                  onTap: () => context.push(
-                                    Routes.supportTicketDetailPath(
-                                        ticket.id.toString()),
-                                  ),
-                                );
-                              },
+                ? _ErrorView(
+                    error: state.error!,
+                    isDark: isDark,
+                    onRetry: () =>
+                        ref.read(supportProvider.notifier).loadTickets(),
+                  )
+                : state.filteredTickets.isEmpty
+                ? _EmptyView(isDark: isDark)
+                : RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(supportProvider.notifier).loadTickets(),
+                    child: ListView.separated(
+                      controller: _scrollController,
+                      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 80.h),
+                      itemCount:
+                          state.filteredTickets.length +
+                          (state.isLoadingMore ? 1 : 0),
+                      separatorBuilder: (context, index) =>
+                          SizedBox(height: 10.h),
+                      itemBuilder: (context, index) {
+                        if (index == state.filteredTickets.length) {
+                          return Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              child: const CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        final ticket = state.filteredTickets[index];
+                        return _TicketCard(
+                          ticket: ticket,
+                          isDark: isDark,
+                          onTap: () => context.push(
+                            Routes.supportTicketDetailPath(
+                              ticket.id.toString(),
                             ),
                           ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
@@ -147,6 +154,11 @@ class _StatusFilterBar extends ConsumerWidget {
       (status: null, label: 'support.all'.tr),
       (status: TicketStatus.open, label: 'support.statusOpen'.tr),
       (status: TicketStatus.inProgress, label: 'support.statusInProgress'.tr),
+      (
+        status: TicketStatus.waitingOnCustomer,
+        label: 'support.statusWaitingOnCustomer'.tr,
+      ),
+      (status: TicketStatus.resolved, label: 'support.statusResolved'.tr),
       (status: TicketStatus.closed, label: 'support.statusClosed'.tr),
     ];
 
@@ -155,7 +167,7 @@ class _StatusFilterBar extends ConsumerWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+        separatorBuilder: (context, index) => SizedBox(width: 8.w),
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
@@ -185,8 +197,8 @@ class _StatusFilterBar extends ConsumerWidget {
                     color: isSelected
                         ? Colors.white
                         : (isDark
-                            ? DarkColors.textSecondary
-                            : LightColors.textSecondary),
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary),
                   ),
                 ),
               ),
@@ -212,7 +224,6 @@ class _TicketCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(translationsLoadedProvider);
-    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
@@ -310,11 +321,18 @@ class _StatusBadge extends StatelessWidget {
         bgColor = AppColors.info.withValues(alpha: 0.15);
         textColor = AppColors.info;
         label = 'support.statusInProgress'.tr;
+      case TicketStatus.waitingOnCustomer:
+        bgColor = AppColors.warning.withValues(alpha: 0.15);
+        textColor = AppColors.warning;
+        label = 'support.statusWaitingOnCustomer'.tr;
+      case TicketStatus.resolved:
+        bgColor = AppColors.success.withValues(alpha: 0.15);
+        textColor = AppColors.success;
+        label = 'support.statusResolved'.tr;
       case TicketStatus.closed:
         bgColor = (isDark ? DarkColors.textTertiary : LightColors.textTertiary)
             .withValues(alpha: 0.15);
-        textColor =
-            isDark ? DarkColors.textTertiary : LightColors.textTertiary;
+        textColor = isDark ? DarkColors.textTertiary : LightColors.textTertiary;
         label = 'support.statusClosed'.tr;
     }
 
@@ -351,12 +369,15 @@ class _CategoryChip extends StatelessWidget {
       case TicketCategory.order:
         icon = Icons.receipt_outlined;
         label = 'support.categoryOrder'.tr;
-      case TicketCategory.restaurant:
-        icon = Icons.storefront_outlined;
-        label = 'support.categoryRestaurant'.tr;
-      case TicketCategory.driver:
+      case TicketCategory.payment:
+        icon = Icons.payments_outlined;
+        label = 'support.categoryPayment'.tr;
+      case TicketCategory.delivery:
         icon = Icons.local_shipping_outlined;
-        label = 'support.categoryDriver'.tr;
+        label = 'support.categoryDelivery'.tr;
+      case TicketCategory.account:
+        icon = Icons.account_circle_outlined;
+        label = 'support.categoryAccount'.tr;
       case TicketCategory.other:
         icon = Icons.help_outline;
         label = 'support.categoryOther'.tr;
@@ -375,8 +396,9 @@ class _CategoryChip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11.sp,
-            color:
-                isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+            color: isDark
+                ? DarkColors.textSecondary
+                : LightColors.textSecondary,
           ),
         ),
       ],
@@ -405,6 +427,9 @@ class _PriorityIndicator extends StatelessWidget {
       case TicketPriority.high:
         color = AppColors.error;
         label = 'support.priorityHigh'.tr;
+      case TicketPriority.urgent:
+        color = AppColors.error;
+        label = 'support.priorityUrgent'.tr;
     }
 
     return Row(
@@ -420,8 +445,9 @@ class _PriorityIndicator extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11.sp,
-            color:
-                isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+            color: isDark
+                ? DarkColors.textSecondary
+                : LightColors.textSecondary,
           ),
         ),
       ],
@@ -445,8 +471,7 @@ class _EmptyView extends ConsumerWidget {
           Icon(
             Icons.support_agent_outlined,
             size: 64.w,
-            color:
-                isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+            color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
           ),
           SizedBox(height: 16.h),
           Text(
@@ -454,8 +479,7 @@ class _EmptyView extends ConsumerWidget {
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
-              color:
-                  isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
             ),
           ),
           SizedBox(height: 6.h),

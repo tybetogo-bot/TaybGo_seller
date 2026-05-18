@@ -1,14 +1,10 @@
-import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/constants.dart';
-import '../network/notifications_api.dart';
 import '../providers/providers.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
 
@@ -19,14 +15,23 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('🔔 [FCM] Background message: ${message.messageId}');
 }
 
+const _androidNotificationSound = RawResourceAndroidNotificationSound(
+  'notif_sound',
+);
+const _iosNotificationSound = 'notif_sound.caf';
+
 /// Android notification channel for high-importance messages.
 const AndroidNotificationChannel _highImportanceChannel =
     AndroidNotificationChannel(
-  'high_importance_channel',
-  'High Importance Notifications',
-  description: 'This channel is used for important notifications.',
-  importance: Importance.high,
-);
+      // Channel settings are immutable after first creation on Android, so use
+      // a versioned id when changing the sound configuration.
+      'high_importance_channel_v2',
+      'High Importance Notifications',
+      description: 'This channel is used for important notifications.',
+      importance: Importance.high,
+      playSound: true,
+      sound: _androidNotificationSound,
+    );
 
 /// Service that manages Firebase Cloud Messaging and local notifications.
 class PushNotificationService {
@@ -75,7 +80,8 @@ class PushNotificationService {
       // Create the Android notification channel.
       await _localNotifications
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(_highImportanceChannel);
 
       // Initialize local notifications plugin.
@@ -134,7 +140,7 @@ class PushNotificationService {
 
     final authorized =
         settings.authorizationStatus == AuthorizationStatus.authorized ||
-            settings.authorizationStatus == AuthorizationStatus.provisional;
+        settings.authorizationStatus == AuthorizationStatus.provisional;
 
     print('🔔 [FCM] Permission status: ${settings.authorizationStatus}');
     return authorized;
@@ -189,12 +195,15 @@ class PushNotificationService {
           channelDescription: _highImportanceChannel.description,
           importance: Importance.high,
           priority: Priority.high,
+          playSound: true,
+          sound: _androidNotificationSound,
           icon: android?.smallIcon ?? '@mipmap/ic_launcher',
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          sound: _iosNotificationSound,
         ),
       ),
       payload: message.data.toString(),
@@ -248,7 +257,9 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
       final api = ref.watch(notificationsApiProvider);
       await api.registerDeviceToken(
         token: token,
-        deviceType: Platform.isIOS ? 'ios' : 'android',
+        deviceType: defaultTargetPlatform == TargetPlatform.iOS
+            ? 'ios'
+            : 'android',
       );
       print('🔔 [FCM] Token registered with backend');
     } catch (e) {
@@ -263,7 +274,9 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
       final api = ref.read(notificationsApiProvider);
       await api.registerDeviceToken(
         token: newToken,
-        deviceType: Platform.isIOS ? 'ios' : 'android',
+        deviceType: defaultTargetPlatform == TargetPlatform.iOS
+            ? 'ios'
+            : 'android',
       );
       print('🔔 [FCM] Refreshed token registered with backend');
     } catch (e) {

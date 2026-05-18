@@ -2,8 +2,10 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../features/orders/data/models/order_model.dart';
+import '../config/constants.dart';
 import 'restaurant_api.dart';
 
 /// Orders API service
@@ -12,20 +14,24 @@ class OrdersApi {
 
   OrdersApi(this._dio);
 
-  /// List orders owned by the authenticated user
-  /// GET /api/orders/
+  Map<String, dynamic> _buildOrdersQueryParams({
+    required int page,
+    String? status,
+  }) {
+    final queryParams = <String, dynamic>{'page': page};
+    if (status != null) queryParams['status'] = status;
+    return queryParams;
+  }
+
+  /// List orders owned by the authenticated seller
+  /// GET /api/seller/orders/
   Future<PaginatedResponse<OrderModel>> getOrders({
     int page = 1,
     String? status,
   }) async {
-    final queryParams = <String, dynamic>{
-      'page': page,
-    };
-    if (status != null) queryParams['status'] = status;
-
     final response = await _dio.get(
-      '/api/orders/',
-      queryParameters: queryParams,
+      ApiEndpoints.sellerOrders,
+      queryParameters: _buildOrdersQueryParams(page: page, status: status),
     );
 
     return PaginatedResponse.fromJson(
@@ -34,25 +40,51 @@ class OrdersApi {
     );
   }
 
-  /// Get order details
-  /// GET /api/orders/{id}/
+  /// Get seller order details
+  /// GET /api/seller/orders/{id}/
   Future<OrderModel> getOrderById(String id) async {
-    final response = await _dio.get('/api/orders/$id/');
+    final response = await _dio.get(ApiEndpoints.sellerOrder(id));
     return OrderModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Debug helper to inspect the raw paginated orders payload.
+  Future<Map<String, dynamic>> getRawOrders({
+    int page = 1,
+    String? status,
+  }) async {
+    final response = await _dio.get(
+      ApiEndpoints.sellerOrders,
+      queryParameters: _buildOrdersQueryParams(page: page, status: status),
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// Debug helper to inspect the raw order details payload.
+  Future<Map<String, dynamic>> getRawOrderById(String id) async {
+    final response = await _dio.get(ApiEndpoints.sellerOrder(id));
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
   /// Update order status
-  /// PATCH /api/orders/{id}/
+  /// POST /api/seller/orders/{id}/status/
   Future<OrderModel> updateOrderStatus(String id, String status) async {
-    final response = await _dio.patch(
-      '/api/orders/$id/',
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderStatus(id),
       data: {'status': status},
     );
-    return OrderModel.fromJson(response.data as Map<String, dynamic>);
+
+    // Some status responses omit customer/order details, so re-fetch the full
+    // order before updating local state to avoid replacing rich data with
+    // placeholder fallbacks like "Customer".
+    try {
+      return await getOrderById(id);
+    } on DioException {
+      return OrderModel.fromJson(response.data as Map<String, dynamic>);
+    }
   }
 
   /// Process refund
-  /// POST /api/orders/{order_id}/refund/
+  /// POST /api/seller/orders/{order_id}/refund/
   Future<RefundResponse> refundOrder({
     required String orderId,
     required double amount,
@@ -60,7 +92,7 @@ class OrdersApi {
     String? idempotencyKey,
   }) async {
     final response = await _dio.post(
-      '/api/orders/$orderId/refund/',
+      ApiEndpoints.sellerOrderRefund(orderId),
       data: {
         'amount': amount,
         'reason': reason,
@@ -72,13 +104,34 @@ class OrdersApi {
 
   /// Log manual order from scanned form
   /// POST /api/orders/manual/
-  Future<void> logManualOrder({
-    required Map<String, dynamic> data,
+  Future<void> logManualOrder({required Map<String, dynamic> data}) async {
+    await _dio.post('/api/orders/manual/', data: data);
+  }
+
+  /// Extract order draft from images using backend AI
+  /// POST /api/orders/extract-draft/
+  Future<Map<String, dynamic>> extractDraft({
+    required int restaurantId,
+    required List<XFile> images,
   }) async {
-    await _dio.post(
-      '/api/orders/manual/',
-      data: data,
+    final formData = FormData();
+    formData.fields.add(MapEntry('restaurant_id', restaurantId.toString()));
+
+    for (final file in images) {
+      final bytes = await file.readAsBytes();
+      final fileName = file.name.isNotEmpty ? file.name : 'order-image.jpg';
+      formData.files.add(
+        MapEntry('images', MultipartFile.fromBytes(bytes, filename: fileName)),
+      );
+    }
+
+    final response = await _dio.post(
+      ApiEndpoints.ordersExtractDraft,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
     );
+
+    return response.data as Map<String, dynamic>;
   }
 
   /// Export orders to Excel
@@ -99,9 +152,7 @@ class OrdersApi {
     return await _dio.get(
       '/api/orders/export/excel/',
       queryParameters: queryParams,
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
   }
 
@@ -123,9 +174,7 @@ class OrdersApi {
     return await _dio.get(
       '/api/orders/export/pdf/',
       queryParameters: queryParams,
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
   }
 }

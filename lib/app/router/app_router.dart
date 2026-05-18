@@ -22,6 +22,7 @@ import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
 import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
@@ -29,6 +30,7 @@ import '../../features/profile/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/restaurant_settings_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
 import '../../features/public_menu/presentation/screens/public_menu_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -211,8 +213,13 @@ class AppRouter {
           GoRoute(
             path: Routes.orders,
             name: Routes.ordersName,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: OrdersScreen()),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: OrdersScreen(
+                initialTab: OrdersScreenTab.fromQueryParam(
+                  state.uri.queryParameters['tab'],
+                ),
+              ),
+            ),
             routes: [
               GoRoute(
                 path: 'details/:orderId',
@@ -226,6 +233,14 @@ class AppRouter {
                 path: 'create',
                 name: Routes.createOrderName,
                 builder: (context, state) => const CreateOrderScreen(),
+              ),
+              GoRoute(
+                path: 'edit/:orderId',
+                name: Routes.editOrderName,
+                builder: (context, state) {
+                  final orderId = state.pathParameters['orderId']!;
+                  return CreateOrderScreen(editOrderId: orderId);
+                },
               ),
               GoRoute(
                 path: 'scan',
@@ -276,6 +291,11 @@ class AppRouter {
                 builder: (context, state) => const SettingsScreen(),
               ),
               GoRoute(
+                path: 'edit',
+                name: Routes.editProfileName,
+                builder: (context, state) => const EditProfileScreen(),
+              ),
+              GoRoute(
                 path: 'restaurant',
                 name: Routes.restaurantSettingsName,
                 builder: (context, state) => const RestaurantSettingsScreen(),
@@ -284,6 +304,11 @@ class AppRouter {
                 path: 'coupons',
                 name: Routes.couponsName,
                 builder: (context, state) => const CouponsScreen(),
+              ),
+              GoRoute(
+                path: 'earnings',
+                name: Routes.earningsName,
+                builder: (context, state) => const EarningsScreen(),
               ),
               GoRoute(
                 path: 'statistics',
@@ -325,8 +350,7 @@ class AppRouter {
                     name: Routes.supportTicketDetailName,
                     builder: (context, state) {
                       final ticketId = state.pathParameters['ticketId']!;
-                      return TicketDetailScreen(
-                          ticketId: int.parse(ticketId));
+                      return TicketDetailScreen(ticketId: int.parse(ticketId));
                     },
                   ),
                 ],

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
 
 /// Widget to display restaurant address in a nice card format
-class AddressDisplayWidget extends StatelessWidget {
+class AddressDisplayWidget extends ConsumerWidget {
   const AddressDisplayWidget({
     super.key,
     required this.addressData,
@@ -24,7 +26,8 @@ class AddressDisplayWidget extends StatelessWidget {
   final VoidCallback? onEdit;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(translationsLoadedProvider);
     final primaryColor = Theme.of(context).colorScheme.primary;
     final hasAddress = addressData != null || fullAddress.isNotEmpty;
 
@@ -43,14 +46,18 @@ class AddressDisplayWidget extends StatelessWidget {
             Icon(
               Icons.location_off_outlined,
               size: 48.sp,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
             SizedBox(height: 12.h),
             Text(
-              'No address configured',
+              'orders.addressNotAvailable'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -59,10 +66,8 @@ class AddressDisplayWidget extends StatelessWidget {
               TextButton.icon(
                 onPressed: onEdit,
                 icon: const Icon(Icons.add_location),
-                label: const Text('Add Address'),
-                style: TextButton.styleFrom(
-                  foregroundColor: primaryColor,
-                ),
+                label: Text('${'common.add'.tr} ${'orders.address'.tr}'),
+                style: TextButton.styleFrom(foregroundColor: primaryColor),
               ),
             ],
           ],
@@ -104,11 +109,13 @@ class AddressDisplayWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Restaurant Location',
+                        'orders.address'.tr,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
                         ),
                       ),
                       if (addressData?.label != null)
@@ -116,7 +123,9 @@ class AddressDisplayWidget extends StatelessWidget {
                           addressData!.label!,
                           style: TextStyle(
                             fontSize: 12.sp,
-                            color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                            color: isDark
+                                ? DarkColors.textTertiary
+                                : LightColors.textTertiary,
                           ),
                         ),
                     ],
@@ -130,7 +139,7 @@ class AddressDisplayWidget extends StatelessWidget {
                       size: 20.sp,
                       color: primaryColor,
                     ),
-                    tooltip: 'Edit Address',
+                    tooltip: '${'common.edit'.tr} ${'orders.address'.tr}',
                   ),
               ],
             ),
@@ -151,14 +160,14 @@ class AddressDisplayWidget extends StatelessWidget {
                 if (_hasStructuredAddress) ...[
                   _buildAddressField(
                     icon: Icons.signpost_outlined,
-                    label: 'Street',
+                    label: 'address.street'.tr,
                     value: _buildStreetAddress(),
                   ),
                   if (_buildCityPostal().isNotEmpty) ...[
                     SizedBox(height: 12.h),
                     _buildAddressField(
                       icon: Icons.location_city_outlined,
-                      label: 'City',
+                      label: 'address.city'.tr,
                       value: _buildCityPostal(),
                     ),
                   ],
@@ -166,14 +175,14 @@ class AddressDisplayWidget extends StatelessWidget {
                     SizedBox(height: 12.h),
                     _buildAddressField(
                       icon: Icons.public_outlined,
-                      label: 'Country',
+                      label: 'address.country'.tr,
                       value: addressData!.country!,
                     ),
                   ],
                 ] else if (fullAddress.isNotEmpty) ...[
                   _buildAddressField(
                     icon: Icons.place_outlined,
-                    label: 'Address',
+                    label: 'orders.address'.tr,
                     value: fullAddress,
                   ),
                 ],
@@ -183,12 +192,15 @@ class AddressDisplayWidget extends StatelessWidget {
                   SizedBox(height: 12.h),
                   _buildAddressField(
                     icon: Icons.my_location_outlined,
-                    label: 'Coordinates',
-                    value: '${lat!.toStringAsFixed(6)}, ${lng!.toStringAsFixed(6)}',
+                    label: 'address.coordinates'.tr,
+                    value:
+                        '${lat!.toStringAsFixed(6)}, ${lng!.toStringAsFixed(6)}',
                     valueStyle: TextStyle(
                       fontSize: 12.sp,
                       fontFamily: 'monospace',
-                      color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
                     ),
                   ),
                 ],
@@ -223,17 +235,22 @@ class AddressDisplayWidget extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 11.sp,
-                  color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                  color: isDark
+                      ? DarkColors.textTertiary
+                      : LightColors.textTertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               SizedBox(height: 2.h),
               Text(
                 value,
-                style: valueStyle ??
+                style:
+                    valueStyle ??
                     TextStyle(
                       fontSize: 13.sp,
-                      color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
                     ),
               ),
             ],

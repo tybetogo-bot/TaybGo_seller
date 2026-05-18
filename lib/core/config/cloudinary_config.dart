@@ -1,4 +1,4 @@
-/// Cloudinary configuration for image uploads
+/// Cloudinary configuration for uploads
 library;
 
 class CloudinaryConfig {
@@ -12,6 +12,8 @@ class CloudinaryConfig {
   // API endpoints
   static const String uploadUrl =
       'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+  static const String uploadAutoUrl =
+      'https://api.cloudinary.com/v1_1/$cloudName/auto/upload';
 
   // Upload settings
   static const int maxRetries = 1;
