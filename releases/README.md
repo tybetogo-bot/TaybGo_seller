@@ -4,13 +4,13 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.7+8`
+**Current Version:** `1.0.8+9`
 
 ---
 
 ## Available Artifacts
 
-### Prod Split APKs
+### Prod Split APKs (latest prod release)
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
 | `taybgo-seller-v1.0.7+8-2026-05-13-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
@@ -20,9 +20,9 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ### Dev Split APKs
 | File | Architecture | Target Use |
 |------|--------------|------------|
-| `taybgo-seller-v1.0.7+8-2026-05-13-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
-| `taybgo-seller-v1.0.7+8-2026-05-13-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
-| `taybgo-seller-v1.0.7+8-2026-05-13-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+| `taybgo-seller-v1.0.8+9-2026-07-06-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.8+9-2026-07-06-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.8+9-2026-07-06-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 ### Web Build
 | File | Description |
@@ -64,6 +64,11 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ## Changelog
 
+### v1.0.8 (6 July, 2026)
+- Redesigned the seller profile flow with a more compact restaurant header, grouped sections, and a combined edit profile experience
+- Added delivery-enabled support across restaurant state, profile screens, and restaurant settings
+- Switched seller order actions to backend-provided allowed status options and kept accepted orders actionable
+- Published dated dev split APK release artifacts for the new version
 ### v1.0.7 (13 May, 2026)
 - Fixed repeated restaurant settings edits by preserving restaurant IDs after update responses
 - Aligned restaurant settings update payloads with the seller restaurant API contract
@@ -107,4 +112,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-05-13*
+*Last updated: 2026-07-06*
