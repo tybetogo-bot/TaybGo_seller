@@ -164,7 +164,7 @@
     "markOutForDelivery": "In consegna",
     "markDelivered": "Segna consegnato",
     "noItems": "Nessun articolo aggiunto",
-    "emptyItemsWarning": "Questo ordine ha 0 articoli. Puoi aggiungere articoli o crearlo comunque.",
+    "emptyItemsWarning": "Questo ordine non contiene articoli. Aggiungi almeno un articolo per continuare.",
     "orderCreated": "Ordine creato con successo!",
     "reorder": "Riordina",
     "selectItemFromMenu": "Seleziona un articolo dal menu",

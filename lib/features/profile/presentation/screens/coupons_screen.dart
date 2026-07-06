@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../coupons/application/coupons_notifier.dart';
 import '../../../coupons/data/models/coupon_model.dart';
@@ -35,7 +36,12 @@ class CouponsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Column(
         children: [
           // Filter chips
           _FilterSection(
@@ -83,6 +89,8 @@ class CouponsScreen extends ConsumerWidget {
                   ),
           ),
         ],
+      ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/coupons/add'),

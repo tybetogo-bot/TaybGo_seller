@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/application/tour_state.dart';
@@ -60,10 +61,15 @@ class _KnowledgeBaseScreenState extends ConsumerState<KnowledgeBaseScreen> {
             isDark ? DarkColors.background : LightColors.background,
         elevation: 0,
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Tour button + tour type chips
-          SliverToBoxAdapter(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: CustomScrollView(
+            slivers: [
+              // Tour button + tour type chips
+              SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
               child: _TourSection(
@@ -257,6 +263,8 @@ class _KnowledgeBaseScreenState extends ConsumerState<KnowledgeBaseScreen> {
 
           SliverToBoxAdapter(child: SizedBox(height: 24.h)),
         ],
+      ),
+        ),
       ),
     );
   }

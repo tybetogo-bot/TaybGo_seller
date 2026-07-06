@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../notifications/data/models/notification_model.dart';
@@ -40,7 +41,14 @@ class NotificationsScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: _buildBody(context, ref, notificationsState, isDark),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: _buildBody(context, ref, notificationsState, isDark),
+        ),
+      ),
     );
   }
 

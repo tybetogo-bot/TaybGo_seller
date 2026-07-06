@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../orders/data/models/order_model.dart';
@@ -87,13 +88,18 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
             : LightColors.background,
         elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16.w),
-          children: [
-            // Order selector
-            _SectionLabel(label: 'support.relatedOrder'.tr, isDark: isDark),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: EdgeInsets.all(16.w),
+              children: [
+                // Order selector
+                _SectionLabel(label: 'support.relatedOrder'.tr, isDark: isDark),
             SizedBox(height: 6.h),
             _OrderSelector(
               orders: ordersState.orders,
@@ -199,6 +205,8 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
               ),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );

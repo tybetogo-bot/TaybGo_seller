@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/presentation/widgets/country_picker_widget.dart';
@@ -408,10 +409,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     return true;
   }
 
-  Future<bool> _showEmptyItemsReminder() async {
+  Future<void> _showEmptyItemsReminder() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final message = _emptyItemsWarningMessage();
-    final shouldCreate = await showDialog<bool>(
+    await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Row(
@@ -447,25 +448,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text('orders.addItem'.tr),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              backgroundColor: AppColors.warning,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              'orders.createOrder'.tr,
-              style: const TextStyle(color: Colors.white),
-            ),
           ),
         ],
       ),
     );
-
-    return shouldCreate ?? false;
   }
 
   String _emptyItemsWarningMessage() {
@@ -473,27 +461,25 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     if (translated != 'orders.emptyItemsWarning') return translated;
 
     return switch (TranslationService.instance.currentLanguage) {
-      'ar' =>
-        'هذا الطلب لا يحتوي على عناصر. يمكنك إضافة عناصر أو إنشاؤه على أي حال.',
-      'da' =>
-        'Denne ordre har 0 varer. Du kan tilføje varer eller oprette den alligevel.',
+      'ar' => 'هذا الطلب لا يحتوي على عناصر. الرجاء إضافة عنصر واحد على الأقل للمتابعة.',
+      'da' => 'Denne ordre har ingen varer. Tilføj mindst én vare for at fortsætte.',
       'de' =>
-        'Diese Bestellung enthält 0 Artikel. Sie können Artikel hinzufügen oder sie trotzdem erstellen.',
+        'Diese Bestellung enthält keine Artikel. Bitte fügen Sie mindestens einen Artikel hinzu, um fortzufahren.',
       'fi' =>
-        'Tässä tilauksessa on 0 tuotetta. Voit lisätä tuotteita tai luoda sen silti.',
+        'Tässä tilauksessa ei ole tuotteita. Lisää vähintään yksi tuote jatkaaksesi.',
       'fr' =>
-        'Cette commande contient 0 article. Vous pouvez ajouter des articles ou la créer quand même.',
+        'Cette commande ne contient aucun article. Veuillez ajouter au moins un article pour continuer.',
       'it' =>
-        'Questo ordine ha 0 articoli. Puoi aggiungere articoli o crearlo comunque.',
+        'Questo ordine non contiene articoli. Aggiungi almeno un articolo per continuare.',
       'lb' =>
-        'Dës Bestellung huet 0 Artikelen. Dir kënnt Artikelen derbäisetzen oder se trotzdem erstellen.',
+        'Dës Bestellung huet keng Artikelen. Füügt wgl. mindestens een Artikel derbäi fir weiderzefueren.',
       'nl' =>
-        'Deze bestelling heeft 0 artikelen. Je kunt artikelen toevoegen of de bestelling toch aanmaken.',
+        'Deze bestelling heeft geen artikelen. Voeg ten minste één artikel toe om door te gaan.',
       'no' =>
-        'Denne bestillingen har 0 elementer. Du kan legge til elementer eller opprette den likevel.',
+        'Denne bestillingen har ingen varer. Legg til minst én vare for å fortsette.',
       'sv' =>
-        'Den här beställningen har 0 artiklar. Du kan lägga till artiklar eller skapa den ändå.',
-      _ => 'This order has 0 items. You can add items or create it anyway.',
+        'Den här beställningen har inga artiklar. Lägg till minst en artikel för att fortsätta.',
+      _ => 'This order has no items. Please add at least one item to continue.',
     };
   }
 
@@ -506,12 +492,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     }
 
     if (_orderItems.isEmpty) {
-      final shouldCreate = await _showEmptyItemsReminder();
+      await _showEmptyItemsReminder();
       if (!mounted) return;
-      if (!shouldCreate) {
-        _showAddItemDialog();
-        return;
-      }
+      _showAddItemDialog();
+      return;
     }
 
     // Get the selected restaurant
@@ -785,7 +769,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         ),
         body: _isLoadingEditOrder
             ? const Center(child: CircularProgressIndicator())
-            : Form(
+            : Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: Breakpoints.maxContentWidth,
+                  ),
+                  child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   padding: AppSpacing.screenPadding,
@@ -1141,6 +1130,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                       SizedBox(height: 24.h),
                     ],
                   ),
+                ),
+              ),
                 ),
               ),
       ),

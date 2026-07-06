@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../application/coupons_notifier.dart';
@@ -164,22 +165,27 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen>
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16.w),
-          children: [
-            // Title
-            TextFormField(
-              controller: _titleController,
-              decoration: _inputDecoration('coupons.couponTitle'.tr, isDark),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'validation.required'.tr;
-                }
-                return null;
-              },
-            ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: EdgeInsets.all(16.w),
+              children: [
+                // Title
+                TextFormField(
+                  controller: _titleController,
+                  decoration: _inputDecoration('coupons.couponTitle'.tr, isDark),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'validation.required'.tr;
+                    }
+                    return null;
+                  },
+                ),
             SizedBox(height: 16.h),
 
             // Description
@@ -440,6 +446,8 @@ class _AddEditCouponScreenState extends ConsumerState<AddEditCouponScreen>
             ),
             SizedBox(height: 24.h),
           ],
+        ),
+      ),
         ),
       ),
     ),

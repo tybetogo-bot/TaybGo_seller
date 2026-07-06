@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/application/tour_state.dart';
@@ -28,7 +29,12 @@ class SettingsScreen extends ConsumerWidget {
             : LightColors.background,
         elevation: 0,
       ),
-      body: ListView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: ListView(
         children: [
           _SettingsTile(
             icon: Icons.palette_outlined,
@@ -94,6 +100,8 @@ class SettingsScreen extends ConsumerWidget {
             isDark: isDark,
           ),
         ],
+      ),
+        ),
       ),
     );
   }

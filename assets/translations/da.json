@@ -164,7 +164,7 @@
     "markOutForDelivery": "Ude til levering",
     "markDelivered": "Markér leveret",
     "noItems": "Ingen varer tilføjet",
-    "emptyItemsWarning": "Denne ordre har 0 varer. Du kan tilføje varer eller oprette den alligevel.",
+    "emptyItemsWarning": "Denne ordre har ingen varer. Tilføj mindst én vare for at fortsætte.",
     "orderCreated": "Ordre oprettet!",
     "reorder": "Bestil igen",
     "selectItemFromMenu": "Vælg venligst en vare fra menuen",

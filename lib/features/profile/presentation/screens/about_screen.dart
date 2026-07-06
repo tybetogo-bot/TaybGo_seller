@@ -8,6 +8,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/config/env_config.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 
 /// About screen
@@ -73,168 +74,181 @@ class AboutScreen extends ConsumerWidget {
             : LightColors.background,
         elevation: 0,
       ),
-      body: ListView(
-        padding: EdgeInsets.all(24.w),
-        children: [
-          Container(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: ListView(
             padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: borderColor, width: 0.5),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 84.w,
-                  height: 84.w,
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(22.r),
-                  ),
-                  child: Icon(
-                    Icons.storefront_rounded,
-                    size: 42.w,
-                    color: Colors.white,
-                  ),
+            children: [
+              Container(
+                padding: EdgeInsets.all(24.w),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: borderColor, width: 0.5),
                 ),
-                SizedBox(height: 20.h),
-                Text(
-                  'app.name'.tr,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? DarkColors.textPrimary
-                        : LightColors.textPrimary,
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 84.w,
+                      height: 84.w,
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(22.r),
+                      ),
+                      child: Icon(
+                        Icons.storefront_rounded,
+                        size: 42.w,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'app.name'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(999.r),
+                      ),
+                      child: Text(
+                        partnerToolsLabel,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      descriptionLabel,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        height: 1.5,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 8.h),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 6.h,
+              ),
+              SizedBox(height: 20.h),
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: borderColor, width: 0.5),
+                ),
+                child: Column(
+                  children: [
+                    _InfoRow(
+                      icon: Icons.language_rounded,
+                      label: websiteLabel,
+                      value: websiteHost,
+                      isDark: isDark,
+                    ),
+                    Divider(color: borderColor, height: 24.h),
+                    _InfoRow(
+                      icon: Icons.alternate_email_rounded,
+                      label: supportEmailLabel,
+                      value: EnvConfig.supportEmail,
+                      isDark: isDark,
+                    ),
+                    Divider(color: borderColor, height: 24.h),
+                    _InfoRow(
+                      icon: Icons.info_outline_rounded,
+                      label: 'common.version'.tr,
+                      value: _appVersion,
+                      isDark: isDark,
+                    ),
+                    Divider(color: borderColor, height: 24.h),
+                    _InfoRow(
+                      icon: Icons.event_rounded,
+                      label: releaseDateLabel,
+                      value: _releaseDate,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openWebsite(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(999.r),
-                  ),
-                  child: Text(
-                    partnerToolsLabel,
+                  icon: const Icon(Icons.open_in_new_rounded),
+                  label: Text(
+                    visitWebsiteLabel,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: primaryColor,
                     ),
                   ),
                 ),
-                SizedBox(height: 16.h),
-                Text(
-                  descriptionLabel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    height: 1.5,
-                    color: isDark
-                        ? DarkColors.textSecondary
-                        : LightColors.textSecondary,
+              ),
+              SizedBox(height: 12.h),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push(Routes.help),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    side: BorderSide(color: borderColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                  ),
+                  icon: Icon(Icons.support_agent_rounded, size: 18.w),
+                  label: Text(
+                    'settings.helpSupport'.tr,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(16.r),
-              border: Border.all(color: borderColor, width: 0.5),
-            ),
-            child: Column(
-              children: [
-                _InfoRow(
-                  icon: Icons.language_rounded,
-                  label: websiteLabel,
-                  value: websiteHost,
-                  isDark: isDark,
-                ),
-                Divider(color: borderColor, height: 24.h),
-                _InfoRow(
-                  icon: Icons.alternate_email_rounded,
-                  label: supportEmailLabel,
-                  value: EnvConfig.supportEmail,
-                  isDark: isDark,
-                ),
-                Divider(color: borderColor, height: 24.h),
-                _InfoRow(
-                  icon: Icons.info_outline_rounded,
-                  label: 'common.version'.tr,
-                  value: _appVersion,
-                  isDark: isDark,
-                ),
-                Divider(color: borderColor, height: 24.h),
-                _InfoRow(
-                  icon: Icons.event_rounded,
-                  label: releaseDateLabel,
-                  value: _releaseDate,
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _openWebsite(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14.r),
+              ),
+              SizedBox(height: 24.h),
+              Text(
+                'Copyright $year TaybGo',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: isDark
+                      ? DarkColors.textTertiary
+                      : LightColors.textTertiary,
                 ),
               ),
-              icon: const Icon(Icons.open_in_new_rounded),
-              label: Text(
-                visitWebsiteLabel,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
-              ),
-            ),
+            ],
           ),
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => context.push(Routes.help),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                side: BorderSide(color: borderColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14.r),
-                ),
-              ),
-              icon: Icon(Icons.support_agent_rounded, size: 18.w),
-              label: Text(
-                'settings.helpSupport'.tr,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          SizedBox(height: 24.h),
-          Text(
-            'Copyright $year TaybGo',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: isDark
-                  ? DarkColors.textTertiary
-                  : LightColors.textTertiary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/currency/currency.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 
 /// Currency selection screen
@@ -22,7 +23,12 @@ class CurrencyScreen extends ConsumerWidget {
         backgroundColor: isDark ? DarkColors.background : LightColors.background,
         elevation: 0,
       ),
-      body: ListView.builder(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: ListView.builder(
         itemCount: Currencies.all.length,
         itemBuilder: (context, index) {
           final currency = Currencies.all[index];
@@ -40,6 +46,8 @@ class CurrencyScreen extends ConsumerWidget {
             },
           );
         },
+      ),
+        ),
       ),
     );
   }

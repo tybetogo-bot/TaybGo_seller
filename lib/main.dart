@@ -15,6 +15,7 @@ import 'app/router/routes.dart';
 import 'core/config/config.dart';
 import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
+import 'core/responsive/responsive.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/application/auth_state.dart';
@@ -44,7 +45,10 @@ void main() async {
   // Initialize push notification service (non-blocking so it doesn't stall the app)
   PushNotificationService.instance.initialize();
 
-  // Set preferred orientations
+  // Orientation lock: portrait-only on phones (the rotation policy is then
+  // enforced per-frame in [TaybGoApp.build] based on the current screen
+  // width). We start with portrait by default so handsets don't briefly
+  // rotate during startup.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -116,58 +120,117 @@ class TaybGoApp extends ConsumerWidget {
       router.go(Routes.login);
     };
 
-    return ScreenUtilInit(
-      designSize: const Size(375, 812), // iPhone X design size
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return TourOverlay(
-          child: MaterialApp.router(
-            title: EnvConfig.appName,
-            debugShowCheckedModeBanner: EnvConfig.showDebugBanner,
+    // ScreenUtil scales sizes proportionally to screen width using a 375px
+    // (iPhone X) design reference. On wide screens (tablets, web/desktop)
+    // this would multiply every dimension by 2-3x and make the UI look
+    // ridiculous. We wrap it in a [LayoutBuilder] and clamp the effective
+    // design width on larger screens so sizes plateau at ~tablet density
+    // instead of scaling without bound. Layout reorganization (columns,
+    // navigation rail, master-detail) happens on top of this via the
+    // responsive widgets in [core/responsive].
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final rawWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : 375.0;
+        // Phones use the natural 375 reference; on tablet+ we cap the scale
+        // at 480/375 = 1.28x so dimensions stay close to phone values and
+        // layout work (grids, max-widths) does the rest.
+        const double maxScaleMultiplier = 1.28;
+        final effectiveDesignWidth = rawWidth <= 480
+            ? 375.0
+            : rawWidth / maxScaleMultiplier;
+        // Apply the per-frame orientation policy: free on tablet+, locked
+        // on phone. Doing this in build means rotations on tablets stick
+        // after the user resizes a desktop window across the breakpoint too.
+        _applyOrientationPolicy(rawWidth);
+        return ScreenUtilInit(
+          designSize: Size(effectiveDesignWidth, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return TourOverlay(
+              child: MaterialApp.router(
+                title: EnvConfig.appName,
+                debugShowCheckedModeBanner: EnvConfig.showDebugBanner,
 
-            // Theme with dynamic accent color
-            theme: AppTheme.lightWithAccent(accentColor),
-            darkTheme: AppTheme.darkWithAccent(accentColor),
-            themeMode: themeMode,
+                // Theme with dynamic accent color
+                theme: AppTheme.lightWithAccent(accentColor),
+                darkTheme: AppTheme.darkWithAccent(accentColor),
+                themeMode: themeMode,
 
-            // Routing
-            routerConfig: router,
+                // Routing
+                routerConfig: router,
 
-            // Localization
-            locale: locale,
-            supportedLocales: AppLocales.supportedLocales,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+                // Localization
+                locale: locale,
+                supportedLocales: AppLocales.supportedLocales,
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
 
-            // Builder for screen utils and text scaling
-            builder: (context, child) {
-              // Limit text scaling for accessibility
-              final mediaQueryData = MediaQuery.of(context);
-              final constrainedTextScaleFactor = mediaQueryData.textScaler
-                  .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2);
+                // Builder for screen utils and text scaling
+                builder: (context, child) {
+                  // Limit text scaling for accessibility
+                  final mediaQueryData = MediaQuery.of(context);
+                  final constrainedTextScaleFactor = mediaQueryData.textScaler
+                      .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2);
 
-              return MediaQuery(
-                data: mediaQueryData.copyWith(
-                  textScaler: constrainedTextScaleFactor,
-                ),
-                child: _DebugCrashlyticsTester(
-                  // Dismiss keyboard when tapping outside of input fields
-                  child: GestureDetector(
-                    onTap: () => FocusScope.of(context).unfocus(),
-                    child: child ?? const SizedBox.shrink(),
-                  ),
-                ),
-              );
-            },
-          ),
+                  return MediaQuery(
+                    data: mediaQueryData.copyWith(
+                      textScaler: constrainedTextScaleFactor,
+                    ),
+                    child: _DebugCrashlyticsTester(
+                      // Dismiss keyboard when tapping outside of input fields
+                      child: GestureDetector(
+                        onTap: () => FocusScope.of(context).unfocus(),
+                        child: child ?? const SizedBox.shrink(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         );
       },
     );
   }
+}
+
+/// Track the orientation policy already applied so we don't spam the
+/// platform channel on every rebuild.
+List<DeviceOrientation>? _appliedOrientations;
+
+/// Allow free rotation on tablet+ and desktop, lock phones to portrait.
+///
+/// Called from [TaybGoApp.build] with the current logical screen width so
+/// rotations are re-evaluated when the user resizes a desktop window across
+/// the tablet breakpoint or hot-restarts on a different form factor.
+void _applyOrientationPolicy(double width) {
+  final orientations = width >= Breakpoints.tablet
+      ? <DeviceOrientation>[
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]
+      : <DeviceOrientation>[
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ];
+
+  if (_appliedOrientations != null &&
+      _appliedOrientations!.length == orientations.length &&
+      _appliedOrientations!.every(orientations.contains)) {
+    return;
+  }
+  _appliedOrientations = orientations;
+  // Fire-and-forget — SystemChrome calls are cheap and we don't need to
+  // await them during a build.
+  SystemChrome.setPreferredOrientations(orientations);
 }
 
 class _DebugCrashlyticsTester extends StatelessWidget {
