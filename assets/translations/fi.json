@@ -38,7 +38,8 @@
     "version": "Versio",
     "undo": "Kumoa",
     "optional": "Valinnainen",
-    "required": "Pakollinen"
+    "required": "Pakollinen",
+    "missing": "Puuttuu"
   },
   "auth": {
     "phoneNumber": "Puhelinnumero",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Etsitään kuljettajaa",
       "driverNotificationSent": "Odottaa kuljettajaa",
       "delivered": "Toimitettu",
+      "restaurantDelivered": "Toimitettu ravintolan toimesta",
       "rejected": "Hylätty",
       "cancelled": "Peruutettu"
     },
     "requestDriver": "Pyydä kuljettaja",
+    "markRestaurantDelivered": "Merkitse ravintolan toimesta toimitetuksi",
     "waitingForDriver": "Odotetaan kuljettajaa...",
     "orderRejectedByRestaurant": "Ravintola hylkäsi tämän tilauksen",
     "orderWasCancelled": "Tämä tilaus peruutettiin",
@@ -219,6 +222,7 @@
       "onTheWay": "Matkalla asiakkaalle",
       "delivery": "Matkalla asiakkaalle",
       "delivered": "Tilaus toimitettu onnistuneesti",
+      "restaurantDelivered": "Hoidettu suoraan ravintolan kautta",
       "rejected": "Tilaus hylätty",
       "cancelled": "Tilaus peruutettu"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Lisätty ja lukittu. Tämä sivu on vain katseltavissa.",
     "registrationDocumentMissing": "Tältä myyjäprofiililta ei löytynyt rekisteröintiasiakirjaa.",
     "invalidDocumentUrl": "Virheellinen asiakirjan URL-osoite.",
-    "documentOpenFailed": "Asiakirjaa ei voitu avata."
+    "documentOpenFailed": "Asiakirjaa ei voitu avata.",
+    "deliveryEnabled": "Toimitus käytössä",
+    "deliveryDisabled": "Toimitus pois käytöstä",
+    "editProfile": "Muokkaa profiilia",
+    "settingsSectionTitle": "Asetukset",
+    "settingsSectionSubtitle": "Tulot, kupongit ja ilmoitukset",
+    "preferencesSectionTitle": "Mieltymykset",
+    "preferencesSectionSubtitle": "Tumma tila, kieli ja korostusteema",
+    "helpSupportSectionTitle": "Ohje ja tuki",
+    "helpSupportSectionSubtitle": "Tietopankki, tuki, ohje, tietoja ja tilin poisto"
   },
   "deleteAccount": {
     "title": "Poista tili",
@@ -594,7 +607,15 @@
     "contactUs": "Ota yhteyttä",
     "callSupport": "Soita tukeen",
     "liveChat": "Live-chat",
-    "liveChatDesc": "Chatta tukitiimimme kanssa"
+    "liveChatDesc": "Chatta tukitiimimme kanssa",
+    "description": "Käytä TaybGo-tukea aina, kun tarvitset apua tilin käyttöön, tilauksiin, maksuihin tai päivittäiseen myyjätoimintaan liittyen.",
+    "visitWebsite": "Siirry osoitteeseen taybgo.com",
+    "websiteTitle": "TaybGo-verkkosivusto",
+    "websiteDescription": "Avaa taybgo.com saadaksesi tietoa alustasta ja suorat yhteystiedot.",
+    "emailTitle": "Lähetä sähköpostia tukeen",
+    "emailDescription": "Lähetä viesti tukitiimille oletussähköpostisovelluksestasi.",
+    "responseNote": "Jos ongelma liittyy aktiiviseen tiliin tai tilaukseen, tukipyynnön luominen sovelluksessa on nopein tapa, jotta tiimimme voi seurata ja ratkaista sen.",
+    "linkError": "TaybGoa ei voitu avata juuri nyt. Yritä uudelleen."
   },
   "earnings": {
     "title": "Ansiot",
@@ -628,7 +649,11 @@
     "title": "Tietoja",
     "version": "Versio {version}",
     "description": "Hallitse ravintolasi tilauksia, menua ja asiakkaita kaikki yhdessä paikassa.",
-    "copyright": "© 2024 TaybGo. Kaikki oikeudet pidätetään."
+    "copyright": "© 2024 TaybGo. Kaikki oikeudet pidätetään.",
+    "partnerTools": "Myyjän työtila",
+    "websiteLabel": "Verkkosivusto",
+    "supportEmailLabel": "Tukisähköposti",
+    "visitWebsite": "Vieraile TaybGossa"
   },
   "validation": {
     "required": "Tämä kenttä on pakollinen",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Kuvaile ongelmaasi yksityiskohtaisesti...",
     "noTickets": "Ei tikettejä vielä",
     "noTicketsDesc": "Luo tiketti saadaksesi apua tukitiimiltämme",
-    "ticketCreated": "Tiketti luotu onnistuneesti"
+    "ticketCreated": "Tiketti luotu onnistuneesti",
+    "statusWaitingOnCustomer": "Odottaa asiakasta",
+    "statusResolved": "Ratkaistu",
+    "categoryPayment": "Maksu",
+    "categoryDelivery": "Toimitus",
+    "categoryAccount": "Tili",
+    "priorityUrgent": "Kiireellinen"
   },
   "location": {
     "permissionRequired": "Sijaintilupa vaaditaan",

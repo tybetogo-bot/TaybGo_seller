@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Undo",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "missing": "Missing"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -176,10 +177,12 @@
       "searchingForDriver": "Searching for Driver",
       "driverNotificationSent": "Awaiting Driver",
       "delivered": "Delivered",
+      "restaurantDelivered": "Restaurant Delivered",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
     "requestDriver": "Request Driver",
+    "markRestaurantDelivered": "Mark Restaurant Delivered",
     "waitingForDriver": "Waiting for driver...",
     "orderRejectedByRestaurant": "This order was rejected by the restaurant",
     "orderWasCancelled": "This order was cancelled",
@@ -218,6 +221,7 @@
       "onTheWay": "On the way to customer",
       "delivery": "On the way to customer",
       "delivered": "Order completed successfully",
+      "restaurantDelivered": "Handled directly by the restaurant",
       "rejected": "Order was declined",
       "cancelled": "Order was cancelled"
     },
@@ -533,7 +537,16 @@
     "registrationDocumentAddedLocked": "Added and locked. This page is view-only.",
     "registrationDocumentMissing": "No registration document found on this seller profile.",
     "invalidDocumentUrl": "Invalid document URL.",
-    "documentOpenFailed": "Could not open document."
+    "documentOpenFailed": "Could not open document.",
+    "deliveryEnabled": "Delivery Enabled",
+    "deliveryDisabled": "Delivery Disabled",
+    "editProfile": "Edit Profile",
+    "settingsSectionTitle": "Settings",
+    "settingsSectionSubtitle": "Earnings, coupons, and notifications",
+    "preferencesSectionTitle": "Preferences",
+    "preferencesSectionSubtitle": "Dark mode, language, and accent theme",
+    "helpSupportSectionTitle": "Help & Support",
+    "helpSupportSectionSubtitle": "Knowledge base, support, help, about, and delete account"
   },
   "deleteAccount": {
     "title": "Delete Account",
@@ -1197,7 +1210,9 @@
     "initialMessageHint": "Describe your issue in detail...",
     "noTickets": "No tickets yet",
     "noTicketsDesc": "Create a ticket to get help from our support team",
-    "ticketCreated": "Ticket created successfully"
+    "ticketCreated": "Ticket created successfully",
+    "categoryRestaurant": "Restaurant",
+    "categoryDriver": "Driver"
   },
   "location": {
     "permissionRequired": "Location Permission Required",

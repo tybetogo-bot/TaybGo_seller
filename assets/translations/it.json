@@ -38,7 +38,8 @@
     "version": "Versione",
     "undo": "Annulla",
     "optional": "Opzionale",
-    "required": "Obbligatorio"
+    "required": "Obbligatorio",
+    "missing": "Mancante"
   },
   "auth": {
     "phoneNumber": "Numero di telefono",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Ricerca autista",
       "driverNotificationSent": "In attesa autista",
       "delivered": "Consegnato",
+      "restaurantDelivered": "Consegnato dal ristorante",
       "rejected": "Rifiutato",
       "cancelled": "Annullato"
     },
     "requestDriver": "Richiedi autista",
+    "markRestaurantDelivered": "Segna come consegnato dal ristorante",
     "waitingForDriver": "In attesa dell'autista...",
     "orderRejectedByRestaurant": "Questo ordine è stato rifiutato dal ristorante",
     "orderWasCancelled": "Questo ordine è stato annullato",
@@ -219,6 +222,7 @@
       "onTheWay": "In viaggio verso il cliente",
       "delivery": "In viaggio verso il cliente",
       "delivered": "Ordine completato con successo",
+      "restaurantDelivered": "Gestito direttamente dal ristorante",
       "rejected": "Ordine rifiutato",
       "cancelled": "Ordine annullato"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Aggiunto e bloccato. Questa pagina è solo di visualizzazione.",
     "registrationDocumentMissing": "Nessun documento di registrazione trovato in questo profilo venditore.",
     "invalidDocumentUrl": "URL del documento non valido.",
-    "documentOpenFailed": "Impossibile aprire il documento."
+    "documentOpenFailed": "Impossibile aprire il documento.",
+    "deliveryEnabled": "Consegna abilitata",
+    "deliveryDisabled": "Consegna disabilitata",
+    "editProfile": "Modifica profilo",
+    "settingsSectionTitle": "Impostazioni",
+    "settingsSectionSubtitle": "Guadagni, coupon e notifiche",
+    "preferencesSectionTitle": "Preferenze",
+    "preferencesSectionSubtitle": "Modalità scura, lingua e tema accento",
+    "helpSupportSectionTitle": "Aiuto e supporto",
+    "helpSupportSectionSubtitle": "Base di conoscenza, supporto, aiuto, info ed elimina account"
   },
   "deleteAccount": {
     "title": "Elimina account",
@@ -594,7 +607,15 @@
     "contactUs": "Contattaci",
     "callSupport": "Chiama il supporto",
     "liveChat": "Chat dal vivo",
-    "liveChatDesc": "Chatta con il nostro team di supporto"
+    "liveChatDesc": "Chatta con il nostro team di supporto",
+    "description": "Usa il supporto TaybGo ogni volta che hai bisogno di aiuto con accesso all’account, ordini, pagamenti o operazioni quotidiane del venditore.",
+    "visitWebsite": "Vai su taybgo.com",
+    "websiteTitle": "Sito TaybGo",
+    "websiteDescription": "Apri taybgo.com per informazioni sulla piattaforma e opzioni di contatto diretto.",
+    "emailTitle": "Invia un’e-mail al supporto",
+    "emailDescription": "Invia un messaggio al nostro team di supporto dalla tua app e-mail predefinita.",
+    "responseNote": "Per problemi con account o ordini in corso, creare un ticket di supporto nell’app è il modo più rapido perché il nostro team possa seguire e risolvere il problema.",
+    "linkError": "Impossibile aprire TaybGo in questo momento. Riprova."
   },
   "earnings": {
     "title": "Guadagni",
@@ -628,7 +649,11 @@
     "title": "Informazioni",
     "version": "Versione {version}",
     "description": "Gestisci gli ordini del tuo ristorante, il menu e i clienti tutto in un unico posto.",
-    "copyright": "© 2024 TaybGo. Tutti i diritti riservati."
+    "copyright": "© 2024 TaybGo. Tutti i diritti riservati.",
+    "partnerTools": "Spazio di lavoro venditore",
+    "websiteLabel": "Sito web",
+    "supportEmailLabel": "E-mail di supporto",
+    "visitWebsite": "Visita TaybGo"
   },
   "validation": {
     "required": "Questo campo è obbligatorio",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Descrivi il tuo problema in dettaglio...",
     "noTickets": "Nessun ticket ancora",
     "noTicketsDesc": "Crea un ticket per ricevere assistenza dal nostro team di supporto",
-    "ticketCreated": "Ticket creato con successo"
+    "ticketCreated": "Ticket creato con successo",
+    "statusWaitingOnCustomer": "In attesa del cliente",
+    "statusResolved": "Risolto",
+    "categoryPayment": "Pagamento",
+    "categoryDelivery": "Consegna",
+    "categoryAccount": "Account",
+    "priorityUrgent": "Urgente"
   },
   "location": {
     "permissionRequired": "Autorizzazione posizione richiesta",

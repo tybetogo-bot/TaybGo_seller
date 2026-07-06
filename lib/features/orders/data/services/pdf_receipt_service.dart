@@ -519,6 +519,7 @@ class PdfReceiptService {
       case OrderStatusEnum.onTheWay:
         return PdfColors.purple;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return PdfColors.green;
       case OrderStatusEnum.expired:
         return PdfColors.amber800;

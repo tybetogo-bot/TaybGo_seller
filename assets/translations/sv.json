@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Ångra",
     "optional": "Valfritt",
-    "required": "Obligatorisk"
+    "required": "Obligatorisk",
+    "missing": "Saknas"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Söker efter chaufför",
       "driverNotificationSent": "Väntar på chaufför",
       "delivered": "Levererad",
+      "restaurantDelivered": "Levererad av restaurangen",
       "rejected": "Avvisad",
       "cancelled": "Avbruten"
     },
     "requestDriver": "Begär chaufför",
+    "markRestaurantDelivered": "Markera som levererad av restaurangen",
     "waitingForDriver": "Väntar på chaufför...",
     "orderRejectedByRestaurant": "Den här beställningen avvisades av restaurangen",
     "orderWasCancelled": "Den här beställningen avbröts",
@@ -219,6 +222,7 @@
       "onTheWay": "På väg till kunden",
       "delivery": "På väg till kunden",
       "delivered": "Beställning slutförd",
+      "restaurantDelivered": "Hanteras direkt av restaurangen",
       "rejected": "Beställning avvisades",
       "cancelled": "Beställning avbröts"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Tillagt och låst. Den här sidan är endast för visning.",
     "registrationDocumentMissing": "Inget registreringsdokument hittades för den här säljarprofilen.",
     "invalidDocumentUrl": "Ogiltig dokument-URL.",
-    "documentOpenFailed": "Det gick inte att öppna dokumentet."
+    "documentOpenFailed": "Det gick inte att öppna dokumentet.",
+    "deliveryEnabled": "Leverans aktiverad",
+    "deliveryDisabled": "Leverans inaktiverad",
+    "editProfile": "Redigera profil",
+    "settingsSectionTitle": "Inställningar",
+    "settingsSectionSubtitle": "Intäkter, kuponger och aviseringar",
+    "preferencesSectionTitle": "Preferenser",
+    "preferencesSectionSubtitle": "Mörkt läge, språk och accenttema",
+    "helpSupportSectionTitle": "Hjälp och support",
+    "helpSupportSectionSubtitle": "Kunskapsbas, support, hjälp, om och radera konto"
   },
   "deleteAccount": {
     "title": "Radera konto",
@@ -594,7 +607,15 @@
     "contactUs": "Kontakta oss",
     "callSupport": "Ring support",
     "liveChat": "Livechatt",
-    "liveChatDesc": "Chatta med vårt supportteam"
+    "liveChatDesc": "Chatta med vårt supportteam",
+    "description": "Använd TaybGo-support när du behöver hjälp med kontotillgång, beställningar, utbetalningar eller den dagliga säljarverksamheten.",
+    "visitWebsite": "Gå till taybgo.com",
+    "websiteTitle": "TaybGo-webbplats",
+    "websiteDescription": "Öppna taybgo.com för plattformsinformation och direkta kontaktalternativ.",
+    "emailTitle": "Skicka e-post till support",
+    "emailDescription": "Skicka ett meddelande till vårt supportteam från din vanliga e-postapp.",
+    "responseNote": "Vid konto- eller orderproblem är det snabbaste sättet att skapa ett supportärende i appen så att vårt team kan följa och lösa problemet.",
+    "linkError": "Det gick inte att öppna TaybGo just nu. Försök igen."
   },
   "earnings": {
     "title": "Intäkter",
@@ -628,7 +649,11 @@
     "title": "Om",
     "version": "Version {version}",
     "description": "Hantera din restaurangs beställningar, meny och kunder – allt på ett ställe.",
-    "copyright": "© 2024 TaybGo. Alla rättigheter förbehållna."
+    "copyright": "© 2024 TaybGo. Alla rättigheter förbehållna.",
+    "partnerTools": "Säljararbetsyta",
+    "websiteLabel": "Webbplats",
+    "supportEmailLabel": "Support-e-post",
+    "visitWebsite": "Besök TaybGo"
   },
   "validation": {
     "required": "Det här fältet är obligatoriskt",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Beskriv ditt problem i detalj...",
     "noTickets": "Inga ärenden ännu",
     "noTicketsDesc": "Skapa ett ärende för att få hjälp av vårt supportteam",
-    "ticketCreated": "Ärende skapat"
+    "ticketCreated": "Ärende skapat",
+    "statusWaitingOnCustomer": "Väntar på kund",
+    "statusResolved": "Löst",
+    "categoryPayment": "Betalning",
+    "categoryDelivery": "Leverans",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Brådskande"
   },
   "location": {
     "permissionRequired": "Platsbehörighet krävs",

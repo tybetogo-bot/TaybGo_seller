@@ -38,7 +38,8 @@
     "version": "Versjon",
     "undo": "Angre",
     "optional": "Valgfritt",
-    "required": "Påkrevd"
+    "required": "Påkrevd",
+    "missing": "Mangler"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Søker etter sjåfør",
       "driverNotificationSent": "Venter på sjåfør",
       "delivered": "Levert",
+      "restaurantDelivered": "Levert av restauranten",
       "rejected": "Avvist",
       "cancelled": "Avbrutt"
     },
     "requestDriver": "Be om sjåfør",
+    "markRestaurantDelivered": "Marker som levert av restauranten",
     "waitingForDriver": "Venter på sjåfør...",
     "orderRejectedByRestaurant": "Denne bestillingen ble avvist av restauranten",
     "orderWasCancelled": "Denne bestillingen ble avbrutt",
@@ -219,6 +222,7 @@
       "onTheWay": "På vei til kunden",
       "delivery": "På vei til kunden",
       "delivered": "Bestilling fullført",
+      "restaurantDelivered": "Håndteres direkte av restauranten",
       "rejected": "Bestilling ble avvist",
       "cancelled": "Bestilling ble avbrutt"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Lagt til og låst. Denne siden er kun for visning.",
     "registrationDocumentMissing": "Fant ikke noe registreringsdokument for denne selgerprofilen.",
     "invalidDocumentUrl": "Ugyldig dokument-URL.",
-    "documentOpenFailed": "Kunne ikke åpne dokumentet."
+    "documentOpenFailed": "Kunne ikke åpne dokumentet.",
+    "deliveryEnabled": "Levering aktivert",
+    "deliveryDisabled": "Levering deaktivert",
+    "editProfile": "Rediger profil",
+    "settingsSectionTitle": "Innstillinger",
+    "settingsSectionSubtitle": "Inntekter, kuponger og varsler",
+    "preferencesSectionTitle": "Preferanser",
+    "preferencesSectionSubtitle": "Mørk modus, språk og aksenttema",
+    "helpSupportSectionTitle": "Hjelp og støtte",
+    "helpSupportSectionSubtitle": "Kunnskapsbase, støtte, hjelp, om og slett konto"
   },
   "deleteAccount": {
     "title": "Slett konto",
@@ -594,7 +607,15 @@
     "contactUs": "Kontakt oss",
     "callSupport": "Ring support",
     "liveChat": "Live-chat",
-    "liveChatDesc": "Chat med supportteamet vårt"
+    "liveChatDesc": "Chat med supportteamet vårt",
+    "description": "Bruk TaybGo-support når du trenger hjelp med kontotilgang, bestillinger, utbetalinger eller den daglige driften som selger.",
+    "visitWebsite": "Gå til taybgo.com",
+    "websiteTitle": "TaybGo-nettsted",
+    "websiteDescription": "Åpne taybgo.com for plattforminformasjon og direkte kontaktmuligheter.",
+    "emailTitle": "Send e-post til support",
+    "emailDescription": "Send en melding til supportteamet vårt fra standard e-postapp.",
+    "responseNote": "Ved konto- eller bestillingsproblemer er det raskest å opprette en supportsak i appen, slik at teamet vårt kan følge opp og løse problemet.",
+    "linkError": "Kunne ikke åpne TaybGo akkurat nå. Prøv igjen."
   },
   "earnings": {
     "title": "Inntekter",
@@ -628,7 +649,11 @@
     "title": "Om",
     "version": "Versjon {version}",
     "description": "Administrer restaurantbestillinger, meny og kunder på ett sted.",
-    "copyright": "© 2024 TaybGo. Alle rettigheter forbeholdt."
+    "copyright": "© 2024 TaybGo. Alle rettigheter forbeholdt.",
+    "partnerTools": "Selgerarbeidsområde",
+    "websiteLabel": "Nettsted",
+    "supportEmailLabel": "Support-e-post",
+    "visitWebsite": "Besøk TaybGo"
   },
   "validation": {
     "required": "Dette feltet er påkrevd",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Beskriv problemet ditt i detalj...",
     "noTickets": "Ingen saker ennå",
     "noTicketsDesc": "Opprett en sak for å få hjelp fra supportteamet vårt",
-    "ticketCreated": "Sak opprettet"
+    "ticketCreated": "Sak opprettet",
+    "statusWaitingOnCustomer": "Venter på kunde",
+    "statusResolved": "Løst",
+    "categoryPayment": "Betaling",
+    "categoryDelivery": "Levering",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Haster"
   },
   "location": {
     "permissionRequired": "Plasseringstillatelse kreves",

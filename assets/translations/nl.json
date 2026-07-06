@@ -38,7 +38,8 @@
     "version": "Versie",
     "undo": "Ongedaan maken",
     "optional": "Optioneel",
-    "required": "Vereist"
+    "required": "Vereist",
+    "missing": "Ontbreekt"
   },
   "auth": {
     "phoneNumber": "Telefoonnummer",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Chauffeur zoeken",
       "driverNotificationSent": "Wacht op chauffeur",
       "delivered": "Bezorgd",
+      "restaurantDelivered": "Geleverd door restaurant",
       "rejected": "Afgewezen",
       "cancelled": "Geannuleerd"
     },
     "requestDriver": "Chauffeur aanvragen",
+    "markRestaurantDelivered": "Markeren als geleverd door restaurant",
     "waitingForDriver": "Wachten op chauffeur...",
     "orderRejectedByRestaurant": "Deze bestelling is afgewezen door het restaurant",
     "orderWasCancelled": "Deze bestelling is geannuleerd",
@@ -219,6 +222,7 @@
       "onTheWay": "Onderweg naar klant",
       "delivery": "Onderweg naar klant",
       "delivered": "Bestelling succesvol afgerond",
+      "restaurantDelivered": "Rechtstreeks door het restaurant afgehandeld",
       "rejected": "Bestelling is geweigerd",
       "cancelled": "Bestelling is geannuleerd"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Toegevoegd en vergrendeld. Deze pagina is alleen-lezen.",
     "registrationDocumentMissing": "Geen registratiedocument gevonden voor dit verkopersprofiel.",
     "invalidDocumentUrl": "Ongeldige document-URL.",
-    "documentOpenFailed": "Kan document niet openen."
+    "documentOpenFailed": "Kan document niet openen.",
+    "deliveryEnabled": "Bezorging ingeschakeld",
+    "deliveryDisabled": "Bezorging uitgeschakeld",
+    "editProfile": "Profiel bewerken",
+    "settingsSectionTitle": "Instellingen",
+    "settingsSectionSubtitle": "Inkomsten, coupons en meldingen",
+    "preferencesSectionTitle": "Voorkeuren",
+    "preferencesSectionSubtitle": "Donkere modus, taal en accentthema",
+    "helpSupportSectionTitle": "Hulp en ondersteuning",
+    "helpSupportSectionSubtitle": "Kennisbank, ondersteuning, hulp, info en account verwijderen"
   },
   "deleteAccount": {
     "title": "Account verwijderen",
@@ -594,7 +607,15 @@
     "contactUs": "Neem contact op",
     "callSupport": "Bel ondersteuning",
     "liveChat": "Live chat",
-    "liveChatDesc": "Chat met ons ondersteuningsteam"
+    "liveChatDesc": "Chat met ons ondersteuningsteam",
+    "description": "Gebruik TaybGo-ondersteuning wanneer u hulp nodig heeft met accounttoegang, bestellingen, uitbetalingen of de dagelijkse werkzaamheden van verkopers.",
+    "visitWebsite": "Ga naar taybgo.com",
+    "websiteTitle": "TaybGo-website",
+    "websiteDescription": "Open taybgo.com voor platforminformatie en directe contactopties.",
+    "emailTitle": "E-mail ondersteuning",
+    "emailDescription": "Stuur een bericht naar ons ondersteuningsteam vanuit uw standaard mail-app.",
+    "responseNote": "Bij live account- of bestelproblemen is het aanmaken van een supportticket in de app de snelste manier voor ons team om het probleem te volgen en op te lossen.",
+    "linkError": "Kon TaybGo nu niet openen. Probeer het opnieuw."
   },
   "earnings": {
     "title": "Verdiensten",
@@ -628,7 +649,11 @@
     "title": "Over",
     "version": "Versie {version}",
     "description": "Beheer uw restaurantbestellingen, menu en klanten allemaal op één plek.",
-    "copyright": "© 2024 TaybGo. Alle rechten voorbehouden."
+    "copyright": "© 2024 TaybGo. Alle rechten voorbehouden.",
+    "partnerTools": "Werkruimte voor verkopers",
+    "websiteLabel": "Website",
+    "supportEmailLabel": "Support-e-mail",
+    "visitWebsite": "Bezoek TaybGo"
   },
   "validation": {
     "required": "Dit veld is verplicht",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Beschrijf uw probleem in detail...",
     "noTickets": "Nog geen tickets",
     "noTicketsDesc": "Maak een ticket aan om hulp te krijgen van ons ondersteuningsteam",
-    "ticketCreated": "Ticket succesvol aangemaakt"
+    "ticketCreated": "Ticket succesvol aangemaakt",
+    "statusWaitingOnCustomer": "Wacht op klant",
+    "statusResolved": "Opgelost",
+    "categoryPayment": "Betaling",
+    "categoryDelivery": "Bezorging",
+    "categoryAccount": "Account",
+    "priorityUrgent": "Dringend"
   },
   "location": {
     "permissionRequired": "Locatietoestemming vereist",

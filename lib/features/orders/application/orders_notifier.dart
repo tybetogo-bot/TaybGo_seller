@@ -66,6 +66,7 @@ class OrdersState {
           current.add(order);
           active.add(order);
         case OrderStatusEnum.delivered:
+        case OrderStatusEnum.restaurantDelivered:
         case OrderStatusEnum.rejected:
         case OrderStatusEnum.cancelled:
           completed.add(order);
@@ -159,8 +160,12 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return;
       }
 
+      final filteredOrders = _filterOrdersForSelectedRestaurant(
+        result.data ?? const [],
+      );
+
       state = state.copyWith(
-        orders: result.data ?? [],
+        orders: filteredOrders,
         isLoading: false,
         currentPage: page,
       );
@@ -197,7 +202,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return false;
       }
 
-      final newOrders = result.data!;
+      final newOrders = _filterOrdersForSelectedRestaurant(result.data!);
 
       // Check if data has actually changed
       if (_hasOrdersChanged(newOrders)) {
@@ -213,6 +218,20 @@ class OrdersNotifier extends Notifier<OrdersState> {
     } catch (e) {
       return false;
     }
+  }
+
+  List<OrderModel> _filterOrdersForSelectedRestaurant(List<OrderModel> orders) {
+    final selectedRestaurantId = ref.read(selectedRestaurantIdProvider);
+    if (selectedRestaurantId == null || selectedRestaurantId.isEmpty) {
+      return orders;
+    }
+
+    return orders.where((order) {
+      final orderRestaurantId =
+          order.restaurantId ?? order.restaurant?.id.toString();
+      return orderRestaurantId == null ||
+          orderRestaurantId == selectedRestaurantId;
+    }).toList();
   }
 
   /// Compare orders to detect changes
@@ -440,13 +459,14 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
   }
 
-  /// Move order to next status in the flow
-  /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED → ON_THE_WAY → DELIVERED
+  /// Move order to the next actionable seller status.
+  /// Prefer backend-provided allowed status options when available.
+  /// Fall back to the legacy local flow only when the API contract is absent.
   Future<bool> moveToNextStatus(String orderId) async {
     final order = getOrder(orderId);
     if (order == null) return false;
 
-    final nextStatus = order.status.nextStatus;
+    final nextStatus = getNextStatusForOrder(order);
     if (nextStatus == null) return false;
 
     // Convert enum to API status string
@@ -475,6 +495,8 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return 'ON_THE_WAY';
       case OrderStatusEnum.delivered:
         return 'DELIVERED';
+      case OrderStatusEnum.restaurantDelivered:
+        return 'RESTAURANT_DELIVERED';
       case OrderStatusEnum.expired:
         return 'EXPIRED';
       case OrderStatusEnum.rejected:
@@ -482,6 +504,45 @@ class OrdersNotifier extends Notifier<OrdersState> {
       case OrderStatusEnum.cancelled:
         return 'CANCELLED';
     }
+  }
+
+  OrderStatusEnum? getNextStatusForOrder(OrderModel order) {
+    if (order.hasAllowedStatusOptions) {
+      return order.preferredAllowedNextStatus;
+    }
+
+    return order.status.nextStatusForRestaurant(
+      deliveryEnabled: isDeliveryEnabledForOrder(order),
+    );
+  }
+
+  bool isDeliveryEnabledForOrder(OrderModel order) {
+    final orderRestaurantId =
+        order.restaurantId ?? order.restaurant?.id.toString();
+
+    final restaurantState = ref.read(restaurantProvider);
+    if (restaurantState is RestaurantLoaded) {
+      if (orderRestaurantId != null) {
+        for (final restaurant in restaurantState.restaurants) {
+          if (restaurant.id == orderRestaurantId) {
+            return restaurant.deliveryEnabled != false;
+          }
+        }
+      }
+
+      if (restaurantState.restaurants.length == 1) {
+        return restaurantState.restaurants.first.deliveryEnabled != false;
+      }
+    }
+
+    final selectedRestaurant = ref.read(selectedRestaurantProvider);
+    if (selectedRestaurant != null &&
+        (orderRestaurantId == null ||
+            selectedRestaurant.id == orderRestaurantId)) {
+      return selectedRestaurant.deliveryEnabled != false;
+    }
+
+    return true;
   }
 
   /// Log manual order from scanned form

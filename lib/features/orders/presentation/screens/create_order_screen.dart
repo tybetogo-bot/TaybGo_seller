@@ -738,6 +738,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
         return 'ON_THE_WAY';
       case OrderStatusEnum.delivered:
         return 'DELIVERED';
+      case OrderStatusEnum.restaurantDelivered:
+        return 'RESTAURANT_DELIVERED';
       case OrderStatusEnum.expired:
         return 'EXPIRED';
       case OrderStatusEnum.rejected:

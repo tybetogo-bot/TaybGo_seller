@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 import 'order_api_debug_inspector.dart';
@@ -86,10 +87,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final previousExtent = _dragExtent;
     final newExtent = _dragExtent + (details.primaryDelta ?? 0);
     final maxDrag = maxWidth * _maxSwipeRatio;
-    // Only allow left-swipe (negative) for PENDING orders; others can only swipe right
-    final minDrag = widget.order.status == OrderStatusEnum.pending
-        ? -maxDrag
-        : 0.0;
+    final canAdvanceOrder = _getNextStatus() != null;
+    // Only allow left-swipe (negative) when the order has a next actionable state.
+    final minDrag = canAdvanceOrder ? -maxDrag : 0.0;
     final clampedExtent = newExtent.clamp(minDrag, maxDrag);
 
     // Check if we're crossing the threshold
@@ -117,13 +117,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     _isDragging = false;
 
     final swipeRatio = _dragExtent / maxWidth;
-    final status = widget.order.status;
-    final nextStatus = status.nextStatus;
+    final nextStatus = _getNextStatus();
 
-    // Swipe left threshold reached - update status (only for PENDING orders)
-    if (swipeRatio < -_swipeThreshold &&
-        status == OrderStatusEnum.pending &&
-        nextStatus != null) {
+    // Swipe left threshold reached - update status when another action is available.
+    if (swipeRatio < -_swipeThreshold && nextStatus != null) {
       await _handleSwipeToUpdateStatus();
     }
     // Swipe right threshold reached - open details
@@ -167,7 +164,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     if (_isProcessing) return;
 
     final previousStatus = widget.order.status;
-    final nextStatus = previousStatus.nextStatus;
+    final nextStatus = _getNextStatus();
     if (nextStatus == null) return;
 
     setState(() => _isProcessing = true);
@@ -190,6 +187,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
       if (success) {
         _showUndoSnackBar(previousStatus, nextStatus);
+      } else {
+        _showErrorSnackBar(
+          ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+        );
       }
 
       setState(() => _isProcessing = false);
@@ -198,11 +199,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
   Future<void> _handleMoveToNextStatus() async {
     if (_isProcessing) return;
-    // Seller can only advance PENDING orders
-    if (widget.order.status != OrderStatusEnum.pending) return;
 
     final previousStatus = widget.order.status;
-    final nextStatus = previousStatus.nextStatus;
+    final nextStatus = _getNextStatus();
     if (nextStatus == null) return;
 
     setState(() => _isProcessing = true);
@@ -213,8 +212,14 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         .read(ordersProvider.notifier)
         .moveToNextStatus(widget.order.id);
 
-    if (success && mounted) {
-      _showUndoSnackBar(previousStatus, nextStatus);
+    if (mounted) {
+      if (success) {
+        _showUndoSnackBar(previousStatus, nextStatus);
+      } else {
+        _showErrorSnackBar(
+          ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+        );
+      }
     }
 
     if (mounted) {
@@ -337,6 +342,39 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     );
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  OrderStatusEnum? _getNextStatus() {
+    return ref
+        .read(ordersProvider.notifier)
+        .getNextStatusForOrder(widget.order);
+  }
+
+  String _getPrimaryActionLabel(OrderStatusEnum nextStatus) {
+    switch (nextStatus) {
+      case OrderStatusEnum.accepted:
+        return 'orders.acceptOrder'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.requestDriver'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.markOnTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.markDelivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.markRestaurantDelivered'.tr;
+      default:
+        return _getStatusLabel(nextStatus);
+    }
+  }
+
   String _getStatusLabel(OrderStatusEnum status) {
     switch (status) {
       case OrderStatusEnum.pending:
@@ -351,6 +389,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.status.restaurantDelivered'.tr;
       case OrderStatusEnum.expired:
         return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
@@ -390,6 +430,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return 0.75;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return 1.0;
       case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
@@ -411,6 +452,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return const Color(0xFF4CAF50); // Green - Delivered (final success)
       case OrderStatusEnum.expired:
         return AppColors.warning; // Amber - Order expired before completion
@@ -434,6 +476,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case OrderStatusEnum.onTheWay:
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return Icons.check_circle_rounded; // Delivered (final success)
       case OrderStatusEnum.expired:
         return Icons.timer_off_rounded; // Expired before completion
@@ -458,6 +501,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         return 'orders.statusDesc.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.statusDesc.delivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.statusDesc.restaurantDelivered'.tr;
       case OrderStatusEnum.expired:
         return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
@@ -469,16 +514,13 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(selectedRestaurantProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final order = widget.order;
     final status = order.status;
     final statusColor = _getStatusColor(status);
-    final isTerminal =
-        status == OrderStatusEnum.delivered ||
-        status == OrderStatusEnum.expired ||
-        status == OrderStatusEnum.rejected ||
-        status == OrderStatusEnum.cancelled;
-    final nextStatus = status.nextStatus;
+    final isTerminal = status.isTerminal;
+    final nextStatus = _getNextStatus();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -508,7 +550,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                       isDark: isDark,
                       nextStatus: nextStatus,
                       isProcessing: _isProcessing,
-                      getStatusLabel: _getStatusLabel,
+                      getActionLabel: _getPrimaryActionLabel,
                       getStatusIcon: _getStatusIcon,
                     ),
                   ),
@@ -735,13 +777,14 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                 ),
 
                                 // Action button for explicit order actions
-                                if (status == OrderStatusEnum.pending &&
-                                    nextStatus != null) ...[
+                                if (nextStatus != null) ...[
                                   SizedBox(height: 14.h),
                                   _StatusActionButton(
                                     onTap: _handleMoveToNextStatus,
                                     isLoading: _isProcessing,
-                                    nextStatusLabel: 'orders.requestDriver'.tr,
+                                    nextStatusLabel: _getPrimaryActionLabel(
+                                      nextStatus,
+                                    ),
                                     nextStatusIcon: _getStatusIcon(nextStatus),
                                   ),
                                 ] else if (status ==
@@ -834,7 +877,7 @@ class _SwipeBackground extends StatelessWidget {
     required this.isDark,
     required this.nextStatus,
     required this.isProcessing,
-    required this.getStatusLabel,
+    required this.getActionLabel,
     required this.getStatusIcon,
   });
 
@@ -842,7 +885,7 @@ class _SwipeBackground extends StatelessWidget {
   final bool isDark;
   final OrderStatusEnum? nextStatus;
   final bool isProcessing;
-  final String Function(OrderStatusEnum) getStatusLabel;
+  final String Function(OrderStatusEnum) getActionLabel;
   final IconData Function(OrderStatusEnum) getStatusIcon;
 
   @override
@@ -863,7 +906,7 @@ class _SwipeBackground extends StatelessWidget {
           ? AppColors.success
           : AppColors.success.withValues(alpha: 0.7);
       icon = getStatusIcon(nextStatus!);
-      label = 'orders.requestDriver'.tr;
+      label = getActionLabel(nextStatus!);
     } else {
       // Swiping right - view details
       backgroundColor = hasReachedThreshold

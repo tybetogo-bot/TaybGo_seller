@@ -77,6 +77,7 @@ class CustomerOrdersState {
       .where(
         (o) =>
             o.status == OrderStatusEnum.delivered ||
+            o.status == OrderStatusEnum.restaurantDelivered ||
             o.status == OrderStatusEnum.expired ||
             o.status == OrderStatusEnum.rejected ||
             o.status == OrderStatusEnum.cancelled,

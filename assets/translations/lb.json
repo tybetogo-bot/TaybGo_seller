@@ -38,7 +38,8 @@
     "version": "Versioun",
     "undo": "Réckgängeg maachen",
     "optional": "Optional",
-    "required": "Erfuerderlech"
+    "required": "Erfuerderlech",
+    "missing": "Feelt"
   },
   "auth": {
     "phoneNumber": "Telefonsnummer",
@@ -177,10 +178,12 @@
       "searchingForDriver": "Chauffeur gesäit ginn",
       "driverNotificationSent": "Waart op Chauffeur",
       "delivered": "Geliwwert",
+      "restaurantDelivered": "Vum Restaurant geliwwert",
       "rejected": "Ofgeleent",
       "cancelled": "Annuléiert"
     },
     "requestDriver": "Chauffeur ufroe",
+    "markRestaurantDelivered": "Als vum Restaurant geliwwert markéieren",
     "waitingForDriver": "Op Chauffeur waarden...",
     "orderRejectedByRestaurant": "Dës Bestelling gouf vum Restaurant ofgeleent",
     "orderWasCancelled": "Dës Bestelling gouf annuléiert",
@@ -219,6 +222,7 @@
       "onTheWay": "Ënnerwee beim Client",
       "delivery": "Ënnerwee beim Client",
       "delivered": "Bestelling erfollegräich ofgeschloss",
+      "restaurantDelivered": "Direkt vum Restaurant ofgehandelt",
       "rejected": "Bestelling gouf ofgeleent",
       "cancelled": "Bestelling gouf annuléiert"
     },
@@ -534,7 +538,16 @@
     "registrationDocumentAddedLocked": "Dobäigesat a gespaart. Dës Säit ass nëmme fir d'Vue.",
     "registrationDocumentMissing": "Keng Registratiounsdokument gouf op dësem Verkeeferprofil fonnt.",
     "invalidDocumentUrl": "Ongëlteg Dokument-URL.",
-    "documentOpenFailed": "D'Dokument konnt net opgemaach ginn."
+    "documentOpenFailed": "D'Dokument konnt net opgemaach ginn.",
+    "deliveryEnabled": "Liwwerung aktivéiert",
+    "deliveryDisabled": "Liwwerung desaktivéiert",
+    "editProfile": "Profil änneren",
+    "settingsSectionTitle": "Astellungen",
+    "settingsSectionSubtitle": "Akommes, Couponen a Notifikatiounen",
+    "preferencesSectionTitle": "Preferenzen",
+    "preferencesSectionSubtitle": "Däischtere Modus, Sprooch an Akzentfaarf",
+    "helpSupportSectionTitle": "Hëllef & Support",
+    "helpSupportSectionSubtitle": "Wëssensdatenbank, Support, Hëllef, Iwwer an Account läschen"
   },
   "deleteAccount": {
     "title": "Kont läschen",
@@ -594,7 +607,15 @@
     "contactUs": "Kontaktéiert eis",
     "callSupport": "Support uruffen",
     "liveChat": "Live-Chat",
-    "liveChatDesc": "Mat eisem Supportteam chaten"
+    "liveChatDesc": "Mat eisem Supportteam chaten",
+    "description": "Benotzt den TaybGo-Support wann Dir Hëllef mam Kontozougang, Bestellungen, Ausbezuelungen oder dem alldeegleche Verkeeferbetrib braucht.",
+    "visitWebsite": "Op taybgo.com goen",
+    "websiteTitle": "TaybGo Websäit",
+    "websiteDescription": "Maacht taybgo.com op fir Plattforminformatiounen an direkt Kontaktméiglechkeeten.",
+    "emailTitle": "Support per E-Mail",
+    "emailDescription": "Schéckt eng Noriicht un eist Supportteam iwwer Är Standard-Mail-App.",
+    "responseNote": "Bei Problemer mam Kont oder mat Bestellungen ass e Support-Ticket an der App déi schnellst Manéier, fir datt eist Team de Problem novollzéie kann an léist.",
+    "linkError": "TaybGo konnt elo net opgemaach ginn. Probéiert et nach eng Kéier."
   },
   "earnings": {
     "title": "Akommes",
@@ -628,7 +649,11 @@
     "title": "Iwwer",
     "version": "Versioun {version}",
     "description": "Verwaltet Är Restaurantbestellungen, Menü a Clienten alles op enger Plaz.",
-    "copyright": "© 2024 TaybGo. All Rechter virbehal."
+    "copyright": "© 2024 TaybGo. All Rechter virbehal.",
+    "partnerTools": "Verkeefer-Aarbechtsberäich",
+    "websiteLabel": "Websäit",
+    "supportEmailLabel": "Support-E-Mail",
+    "visitWebsite": "TaybGo besichen"
   },
   "validation": {
     "required": "Dëst Feld ass erfuerderlech",
@@ -1182,7 +1207,13 @@
     "initialMessageHint": "Beschreift Äre Problem am Detail...",
     "noTickets": "Keng Ticketen nach",
     "noTicketsDesc": "Erstellt ee Ticket fir Hëllef vun eisem Supportteam ze kréien",
-    "ticketCreated": "Ticket erfollegräich erstellt"
+    "ticketCreated": "Ticket erfollegräich erstellt",
+    "statusWaitingOnCustomer": "Waart op de Client",
+    "statusResolved": "Geléist",
+    "categoryPayment": "Bezuelung",
+    "categoryDelivery": "Liwwerung",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Dréngend"
   },
   "location": {
     "permissionRequired": "Standuerterlabnis erfuerderlech",

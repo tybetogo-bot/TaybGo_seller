@@ -38,7 +38,8 @@
     "version": "الإصدار",
     "undo": "تراجع",
     "optional": "اختياري",
-    "required": "مطلوب"
+    "required": "مطلوب",
+    "missing": "مفقود"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -173,10 +174,12 @@
       "searchingForDriver": "البحث عن سائق",
       "driverNotificationSent": "بانتظار السائق",
       "delivered": "تم التسليم",
+      "restaurantDelivered": "تم التوصيل بواسطة المطعم",
       "rejected": "مرفوض",
       "cancelled": "ملغي"
     },
     "requestDriver": "طلب سائق",
+    "markRestaurantDelivered": "وضع علامة تم التوصيل بواسطة المطعم",
     "waitingForDriver": "في انتظار السائق...",
     "orderRejectedByRestaurant": "تم رفض هذا الطلب من قبل المطعم",
     "orderWasCancelled": "تم إلغاء هذا الطلب",
@@ -215,6 +218,7 @@
       "onTheWay": "في الطريق للعميل",
       "delivery": "في الطريق للعميل",
       "delivered": "تم الطلب بنجاح",
+      "restaurantDelivered": "تمت خدمته مباشرة من المطعم",
       "rejected": "تم رفض الطلب",
       "cancelled": "تم إلغاء الطلب"
     },
@@ -341,7 +345,10 @@
       "aiScanComplete": "اكتمل المسح الذكي",
       "fieldsExtracted": "تم ملؤها تلقائياً",
       "fieldsToFill": "يرجى ملء"
-    }
+    },
+    "cancelOrder": "إلغاء الطلب",
+    "confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
+    "cancel": "إلغاء"
   },
   "address": {
     "search": "بحث...",
@@ -503,7 +510,18 @@
       "saturday": "السبت",
       "sunday": "الأحد"
     },
-    "settingsSaved": "تم الحفظ"
+    "settingsSaved": "تم الحفظ",
+    "appTour": "جولة التطبيق",
+    "appTourSubtitle": "تعرّف على كيفية استخدام التطبيق",
+    "howTo": "كيف؟",
+    "howToSubtitle": "أدلة ووثائق",
+    "selectTour": "اختر نوع الجولة",
+    "fullAppTour": "جولة كاملة في التطبيق",
+    "fullAppTourDesc": "شرح كامل لجميع المزايا (حوالي 5 دقائق)",
+    "ordersQuickTour": "جولة سريعة للطلبات",
+    "ordersQuickTourDesc": "تعلّم أساسيات إدارة الطلبات (حوالي دقيقتين)",
+    "menuQuickTour": "جولة سريعة للقائمة",
+    "menuQuickTourDesc": "أتقن إدارة القائمة (حوالي دقيقتين)"
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -519,7 +537,16 @@
     "registrationDocumentAddedLocked": "تمت الإضافة والقفل. هذه الصفحة للعرض فقط.",
     "registrationDocumentMissing": "لا توجد وثيقة تسجيل في ملف هذا البائع.",
     "invalidDocumentUrl": "رابط الوثيقة غير صالح.",
-    "documentOpenFailed": "تعذر فتح الوثيقة."
+    "documentOpenFailed": "تعذر فتح الوثيقة.",
+    "deliveryEnabled": "التوصيل مفعّل",
+    "deliveryDisabled": "التوصيل معطّل",
+    "editProfile": "تعديل الملف الشخصي",
+    "settingsSectionTitle": "الإعدادات",
+    "settingsSectionSubtitle": "الأرباح والكوبونات والإشعارات",
+    "preferencesSectionTitle": "التفضيلات",
+    "preferencesSectionSubtitle": "الوضع الداكن واللغة ولون التمييز",
+    "helpSupportSectionTitle": "المساعدة والدعم",
+    "helpSupportSectionSubtitle": "قاعدة المعرفة والدعم والمساعدة وحول وحذف الحساب"
   },
   "deleteAccount": {
     "title": "حذف الحساب",
@@ -1183,7 +1210,9 @@
     "initialMessageHint": "صف مشكلتك بالتفصيل...",
     "noTickets": "لا توجد تذاكر",
     "noTicketsDesc": "أنشئ تذكرة للحصول على مساعدة من فريق الدعم",
-    "ticketCreated": "تم إنشاء التذكرة بنجاح"
+    "ticketCreated": "تم إنشاء التذكرة بنجاح",
+    "categoryRestaurant": "المطعم",
+    "categoryDriver": "السائق"
   },
   "location": {
     "permissionRequired": "إذن الموقع مطلوب",
