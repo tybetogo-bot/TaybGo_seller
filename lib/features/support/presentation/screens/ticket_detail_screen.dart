@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/support_notifier.dart';
 import '../../data/models/support_ticket_model.dart';
@@ -112,7 +113,12 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
             ),
         ],
       ),
-      body: state.isLoadingDetail
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: state.isLoadingDetail
           ? const Center(child: CircularProgressIndicator())
           : state.error != null
           ? Center(
@@ -186,6 +192,8 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
                   ),
               ],
             ),
+        ),
+      ),
     );
   }
 }

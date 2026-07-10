@@ -160,7 +160,7 @@
     "markOutForDelivery": "En livraison",
     "markDelivered": "Marquer comme livré",
     "noItems": "Aucun article",
-    "emptyItemsWarning": "Cette commande contient 0 article. Vous pouvez ajouter des articles ou la créer quand même.",
+    "emptyItemsWarning": "Cette commande ne contient aucun article. Veuillez ajouter au moins un article pour continuer.",
     "orderCreated": "Commande créée!",
     "orderCreationFailed": "Impossible de créer la commande",
     "reorder": "Recommander",

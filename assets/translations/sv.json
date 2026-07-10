@@ -164,7 +164,7 @@
     "markOutForDelivery": "Ute för leverans",
     "markDelivered": "Markera som levererad",
     "noItems": "Inga artiklar tillagda",
-    "emptyItemsWarning": "Den här beställningen har 0 artiklar. Du kan lägga till artiklar eller skapa den ändå.",
+    "emptyItemsWarning": "Den här beställningen har inga artiklar. Lägg till minst en artikel för att fortsätta.",
     "orderCreated": "Beställning skapad!",
     "orderCreationFailed": "Det gick inte att skapa beställningen",
     "reorder": "Beställ igen",

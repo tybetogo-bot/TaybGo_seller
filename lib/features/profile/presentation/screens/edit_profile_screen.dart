@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/user_api.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../menu/presentation/widgets/image_picker_widget.dart';
 import '../../../restaurant/application/restaurant_state.dart';
@@ -144,199 +145,211 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ? const Center(child: CircularProgressIndicator())
           : selectedRestaurant == null
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
-              children: [
-                _ProfileHeroCard(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  sellerName: _sellerNameController.text.trim().isNotEmpty
-                      ? _sellerNameController.text.trim()
-                      : (userProfile?.name ?? ''),
-                  restaurantName: _restaurantNameController.text.trim(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: Breakpoints.maxContentWidth,
                 ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  title: 'profile.sellerDetails'.tr,
-                  child: Column(
-                    children: [
-                      _EditableField(
-                        label: 'common.name'.tr,
-                        controller: _sellerNameController,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 12.h),
-                      _EditableField(
-                        label: 'auth.phoneNumber'.tr,
-                        controller: _sellerPhoneController,
-                        isDark: isDark,
-                        keyboardType: TextInputType.phone,
-                        textDirection: ui.TextDirection.ltr,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9+\-\s]'),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.h),
-                      _EditableField(
-                        label: 'auth.email'.tr,
-                        controller: _emailController,
-                        isDark: isDark,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      SizedBox(height: 12.h),
-                      _EditableField(
-                        label: 'profile.birthdate'.tr,
-                        controller: _birthdateController,
-                        isDark: isDark,
-                        readOnly: true,
-                        onTap: _pickBirthdate,
-                        suffixIcon: Icons.calendar_today_outlined,
-                      ),
-                      if (effectiveBirthdate != null) ...[
-                        SizedBox(height: 10.h),
-                        Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: _InlinePill(
-                            text:
-                                '${'onboarding.age'.tr}: ${_calculateAge(effectiveBirthdate)}',
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
+                  children: [
+                    _ProfileHeroCard(
+                      isDark: isDark,
+                      primaryColor: primaryColor,
+                      sellerName: _sellerNameController.text.trim().isNotEmpty
+                          ? _sellerNameController.text.trim()
+                          : (userProfile?.name ?? ''),
+                      restaurantName: _restaurantNameController.text.trim(),
+                    ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      title: 'profile.sellerDetails'.tr,
+                      child: Column(
+                        children: [
+                          _EditableField(
+                            label: 'common.name'.tr,
+                            controller: _sellerNameController,
                             isDark: isDark,
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  title: 'settings.restaurantInfo'.tr,
-                  child: Column(
-                    children: [
-                      _EditableField(
-                        label: 'settings.restaurantName'.tr,
-                        controller: _restaurantNameController,
-                        isDark: isDark,
+                          SizedBox(height: 12.h),
+                          _EditableField(
+                            label: 'auth.phoneNumber'.tr,
+                            controller: _sellerPhoneController,
+                            isDark: isDark,
+                            keyboardType: TextInputType.phone,
+                            textDirection: ui.TextDirection.ltr,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9+\-\s]'),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          _EditableField(
+                            label: 'auth.email'.tr,
+                            controller: _emailController,
+                            isDark: isDark,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          SizedBox(height: 12.h),
+                          _EditableField(
+                            label: 'profile.birthdate'.tr,
+                            controller: _birthdateController,
+                            isDark: isDark,
+                            readOnly: true,
+                            onTap: _pickBirthdate,
+                            suffixIcon: Icons.calendar_today_outlined,
+                          ),
+                          if (effectiveBirthdate != null) ...[
+                            SizedBox(height: 10.h),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: _InlinePill(
+                                text:
+                                    '${'onboarding.age'.tr}: ${_calculateAge(effectiveBirthdate)}',
+                                isDark: isDark,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      SizedBox(height: 12.h),
-                      _EditableField(
-                        label: 'auth.phoneNumber'.tr,
-                        controller: _restaurantPhoneController,
-                        isDark: isDark,
-                        keyboardType: TextInputType.phone,
-                        textDirection: ui.TextDirection.ltr,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9+\-\s]'),
+                    ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      title: 'settings.restaurantInfo'.tr,
+                      child: Column(
+                        children: [
+                          _EditableField(
+                            label: 'settings.restaurantName'.tr,
+                            controller: _restaurantNameController,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
+                          _EditableField(
+                            label: 'auth.phoneNumber'.tr,
+                            controller: _restaurantPhoneController,
+                            isDark: isDark,
+                            keyboardType: TextInputType.phone,
+                            textDirection: ui.TextDirection.ltr,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9+\-\s]'),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 14.h),
+                          _ToggleRow(
+                            label: 'profile.deliveryEnabled'.tr,
+                            value: _deliveryEnabled,
+                            isDark: isDark,
+                            onChanged: (value) {
+                              setState(() => _deliveryEnabled = value);
+                            },
                           ),
                         ],
                       ),
-                      SizedBox(height: 14.h),
-                      _ToggleRow(
-                        label: 'profile.deliveryEnabled'.tr,
-                        value: _deliveryEnabled,
-                        isDark: isDark,
-                        onChanged: (value) {
-                          setState(() => _deliveryEnabled = value);
+                    ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      title: 'settings.restaurantLogo'.tr,
+                      child: ImagePickerWidget(
+                        initialImageUrl: _logoUrl,
+                        onImageUploaded: (url) {
+                          setState(() => _logoUrl = url);
+                        },
+                        onImageRemoved: () {
+                          setState(() => _logoUrl = null);
+                        },
+                        onUploadStateChanged: (isUploading) {
+                          setState(() => _isUploadingLogo = isUploading);
                         },
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  title: 'settings.restaurantLogo'.tr,
-                  child: ImagePickerWidget(
-                    initialImageUrl: _logoUrl,
-                    onImageUploaded: (url) {
-                      setState(() => _logoUrl = url);
-                    },
-                    onImageRemoved: () {
-                      setState(() => _logoUrl = null);
-                    },
-                    onUploadStateChanged: (isUploading) {
-                      setState(() => _isUploadingLogo = isUploading);
-                    },
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  padding: EdgeInsets.zero,
-                  child: Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      initiallyExpanded: _workHoursExpanded,
-                      onExpansionChanged: (value) {
-                        setState(() => _workHoursExpanded = value);
-                      },
-                      tilePadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 4.h,
-                      ),
-                      childrenPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      title: Text(
-                        'settings.businessHours'.tr,
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? DarkColors.textPrimary
-                              : LightColors.textPrimary,
-                        ),
-                      ),
-                      subtitle: Text(
-                        _workHoursSummary(),
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: isDark
-                              ? DarkColors.textSecondary
-                              : LightColors.textSecondary,
-                        ),
-                      ),
-                      children: [
-                        ..._weekdayKeys.map((day) {
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 10.h),
-                            child: _buildWorkHoursDay(day, isDark),
-                          );
-                        }),
-                        if (_workHoursError != null)
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: Text(
-                              _workHoursError!,
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                color: AppColors.error,
-                              ),
+                    ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      padding: EdgeInsets.zero,
+                      child: Theme(
+                        data: Theme.of(
+                          context,
+                        ).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          initiallyExpanded: _workHoursExpanded,
+                          onExpansionChanged: (value) {
+                            setState(() => _workHoursExpanded = value);
+                          },
+                          tilePadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 4.h,
+                          ),
+                          childrenPadding: EdgeInsets.fromLTRB(
+                            16.w,
+                            0,
+                            16.w,
+                            16.h,
+                          ),
+                          title: Text(
+                            'settings.businessHours'.tr,
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? DarkColors.textPrimary
+                                  : LightColors.textPrimary,
                             ),
                           ),
-                      ],
+                          subtitle: Text(
+                            _workHoursSummary(),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: isDark
+                                  ? DarkColors.textSecondary
+                                  : LightColors.textSecondary,
+                            ),
+                          ),
+                          children: [
+                            ..._weekdayKeys.map((day) {
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: 10.h),
+                                child: _buildWorkHoursDay(day, isDark),
+                              );
+                            }),
+                            if (_workHoursError != null)
+                              Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Text(
+                                  _workHoursError!,
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      title: 'orders.address'.tr,
+                      child: _AddressCard(
+                        restaurant: selectedRestaurant,
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    _SectionCard(
+                      title: 'onboarding.documentTitle'.tr,
+                      child: _RegistrationDocumentStatusCard(
+                        isDark: isDark,
+                        sellerProfileAsync: sellerProfileAsync,
+                        onRetry: () => ref.invalidate(sellerProfileProvider),
+                        onOpenDocument: _openDocument,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  title: 'orders.address'.tr,
-                  child: _AddressCard(
-                    restaurant: selectedRestaurant,
-                    isDark: isDark,
-                    primaryColor: primaryColor,
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                _SectionCard(
-                  title: 'onboarding.documentTitle'.tr,
-                  child: _RegistrationDocumentStatusCard(
-                    isDark: isDark,
-                    sellerProfileAsync: sellerProfileAsync,
-                    onRetry: () => ref.invalidate(sellerProfileProvider),
-                    onOpenDocument: _openDocument,
-                  ),
-                ),
-              ],
+              ),
             ),
     );
   }

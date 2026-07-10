@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../features/tour/application/tour_notifier.dart';
 import '../../../../features/tour/presentation/widgets/tour_section_widget.dart';
@@ -56,219 +57,226 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            // Refresh both orders and restaurant stats
-            await ref.read(ordersProvider.notifier).refreshOrders();
-            if (selectedRestaurant != null) {
-              await ref
-                  .read(restaurantProvider.notifier)
-                  .fetchRestaurantById(selectedRestaurant.id);
-            }
-          },
-          color: primaryColor,
-          child: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              selectedRestaurant?.name ??
-                                  'profile.yourRestaurant'.tr,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxContentWidth,
+            ),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref.read(ordersProvider.notifier).refreshOrders();
+                if (selectedRestaurant != null) {
+                  await ref
+                      .read(restaurantProvider.notifier)
+                      .fetchRestaurantById(selectedRestaurant.id);
+                }
+              },
+              color: primaryColor,
+              child: CustomScrollView(
+                slivers: [
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedRestaurant?.name ??
+                                      'profile.yourRestaurant'.tr,
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? DarkColors.textPrimary
+                                        : LightColors.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _RefreshButton(isDark: isDark),
+                              _NotificationIconButton(isDark: isDark),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Stats Row
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
+                      child: Row(
+                        key: TourKeys.homeStatsCardKey,
+                        children: [
+                          _StatBox(
+                            value: pendingOrders.length.toString(),
+                            label: 'orders.status.pending'.tr,
+                            color: AppColors.warning,
+                            isDark: isDark,
+                            onTap: () => context.go(Routes.orders),
+                          ),
+                          SizedBox(width: 12.w),
+                          _StatBox(
+                            value: '\$${todayTotal.toStringAsFixed(0)}',
+                            label: 'profile.today'.tr,
+                            color: AppColors.success,
+                            isDark: isDark,
+                          ),
+                          SizedBox(width: 12.w),
+                          _StatBox(
+                            value: totalOrdersToday.toString(),
+                            label: 'navigation.orders'.tr,
+                            color: primaryColor,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Quick Actions
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
+                      child: _PrimaryAction(
+                        icon: Icons.add,
+                        label: 'orders.createOrder'.tr,
+                        onTap: () => context.push(Routes.createOrder),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
+                      child: Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: [
+                          if (expiredOrders.isNotEmpty)
+                            _CompactAction(
+                              icon: Icons.timer_off_outlined,
+                              label: 'orders.expiredAction'.trParams({
+                                'count': expiredOrders.length.toString(),
+                              }),
+                              isDark: isDark,
+                              accentColor: AppColors.warning,
+                              onTap: () =>
+                                  context.go(Routes.ordersPath(tab: 'expired')),
+                            ),
+                          _CompactAction(
+                            icon: Icons.support_agent_outlined,
+                            label: 'support.title'.tr,
+                            isDark: isDark,
+                            onTap: () => context.push(Routes.support),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Tour section - only show when completed orders < 3 and tour not dismissed
+                  if (ordersState.completedOrders.length < 3 &&
+                      !ref.watch(tourProvider).isDismissedFromHome)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
+                        child: const TourSectionWidget(),
+                      ),
+                    ),
+
+                  // Pending Orders Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20.w, 28.h, 20.w, 12.h),
+                      child: Row(
+                        key: TourKeys.homePendingOrdersKey,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'orders.pending'.tr,
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? DarkColors.textPrimary
+                                  : LightColors.textPrimary,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => context.go(Routes.orders),
+                            child: Text(
+                              'common.seeAll'.tr,
                               style: TextStyle(
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? DarkColors.textPrimary
-                                    : LightColors.textPrimary,
+                                fontSize: 13.sp,
+                                color: primaryColor,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Orders List
+                  if (pendingOrders.isEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(40.w),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 48.w,
+                              color: AppColors.success,
+                            ),
+                            SizedBox(height: 12.h),
+                            Text(
+                              'orders.noPendingOrders'.tr,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: isDark
+                                    ? DarkColors.textSecondary
+                                    : LightColors.textSecondary,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _RefreshButton(isDark: isDark),
-                          _NotificationIconButton(isDark: isDark),
-                        ],
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final order = pendingOrders[index];
+                          return RepaintBoundary(
+                            child: AnimatedOrderCard(
+                              key: ValueKey(order.id),
+                              order: order,
+                              onTap: () => context.push(
+                                Routes.orderDetailsPath(order.id),
+                              ),
+                            ),
+                          );
+                        }, childCount: pendingOrders.length.clamp(0, 5)),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Stats Row
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
-                  child: Row(
-                    key: TourKeys.homeStatsCardKey,
-                    children: [
-                      _StatBox(
-                        value: pendingOrders.length.toString(),
-                        label: 'orders.status.pending'.tr,
-                        color: AppColors.warning,
-                        isDark: isDark,
-                        onTap: () => context.go(Routes.orders),
-                      ),
-                      SizedBox(width: 12.w),
-                      _StatBox(
-                        value: '\$${todayTotal.toStringAsFixed(0)}',
-                        label: 'profile.today'.tr,
-                        color: AppColors.success,
-                        isDark: isDark,
-                      ),
-                      SizedBox(width: 12.w),
-                      _StatBox(
-                        value: totalOrdersToday.toString(),
-                        label: 'navigation.orders'.tr,
-                        color: primaryColor,
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Quick Actions
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
-                  child: _PrimaryAction(
-                    icon: Icons.add,
-                    label: 'orders.createOrder'.tr,
-                    onTap: () => context.push(Routes.createOrder),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
-                  child: Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: [
-                      if (expiredOrders.isNotEmpty)
-                        _CompactAction(
-                          icon: Icons.timer_off_outlined,
-                          label: 'orders.expiredAction'.trParams({
-                            'count': expiredOrders.length.toString(),
-                          }),
-                          isDark: isDark,
-                          accentColor: AppColors.warning,
-                          onTap: () =>
-                              context.go(Routes.ordersPath(tab: 'expired')),
-                        ),
-                      _CompactAction(
-                        icon: Icons.support_agent_outlined,
-                        label: 'support.title'.tr,
-                        isDark: isDark,
-                        onTap: () => context.push(Routes.support),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Tour section - only show when completed orders < 3 and tour not dismissed
-              if (ordersState.completedOrders.length < 3 &&
-                  !ref.watch(tourProvider).isDismissedFromHome)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
-                    child: const TourSectionWidget(),
-                  ),
-                ),
-
-              // Pending Orders Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20.w, 28.h, 20.w, 12.h),
-                  child: Row(
-                    key: TourKeys.homePendingOrdersKey,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'orders.pending'.tr,
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? DarkColors.textPrimary
-                              : LightColors.textPrimary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => context.go(Routes.orders),
-                        child: Text(
-                          'common.seeAll'.tr,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: primaryColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Orders List
-              if (pendingOrders.isEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(40.w),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 48.w,
-                          color: AppColors.success,
-                        ),
-                        SizedBox(height: 12.h),
-                        Text(
-                          'orders.noPendingOrders'.tr,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: isDark
-                                ? DarkColors.textSecondary
-                                : LightColors.textSecondary,
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final order = pendingOrders[index];
-                      return RepaintBoundary(
-                        child: AnimatedOrderCard(
-                          key: ValueKey(order.id),
-                          order: order,
-                          onTap: () =>
-                              context.push(Routes.orderDetailsPath(order.id)),
-                        ),
-                      );
-                    }, childCount: pendingOrders.length.clamp(0, 5)),
-                  ),
-                ),
 
-              SliverToBoxAdapter(child: SizedBox(height: 100.h)),
-            ],
+                  SliverToBoxAdapter(child: SizedBox(height: 100.h)),
+                ],
+              ),
+            ),
           ),
         ),
       ),

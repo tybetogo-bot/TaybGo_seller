@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
 import '../../../tour/utils/tour_keys.dart';
@@ -123,7 +124,12 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
             ),
         ],
       ),
-      body: Form(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: Form(
         key: _formKey,
         child: ListView(
           padding: EdgeInsets.all(16.w),
@@ -290,6 +296,8 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
             ),
             SizedBox(height: 24.h),
           ],
+        ),
+      ),
         ),
       ),
     ),

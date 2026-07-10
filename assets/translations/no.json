@@ -164,7 +164,7 @@
     "markOutForDelivery": "Ute for levering",
     "markDelivered": "Marker som levert",
     "noItems": "Ingen elementer lagt til",
-    "emptyItemsWarning": "Denne bestillingen har 0 elementer. Du kan legge til elementer eller opprette den likevel.",
+    "emptyItemsWarning": "Denne bestillingen har ingen varer. Legg til minst én vare for å fortsette.",
     "orderCreated": "Bestilling opprettet!",
     "orderCreationFailed": "Kunne ikke opprette bestillingen",
     "reorder": "Bestill på nytt",

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../application/restaurant_state.dart';
@@ -41,7 +42,16 @@ class RestaurantSelectionScreen extends ConsumerWidget {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: SafeArea(child: _buildBody(context, ref, restaurantState, theme)),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxContentWidth,
+            ),
+            child: _buildBody(context, ref, restaurantState, theme),
+          ),
+        ),
+      ),
     );
   }
 

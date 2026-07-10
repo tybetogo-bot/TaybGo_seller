@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../auth/application/auth_state.dart';
@@ -274,12 +275,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return AppScaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header with language selector
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Stack(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxNarrowContentWidth,
+            ),
+            child: Column(
+              children: [
+                // Header with language selector
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Text(
@@ -324,6 +330,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

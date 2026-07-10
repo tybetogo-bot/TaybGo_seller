@@ -163,7 +163,7 @@
     "markOutForDelivery": "Out for Delivery",
     "markDelivered": "Mark Delivered",
     "noItems": "No items added",
-    "emptyItemsWarning": "This order has 0 items. You can add items or create it anyway.",
+    "emptyItemsWarning": "This order has no items. Please add at least one item to continue.",
     "orderCreated": "Order created successfully!",
     "orderCreationFailed": "Could not create the order",
     "reorder": "Reorder",

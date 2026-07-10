@@ -160,7 +160,7 @@
     "markOutForDelivery": "Unterwegs",
     "markDelivered": "Als geliefert markieren",
     "noItems": "Keine Artikel",
-    "emptyItemsWarning": "Diese Bestellung enthält 0 Artikel. Sie können Artikel hinzufügen oder sie trotzdem erstellen.",
+    "emptyItemsWarning": "Diese Bestellung enthält keine Artikel. Bitte fügen Sie mindestens einen Artikel hinzu, um fortzufahren.",
     "orderCreated": "Bestellung erstellt!",
     "orderCreationFailed": "Bestellung konnte nicht erstellt werden",
     "reorder": "Erneut bestellen",

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/support_notifier.dart';
 import '../../data/models/support_ticket_model.dart';
@@ -62,16 +63,21 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
         backgroundColor: primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: Column(
-        children: [
-          // Status filter chips
-          _StatusFilterBar(
-            selected: state.statusFilter,
-            isDark: isDark,
-            onSelected: (status) {
-              ref.read(supportProvider.notifier).setStatusFilter(status);
-            },
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxWideContentWidth,
           ),
+          child: Column(
+            children: [
+              // Status filter chips
+              _StatusFilterBar(
+                selected: state.statusFilter,
+                isDark: isDark,
+                onSelected: (status) {
+                  ref.read(supportProvider.notifier).setStatusFilter(status);
+                },
+              ),
 
           // Tickets list
           Expanded(
@@ -121,6 +127,8 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
                   ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

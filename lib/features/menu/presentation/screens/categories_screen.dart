@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
@@ -48,33 +49,40 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           ),
         ],
       ),
-      body: menuState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : categories.isEmpty
-              ? _buildEmptyState(isDark)
-              : RefreshIndicator(
-                  onRefresh: () => ref.read(menuProvider.notifier).refresh(),
-                  child: ReorderableListView.builder(
-                    padding: EdgeInsets.all(16.w),
-                    itemCount: categories.length,
-                    onReorder: (oldIndex, newIndex) {
-                      ref.read(menuProvider.notifier).reorderCategories(oldIndex, newIndex);
-                    },
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final itemCount = menuState.getItemCountForCategory(category.id);
-                      return _CategoryTile(
-                        key: ValueKey(category.id),
-                        category: category,
-                        itemCount: itemCount,
-                        isDark: isDark,
-                        index: index,
-                        onEdit: () => _showEditCategoryDialog(isDark, category),
-                        onDelete: () => _deleteCategory(category),
-                      );
-                    },
-                  ),
-                ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: Breakpoints.maxContentWidth,
+          ),
+          child: menuState.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : categories.isEmpty
+                  ? _buildEmptyState(isDark)
+                  : RefreshIndicator(
+                      onRefresh: () => ref.read(menuProvider.notifier).refresh(),
+                      child: ReorderableListView.builder(
+                        padding: EdgeInsets.all(16.w),
+                        itemCount: categories.length,
+                        onReorder: (oldIndex, newIndex) {
+                          ref.read(menuProvider.notifier).reorderCategories(oldIndex, newIndex);
+                        },
+                        itemBuilder: (context, index) {
+                          final category = categories[index];
+                          final itemCount = menuState.getItemCountForCategory(category.id);
+                          return _CategoryTile(
+                            key: ValueKey(category.id),
+                            category: category,
+                            itemCount: itemCount,
+                            isDark: isDark,
+                            index: index,
+                            onEdit: () => _showEditCategoryDialog(isDark, category),
+                            onDelete: () => _deleteCategory(category),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ),
     );
   }
 

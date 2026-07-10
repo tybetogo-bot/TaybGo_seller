@@ -164,7 +164,7 @@
     "markOutForDelivery": "Matkalla toimitukseen",
     "markDelivered": "Merkitse toimitetuksi",
     "noItems": "Ei lisättyjä tuotteita",
-    "emptyItemsWarning": "Tässä tilauksessa on 0 tuotetta. Voit lisätä tuotteita tai luoda sen silti.",
+    "emptyItemsWarning": "Tässä tilauksessa ei ole tuotteita. Lisää vähintään yksi tuote jatkaaksesi.",
     "orderCreated": "Tilaus luotu onnistuneesti!",
     "orderCreationFailed": "Tilauksen luominen epäonnistui",
     "reorder": "Tilaa uudelleen",
