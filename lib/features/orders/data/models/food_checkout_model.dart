@@ -1,6 +1,8 @@
 /// Food order creation models for manual order entry
 library;
 
+import 'dart:convert';
+
 import '../../../addresses/data/models/address_model.dart';
 import '../../../restaurant/data/models/restaurant_model.dart';
 import 'order_model.dart';
@@ -32,6 +34,21 @@ class OrderAddressData {
   Map<String, dynamic> toJson() {
     return {
       'label': label,
+      'lat': lat,
+      'lng': lng,
+      'full_address': fullAddress,
+      if (streetName != null) 'street_name': streetName,
+      if (houseNumber != null) 'house_number': houseNumber,
+      if (city != null) 'city': city,
+      if (postalCode != null) 'postal_code': postalCode,
+      if (country != null) 'country': country,
+    };
+  }
+
+  Map<String, dynamic> toPreviewJson({bool isDefault = false}) {
+    return {
+      'label': label,
+      'is_default': isDefault,
       'lat': lat,
       'lng': lng,
       'full_address': fullAddress,
@@ -216,6 +233,98 @@ class CartItem {
       customizations: json['customizations'] as String?,
     );
   }
+}
+
+/// Live pricing preview request for seller food orders.
+class FoodPricePreviewRequest {
+  final int restaurantId;
+  final OrderAddressData? pickupAddressData;
+  final OrderAddressData? dropoffAddressData;
+  final String? customerName;
+  final String? customerPhoneNumber;
+  final String tip;
+  final String? couponCode;
+  final List<CartItem> items;
+  final VehicleType? requestedVehicleType;
+  final VehicleType? requestedDeliveryType;
+
+  const FoodPricePreviewRequest({
+    required this.restaurantId,
+    this.pickupAddressData,
+    this.dropoffAddressData,
+    this.customerName,
+    this.customerPhoneNumber,
+    this.tip = '0.00',
+    this.couponCode,
+    required this.items,
+    this.requestedVehicleType,
+    this.requestedDeliveryType,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'restaurant_id': restaurantId,
+      if (pickupAddressData != null)
+        'pickup_address': pickupAddressData!.toPreviewJson(),
+      if (dropoffAddressData != null)
+        'dropoff_address': dropoffAddressData!.toPreviewJson(),
+      if (customerName != null && customerName!.isNotEmpty)
+        'customer_name': customerName,
+      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
+        'customer_phone_number': customerPhoneNumber,
+      'tip': tip,
+      if (couponCode != null && couponCode!.isNotEmpty)
+        'coupon_code': couponCode,
+      'items': items.map((item) => item.toJson()).toList(),
+      if (requestedVehicleType != null)
+        'requested_vehicle_type': requestedVehicleType!.value,
+      if (requestedDeliveryType != null)
+        'requested_delivery_type': requestedDeliveryType!.value,
+    };
+  }
+
+  String get fingerprint => jsonEncode(toJson());
+}
+
+/// Live pricing quote returned by the preview endpoint.
+class FoodPriceQuote {
+  final String calculatedDistance;
+  final int? calculatedTime;
+  final String subtotalAmount;
+  final String discountAmount;
+  final String deliveryFee;
+  final String totalAmount;
+
+  const FoodPriceQuote({
+    required this.calculatedDistance,
+    required this.calculatedTime,
+    required this.subtotalAmount,
+    required this.discountAmount,
+    required this.deliveryFee,
+    required this.totalAmount,
+  });
+
+  factory FoodPriceQuote.fromJson(Map<String, dynamic> json) {
+    return FoodPriceQuote(
+      calculatedDistance: json['calculated_distance']?.toString() ?? '0',
+      calculatedTime: (json['calculated_time'] as num?)?.toInt(),
+      subtotalAmount: json['subtotal_amount']?.toString() ?? '0.00',
+      discountAmount: json['discount_amount']?.toString() ?? '0.00',
+      deliveryFee: json['delivery_fee']?.toString() ?? '0.00',
+      totalAmount: json['total_amount']?.toString() ?? '0.00',
+    );
+  }
+
+  double get subtotalValue => _parseAmount(subtotalAmount);
+  double get discountValue => _parseAmount(discountAmount);
+  double get deliveryFeeValue => _parseAmount(deliveryFee);
+  double get totalValue => _parseAmount(totalAmount);
+  double? get distanceKm => double.tryParse(calculatedDistance);
+  int? get estimatedMinutes =>
+      calculatedTime == null ? null : ((calculatedTime! + 59) ~/ 60);
+  bool get hasDiscount => discountValue.abs() > 0.0001;
+
+  static double _parseAmount(String value) => double.tryParse(value) ?? 0.0;
 }
 
 /// Food order request model - matches API POST /api/orders/

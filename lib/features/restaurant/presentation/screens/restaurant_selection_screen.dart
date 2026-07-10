@@ -365,17 +365,17 @@ class _StatusBadge extends StatelessWidget {
       case RestaurantStatus.active:
         backgroundColor = AppColors.successLight;
         textColor = AppColors.success;
-        label = 'Active';
+        label = 'restaurantStatus.active'.tr;
         break;
       case RestaurantStatus.pending:
         backgroundColor = AppColors.warningLight;
         textColor = AppColors.warning;
-        label = 'Pending';
+        label = 'restaurantStatus.pending'.tr;
         break;
       case RestaurantStatus.inactive:
         backgroundColor = AppColors.errorLight;
         textColor = AppColors.error;
-        label = 'Inactive';
+        label = 'restaurantStatus.inactive'.tr;
         break;
     }
 

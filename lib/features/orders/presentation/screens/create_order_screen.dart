@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +15,9 @@ import '../../../menu/application/menu_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../../menu/data/models/menu_item_model.dart' as menu;
 import '../../../coupons/application/coupons_notifier.dart';
+import '../../../coupons/data/models/coupon_model.dart';
 import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 import '../../application/customer_orders_notifier.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/food_checkout_model.dart';
@@ -38,8 +41,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   final _formKey = GlobalKey<FormState>();
   final _customerNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _deliveryFeeController = TextEditingController(text: '3.99');
   final _tipsController = TextEditingController(text: '0.00');
+  Timer? _previewDebounce;
+  String? _scheduledPricingFingerprint;
 
   Country _selectedCountry = Countries.defaultCountry;
   AddressModel? _selectedAddress;
@@ -68,8 +72,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   void _setupChangeListeners() {
     _customerNameController.addListener(_markChangedAfterHydration);
     _phoneController.addListener(_markChangedAfterHydration);
-    _deliveryFeeController.addListener(_markChangedAfterHydration);
-    _tipsController.addListener(_markChangedAfterHydration);
   }
 
   void _markChangedAfterHydration() {
@@ -135,7 +137,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
     _customerNameController.text = order.customerName;
     _phoneController.text = phoneParts.phone;
-    _deliveryFeeController.text = order.deliveryFee.toStringAsFixed(2);
     _tipsController.text = order.tips.toStringAsFixed(2);
 
     _selectedCountry = phoneParts.country;
@@ -153,6 +154,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
     _isHydratingEditOrder = false;
     markAsSaved();
+    _schedulePricingPreview(immediate: true);
   }
 
   ({Country country, String phone}) _splitPhone(OrderModel order) {
@@ -176,10 +178,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
   @override
   void dispose() {
+    _previewDebounce?.cancel();
     _customerNameController.dispose();
     _phoneController.dispose();
-    _deliveryFeeController.dispose();
     _tipsController.dispose();
+    ref.read(customerOrdersProvider.notifier).clearPreview();
     super.dispose();
   }
 
@@ -193,25 +196,20 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     });
   }
 
-  double get _deliveryFee =>
-      double.tryParse(_deliveryFeeController.text) ?? 0.0;
   double get _tips => double.tryParse(_tipsController.text) ?? 0.0;
 
-  /// Get the discount amount based on selected coupon
-  double get _discount {
-    if (_selectedCouponId == null) return 0.0;
+  CouponModel? get _selectedCoupon {
+    final selectedCouponId = _selectedCouponId;
+    if (selectedCouponId == null) return null;
+
     final coupons = ref.read(activeCouponsProvider);
     try {
-      final coupon = coupons.firstWhere((c) => c.id == _selectedCouponId);
-      // Check if order meets minimum requirement
-      if (_subtotal < coupon.minimumOrderPrice) return 0.0;
-      return _subtotal * (coupon.percentDiscount / 100);
+      final coupon = coupons.firstWhere((c) => c.id == selectedCouponId);
+      return _subtotal < coupon.minimumOrderPrice ? null : coupon;
     } catch (_) {
-      return 0.0;
+      return null;
     }
   }
-
-  double get _total => _subtotal + _deliveryFee + _tips - _discount;
 
   void _showAddItemDialog() {
     showModalBottomSheet(
@@ -224,6 +222,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
             _orderItems.add(item);
           });
           markAsChanged();
+          _schedulePricingPreview();
         },
       ),
     );
@@ -234,6 +233,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       _orderItems.removeAt(index);
     });
     markAsChanged();
+    _schedulePricingPreview();
   }
 
   void _updateItemQuantity(int index, int delta) {
@@ -247,6 +247,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       }
     });
     markAsChanged();
+    _schedulePricingPreview();
   }
 
   void _updateItemNotes(int index, String? notes) {
@@ -255,6 +256,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       _orderItems[index] = item.copyWith(notes: notes);
     });
     markAsChanged();
+    _schedulePricingPreview();
   }
 
   /// Fill form with scanned data from AI scan
@@ -361,6 +363,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     }
 
     debugPrint('[ScanFill] ===== _fillWithScannedData END =====');
+    markAsChanged();
+    _schedulePricingPreview(immediate: true);
 
     // Show appropriate message
     if (!mounted) return;
@@ -536,40 +540,43 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       return;
     }
 
+    final previewState = ref.read(customerOrdersProvider);
+    final pricingRequest = _buildPricingPreviewRequest(restaurant: restaurant);
+    final pricingQuote = _currentPricingQuote(previewState, pricingRequest);
+    if (pricingQuote == null) {
+      _showPricingBlockedMessage(restaurant: restaurant);
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      // Build cart items from order items
-      final cartItems = _orderItems.map((item) {
-        final itemId = int.tryParse(item.menuItemId) ?? 0;
-        return CartItem(
-          itemId: itemId,
-          quantity: item.quantity,
-          customizations: item.notes,
-        );
-      }).toList();
+      final cartItems = _buildCartItems();
+      final selectedCoupon = _selectedCoupon;
 
       // Build the order create request from the validated form fields
       final request = FoodCheckoutRequest(
         restaurantId: restaurantId,
         customerName: _customerNameController.text.trim(),
         customerPhoneNumber: _fullCustomerPhoneNumber(),
-        subtotalAmount: _subtotal.toStringAsFixed(2),
-        discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : null,
-        deliveryFee: _deliveryFee.toStringAsFixed(2),
+        subtotalAmount: pricingQuote.subtotalAmount,
+        discountAmount: pricingQuote.hasDiscount
+            ? pricingQuote.discountAmount
+            : null,
+        deliveryFee: pricingQuote.deliveryFee,
         tip: _tips > 0 ? _tips.toStringAsFixed(2) : null,
-        totalAmount: _total.toStringAsFixed(2),
+        totalAmount: pricingQuote.totalAmount,
         isManual: true,
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedVehicleType,
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
-          label: 'Customer: ${_customerNameController.text.trim()}',
+          label: _customerAddressLabel(),
         ),
         items: cartItems,
-        couponId: _selectedCouponId != null
-            ? int.tryParse(_selectedCouponId!)
+        couponId: selectedCoupon != null
+            ? int.tryParse(selectedCoupon.id)
             : null,
       );
 
@@ -621,11 +628,44 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
           return CartItem(
             itemId: itemId,
             quantity: item.quantity,
-            customizations: item.notes,
+            customizations: _buildItemCustomizationText(item),
           );
         })
         .where((item) => item.itemId > 0)
         .toList();
+  }
+
+  String? _buildItemCustomizationText(OrderItemModel item) {
+    final parts = <String>[];
+
+    final customizationsText = item.customizationsText?.trim();
+    if (customizationsText != null && customizationsText.isNotEmpty) {
+      parts.add(customizationsText);
+    }
+
+    final notes = item.notes?.trim();
+    if (notes != null && notes.isNotEmpty && !parts.contains(notes)) {
+      parts.add(notes);
+    }
+
+    if (item.customizations.isNotEmpty) {
+      final structuredCustomizations = item.customizations
+          .map(
+            (customization) => switch (customization.type) {
+              CustomizationType.addition => '+ ${customization.name}',
+              CustomizationType.removal => '- ${customization.name}',
+            },
+          )
+          .join(', ');
+
+      if (structuredCustomizations.isNotEmpty &&
+          !parts.contains(structuredCustomizations)) {
+        parts.add(structuredCustomizations);
+      }
+    }
+
+    if (parts.isEmpty) return null;
+    return parts.join('\n');
   }
 
   String _fullCustomerPhoneNumber() {
@@ -634,6 +674,591 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       return phone;
     }
     return '${_selectedCountry.dialCode}$phone';
+  }
+
+  bool _hasAddressCoordinates(AddressModel address) =>
+      address.latitude != null && address.longitude != null;
+
+  bool _hasRestaurantCoordinates(RestaurantModel restaurant) {
+    return (restaurant.lat ?? restaurant.addressData?.lat) != null &&
+        (restaurant.lng ?? restaurant.addressData?.lng) != null;
+  }
+
+  OrderAddressData? _buildDropoffAddressData() {
+    final address = _selectedAddress;
+    if (address == null || !_hasAddressCoordinates(address)) {
+      return null;
+    }
+
+    final label = _customerAddressLabel();
+    return OrderAddressData.fromAddressModel(address, label: label);
+  }
+
+  String _customerAddressLabel() {
+    final customerName = _customerNameController.text.trim();
+    return customerName.isEmpty
+        ? 'orders.customerLabel'.tr
+        : 'orders.customerAddressLabel'.trParams({'name': customerName});
+  }
+
+  String _trOr(String key, String fallback) {
+    final translated = key.tr;
+    return translated == key ? fallback : translated;
+  }
+
+  String _friendlyPricingError(String error) {
+    final normalized = error.toLowerCase();
+
+    if (normalized.contains('address') &&
+        (normalized.contains('customer') ||
+            normalized.contains('saved') ||
+            normalized.contains('id'))) {
+      return _trOr(
+        'orders.pricingAddressError',
+        "We couldn't use this delivery address. Please select it again and try again.",
+      );
+    }
+
+    if (normalized.contains('network') ||
+        normalized.contains('connection') ||
+        normalized.contains('internet')) {
+      return _trOr(
+        'errors.network',
+        'Please check your internet connection and try again.',
+      );
+    }
+
+    if (normalized.contains('timeout')) {
+      return _trOr(
+        'errors.timeout',
+        'This is taking longer than expected. Please try again.',
+      );
+    }
+
+    if (normalized.contains('server') ||
+        normalized.contains('500') ||
+        normalized.contains('502') ||
+        normalized.contains('503')) {
+      return _trOr(
+        'orders.pricingServerError',
+        "We couldn't update the order total right now. Please try again in a moment.",
+      );
+    }
+
+    return _trOr(
+      'orders.pricingError',
+      "We couldn't update the order total. Please check the order details and try again.",
+    );
+  }
+
+  List<String> _pricingRequirements({RestaurantModel? restaurant}) {
+    final selectedRestaurant =
+        restaurant ?? ref.read(selectedRestaurantProvider);
+    final requirements = <String>[];
+
+    if (selectedRestaurant == null ||
+        int.tryParse(selectedRestaurant.id) == null ||
+        int.tryParse(selectedRestaurant.id)! <= 0) {
+      requirements.add('validation.noRestaurantSelected'.tr);
+    } else if (!_hasRestaurantCoordinates(selectedRestaurant)) {
+      requirements.add(
+        _trOr(
+          'orders.pricingPickupRequired',
+          'The selected restaurant is missing a pickup location.',
+        ),
+      );
+    }
+
+    final address = _selectedAddress;
+    if (address == null) {
+      requirements.add(
+        _trOr(
+          'orders.pricingAddressRequired',
+          'Enter the delivery address to calculate pricing.',
+        ),
+      );
+    } else {
+      if (address.street.isEmpty || address.building.isEmpty) {
+        requirements.add('validation.enterStreetAndBuilding'.tr);
+      }
+      if (!_hasAddressCoordinates(address)) {
+        requirements.add(
+          _trOr(
+            'orders.pricingAddressCoordinatesRequired',
+            'Select a delivery address suggestion so distance can be calculated.',
+          ),
+        );
+      }
+    }
+
+    if (_buildCartItems().isEmpty) {
+      requirements.add(
+        _trOr(
+          'orders.pricingItemsRequired',
+          'Add at least one item to see the order total.',
+        ),
+      );
+    }
+
+    return requirements;
+  }
+
+  FoodPricePreviewRequest? _buildPricingPreviewRequest({
+    RestaurantModel? restaurant,
+  }) {
+    final selectedRestaurant =
+        restaurant ?? ref.read(selectedRestaurantProvider);
+    if (_pricingRequirements(restaurant: selectedRestaurant).isNotEmpty ||
+        selectedRestaurant == null) {
+      return null;
+    }
+
+    final restaurantId = int.tryParse(selectedRestaurant.id);
+    final dropoffAddressData = _buildDropoffAddressData();
+    if (restaurantId == null ||
+        restaurantId <= 0 ||
+        dropoffAddressData == null) {
+      return null;
+    }
+
+    return FoodPricePreviewRequest(
+      restaurantId: restaurantId,
+      pickupAddressData: OrderAddressData.fromRestaurant(selectedRestaurant),
+      dropoffAddressData: dropoffAddressData,
+      customerName: _customerNameController.text.trim(),
+      customerPhoneNumber: _fullCustomerPhoneNumber(),
+      tip: _tips.toStringAsFixed(2),
+      couponCode: _selectedCoupon?.code,
+      items: _buildCartItems(),
+      requestedVehicleType: _selectedVehicleType,
+      requestedDeliveryType: _selectedVehicleType,
+    );
+  }
+
+  bool _isPreviewFresh(
+    CustomerOrdersState state,
+    FoodPricePreviewRequest? request,
+  ) {
+    final fingerprint = request?.fingerprint;
+    return fingerprint != null &&
+        state.previewQuote != null &&
+        state.previewFingerprint == fingerprint;
+  }
+
+  FoodPriceQuote? _currentPricingQuote(
+    CustomerOrdersState state,
+    FoodPricePreviewRequest? request,
+  ) {
+    return _isPreviewFresh(state, request) ? state.previewQuote : null;
+  }
+
+  void _schedulePricingPreview({
+    bool immediate = false,
+    RestaurantModel? restaurant,
+  }) {
+    _previewDebounce?.cancel();
+
+    final request = _buildPricingPreviewRequest(restaurant: restaurant);
+    if (request == null) {
+      _scheduledPricingFingerprint = null;
+      ref.read(customerOrdersProvider.notifier).clearPreview();
+      return;
+    }
+
+    final fingerprint = request.fingerprint;
+    _scheduledPricingFingerprint = fingerprint;
+
+    final state = ref.read(customerOrdersProvider);
+    final alreadyFresh =
+        state.previewQuote != null &&
+        state.previewFingerprint == fingerprint &&
+        state.previewError == null &&
+        !state.isPreviewLoading;
+    if (alreadyFresh) {
+      return;
+    }
+
+    Future<void> runPreview() async {
+      if (!mounted) return;
+
+      final latestRequest = _buildPricingPreviewRequest(restaurant: restaurant);
+      if (latestRequest == null || latestRequest.fingerprint != fingerprint) {
+        return;
+      }
+
+      await ref
+          .read(customerOrdersProvider.notifier)
+          .previewFoodOrder(latestRequest, fingerprint: fingerprint);
+    }
+
+    if (immediate) {
+      Future.microtask(runPreview);
+    } else {
+      _previewDebounce = Timer(const Duration(milliseconds: 350), runPreview);
+    }
+  }
+
+  void _retryPricingPreview() {
+    _schedulePricingPreview(immediate: true);
+  }
+
+  void _showPricingBlockedMessage({RestaurantModel? restaurant}) {
+    final requirements = _pricingRequirements(restaurant: restaurant);
+    final previewState = ref.read(customerOrdersProvider);
+
+    final message = requirements.isNotEmpty
+        ? requirements.first
+        : previewState.isPreviewLoading
+        ? _trOr(
+            'orders.livePricingRefreshing',
+            'Your order total is still updating. Please wait a moment.',
+          )
+        : (previewState.previewError == null
+                  ? null
+                  : _friendlyPricingError(previewState.previewError!)) ??
+              _trOr(
+                'orders.livePricingRequired',
+                'Please wait for the order total to update before continuing.',
+              );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.warning),
+    );
+  }
+
+  String? _formatDistance(FoodPriceQuote quote) {
+    final distance = quote.distanceKm;
+    if (distance == null) return null;
+    final formatted = distance >= 10
+        ? distance.toStringAsFixed(0)
+        : distance.toStringAsFixed(1);
+    return _trOr(
+      'orders.distanceKm',
+      '{value} km',
+    ).replaceAll('{value}', formatted);
+  }
+
+  String? _formatEstimatedTime(FoodPriceQuote quote) {
+    final minutes = quote.estimatedMinutes;
+    if (minutes == null) return null;
+    return _trOr(
+      'orders.estimatedMinutes',
+      '{value} min',
+    ).replaceAll('{value}', minutes.toString());
+  }
+
+  Widget _buildPricingSummaryCard({
+    required bool isDark,
+    required CustomerOrdersState pricingState,
+    required List<String> pricingRequirements,
+    required FoodPriceQuote? pricingQuote,
+  }) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    if (pricingRequirements.isNotEmpty) {
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.warning, size: 20.w),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Text(
+                    _trOr(
+                      'orders.livePricingPendingTitle',
+                      'Complete your order details to see the total',
+                    ),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12.h),
+            ...pricingRequirements.map(
+              (requirement) => Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 6.h),
+                      child: Icon(
+                        Icons.circle,
+                        size: 6.w,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Text(
+                        requirement,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (pricingQuote == null) {
+      final hasError = pricingState.previewError != null;
+      final isLoading = pricingState.isPreviewLoading;
+      final icon = hasError
+          ? Icons.error_outline
+          : isLoading
+          ? Icons.autorenew
+          : Icons.hourglass_bottom_outlined;
+      final iconColor = hasError ? AppColors.error : primaryColor;
+      final title = hasError
+          ? _trOr(
+              'orders.livePricingErrorTitle',
+              'We couldn’t update the order total',
+            )
+          : _trOr(
+              'orders.livePricingLoadingTitle',
+              'Updating your order total',
+            );
+      final message = hasError
+          ? _friendlyPricingError(pricingState.previewError!)
+          : isLoading
+          ? _trOr('orders.livePricingLoading', 'Updating your order total...')
+          : _trOr(
+              'orders.livePricingWaiting',
+              'Your order total will update as soon as your latest changes settle.',
+            );
+
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 20.w),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                    ),
+                  ),
+                ),
+                if (isLoading)
+                  SizedBox(
+                    width: 18.w,
+                    height: 18.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.w,
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              message,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
+              ),
+            ),
+            if (hasError) ...[
+              SizedBox(height: 12.h),
+              TextButton.icon(
+                onPressed: isLoading ? null : _retryPricingPreview,
+                icon: const Icon(Icons.refresh),
+                label: Text(_trOr('common.retry', 'Retry')),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    final distanceLabel = _formatDistance(pricingQuote);
+    final etaLabel = _formatEstimatedTime(pricingQuote);
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bolt_rounded, color: primaryColor, size: 20.w),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _trOr('orders.livePricingTitle', 'Order total'),
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      _trOr(
+                        'orders.livePricingSubtitle',
+                        'Your total updates automatically as you change the order.',
+                      ),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (pricingState.isPreviewLoading)
+                SizedBox(
+                  width: 18.w,
+                  height: 18.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.w,
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                  ),
+                ),
+            ],
+          ),
+          if (distanceLabel != null || etaLabel != null) ...[
+            SizedBox(height: 12.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                if (distanceLabel != null)
+                  _PricingMetricChip(
+                    icon: Icons.route_outlined,
+                    label: distanceLabel,
+                    isDark: isDark,
+                  ),
+                if (etaLabel != null)
+                  _PricingMetricChip(
+                    icon: Icons.schedule_outlined,
+                    label: etaLabel,
+                    isDark: isDark,
+                  ),
+              ],
+            ),
+          ],
+          SizedBox(height: 16.h),
+          _SummaryRow(
+            label: 'orders.subtotal'.tr,
+            value: pricingQuote.subtotalValue,
+            isDark: isDark,
+          ),
+          SizedBox(height: 8.h),
+          _SummaryRow(
+            label: 'orders.deliveryFee'.tr,
+            value: pricingQuote.deliveryFeeValue,
+            isDark: isDark,
+          ),
+          SizedBox(height: 8.h),
+          _SummaryRow(label: 'orders.tips'.tr, value: _tips, isDark: isDark),
+          if (pricingQuote.hasDiscount) ...[
+            SizedBox(height: 8.h),
+            _DiscountRow(
+              label: 'orders.discount'.tr,
+              value: pricingQuote.discountValue.abs(),
+              isDark: isDark,
+            ),
+          ],
+          Divider(
+            height: 24.h,
+            color: isDark ? DarkColors.border : LightColors.border,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'orders.total'.tr,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? DarkColors.textPrimary
+                      : LightColors.textPrimary,
+                ),
+              ),
+              Text(
+                '\u20AC${pricingQuote.totalValue.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
+              ),
+            ],
+          ),
+          if (pricingState.previewError != null) ...[
+            SizedBox(height: 12.h),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.24),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 18.w,
+                    color: AppColors.warning,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      _friendlyPricingError(pricingState.previewError!),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark
+                            ? DarkColors.textSecondary
+                            : LightColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Future<void> _updateOrder() async {
@@ -652,6 +1277,14 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     }
 
     final restaurant = ref.read(selectedRestaurantProvider);
+    final previewState = ref.read(customerOrdersProvider);
+    final pricingRequest = _buildPricingPreviewRequest(restaurant: restaurant);
+    final pricingQuote = _currentPricingQuote(previewState, pricingRequest);
+    if (pricingQuote == null) {
+      _showPricingBlockedMessage(restaurant: restaurant);
+      return;
+    }
+
     final restaurantId =
         int.tryParse(restaurant?.id ?? order.restaurantId ?? '') ??
         order.restaurant?.id;
@@ -660,29 +1293,32 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
 
     try {
       final cartItems = _buildCartItems();
+      final selectedCoupon = _selectedCoupon;
       final request = OrderUpdateRequest(
         orderType: 'FOOD',
         restaurantId: restaurantId,
         customerName: _customerNameController.text.trim(),
         customerPhoneNumber: _fullCustomerPhoneNumber(),
         status: _statusToApiValue(order.status),
-        subtotalAmount: _subtotal.toStringAsFixed(2),
-        discountAmount: _discount > 0 ? _discount.toStringAsFixed(2) : '0.00',
-        deliveryFee: _deliveryFee.toStringAsFixed(2),
+        subtotalAmount: pricingQuote.subtotalAmount,
+        discountAmount: pricingQuote.hasDiscount
+            ? pricingQuote.discountAmount
+            : '0.00',
+        deliveryFee: pricingQuote.deliveryFee,
         tip: _tips > 0 ? _tips.toStringAsFixed(2) : '0.00',
-        totalAmount: _total.toStringAsFixed(2),
+        totalAmount: pricingQuote.totalAmount,
         isManual: true,
         isPaid: _isPaid,
         requestedVehicleType: _selectedVehicleType,
         requestedDeliveryType: _selectedVehicleType,
         dropoffAddressData: OrderAddressData.fromAddressModel(
           _selectedAddress!,
-          label: 'Customer: ${_customerNameController.text.trim()}',
+          label: _customerAddressLabel(),
         ),
         items: cartItems.isEmpty ? null : cartItems,
-        includeCoupon: _selectedCouponId != null,
-        couponId: _selectedCouponId != null
-            ? int.tryParse(_selectedCouponId!)
+        includeCoupon: selectedCoupon != null,
+        couponId: selectedCoupon != null
+            ? int.tryParse(selectedCoupon.id)
             : null,
       );
 
@@ -752,6 +1388,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
+    ref.watch(activeCouponsProvider);
+    final customerOrdersState = ref.watch(customerOrdersProvider);
+    final selectedRestaurant = ref.watch(selectedRestaurantProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenTitle = _isEditMode
         ? 'orders.editOrder'.tr
@@ -759,6 +1398,35 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     final submitLabel = _isEditMode
         ? 'orders.saveChanges'.tr
         : 'orders.createOrder'.tr;
+    final pricingRequirements = _pricingRequirements(
+      restaurant: selectedRestaurant,
+    );
+    final pricingRequest = _buildPricingPreviewRequest(
+      restaurant: selectedRestaurant,
+    );
+    final pricingQuote = _currentPricingQuote(
+      customerOrdersState,
+      pricingRequest,
+    );
+    final canSubmitOrder =
+        !_isLoading &&
+        pricingRequirements.isEmpty &&
+        pricingQuote != null &&
+        !customerOrdersState.isPreviewLoading;
+
+    if (pricingRequest != null &&
+        customerOrdersState.previewFingerprint != pricingRequest.fingerprint &&
+        _scheduledPricingFingerprint != pricingRequest.fingerprint &&
+        !customerOrdersState.isPreviewLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _schedulePricingPreview(
+            immediate: true,
+            restaurant: selectedRestaurant,
+          );
+        }
+      });
+    }
 
     return buildWithUnsavedChangesGuard(
       child: AppScaffold(
@@ -889,6 +1557,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                             _selectedAddress = address;
                           });
                           markAsChanged();
+                          _schedulePricingPreview();
                         },
                       ),
 
@@ -951,6 +1620,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                             _selectedVehicleType = value;
                           });
                           markAsChanged();
+                          _schedulePricingPreview();
                         },
                         isDark: isDark,
                       ),
@@ -970,6 +1640,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                             _selectedCouponId = value;
                           });
                           markAsChanged();
+                          _schedulePricingPreview();
                         },
                         isDark: isDark,
                       ),
@@ -980,36 +1651,19 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                       _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
                       SizedBox(height: 12.h),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppTextField(
-                              controller: _deliveryFeeController,
-                              label: 'orders.deliveryFee'.tr,
-                              hint: '0.00',
-                              prefixIcon: Icons.delivery_dining,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: AppTextField(
-                              controller: _tipsController,
-                              label: 'orders.tips'.tr,
-                              hint: '0.00',
-                              prefixIcon: Icons.volunteer_activism,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          ),
-                        ],
+                      AppTextField(
+                        controller: _tipsController,
+                        label: 'orders.tips'.tr,
+                        hint: '0.00',
+                        prefixIcon: Icons.volunteer_activism,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (_) {
+                          setState(() {});
+                          markAsChanged();
+                          _schedulePricingPreview();
+                        },
                       ),
 
                       SizedBox(height: 16.h),
@@ -1065,68 +1719,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                       ),
                       SizedBox(height: 12.h),
 
-                      AppCard(
-                        child: Column(
-                          children: [
-                            _SummaryRow(
-                              label: 'orders.subtotal'.tr,
-                              value: _subtotal,
-                              isDark: isDark,
-                            ),
-                            SizedBox(height: 8.h),
-                            _SummaryRow(
-                              label: 'orders.deliveryFee'.tr,
-                              value: _deliveryFee,
-                              isDark: isDark,
-                            ),
-                            SizedBox(height: 8.h),
-                            _SummaryRow(
-                              label: 'orders.tips'.tr,
-                              value: _tips,
-                              isDark: isDark,
-                            ),
-                            // Show discount row if coupon is applied
-                            if (_discount > 0) ...[
-                              SizedBox(height: 8.h),
-                              _DiscountRow(
-                                label: 'orders.discount'.tr,
-                                value: _discount,
-                                isDark: isDark,
-                              ),
-                            ],
-                            Divider(
-                              height: 24.h,
-                              color: isDark
-                                  ? DarkColors.border
-                                  : LightColors.border,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'orders.total'.tr,
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? DarkColors.textPrimary
-                                        : LightColors.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  '\u20AC${_total.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 24.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      _buildPricingSummaryCard(
+                        isDark: isDark,
+                        pricingState: customerOrdersState,
+                        pricingRequirements: pricingRequirements,
+                        pricingQuote: pricingQuote,
                       ),
 
                       SizedBox(height: 24.h),
@@ -1137,12 +1734,53 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                         icon: _isEditMode ? Icons.save_outlined : null,
                         onPressed: _submitOrder,
                         isLoading: _isLoading,
+                        isDisabled: !canSubmitOrder,
                       ),
                       SizedBox(height: 24.h),
                     ],
                   ),
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class _PricingMetricChip extends StatelessWidget {
+  const _PricingMetricChip({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: primaryColor.withValues(alpha: isDark ? 0.18 : 0.10),
+        borderRadius: BorderRadius.circular(999.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16.w, color: primaryColor),
+          SizedBox(width: 6.w),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+              color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1603,7 +2241,11 @@ class _CouponDropdown extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            '${coupon.percentDiscount.toStringAsFixed(0)}% off',
+                            'orders.percentOff'.trParams({
+                              'value': coupon.percentDiscount.toStringAsFixed(
+                                0,
+                              ),
+                            }),
                             style: TextStyle(
                               fontSize: 11.sp,
                               color: AppColors.success,
@@ -2334,7 +2976,7 @@ class _AddItemBottomSheetState extends ConsumerState<_AddItemBottomSheet> {
           Row(
             children: [
               Text(
-                'Quantity',
+                'orders.quantity'.tr,
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w500,

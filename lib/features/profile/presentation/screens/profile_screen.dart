@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/user_api.dart';
 import '../../../../core/theme/theme.dart';
@@ -220,6 +221,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: 8.h),
+                Text(
+                  AppConfig.compactReleaseLabel,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: isDark
+                        ? DarkColors.textTertiary
+                        : LightColors.textTertiary,
+                  ),
+                ),
+                SizedBox(height: 80.h),
               ],
             ),
     );
@@ -1406,7 +1419,7 @@ class _RestaurantStatusPill extends StatelessWidget {
       case RestaurantStatus.active:
         textColor = AppColors.success;
         backgroundColor = AppColors.success.withValues(alpha: 0.12);
-        label = 'common.active'.tr;
+        label = 'restaurantStatus.active'.tr;
         break;
       case RestaurantStatus.pending:
         textColor = AppColors.warningDark;
@@ -1420,7 +1433,7 @@ class _RestaurantStatusPill extends StatelessWidget {
         backgroundColor = isDark
             ? DarkColors.backgroundTertiary
             : LightColors.backgroundSecondary;
-        label = 'common.inactive'.tr;
+        label = 'restaurantStatus.inactive'.tr;
         break;
     }
 

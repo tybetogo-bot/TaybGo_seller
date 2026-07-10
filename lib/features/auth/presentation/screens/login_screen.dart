@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/config/constants.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
@@ -248,6 +249,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
 
                       // Terms at bottom
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 6.h),
+                        child: Text(
+                          AppConfig.compactReleaseLabel,
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            color: isDark
+                                ? DarkColors.textTertiary
+                                : LightColors.textTertiary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 20.h),
                         child: Text.rich(
