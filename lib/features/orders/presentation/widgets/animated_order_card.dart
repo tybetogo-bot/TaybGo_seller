@@ -742,7 +742,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                           CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          '\$${order.total.toStringAsFixed(2)}',
+                                          '€${order.total.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             fontSize: 16.sp,
                                             fontWeight: FontWeight.w700,

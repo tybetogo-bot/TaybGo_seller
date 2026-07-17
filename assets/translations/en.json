@@ -916,7 +916,7 @@
       "title": "Item Customizations & Extras",
       "description": "Set up extras and removal options for menu items.",
       "s1Title": "What Are Customizations?",
-      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
+      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +€1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
       "s2Title": "Adding Extras",
       "s2Body": "When editing a menu item, scroll to the Customizations section and tap \"Add Extra\". Enter the extra's name and additional price. You can add as many extras as needed.",
       "s3Title": "Adding Removal Options",
