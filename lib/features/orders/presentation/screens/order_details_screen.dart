@@ -1254,7 +1254,7 @@ class _OrderItemsCard extends ConsumerWidget {
                   // Only show price if available
                   if (itemPrice > 0)
                     Text(
-                      '\$${itemPrice.toStringAsFixed(2)}',
+                      '€${itemPrice.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -1352,7 +1352,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (subtotal > 0) ...[
             _SummaryRow(
               label: 'orders.subtotal'.tr,
-              value: '\$${subtotal.toStringAsFixed(2)}',
+              value: '€${subtotal.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1361,7 +1361,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (deliveryFee > 0) ...[
             _SummaryRow(
               label: 'orders.deliveryFee'.tr,
-              value: '\$${deliveryFee.toStringAsFixed(2)}',
+              value: '€${deliveryFee.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1370,7 +1370,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (discountAmount > 0) ...[
             _SummaryRow(
               label: 'orders.discount'.tr,
-              value: '-\$${discountAmount.toStringAsFixed(2)}',
+              value: '-€${discountAmount.toStringAsFixed(2)}',
               isDark: isDark,
               isDiscount: true,
             ),
@@ -1380,7 +1380,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (tip > 0) ...[
             _SummaryRow(
               label: 'orders.tip'.tr,
-              value: '\$${tip.toStringAsFixed(2)}',
+              value: '€${tip.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1396,7 +1396,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
             ],
             _SummaryRow(
               label: 'orders.total'.tr,
-              value: '\$${total.toStringAsFixed(2)}',
+              value: '€${total.toStringAsFixed(2)}',
               isDark: isDark,
               isTotal: true,
             ),

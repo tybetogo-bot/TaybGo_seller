@@ -144,8 +144,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     _QuickStat(
                       label: 'profile.today'.tr,
                       value: selectedRestaurant?.todayStats != null
-                          ? '\$${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
-                          : '\$0',
+                          ? '€${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
+                          : '€0',
                       isDark: isDark,
                     ),
                     SizedBox(width: 10.w),
