@@ -38,7 +38,8 @@
     "version": "الإصدار",
     "undo": "تراجع",
     "optional": "اختياري",
-    "required": "مطلوب"
+    "required": "مطلوب",
+    "missing": "مفقود"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -161,6 +162,7 @@
     "noItems": "لا توجد عناصر",
     "emptyItemsWarning": "هذا الطلب لا يحتوي على عناصر. الرجاء إضافة عنصر واحد على الأقل للمتابعة.",
     "orderCreated": "تم إنشاء الطلب!",
+    "orderCreationFailed": "تعذر إنشاء الطلب",
     "reorder": "إعادة الطلب",
     "selectItemFromMenu": "اختر عنصراً من القائمة",
     "status": {
@@ -173,10 +175,12 @@
       "searchingForDriver": "البحث عن سائق",
       "driverNotificationSent": "بانتظار السائق",
       "delivered": "تم التسليم",
+      "restaurantDelivered": "تم التوصيل بواسطة المطعم",
       "rejected": "مرفوض",
       "cancelled": "ملغي"
     },
     "requestDriver": "طلب سائق",
+    "markRestaurantDelivered": "وضع علامة تم التوصيل بواسطة المطعم",
     "waitingForDriver": "في انتظار السائق...",
     "orderRejectedByRestaurant": "تم رفض هذا الطلب من قبل المطعم",
     "orderWasCancelled": "تم إلغاء هذا الطلب",
@@ -215,6 +219,7 @@
       "onTheWay": "في الطريق للعميل",
       "delivery": "في الطريق للعميل",
       "delivered": "تم الطلب بنجاح",
+      "restaurantDelivered": "تمت خدمته مباشرة من المطعم",
       "rejected": "تم رفض الطلب",
       "cancelled": "تم إلغاء الطلب"
     },
@@ -240,6 +245,30 @@
     "orderItems": "عناصر الطلب",
     "payment": "الدفع",
     "orderSummary": "ملخص الطلب",
+    "pricingAddressError": "تعذر استخدام عنوان التوصيل. يرجى اختياره مرة أخرى.",
+    "pricingServerError": "تعذر تحديث إجمالي الطلب الآن. يرجى المحاولة بعد قليل.",
+    "pricingError": "تعذر تحديث إجمالي الطلب. يرجى التحقق من تفاصيل الطلب والمحاولة مرة أخرى.",
+    "pricingAddressCoordinatesRequired": "اختر اقتراحاً لعنوان التوصيل حتى يمكن حساب المسافة.",
+    "pricingAddressRequired": "أدخل عنوان التوصيل لحساب السعر.",
+    "pricingItemsRequired": "أضف عنصراً واحداً على الأقل لعرض إجمالي الطلب.",
+    "pricingPickupRequired": "المطعم المحدد لا يحتوي على موقع استلام.",
+    "livePricingPendingTitle": "أكمل تفاصيل الطلب لعرض الإجمالي",
+    "livePricingErrorTitle": "تعذر تحديث إجمالي الطلب",
+    "livePricingLoadingTitle": "جارٍ تحديث إجمالي الطلب",
+    "livePricingLoading": "جارٍ تحديث إجمالي الطلب...",
+    "livePricingWaiting": "سيتم تحديث إجمالي الطلب بعد اكتمال آخر التغييرات.",
+    "livePricingRefreshing": "لا يزال إجمالي الطلب قيد التحديث. يرجى الانتظار قليلاً.",
+    "livePricingRequired": "يرجى الانتظار حتى يتم تحديث إجمالي الطلب قبل المتابعة.",
+    "livePricingTitle": "إجمالي الطلب",
+    "livePricingSubtitle": "يتحدث الإجمالي تلقائياً عند تغيير الطلب.",
+    "deliveryFeeCalculatedTitle": "تفاصيل التوصيل",
+    "deliveryFeeCalculatedHint": "رسوم التوصيل مشمولة في إجمالي الطلب.",
+    "customerLabel": "العميل",
+    "customerAddressLabel": "العميل: {name}",
+    "distanceKm": "{value} كم",
+    "estimatedMinutes": "{value} دقيقة",
+    "percentOff": "خصم {value}%",
+    "quantity": "الكمية",
     "deliveryOptions": "خيارات التوصيل",
     "requestedVehicleType": "نوع المركبة",
     "requestedDeliveryType": "نوع التوصيل",
@@ -341,7 +370,10 @@
       "aiScanComplete": "اكتمل المسح الذكي",
       "fieldsExtracted": "تم ملؤها تلقائياً",
       "fieldsToFill": "يرجى ملء"
-    }
+    },
+    "cancelOrder": "إلغاء الطلب",
+    "confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
+    "cancel": "إلغاء"
   },
   "address": {
     "search": "بحث...",
@@ -503,7 +535,18 @@
       "saturday": "السبت",
       "sunday": "الأحد"
     },
-    "settingsSaved": "تم الحفظ"
+    "settingsSaved": "تم الحفظ",
+    "appTour": "جولة التطبيق",
+    "appTourSubtitle": "تعرّف على كيفية استخدام التطبيق",
+    "howTo": "كيف؟",
+    "howToSubtitle": "أدلة ووثائق",
+    "selectTour": "اختر نوع الجولة",
+    "fullAppTour": "جولة كاملة في التطبيق",
+    "fullAppTourDesc": "شرح كامل لجميع المزايا (حوالي 5 دقائق)",
+    "ordersQuickTour": "جولة سريعة للطلبات",
+    "ordersQuickTourDesc": "تعلّم أساسيات إدارة الطلبات (حوالي دقيقتين)",
+    "menuQuickTour": "جولة سريعة للقائمة",
+    "menuQuickTourDesc": "أتقن إدارة القائمة (حوالي دقيقتين)"
   },
   "profile": {
     "title": "الملف الشخصي",
@@ -519,7 +562,16 @@
     "registrationDocumentAddedLocked": "تمت الإضافة والقفل. هذه الصفحة للعرض فقط.",
     "registrationDocumentMissing": "لا توجد وثيقة تسجيل في ملف هذا البائع.",
     "invalidDocumentUrl": "رابط الوثيقة غير صالح.",
-    "documentOpenFailed": "تعذر فتح الوثيقة."
+    "documentOpenFailed": "تعذر فتح الوثيقة.",
+    "deliveryEnabled": "التوصيل مفعّل",
+    "deliveryDisabled": "التوصيل معطّل",
+    "editProfile": "تعديل الملف الشخصي",
+    "settingsSectionTitle": "الإعدادات",
+    "settingsSectionSubtitle": "الأرباح والكوبونات والإشعارات",
+    "preferencesSectionTitle": "التفضيلات",
+    "preferencesSectionSubtitle": "الوضع الداكن واللغة ولون التمييز",
+    "helpSupportSectionTitle": "المساعدة والدعم",
+    "helpSupportSectionSubtitle": "قاعدة المعرفة والدعم والمساعدة وحول وحذف الحساب"
   },
   "deleteAccount": {
     "title": "حذف الحساب",
@@ -636,6 +688,7 @@
     "invalidPrice": "سعر غير صالح",
     "enterCustomerName": "أدخل اسم العميل",
     "enterAddress": "أدخل العنوان",
+    "noRestaurantSelected": "لم يتم اختيار مطعم",
     "enterStreetAndBuilding": "أدخل الشارع والمبنى",
     "addAtLeastOneItem": "أضف عنصراً واحداً على الأقل",
     "codeTooShort": "4 أحرف على الأقل",
@@ -735,6 +788,8 @@
     "goHome": "الذهاب للرئيسية"
   },
   "restaurantStatus": {
+    "active": "المطعم نشط",
+    "pending": "قيد المراجعة",
     "pendingApproval": "المطعم في انتظار الموافقة",
     "inactive": "المطعم غير نشط"
   },
@@ -861,7 +916,7 @@
       "title": "تخصيصات العناصر والإضافات",
       "description": "إعداد الإضافات وخيارات الإزالة لعناصر القائمة.",
       "s1Title": "ما هي التخصيصات؟",
-      "s1Body": "تتيح التخصيصات للعملاء تعديل أصناف طلباتهم. هناك نوعان:\n\n• إضافات — خيارات تضيف مكونات بتكلفة إضافية (مثل \"جبنة إضافية +1.50$\")\n• إزالات — مكونات يمكن للعملاء طلب إزالتها (مثل \"بدون بصل\")",
+      "s1Body": "تتيح التخصيصات للعملاء تعديل أصناف طلباتهم. هناك نوعان:\n\n• إضافات — خيارات تضيف مكونات بتكلفة إضافية (مثل \"جبنة إضافية +1.50€\")\n• إزالات — مكونات يمكن للعملاء طلب إزالتها (مثل \"بدون بصل\")",
       "s2Title": "إضافة إضافات",
       "s2Body": "عند تعديل عنصر قائمة، مرر للأسفل إلى قسم التخصيصات وانقر على \"إضافة إضافة\". أدخل اسم الإضافة والسعر الإضافي.",
       "s3Title": "إضافة خيارات الإزالة",
@@ -1183,7 +1238,9 @@
     "initialMessageHint": "صف مشكلتك بالتفصيل...",
     "noTickets": "لا توجد تذاكر",
     "noTicketsDesc": "أنشئ تذكرة للحصول على مساعدة من فريق الدعم",
-    "ticketCreated": "تم إنشاء التذكرة بنجاح"
+    "ticketCreated": "تم إنشاء التذكرة بنجاح",
+    "categoryRestaurant": "المطعم",
+    "categoryDriver": "السائق"
   },
   "location": {
     "permissionRequired": "إذن الموقع مطلوب",

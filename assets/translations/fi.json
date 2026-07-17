@@ -38,7 +38,8 @@
     "version": "Versio",
     "undo": "Kumoa",
     "optional": "Valinnainen",
-    "required": "Pakollinen"
+    "required": "Pakollinen",
+    "missing": "Puuttuu"
   },
   "auth": {
     "phoneNumber": "Puhelinnumero",
@@ -165,6 +166,7 @@
     "noItems": "Ei lisättyjä tuotteita",
     "emptyItemsWarning": "Tässä tilauksessa ei ole tuotteita. Lisää vähintään yksi tuote jatkaaksesi.",
     "orderCreated": "Tilaus luotu onnistuneesti!",
+    "orderCreationFailed": "Tilauksen luominen epäonnistui",
     "reorder": "Tilaa uudelleen",
     "selectItemFromMenu": "Valitse tuote menusta",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Etsitään kuljettajaa",
       "driverNotificationSent": "Odottaa kuljettajaa",
       "delivered": "Toimitettu",
+      "restaurantDelivered": "Toimitettu ravintolan toimesta",
       "rejected": "Hylätty",
       "cancelled": "Peruutettu"
     },
     "requestDriver": "Pyydä kuljettaja",
+    "markRestaurantDelivered": "Merkitse ravintolan toimesta toimitetuksi",
     "waitingForDriver": "Odotetaan kuljettajaa...",
     "orderRejectedByRestaurant": "Ravintola hylkäsi tämän tilauksen",
     "orderWasCancelled": "Tämä tilaus peruutettiin",
@@ -219,6 +223,7 @@
       "onTheWay": "Matkalla asiakkaalle",
       "delivery": "Matkalla asiakkaalle",
       "delivered": "Tilaus toimitettu onnistuneesti",
+      "restaurantDelivered": "Hoidettu suoraan ravintolan kautta",
       "rejected": "Tilaus hylätty",
       "cancelled": "Tilaus peruutettu"
     },
@@ -244,6 +249,30 @@
     "orderItems": "Tilauksen tuotteet",
     "payment": "Maksu",
     "orderSummary": "Tilauksen yhteenveto",
+    "pricingAddressError": "Toimitusosoitetta ei voitu käyttää. Valitse se uudelleen ja yritä uudestaan.",
+    "pricingServerError": "Tilauksen kokonaissummaa ei voitu päivittää juuri nyt. Yritä hetken kuluttua uudelleen.",
+    "pricingError": "Tilauksen kokonaissummaa ei voitu päivittää. Tarkista tilauksen tiedot ja yritä uudelleen.",
+    "pricingAddressCoordinatesRequired": "Valitse toimitusosoitteen ehdotus, jotta etäisyys voidaan laskea.",
+    "pricingAddressRequired": "Syötä toimitusosoite hinnan laskemista varten.",
+    "pricingItemsRequired": "Lisää vähintään yksi tuote nähdäksesi tilauksen kokonaissumman.",
+    "pricingPickupRequired": "Valitulta ravintolalta puuttuu noutopaikka.",
+    "livePricingPendingTitle": "Täydennä tilauksen tiedot nähdäksesi kokonaissumman",
+    "livePricingErrorTitle": "Tilauksen kokonaissummaa ei voitu päivittää",
+    "livePricingLoadingTitle": "Tilauksen kokonaissummaa päivitetään",
+    "livePricingLoading": "Tilauksen kokonaissummaa päivitetään...",
+    "livePricingWaiting": "Kokonaissumma päivittyy, kun viimeisimmät muutokset on käsitelty.",
+    "livePricingRefreshing": "Kokonaissummaa päivitetään edelleen. Odota hetki.",
+    "livePricingRequired": "Odota, että kokonaissumma päivittyy ennen jatkamista.",
+    "livePricingTitle": "Tilauksen kokonaissumma",
+    "livePricingSubtitle": "Kokonaissumma päivittyy automaattisesti, kun muutat tilausta.",
+    "deliveryFeeCalculatedTitle": "Toimitustiedot",
+    "deliveryFeeCalculatedHint": "Toimitusmaksu sisältyy tilauksen kokonaissummaan.",
+    "customerLabel": "Asiakas",
+    "customerAddressLabel": "Asiakas: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% alennus",
+    "quantity": "Määrä",
     "deliveryOptions": "Toimitusvaihtoehdot",
     "requestedVehicleType": "Ajoneuvon tyyppi",
     "requestedDeliveryType": "Toimituksen tyyppi",
@@ -534,7 +563,16 @@
     "registrationDocumentAddedLocked": "Lisätty ja lukittu. Tämä sivu on vain katseltavissa.",
     "registrationDocumentMissing": "Tältä myyjäprofiililta ei löytynyt rekisteröintiasiakirjaa.",
     "invalidDocumentUrl": "Virheellinen asiakirjan URL-osoite.",
-    "documentOpenFailed": "Asiakirjaa ei voitu avata."
+    "documentOpenFailed": "Asiakirjaa ei voitu avata.",
+    "deliveryEnabled": "Toimitus käytössä",
+    "deliveryDisabled": "Toimitus pois käytöstä",
+    "editProfile": "Muokkaa profiilia",
+    "settingsSectionTitle": "Asetukset",
+    "settingsSectionSubtitle": "Tulot, kupongit ja ilmoitukset",
+    "preferencesSectionTitle": "Mieltymykset",
+    "preferencesSectionSubtitle": "Tumma tila, kieli ja korostusteema",
+    "helpSupportSectionTitle": "Ohje ja tuki",
+    "helpSupportSectionSubtitle": "Tietopankki, tuki, ohje, tietoja ja tilin poisto"
   },
   "deleteAccount": {
     "title": "Poista tili",
@@ -594,7 +632,15 @@
     "contactUs": "Ota yhteyttä",
     "callSupport": "Soita tukeen",
     "liveChat": "Live-chat",
-    "liveChatDesc": "Chatta tukitiimimme kanssa"
+    "liveChatDesc": "Chatta tukitiimimme kanssa",
+    "description": "Käytä TaybGo-tukea aina, kun tarvitset apua tilin käyttöön, tilauksiin, maksuihin tai päivittäiseen myyjätoimintaan liittyen.",
+    "visitWebsite": "Siirry osoitteeseen taybgo.com",
+    "websiteTitle": "TaybGo-verkkosivusto",
+    "websiteDescription": "Avaa taybgo.com saadaksesi tietoa alustasta ja suorat yhteystiedot.",
+    "emailTitle": "Lähetä sähköpostia tukeen",
+    "emailDescription": "Lähetä viesti tukitiimille oletussähköpostisovelluksestasi.",
+    "responseNote": "Jos ongelma liittyy aktiiviseen tiliin tai tilaukseen, tukipyynnön luominen sovelluksessa on nopein tapa, jotta tiimimme voi seurata ja ratkaista sen.",
+    "linkError": "TaybGoa ei voitu avata juuri nyt. Yritä uudelleen."
   },
   "earnings": {
     "title": "Ansiot",
@@ -628,7 +674,11 @@
     "title": "Tietoja",
     "version": "Versio {version}",
     "description": "Hallitse ravintolasi tilauksia, menua ja asiakkaita kaikki yhdessä paikassa.",
-    "copyright": "© 2024 TaybGo. Kaikki oikeudet pidätetään."
+    "copyright": "© 2024 TaybGo. Kaikki oikeudet pidätetään.",
+    "partnerTools": "Myyjän työtila",
+    "websiteLabel": "Verkkosivusto",
+    "supportEmailLabel": "Tukisähköposti",
+    "visitWebsite": "Vieraile TaybGossa"
   },
   "validation": {
     "required": "Tämä kenttä on pakollinen",
@@ -639,6 +689,7 @@
     "invalidPrice": "Virheellinen hinta",
     "enterCustomerName": "Syötä asiakkaan nimi",
     "enterAddress": "Syötä toimitusosoite",
+    "noRestaurantSelected": "Ravintolaa ei ole valittu",
     "enterStreetAndBuilding": "Syötä osoite kadun ja rakennusnumeron kanssa",
     "addAtLeastOneItem": "Lisää vähintään yksi tuote",
     "codeTooShort": "Koodin on oltava vähintään 4 merkkiä",
@@ -738,6 +789,8 @@
     "goHome": "Siirry kotiin"
   },
   "restaurantStatus": {
+    "active": "Ravintola on aktiivinen",
+    "pending": "Odottaa hyväksyntää",
     "pendingApproval": "Ravintola odottaa hyväksyntää",
     "inactive": "Ravintola ei ole aktiivinen"
   },
@@ -1182,7 +1235,13 @@
     "initialMessageHint": "Kuvaile ongelmaasi yksityiskohtaisesti...",
     "noTickets": "Ei tikettejä vielä",
     "noTicketsDesc": "Luo tiketti saadaksesi apua tukitiimiltämme",
-    "ticketCreated": "Tiketti luotu onnistuneesti"
+    "ticketCreated": "Tiketti luotu onnistuneesti",
+    "statusWaitingOnCustomer": "Odottaa asiakasta",
+    "statusResolved": "Ratkaistu",
+    "categoryPayment": "Maksu",
+    "categoryDelivery": "Toimitus",
+    "categoryAccount": "Tili",
+    "priorityUrgent": "Kiireellinen"
   },
   "location": {
     "permissionRequired": "Sijaintilupa vaaditaan",

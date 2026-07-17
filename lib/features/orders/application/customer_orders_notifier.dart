@@ -21,6 +21,10 @@ class CustomerOrdersState {
     this.error,
     this.currentPage = 1,
     this.hasMorePages = true,
+    this.previewQuote,
+    this.isPreviewLoading = false,
+    this.previewError,
+    this.previewFingerprint,
   });
 
   final List<OrderModel> orders;
@@ -31,6 +35,10 @@ class CustomerOrdersState {
   final String? error;
   final int currentPage;
   final bool hasMorePages;
+  final FoodPriceQuote? previewQuote;
+  final bool isPreviewLoading;
+  final String? previewError;
+  final String? previewFingerprint;
 
   CustomerOrdersState copyWith({
     List<OrderModel>? orders,
@@ -42,6 +50,13 @@ class CustomerOrdersState {
     bool clearError = false,
     int? currentPage,
     bool? hasMorePages,
+    FoodPriceQuote? previewQuote,
+    bool clearPreviewQuote = false,
+    bool? isPreviewLoading,
+    String? previewError,
+    bool clearPreviewError = false,
+    String? previewFingerprint,
+    bool clearPreviewFingerprint = false,
   }) {
     return CustomerOrdersState(
       orders: orders ?? this.orders,
@@ -52,6 +67,16 @@ class CustomerOrdersState {
       error: clearError ? null : (error ?? this.error),
       currentPage: currentPage ?? this.currentPage,
       hasMorePages: hasMorePages ?? this.hasMorePages,
+      previewQuote: clearPreviewQuote
+          ? null
+          : (previewQuote ?? this.previewQuote),
+      isPreviewLoading: isPreviewLoading ?? this.isPreviewLoading,
+      previewError: clearPreviewError
+          ? null
+          : (previewError ?? this.previewError),
+      previewFingerprint: clearPreviewFingerprint
+          ? null
+          : (previewFingerprint ?? this.previewFingerprint),
     );
   }
 
@@ -77,6 +102,7 @@ class CustomerOrdersState {
       .where(
         (o) =>
             o.status == OrderStatusEnum.delivered ||
+            o.status == OrderStatusEnum.restaurantDelivered ||
             o.status == OrderStatusEnum.expired ||
             o.status == OrderStatusEnum.rejected ||
             o.status == OrderStatusEnum.cancelled,
@@ -87,6 +113,7 @@ class CustomerOrdersState {
 /// Customer orders notifier for managing order state (Riverpod 3.x)
 class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
   late final CustomerOrdersRepository _repository;
+  int _latestPreviewRequestId = 0;
 
   void _log(String message, {Object? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
@@ -149,6 +176,56 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
   /// Refresh orders
   Future<void> refreshOrders() async {
     await _loadOrders(page: 1);
+  }
+
+  /// Preview live pricing for a food order.
+  Future<FoodPriceQuote?> previewFoodOrder(
+    FoodPricePreviewRequest request, {
+    required String fingerprint,
+  }) async {
+    final requestId = ++_latestPreviewRequestId;
+    state = state.copyWith(isPreviewLoading: true, clearPreviewError: true);
+
+    try {
+      final result = await _repository.previewFoodOrder(request);
+
+      if (requestId != _latestPreviewRequestId) {
+        return result.data;
+      }
+
+      if (result.failure != null) {
+        state = state.copyWith(
+          isPreviewLoading: false,
+          previewError: result.failure!.message,
+        );
+        return null;
+      }
+
+      state = state.copyWith(
+        previewQuote: result.data,
+        previewFingerprint: fingerprint,
+        isPreviewLoading: false,
+        clearPreviewError: true,
+      );
+
+      return result.data;
+    } catch (e, stackTrace) {
+      _log(
+        'Exception previewing order pricing',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      if (requestId != _latestPreviewRequestId) {
+        return null;
+      }
+
+      state = state.copyWith(
+        isPreviewLoading: false,
+        previewError: 'Failed to preview order: $e',
+      );
+      return null;
+    }
   }
 
   /// Create a new food order
@@ -331,6 +408,16 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
   /// Clear error
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  void clearPreview() {
+    _latestPreviewRequestId++;
+    state = state.copyWith(
+      isPreviewLoading: false,
+      clearPreviewQuote: true,
+      clearPreviewError: true,
+      clearPreviewFingerprint: true,
+    );
   }
 }
 

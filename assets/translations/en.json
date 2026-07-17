@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Undo",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "missing": "Missing"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -164,6 +165,7 @@
     "noItems": "No items added",
     "emptyItemsWarning": "This order has no items. Please add at least one item to continue.",
     "orderCreated": "Order created successfully!",
+    "orderCreationFailed": "Could not create the order",
     "reorder": "Reorder",
     "selectItemFromMenu": "Please select an item from the menu",
     "status": {
@@ -176,10 +178,12 @@
       "searchingForDriver": "Searching for Driver",
       "driverNotificationSent": "Awaiting Driver",
       "delivered": "Delivered",
+      "restaurantDelivered": "Restaurant Delivered",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
     "requestDriver": "Request Driver",
+    "markRestaurantDelivered": "Mark Restaurant Delivered",
     "waitingForDriver": "Waiting for driver...",
     "orderRejectedByRestaurant": "This order was rejected by the restaurant",
     "orderWasCancelled": "This order was cancelled",
@@ -218,6 +222,7 @@
       "onTheWay": "On the way to customer",
       "delivery": "On the way to customer",
       "delivered": "Order completed successfully",
+      "restaurantDelivered": "Handled directly by the restaurant",
       "rejected": "Order was declined",
       "cancelled": "Order was cancelled"
     },
@@ -243,6 +248,30 @@
     "orderItems": "Order Items",
     "payment": "Payment",
     "orderSummary": "Order Summary",
+    "pricingAddressCoordinatesRequired": "Select a delivery address suggestion so distance can be calculated.",
+    "pricingAddressRequired": "Enter the delivery address to calculate pricing.",
+    "pricingItemsRequired": "Add at least one item to see the order total.",
+    "pricingPickupRequired": "The selected restaurant is missing a pickup location.",
+    "customerLabel": "Customer",
+    "customerAddressLabel": "Customer: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% off",
+    "quantity": "Quantity",
+    "pricingAddressError": "We couldn't use this delivery address. Please select it again and try again.",
+    "pricingServerError": "We couldn't update the order total right now. Please try again in a moment.",
+    "pricingError": "We couldn't update the order total. Please check the order details and try again.",
+    "livePricingPendingTitle": "Complete your order details to see the total",
+    "livePricingErrorTitle": "We couldn't update the order total",
+    "livePricingLoadingTitle": "Updating your order total",
+    "livePricingLoading": "Updating your order total...",
+    "livePricingWaiting": "Your order total will update as soon as your latest changes settle.",
+    "livePricingRefreshing": "Your order total is still updating. Please wait a moment.",
+    "livePricingRequired": "Please wait for the order total to update before continuing.",
+    "livePricingTitle": "Order total",
+    "livePricingSubtitle": "Your total updates automatically as you change the order.",
+    "deliveryFeeCalculatedTitle": "Delivery details",
+    "deliveryFeeCalculatedHint": "Your delivery fee is included in the order total.",
     "deliveryOptions": "Delivery Options",
     "requestedVehicleType": "Vehicle Type",
     "requestedDeliveryType": "Delivery Type",
@@ -533,7 +562,16 @@
     "registrationDocumentAddedLocked": "Added and locked. This page is view-only.",
     "registrationDocumentMissing": "No registration document found on this seller profile.",
     "invalidDocumentUrl": "Invalid document URL.",
-    "documentOpenFailed": "Could not open document."
+    "documentOpenFailed": "Could not open document.",
+    "deliveryEnabled": "Delivery Enabled",
+    "deliveryDisabled": "Delivery Disabled",
+    "editProfile": "Edit Profile",
+    "settingsSectionTitle": "Settings",
+    "settingsSectionSubtitle": "Earnings, coupons, and notifications",
+    "preferencesSectionTitle": "Preferences",
+    "preferencesSectionSubtitle": "Dark mode, language, and accent theme",
+    "helpSupportSectionTitle": "Help & Support",
+    "helpSupportSectionSubtitle": "Knowledge base, support, help, about, and delete account"
   },
   "deleteAccount": {
     "title": "Delete Account",
@@ -650,6 +688,7 @@
     "invalidPrice": "Invalid price",
     "enterCustomerName": "Please enter customer name",
     "enterAddress": "Please enter delivery address",
+    "noRestaurantSelected": "No restaurant selected",
     "enterStreetAndBuilding": "Please enter address with street and building number",
     "addAtLeastOneItem": "Please add at least one item",
     "codeTooShort": "Code must be at least 4 characters",
@@ -749,6 +788,8 @@
     "goHome": "Go Home"
   },
   "restaurantStatus": {
+    "active": "Restaurant is active",
+    "pending": "Restaurant pending approval",
     "pendingApproval": "Restaurant pending approval",
     "inactive": "Restaurant is inactive"
   },
@@ -875,7 +916,7 @@
       "title": "Item Customizations & Extras",
       "description": "Set up extras and removal options for menu items.",
       "s1Title": "What Are Customizations?",
-      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
+      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +€1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
       "s2Title": "Adding Extras",
       "s2Body": "When editing a menu item, scroll to the Customizations section and tap \"Add Extra\". Enter the extra's name and additional price. You can add as many extras as needed.",
       "s3Title": "Adding Removal Options",
@@ -1197,7 +1238,9 @@
     "initialMessageHint": "Describe your issue in detail...",
     "noTickets": "No tickets yet",
     "noTicketsDesc": "Create a ticket to get help from our support team",
-    "ticketCreated": "Ticket created successfully"
+    "ticketCreated": "Ticket created successfully",
+    "categoryRestaurant": "Restaurant",
+    "categoryDriver": "Driver"
   },
   "location": {
     "permissionRequired": "Location Permission Required",

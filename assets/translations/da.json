@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Fortryd",
     "optional": "Valgfri",
-    "required": "Påkrævet"
+    "required": "Påkrævet",
+    "missing": "Mangler"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -165,6 +166,7 @@
     "noItems": "Ingen varer tilføjet",
     "emptyItemsWarning": "Denne ordre har ingen varer. Tilføj mindst én vare for at fortsætte.",
     "orderCreated": "Ordre oprettet!",
+    "orderCreationFailed": "Ordren kunne ikke oprettes",
     "reorder": "Bestil igen",
     "selectItemFromMenu": "Vælg venligst en vare fra menuen",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Søger efter chauffør",
       "driverNotificationSent": "Afventer chauffør",
       "delivered": "Leveret",
+      "restaurantDelivered": "Leveret af restauranten",
       "rejected": "Afvist",
       "cancelled": "Annulleret"
     },
     "requestDriver": "Anmod om chauffør",
+    "markRestaurantDelivered": "Marker som leveret af restauranten",
     "waitingForDriver": "Venter på chauffør...",
     "orderRejectedByRestaurant": "Denne ordre blev afvist af restauranten",
     "orderWasCancelled": "Denne ordre blev annulleret",
@@ -219,6 +223,7 @@
       "onTheWay": "På vej til kunden",
       "delivery": "På vej til kunden",
       "delivered": "Ordre gennemført",
+      "restaurantDelivered": "Håndteres direkte af restauranten",
       "rejected": "Ordre blev afvist",
       "cancelled": "Ordre blev annulleret"
     },
@@ -244,6 +249,30 @@
     "orderItems": "Ordrevarer",
     "payment": "Betaling",
     "orderSummary": "Ordreoversigt",
+    "pricingAddressError": "Leveringsadressen kunne ikke bruges. Vælg den igen, og prøv igen.",
+    "pricingServerError": "Ordretotalen kunne ikke opdateres lige nu. Prøv igen om lidt.",
+    "pricingError": "Ordretotalen kunne ikke opdateres. Kontrollér ordreoplysningerne, og prøv igen.",
+    "pricingAddressCoordinatesRequired": "Vælg et leveringsadresseforslag, så afstanden kan beregnes.",
+    "pricingAddressRequired": "Indtast leveringsadressen for at beregne prisen.",
+    "pricingItemsRequired": "Tilføj mindst én vare for at se ordrens total.",
+    "pricingPickupRequired": "Den valgte restaurant mangler en afhentningsplacering.",
+    "livePricingPendingTitle": "Udfyld ordreoplysningerne for at se totalen",
+    "livePricingErrorTitle": "Ordretotalen kunne ikke opdateres",
+    "livePricingLoadingTitle": "Opdaterer ordretotalen",
+    "livePricingLoading": "Opdaterer ordretotalen...",
+    "livePricingWaiting": "Ordretotalen opdateres, når dine seneste ændringer er gemt.",
+    "livePricingRefreshing": "Ordretotalen opdateres stadig. Vent et øjeblik.",
+    "livePricingRequired": "Vent på, at ordretotalen opdateres, før du fortsætter.",
+    "livePricingTitle": "Ordretotal",
+    "livePricingSubtitle": "Totalen opdateres automatisk, når du ændrer ordren.",
+    "deliveryFeeCalculatedTitle": "Leveringsdetaljer",
+    "deliveryFeeCalculatedHint": "Leveringsgebyret er inkluderet i ordrens total.",
+    "customerLabel": "Kunde",
+    "customerAddressLabel": "Kunde: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% rabat",
+    "quantity": "Antal",
     "deliveryOptions": "Leveringsmuligheder",
     "requestedVehicleType": "Køretøjstype",
     "requestedDeliveryType": "Leveringstype",
@@ -534,7 +563,16 @@
     "registrationDocumentAddedLocked": "Tilføjet og låst. Denne side er kun til visning.",
     "registrationDocumentMissing": "Der blev ikke fundet noget registreringsdokument på denne sælgerprofil.",
     "invalidDocumentUrl": "Ugyldig dokument-URL.",
-    "documentOpenFailed": "Kunne ikke åbne dokumentet."
+    "documentOpenFailed": "Kunne ikke åbne dokumentet.",
+    "deliveryEnabled": "Levering aktiveret",
+    "deliveryDisabled": "Levering deaktiveret",
+    "editProfile": "Rediger profil",
+    "settingsSectionTitle": "Indstillinger",
+    "settingsSectionSubtitle": "Indtjening, kuponer og notifikationer",
+    "preferencesSectionTitle": "Præferencer",
+    "preferencesSectionSubtitle": "Mørk tilstand, sprog og accenttema",
+    "helpSupportSectionTitle": "Hjælp og support",
+    "helpSupportSectionSubtitle": "Vidensbase, support, hjælp, om og slet konto"
   },
   "deleteAccount": {
     "title": "Slet konto",
@@ -594,7 +632,15 @@
     "contactUs": "Kontakt os",
     "callSupport": "Ring til support",
     "liveChat": "Live chat",
-    "liveChatDesc": "Chat med vores supportteam"
+    "liveChatDesc": "Chat med vores supportteam",
+    "description": "Brug TaybGo-support, når du har brug for hjælp til kontoadgang, ordrer, udbetalinger eller den daglige drift som sælger.",
+    "visitWebsite": "Gå til taybgo.com",
+    "websiteTitle": "TaybGo hjemmeside",
+    "websiteDescription": "Åbn taybgo.com for platforminformation og direkte kontaktmuligheder.",
+    "emailTitle": "E-mail til support",
+    "emailDescription": "Send en besked til vores supportteam fra din standardmailapp.",
+    "responseNote": "Ved problemer med konto eller ordrer er det hurtigst at oprette en supportsag i appen, så vores team kan følge og løse problemet.",
+    "linkError": "Kunne ikke åbne TaybGo lige nu. Prøv igen."
   },
   "earnings": {
     "title": "Indtjening",
@@ -628,7 +674,11 @@
     "title": "Om",
     "version": "Version {version}",
     "description": "Administrer dine restaurantordrer, menu og kunder ét sted.",
-    "copyright": "© 2024 TaybGo. Alle rettigheder forbeholdes."
+    "copyright": "© 2024 TaybGo. Alle rettigheder forbeholdes.",
+    "partnerTools": "Sælgerarbejdsområde",
+    "websiteLabel": "Hjemmeside",
+    "supportEmailLabel": "Support-e-mail",
+    "visitWebsite": "Besøg TaybGo"
   },
   "validation": {
     "required": "Dette felt er påkrævet",
@@ -639,6 +689,7 @@
     "invalidPrice": "Ugyldig pris",
     "enterCustomerName": "Indtast venligst kundenavn",
     "enterAddress": "Indtast venligst leveringsadresse",
+    "noRestaurantSelected": "Ingen restaurant valgt",
     "enterStreetAndBuilding": "Indtast venligst adresse med gade og bygningsnummer",
     "addAtLeastOneItem": "Tilføj venligst mindst én vare",
     "codeTooShort": "Koden skal være mindst 4 tegn",
@@ -738,6 +789,8 @@
     "goHome": "Gå til forsiden"
   },
   "restaurantStatus": {
+    "active": "Restaurant er aktiv",
+    "pending": "Afventer godkendelse",
     "pendingApproval": "Restaurant afventer godkendelse",
     "inactive": "Restaurant er inaktiv"
   },
@@ -1182,7 +1235,13 @@
     "initialMessageHint": "Beskriv dit problem i detaljer...",
     "noTickets": "Ingen tickets endnu",
     "noTicketsDesc": "Opret en ticket for at få hjælp fra vores supportteam",
-    "ticketCreated": "Ticket oprettet"
+    "ticketCreated": "Ticket oprettet",
+    "statusWaitingOnCustomer": "Venter på kunde",
+    "statusResolved": "Løst",
+    "categoryPayment": "Betaling",
+    "categoryDelivery": "Levering",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Haster"
   },
   "location": {
     "permissionRequired": "Lokationstilladelse krævet",

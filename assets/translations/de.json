@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Rückgängig",
     "optional": "Optional",
-    "required": "Erforderlich"
+    "required": "Erforderlich",
+    "missing": "Fehlt"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -161,6 +162,7 @@
     "noItems": "Keine Artikel",
     "emptyItemsWarning": "Diese Bestellung enthält keine Artikel. Bitte fügen Sie mindestens einen Artikel hinzu, um fortzufahren.",
     "orderCreated": "Bestellung erstellt!",
+    "orderCreationFailed": "Bestellung konnte nicht erstellt werden",
     "reorder": "Erneut bestellen",
     "selectItemFromMenu": "Bitte wählen Sie einen Artikel aus dem Menü",
     "status": {
@@ -173,10 +175,12 @@
       "searchingForDriver": "Fahrer wird gesucht",
       "driverNotificationSent": "Warte auf Fahrer",
       "delivered": "Geliefert",
+      "restaurantDelivered": "Vom Restaurant geliefert",
       "rejected": "Abgelehnt",
       "cancelled": "Storniert"
     },
     "requestDriver": "Fahrer anfordern",
+    "markRestaurantDelivered": "Als vom Restaurant geliefert markieren",
     "waitingForDriver": "Warte auf Fahrer...",
     "orderRejectedByRestaurant": "Diese Bestellung wurde vom Restaurant abgelehnt",
     "orderWasCancelled": "Diese Bestellung wurde storniert",
@@ -215,6 +219,7 @@
       "onTheWay": "Auf dem Weg zum Kunden",
       "delivery": "Auf dem Weg zum Kunden",
       "delivered": "Bestellung erfolgreich abgeschlossen",
+      "restaurantDelivered": "Direkt vom Restaurant abgewickelt",
       "rejected": "Bestellung wurde abgelehnt",
       "cancelled": "Bestellung wurde storniert"
     },
@@ -240,6 +245,30 @@
     "orderItems": "Bestellte Artikel",
     "payment": "Zahlung",
     "orderSummary": "Bestellübersicht",
+    "pricingAddressError": "Die Lieferadresse konnte nicht verwendet werden. Bitte wählen Sie sie erneut aus.",
+    "pricingServerError": "Die Bestellsumme konnte gerade nicht aktualisiert werden. Bitte versuchen Sie es gleich noch einmal.",
+    "pricingError": "Die Bestellsumme konnte nicht aktualisiert werden. Bitte prüfen Sie die Bestelldaten und versuchen Sie es erneut.",
+    "pricingAddressCoordinatesRequired": "Wählen Sie einen Vorschlag für die Lieferadresse aus, damit die Entfernung berechnet werden kann.",
+    "pricingAddressRequired": "Geben Sie die Lieferadresse ein, um den Preis zu berechnen.",
+    "pricingItemsRequired": "Fügen Sie mindestens einen Artikel hinzu, um die Bestellsumme zu sehen.",
+    "pricingPickupRequired": "Beim ausgewählten Restaurant fehlt ein Abholort.",
+    "livePricingPendingTitle": "Vervollständigen Sie die Bestelldaten, um die Summe zu sehen",
+    "livePricingErrorTitle": "Die Bestellsumme konnte nicht aktualisiert werden",
+    "livePricingLoadingTitle": "Bestellsumme wird aktualisiert",
+    "livePricingLoading": "Bestellsumme wird aktualisiert...",
+    "livePricingWaiting": "Die Bestellsumme wird aktualisiert, sobald Ihre letzten Änderungen übernommen wurden.",
+    "livePricingRefreshing": "Die Bestellsumme wird noch aktualisiert. Bitte warten Sie einen Moment.",
+    "livePricingRequired": "Bitte warten Sie, bis die Bestellsumme aktualisiert wurde.",
+    "livePricingTitle": "Bestellsumme",
+    "livePricingSubtitle": "Die Summe wird automatisch aktualisiert, wenn Sie die Bestellung ändern.",
+    "deliveryFeeCalculatedTitle": "Lieferdetails",
+    "deliveryFeeCalculatedHint": "Die Liefergebühr ist in der Bestellsumme enthalten.",
+    "customerLabel": "Kunde",
+    "customerAddressLabel": "Kunde: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} Min.",
+    "percentOff": "{value}% Rabatt",
+    "quantity": "Menge",
     "deliveryOptions": "Lieferoptionen",
     "requestedVehicleType": "Fahrzeugtyp",
     "requestedDeliveryType": "Lieferart",
@@ -293,7 +322,8 @@
         "goodLighting": "Sorgen Sie für gute Beleuchtung (Schatten vermeiden)",
         "holdAbove": "Halten Sie das Telefon direkt über das Papier",
         "keepFocus": "Halten Sie den Text im Fokus und lesbar",
-        "avoidGlare": "Vermeiden Sie Blendung und Reflexionen"
+        "avoidGlare": "Vermeiden Sie Blendung und Reflexionen",
+        "multiplePages": "Machen Sie mehrere Fotos für mehrseitige Bestellungen"
       },
       "whatNext": {
         "title": "Was passiert als Nächstes?",
@@ -303,7 +333,16 @@
         "step4": "Die Bestellung wird im System protokolliert"
       },
       "cardTitle": "Bestellung mit KI scannen",
-      "cardDescription": "Fotografieren Sie das Bestellformular und lassen Sie die KI die Details ausfüllen"
+      "cardDescription": "Fotografieren Sie das Bestellformular und lassen Sie die KI die Details ausfüllen",
+      "capturedImages": "Aufgenommene Bilder ({count})",
+      "addMore": "Mehr hinzufügen",
+      "addCamera": "Kamera",
+      "addGallery": "Galerie",
+      "processImages": "{count} Bild(er) verarbeiten",
+      "noImages": "Bitte nehmen Sie mindestens ein Bild auf",
+      "clearAll": "Alle entfernen",
+      "itemNotInMenu": "Nicht auf der Speisekarte",
+      "itemsNotInMenuWarning": "{count} Artikel nicht auf der Speisekarte gefunden: {items}"
     },
     "verify": {
       "title": "Bestelldetails überprüfen",
@@ -328,8 +367,15 @@
       "submitOrder": "Bestellung absenden",
       "orderLogged": "Bestellung erfolgreich protokolliert",
       "orderLogFailed": "Bestellung konnte nicht protokolliert werden. Bitte erneut versuchen.",
-      "requiredField": "{field} ist erforderlich"
-    }
+      "requiredField": "{field} ist erforderlich",
+      "orderItemsLabel": "Artikel",
+      "aiScanComplete": "KI-Scan abgeschlossen",
+      "fieldsExtracted": "Automatisch ausgefüllt",
+      "fieldsToFill": "Bitte ausfüllen"
+    },
+    "cancelOrder": "Bestellung stornieren",
+    "confirmCancel": "Möchten Sie diese Bestellung wirklich stornieren?",
+    "cancel": "Stornieren"
   },
   "address": {
     "search": "Adresse suchen...",
@@ -491,7 +537,18 @@
       "saturday": "Samstag",
       "sunday": "Sonntag"
     },
-    "settingsSaved": "Gespeichert"
+    "settingsSaved": "Gespeichert",
+    "appTour": "App-Tour",
+    "appTourSubtitle": "Erfahren Sie, wie Sie die App nutzen",
+    "howTo": "Anleitungen",
+    "howToSubtitle": "Leitfäden und Dokumentation",
+    "selectTour": "Tourtyp auswählen",
+    "fullAppTour": "Vollständige App-Tour",
+    "fullAppTourDesc": "Komplette Führung durch alle Funktionen (ca. 5 Min.)",
+    "ordersQuickTour": "Schnelle Bestell-Tour",
+    "ordersQuickTourDesc": "Grundlagen der Bestellverwaltung lernen (ca. 2 Min.)",
+    "menuQuickTour": "Schnelle Menü-Tour",
+    "menuQuickTourDesc": "Menüverwaltung meistern (ca. 2 Min.)"
   },
   "profile": {
     "title": "Profil",
@@ -507,7 +564,16 @@
     "registrationDocumentAddedLocked": "Hinzugefügt und gesperrt. Diese Seite ist nur zur Ansicht.",
     "registrationDocumentMissing": "Für dieses Verkäuferprofil wurde kein Registrierungsdokument gefunden.",
     "invalidDocumentUrl": "Ungültige Dokument-URL.",
-    "documentOpenFailed": "Dokument konnte nicht geöffnet werden."
+    "documentOpenFailed": "Dokument konnte nicht geöffnet werden.",
+    "deliveryEnabled": "Lieferung aktiviert",
+    "deliveryDisabled": "Lieferung deaktiviert",
+    "editProfile": "Profil bearbeiten",
+    "settingsSectionTitle": "Einstellungen",
+    "settingsSectionSubtitle": "Einnahmen, Gutscheine und Benachrichtigungen",
+    "preferencesSectionTitle": "Präferenzen",
+    "preferencesSectionSubtitle": "Dunkelmodus, Sprache und Akzentfarbe",
+    "helpSupportSectionTitle": "Hilfe & Support",
+    "helpSupportSectionSubtitle": "Wissensdatenbank, Support, Hilfe, Info und Konto löschen"
   },
   "deleteAccount": {
     "title": "Konto löschen",
@@ -567,7 +633,15 @@
     "contactUs": "Kontakt",
     "callSupport": "Anrufen",
     "liveChat": "Live-Chat",
-    "liveChatDesc": "Mit Support chatten"
+    "liveChatDesc": "Mit Support chatten",
+    "description": "Nutzen Sie den TaybGo-Support, wenn Sie Hilfe bei Kontozugriff, Bestellungen, Auszahlungen oder dem täglichen Verkäuferbetrieb benötigen.",
+    "visitWebsite": "Zu taybgo.com",
+    "websiteTitle": "TaybGo-Website",
+    "websiteDescription": "Öffnen Sie taybgo.com für Plattforminformationen und direkte Kontaktmöglichkeiten.",
+    "emailTitle": "Support per E-Mail",
+    "emailDescription": "Senden Sie eine Nachricht an unser Support-Team über Ihre Standard-Mail-App.",
+    "responseNote": "Bei Problemen mit Konto oder Bestellungen ist ein Support-Ticket in der App der schnellste Weg, damit unser Team das Problem verfolgen und lösen kann.",
+    "linkError": "TaybGo konnte gerade nicht geöffnet werden. Bitte versuchen Sie es erneut."
   },
   "earnings": {
     "title": "Einnahmen",
@@ -601,7 +675,11 @@
     "title": "Über",
     "version": "Version {version}",
     "description": "Verwalten Sie Bestellungen, Menü und Kunden an einem Ort.",
-    "copyright": "© 2024 TaybGo. Alle Rechte vorbehalten."
+    "copyright": "© 2024 TaybGo. Alle Rechte vorbehalten.",
+    "partnerTools": "Verkäufer-Arbeitsbereich",
+    "websiteLabel": "Website",
+    "supportEmailLabel": "Support-E-Mail",
+    "visitWebsite": "TaybGo besuchen"
   },
   "validation": {
     "required": "Pflichtfeld",
@@ -612,6 +690,7 @@
     "invalidPrice": "Ungültiger Preis",
     "enterCustomerName": "Name eingeben",
     "enterAddress": "Adresse eingeben",
+    "noRestaurantSelected": "Kein Restaurant ausgewählt",
     "enterStreetAndBuilding": "Straße und Hausnummer eingeben",
     "addAtLeastOneItem": "Mind. einen Artikel hinzufügen",
     "codeTooShort": "Mind. 4 Zeichen",
@@ -711,6 +790,8 @@
     "goHome": "Zur Startseite"
   },
   "restaurantStatus": {
+    "active": "Restaurant ist aktiv",
+    "pending": "Wartet auf Genehmigung",
     "pendingApproval": "Restaurant wartet auf Genehmigung",
     "inactive": "Restaurant ist inaktiv"
   },
@@ -1155,7 +1236,13 @@
     "initialMessageHint": "Beschreiben Sie Ihr Problem im Detail...",
     "noTickets": "Keine Tickets",
     "noTicketsDesc": "Erstellen Sie ein Ticket, um Hilfe von unserem Support-Team zu erhalten",
-    "ticketCreated": "Ticket erfolgreich erstellt"
+    "ticketCreated": "Ticket erfolgreich erstellt",
+    "statusWaitingOnCustomer": "Wartet auf Kunden",
+    "statusResolved": "Gelöst",
+    "categoryPayment": "Zahlung",
+    "categoryDelivery": "Lieferung",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Dringend"
   },
   "location": {
     "permissionRequired": "Standortberechtigung erforderlich",

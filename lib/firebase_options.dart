@@ -47,13 +47,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCftvY9C016g1qAFyK8Ml3_OSvm-ZGUW74',
-    appId: '1:861868751268:web:79f3ff23d9712bc0352931',
-    messagingSenderId: '861868751268',
-    projectId: 'tybetogoseller',
-    authDomain: 'tybetogoseller.firebaseapp.com',
-    storageBucket: 'tybetogoseller.firebasestorage.app',
-    measurementId: 'G-VDPLRZ1852',
+    apiKey: 'AIzaSyAwvbZxigLoFWSjtbemYHo65c4aTDn56IE',
+    appId: '1:188938523542:web:de3a9ff2bd5c06a56343b7',
+    messagingSenderId: '188938523542',
+    projectId: 'sellertaybgo',
+    authDomain: 'sellertaybgo.firebaseapp.com',
+    storageBucket: 'sellertaybgo.firebasestorage.app',
+    measurementId: 'G-1N9GP0MHYT',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

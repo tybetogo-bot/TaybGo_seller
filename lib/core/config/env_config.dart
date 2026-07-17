@@ -32,7 +32,7 @@ class EnvConfig {
   static String get webBaseUrl =>
       isDev
           ? 'https://dev-seller.taybgo.com'
-          : 'https://tybetogoseller.web.app';
+          : 'https://sellertaybgo.web.app';
 
   /// Whether to show debug banner and verbose logging
   static bool get showDebugBanner => isDev;

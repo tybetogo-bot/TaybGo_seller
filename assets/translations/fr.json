@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Annuler",
     "optional": "Optionnel",
-    "required": "Obligatoire"
+    "required": "Obligatoire",
+    "missing": "Manquant"
   },
   "auth": {
     "phoneNumber": "Téléphone",
@@ -161,6 +162,7 @@
     "noItems": "Aucun article",
     "emptyItemsWarning": "Cette commande ne contient aucun article. Veuillez ajouter au moins un article pour continuer.",
     "orderCreated": "Commande créée!",
+    "orderCreationFailed": "Impossible de créer la commande",
     "reorder": "Recommander",
     "selectItemFromMenu": "Sélectionnez un article du menu",
     "status": {
@@ -173,10 +175,12 @@
       "searchingForDriver": "Recherche de livreur",
       "driverNotificationSent": "En attente du livreur",
       "delivered": "Livrée",
+      "restaurantDelivered": "Livrée par le restaurant",
       "rejected": "Refusée",
       "cancelled": "Annulée"
     },
     "requestDriver": "Demander un livreur",
+    "markRestaurantDelivered": "Marquer comme livrée par le restaurant",
     "waitingForDriver": "En attente du livreur...",
     "orderRejectedByRestaurant": "Cette commande a été refusée par le restaurant",
     "orderWasCancelled": "Cette commande a été annulée",
@@ -215,6 +219,7 @@
       "onTheWay": "En route vers le client",
       "delivery": "En route vers le client",
       "delivered": "Commande terminée",
+      "restaurantDelivered": "Pris en charge directement par le restaurant",
       "rejected": "Commande refusée",
       "cancelled": "Commande annulée"
     },
@@ -240,6 +245,30 @@
     "orderItems": "Articles",
     "payment": "Paiement",
     "orderSummary": "Résumé",
+    "pricingAddressError": "Cette adresse de livraison n’a pas pu être utilisée. Sélectionnez-la à nouveau.",
+    "pricingServerError": "Impossible de mettre à jour le total pour le moment. Réessayez dans un instant.",
+    "pricingError": "Impossible de mettre à jour le total. Vérifiez les détails de la commande et réessayez.",
+    "pricingAddressCoordinatesRequired": "Sélectionnez une suggestion d’adresse de livraison pour calculer la distance.",
+    "pricingAddressRequired": "Saisissez l’adresse de livraison pour calculer le prix.",
+    "pricingItemsRequired": "Ajoutez au moins un article pour voir le total de la commande.",
+    "pricingPickupRequired": "Le restaurant sélectionné n’a pas de lieu de retrait.",
+    "livePricingPendingTitle": "Complétez les détails de la commande pour voir le total",
+    "livePricingErrorTitle": "Impossible de mettre à jour le total",
+    "livePricingLoadingTitle": "Mise à jour du total",
+    "livePricingLoading": "Mise à jour du total...",
+    "livePricingWaiting": "Le total sera mis à jour dès que vos dernières modifications seront prises en compte.",
+    "livePricingRefreshing": "Le total est encore en cours de mise à jour. Veuillez patienter.",
+    "livePricingRequired": "Attendez la mise à jour du total avant de continuer.",
+    "livePricingTitle": "Total de la commande",
+    "livePricingSubtitle": "Le total se met automatiquement à jour lorsque vous modifiez la commande.",
+    "deliveryFeeCalculatedTitle": "Détails de la livraison",
+    "deliveryFeeCalculatedHint": "Les frais de livraison sont inclus dans le total.",
+    "customerLabel": "Client",
+    "customerAddressLabel": "Client : {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "- {value} %",
+    "quantity": "Quantité",
     "deliveryOptions": "Options de livraison",
     "requestedVehicleType": "Type de véhicule",
     "requestedDeliveryType": "Type de livraison",
@@ -293,7 +322,8 @@
         "goodLighting": "Assurer un bon éclairage (éviter les ombres)",
         "holdAbove": "Tenir le téléphone directement au-dessus du papier",
         "keepFocus": "Garder le texte net et lisible",
-        "avoidGlare": "Éviter les reflets et réflexions"
+        "avoidGlare": "Éviter les reflets et réflexions",
+        "multiplePages": "Prenez plusieurs photos pour les commandes sur plusieurs pages"
       },
       "whatNext": {
         "title": "Que se passe-t-il ensuite?",
@@ -303,7 +333,16 @@
         "step4": "La commande est enregistrée dans le système"
       },
       "cardTitle": "Scanner la commande avec l'IA",
-      "cardDescription": "Prenez une photo du formulaire et laissez l'IA remplir les détails"
+      "cardDescription": "Prenez une photo du formulaire et laissez l'IA remplir les détails",
+      "capturedImages": "Images capturées ({count})",
+      "addMore": "Ajouter plus",
+      "addCamera": "Caméra",
+      "addGallery": "Galerie",
+      "processImages": "Traiter {count} image(s)",
+      "noImages": "Veuillez capturer au moins une image",
+      "clearAll": "Tout effacer",
+      "itemNotInMenu": "Absent du menu",
+      "itemsNotInMenuWarning": "{count} article(s) introuvable(s) dans le menu : {items}"
     },
     "verify": {
       "title": "Vérifier les détails de la commande",
@@ -328,8 +367,15 @@
       "submitOrder": "Soumettre la commande",
       "orderLogged": "Commande enregistrée avec succès",
       "orderLogFailed": "Échec de l'enregistrement de la commande. Veuillez réessayer.",
-      "requiredField": "{field} est requis"
-    }
+      "requiredField": "{field} est requis",
+      "orderItemsLabel": "Articles",
+      "aiScanComplete": "Analyse IA terminée",
+      "fieldsExtracted": "Rempli automatiquement",
+      "fieldsToFill": "À compléter"
+    },
+    "cancelOrder": "Annuler la commande",
+    "confirmCancel": "Voulez-vous vraiment annuler cette commande ?",
+    "cancel": "Annuler"
   },
   "address": {
     "search": "Rechercher...",
@@ -491,7 +537,18 @@
       "saturday": "Samedi",
       "sunday": "Dimanche"
     },
-    "settingsSaved": "Enregistré"
+    "settingsSaved": "Enregistré",
+    "appTour": "Visite de l’application",
+    "appTourSubtitle": "Découvrez comment utiliser l’application",
+    "howTo": "Comment faire ?",
+    "howToSubtitle": "Guides et documentation",
+    "selectTour": "Choisir le type de visite",
+    "fullAppTour": "Visite complète de l’application",
+    "fullAppTourDesc": "Présentation complète de toutes les fonctionnalités (environ 5 min)",
+    "ordersQuickTour": "Visite rapide des commandes",
+    "ordersQuickTourDesc": "Apprenez les bases de la gestion des commandes (environ 2 min)",
+    "menuQuickTour": "Visite rapide du menu",
+    "menuQuickTourDesc": "Maîtrisez la gestion du menu (environ 2 min)"
   },
   "profile": {
     "title": "Profil",
@@ -507,7 +564,16 @@
     "registrationDocumentAddedLocked": "Ajouté et verrouillé. Cette page est en lecture seule.",
     "registrationDocumentMissing": "Aucun document d'enregistrement n'a été trouvé pour ce profil vendeur.",
     "invalidDocumentUrl": "URL du document invalide.",
-    "documentOpenFailed": "Impossible d'ouvrir le document."
+    "documentOpenFailed": "Impossible d’ouvrir le document.",
+    "deliveryEnabled": "Livraison activée",
+    "deliveryDisabled": "Livraison désactivée",
+    "editProfile": "Modifier le profil",
+    "settingsSectionTitle": "Paramètres",
+    "settingsSectionSubtitle": "Revenus, coupons et notifications",
+    "preferencesSectionTitle": "Préférences",
+    "preferencesSectionSubtitle": "Mode sombre, langue et thème d’accent",
+    "helpSupportSectionTitle": "Aide et support",
+    "helpSupportSectionSubtitle": "Base de connaissances, support, aide, à propos et suppression du compte"
   },
   "deleteAccount": {
     "title": "Supprimer le compte",
@@ -567,7 +633,15 @@
     "contactUs": "Contact",
     "callSupport": "Appeler",
     "liveChat": "Chat",
-    "liveChatDesc": "Discuter avec le support"
+    "liveChatDesc": "Discuter avec le support",
+    "description": "Utilisez le support TaybGo chaque fois que vous avez besoin d’aide pour l’accès au compte, les commandes, les paiements ou les opérations quotidiennes du vendeur.",
+    "visitWebsite": "Aller sur taybgo.com",
+    "websiteTitle": "Site TaybGo",
+    "websiteDescription": "Ouvrez taybgo.com pour obtenir des informations sur la plateforme et des options de contact direct.",
+    "emailTitle": "Envoyer un e-mail au support",
+    "emailDescription": "Envoyez un message à notre équipe support depuis votre application mail par défaut.",
+    "responseNote": "Pour un problème de compte ou de commande en cours, créer un ticket de support dans l’application est le moyen le plus rapide pour notre équipe de suivre et résoudre le problème.",
+    "linkError": "Impossible d’ouvrir TaybGo pour le moment. Veuillez réessayer."
   },
   "earnings": {
     "title": "Revenus",
@@ -601,7 +675,11 @@
     "title": "À propos",
     "version": "Version {version}",
     "description": "Gérez vos commandes, menu et clients en un seul endroit.",
-    "copyright": "© 2024 TaybGo. Tous droits réservés."
+    "copyright": "© 2024 TaybGo. Tous droits réservés.",
+    "partnerTools": "Espace vendeur",
+    "websiteLabel": "Site web",
+    "supportEmailLabel": "E-mail du support",
+    "visitWebsite": "Visiter TaybGo"
   },
   "validation": {
     "required": "Champ requis",
@@ -612,6 +690,7 @@
     "invalidPrice": "Prix invalide",
     "enterCustomerName": "Entrez le nom",
     "enterAddress": "Entrez l'adresse",
+    "noRestaurantSelected": "Aucun restaurant sélectionné",
     "enterStreetAndBuilding": "Entrez rue et numéro",
     "addAtLeastOneItem": "Ajoutez un article",
     "codeTooShort": "Min. 4 caractères",
@@ -711,6 +790,8 @@
     "goHome": "Retour à l'accueil"
   },
   "restaurantStatus": {
+    "active": "Restaurant actif",
+    "pending": "En attente d’approbation",
     "pendingApproval": "Restaurant en attente d'approbation",
     "inactive": "Restaurant inactif"
   },
@@ -1155,7 +1236,13 @@
     "initialMessageHint": "Décrivez votre problème en détail...",
     "noTickets": "Aucun ticket",
     "noTicketsDesc": "Créez un ticket pour obtenir de l'aide de notre équipe support",
-    "ticketCreated": "Ticket créé avec succès"
+    "ticketCreated": "Ticket créé avec succès",
+    "statusWaitingOnCustomer": "En attente du client",
+    "statusResolved": "Résolu",
+    "categoryPayment": "Paiement",
+    "categoryDelivery": "Livraison",
+    "categoryAccount": "Compte",
+    "priorityUrgent": "Urgent"
   },
   "location": {
     "permissionRequired": "Autorisation de localisation requise",

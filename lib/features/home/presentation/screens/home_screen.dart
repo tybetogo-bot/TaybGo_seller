@@ -128,7 +128,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           SizedBox(width: 12.w),
                           _StatBox(
-                            value: '\$${todayTotal.toStringAsFixed(0)}',
+                            value: '€${todayTotal.toStringAsFixed(0)}',
                             label: 'profile.today'.tr,
                             color: AppColors.success,
                             isDark: isDark,
