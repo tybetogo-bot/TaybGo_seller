@@ -4,7 +4,7 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.9+10`
+**Current Version:** `1.0.11+12`
 
 ---
 
@@ -13,27 +13,27 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ### Play Store Bundle
 | File | Description |
 |------|-------------|
-| `taybgo-seller-v1.0.8+9-2026-05-19-prod-store.aab` | Signed Android App Bundle for Play Store upload. |
+| `taybgo-seller-v1.0.11+12-2026-07-17-prod-store.aab` | Signed Android App Bundle for Play Store upload. |
 
 ### Prod Split APKs
 
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
-| `taybgo-seller-v1.0.9+10-2026-07-10-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
-| `taybgo-seller-v1.0.9+10-2026-07-10-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
-| `taybgo-seller-v1.0.9+10-2026-07-10-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+| `taybgo-seller-v1.0.11+12-2026-07-17-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
+| `taybgo-seller-v1.0.11+12-2026-07-17-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
+| `taybgo-seller-v1.0.11+12-2026-07-17-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
 
 ### Dev Split APKs
 | File | Architecture | Target Use |
 |------|--------------|------------|
-| `taybgo-seller-v1.0.9+10-2026-07-10-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
-| `taybgo-seller-v1.0.9+10-2026-07-10-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
-| `taybgo-seller-v1.0.9+10-2026-07-10-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+| `taybgo-seller-v1.0.11+12-2026-07-17-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.11+12-2026-07-17-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.11+12-2026-07-17-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 ### Web Build
 | File | Description |
 |------|-------------|
-| `taybgo-seller-v1.0.8+9-2026-05-19-prod-web.zip` | Zipped production web build matching the deployed hosting release. |
+| `taybgo-seller-v1.0.11+12-2026-07-17-prod-web.zip` | Zipped production web build matching the deployed hosting release. |
 
 ---
 
@@ -69,6 +69,13 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ---
 
 ## Changelog
+
+### v1.0.11 (17 July, 2026)
+- Standardized seller-facing monetary values on the euro symbol across dashboards, orders, earnings, menu customizations, help content, and PDF receipts
+- Updated login, profile, and About release metadata to version 1.0.11+12 dated 17 July 2026
+- Aligned Firebase web configuration and hosting with the `sellertaybgo` project
+- Published signed prod AAB, dev/prod split APKs, and a production web archive
+- Deployed the production web build to `https://sellertaybgo.web.app`
 
 ### v1.0.9 (10 July, 2026)
 - Redesigned the seller profile flow with a more compact restaurant header, grouped sections, and a combined edit profile experience
@@ -124,4 +131,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-07-10*
+*Last updated: 2026-07-17*
