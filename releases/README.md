@@ -10,10 +10,11 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ## Available Artifacts
 
-### Play Store Bundle
+### Android App Bundles
 | File | Description |
 |------|-------------|
 | `taybgo-seller-v1.0.12+13-2026-07-19-prod-store.aab` | Signed Android App Bundle for Play Store upload. |
+| `taybgo-seller-v1.0.12+13-2026-07-19-dev-store.aab` | Signed development Android App Bundle for internal testing. |
 
 ### Prod Split APKs
 
