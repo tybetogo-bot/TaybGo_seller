@@ -10,6 +10,7 @@ import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../core/utils/phone_number_normalizer.dart';
 import '../../application/auth_state.dart';
 import '../widgets/country_picker_widget.dart';
 import '../widgets/language_selector.dart';
@@ -36,8 +37,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleRequestOtp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final fullPhone =
-        '${_selectedCountry.dialCode}${_phoneController.text.trim()}';
+    final fullPhone = PhoneNumberNormalizer.normalize(
+      _phoneController.text,
+      _selectedCountry,
+    );
+    if (fullPhone == null) return;
+
     ref
         .read(authProvider.notifier)
         .requestOtp(phone: fullPhone, targetRole: UserRoles.seller);
@@ -198,6 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       _selectedCountry = country;
                                     });
                                   },
+                                  allowInternationalInput: true,
                                   enabled: !isLoading,
                                 ),
 
