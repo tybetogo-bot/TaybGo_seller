@@ -124,7 +124,7 @@
     "all": "All",
     "done": "Done",
     "expired": "Expired",
-    "pending": "Pending Orders",
+    "pending": "New Orders",
     "createOrder": "Create Order",
     "editOrder": "Edit Order",
     "saveChanges": "Save Changes",
@@ -232,7 +232,7 @@
     "tip": "Tip",
     "orderRejected": "This order was rejected",
     "orderCancelled": "This order was cancelled",
-    "noPendingOrders": "No pending orders",
+    "noPendingOrders": "No new orders",
     "noActiveOrders": "No active orders",
     "noCurrentOrders": "No current orders",
     "noCompletedOrders": "No completed orders",
@@ -499,6 +499,7 @@
     "notifications": "Notifications",
     "help": "Help",
     "helpSupport": "Help & Support",
+    "changelog": "What's New",
     "about": "About",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurant Settings",
@@ -640,6 +641,48 @@
     "emailDescription": "Send a message to our support team from your default mail app.",
     "responseNote": "For live account or order issues, creating a support ticket in the app is the fastest way for our team to track and resolve the problem.",
     "linkError": "Could not open TaybGo right now. Please try again."
+  },
+  "changelog": {
+    "title": "What's New",
+    "subtitle": "Recent improvements and fixes in TaybGo Seller.",
+    "menuSubtitle": "See what changed in the latest TaybGo Seller versions.",
+    "current": "Current",
+    "version": "Version {version}",
+    "v1013": {
+      "date": "20 August 2026",
+      "change1": "Added a new What's New page under Help & Support.",
+      "change2": "Renamed Pending Orders to New Orders and included pending, accepted, and driver-search orders.",
+      "change3": "Added a compact status filter to quickly find different types of new orders.",
+      "change4": "Improved seller login for short, formatted, and pasted international phone numbers.",
+      "change5": "Fixed an issue that could prevent the order total from updating during order creation.",
+      "change6": "Limited delivery vehicle choices to currently supported options.",
+      "change7": "The guided tour now disappears automatically once your restaurant has orders.",
+      "change8": "Added translations for all new screens and improvements."
+    },
+    "v1012": {
+      "date": "19 July 2026",
+      "change1": "Improved seller login with country-aware formatting and support for short or test numbers.",
+      "change2": "Added pasted international number support with automatic country detection for + and 00 prefixes.",
+      "change3": "Added support for formatted phone numbers and Arabic and Persian digits."
+    },
+    "v1011": {
+      "date": "17 July 2026",
+      "change1": "Standardized seller-facing prices and totals on the euro symbol.",
+      "change2": "Updated currency display across orders, earnings, menus, help content, and PDF receipts.",
+      "change3": "Aligned the web app configuration and hosting for a more consistent release."
+    },
+    "v1010": {
+      "date": "11 July 2026",
+      "change1": "Refreshed food-order pricing when customer phone or country details change.",
+      "change2": "Added vehicle type to food-order pricing, creation, and update flows.",
+      "change3": "Improved the accuracy of pricing previews before an order is submitted."
+    },
+    "v109": {
+      "date": "10 July 2026",
+      "change1": "Redesigned the seller profile with a compact restaurant header and grouped settings.",
+      "change2": "Added delivery availability controls and kept restaurant state synchronized.",
+      "change3": "Updated order actions to follow the statuses allowed by the server."
+    }
   },
   "earnings": {
     "title": "Earnings",

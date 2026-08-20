@@ -124,7 +124,7 @@
     "all": "Tous",
     "done": "Terminé",
     "expired": "Expirées",
-    "pending": "En attente",
+    "pending": "Nouvelles commandes",
     "createOrder": "Créer",
     "editOrder": "Modifier la commande",
     "saveChanges": "Enregistrer",
@@ -229,7 +229,7 @@
     "tip": "Pourboire",
     "orderRejected": "Cette commande a été refusée",
     "orderCancelled": "Cette commande a été annulée",
-    "noPendingOrders": "Aucune commande en attente",
+    "noPendingOrders": "Aucune nouvelle commande",
     "noActiveOrders": "Aucune commande active",
     "noCurrentOrders": "Aucune commande en cours",
     "noCompletedOrders": "Aucune commande terminée",
@@ -501,6 +501,7 @@
     "notifications": "Notifications",
     "help": "Aide",
     "helpSupport": "Aide & Support",
+    "changelog": "Nouveautés",
     "about": "À propos",
     "restaurant": "Restaurant",
     "restaurantSettings": "Paramètres",
@@ -642,6 +643,48 @@
     "emailDescription": "Envoyez un message à notre équipe support depuis votre application mail par défaut.",
     "responseNote": "Pour un problème de compte ou de commande en cours, créer un ticket de support dans l’application est le moyen le plus rapide pour notre équipe de suivre et résoudre le problème.",
     "linkError": "Impossible d’ouvrir TaybGo pour le moment. Veuillez réessayer."
+  },
+  "changelog": {
+    "title": "Nouveautés",
+    "subtitle": "Les dernières améliorations et corrections de TaybGo Seller.",
+    "menuSubtitle": "Découvrez les changements des dernières versions de TaybGo Seller.",
+    "current": "Actuelle",
+    "version": "Version {version}",
+    "v1013": {
+      "date": "20 août 2026",
+      "change1": "Ajout d'une nouvelle page Nouveautés dans Aide et assistance.",
+      "change2": "Les commandes en attente deviennent Nouvelles commandes et incluent les commandes en attente, acceptées et en recherche de livreur.",
+      "change3": "Ajout d'un filtre compact pour retrouver rapidement les différents statuts des nouvelles commandes.",
+      "change4": "Amélioration de la connexion vendeur pour les numéros courts, formatés et internationaux collés.",
+      "change5": "Correction d'un problème pouvant empêcher la mise à jour du total pendant la création d'une commande.",
+      "change6": "Les véhicules de livraison sont limités aux options actuellement prises en charge.",
+      "change7": "Le guide disparaît désormais automatiquement dès que votre restaurant possède des commandes.",
+      "change8": "Ajout des traductions pour tous les nouveaux écrans et améliorations."
+    },
+    "v1012": {
+      "date": "19 juillet 2026",
+      "change1": "Connexion vendeur améliorée avec formatage selon le pays et prise en charge des numéros courts ou de test.",
+      "change2": "Prise en charge des numéros internationaux collés avec détection automatique du pays pour + et 00.",
+      "change3": "Prise en charge des numéros formatés et des chiffres arabes et persans."
+    },
+    "v1011": {
+      "date": "17 juillet 2026",
+      "change1": "Uniformisation des prix et totaux vendeur avec le symbole euro.",
+      "change2": "Affichage de la devise mis à jour dans les commandes, revenus, menus, l’aide et les reçus PDF.",
+      "change3": "Configuration et hébergement de l’application web harmonisés pour une version plus cohérente."
+    },
+    "v1010": {
+      "date": "11 juillet 2026",
+      "change1": "Actualisation du tarif des commandes lorsque le téléphone ou le pays du client change.",
+      "change2": "Ajout du type de véhicule au tarif, à la création et à la mise à jour des commandes.",
+      "change3": "Amélioration de la précision des aperçus de prix avant l’envoi d’une commande."
+    },
+    "v109": {
+      "date": "10 juillet 2026",
+      "change1": "Refonte du profil vendeur avec un en-tête de restaurant compact et des réglages regroupés.",
+      "change2": "Ajout des contrôles de disponibilité de livraison et synchronisation de l’état du restaurant.",
+      "change3": "Mise à jour des actions de commande selon les statuts autorisés par le serveur."
+    }
   },
   "earnings": {
     "title": "Revenus",

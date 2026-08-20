@@ -240,8 +240,6 @@ class FoodPricePreviewRequest {
   final int restaurantId;
   final OrderAddressData? pickupAddressData;
   final OrderAddressData? dropoffAddressData;
-  final String? customerName;
-  final String? customerPhoneNumber;
   final String tip;
   final String? couponCode;
   final List<CartItem> items;
@@ -252,8 +250,6 @@ class FoodPricePreviewRequest {
     required this.restaurantId,
     this.pickupAddressData,
     this.dropoffAddressData,
-    this.customerName,
-    this.customerPhoneNumber,
     this.tip = '0.00',
     this.couponCode,
     required this.items,
@@ -268,10 +264,6 @@ class FoodPricePreviewRequest {
         'pickup_address': pickupAddressData!.toPreviewJson(),
       if (dropoffAddressData != null)
         'dropoff_address': dropoffAddressData!.toPreviewJson(),
-      if (customerName != null && customerName!.isNotEmpty)
-        'customer_name': customerName,
-      if (customerPhoneNumber != null && customerPhoneNumber!.isNotEmpty)
-        'customer_phone_number': customerPhoneNumber,
       'tip': tip,
       if (couponCode != null && couponCode!.isNotEmpty)
         'coupon_code': couponCode,

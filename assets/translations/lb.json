@@ -125,7 +125,7 @@
     "all": "All",
     "done": "Fäerdeg",
     "expired": "Ofgelaf",
-    "pending": "Offstehend Bestellungen",
+    "pending": "Nei Bestellungen",
     "createOrder": "Bestelling erstellen",
     "editOrder": "Bestellung änneren",
     "saveChanges": "Ännerunge späicheren",
@@ -233,7 +233,7 @@
     "tip": "Trinkgeld",
     "orderRejected": "Dës Bestelling gouf ofgeleent",
     "orderCancelled": "Dës Bestelling gouf annuléiert",
-    "noPendingOrders": "Keng aussteend Bestellungen",
+    "noPendingOrders": "Keng nei Bestellungen",
     "noActiveOrders": "Keng aktiv Bestellungen",
     "noCurrentOrders": "Keng aktuell Bestellungen",
     "noCompletedOrders": "Keng ofgeschloss Bestellungen",
@@ -500,6 +500,7 @@
     "notifications": "Notifikatiounen",
     "help": "Hëllef",
     "helpSupport": "Hëllef & Support",
+    "changelog": "Neiheeten",
     "about": "Iwwer",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurantastellungen",
@@ -641,6 +642,48 @@
     "emailDescription": "Schéckt eng Noriicht un eist Supportteam iwwer Är Standard-Mail-App.",
     "responseNote": "Bei Problemer mam Kont oder mat Bestellungen ass e Support-Ticket an der App déi schnellst Manéier, fir datt eist Team de Problem novollzéie kann an léist.",
     "linkError": "TaybGo konnt elo net opgemaach ginn. Probéiert et nach eng Kéier."
+  },
+  "changelog": {
+    "title": "Neiheeten",
+    "subtitle": "Déi lescht Verbesserungen a Korrekturen am TaybGo Seller.",
+    "menuSubtitle": "Kuckt, wat sech an de leschten TaybGo Seller-Versioune geännert huet.",
+    "current": "Aktuell",
+    "version": "Versioun {version}",
+    "v1013": {
+      "date": "20. August 2026",
+      "change1": "Eng nei Säit Wat ass nei ënner Hëllef & Support gouf bäigesat.",
+      "change2": "Waarden Bestellunge goufen op Nei Bestellungen ëmbenannt an enthalen elo waarden, akzeptéiert a Bestellunge mat Chauffersich.",
+      "change3": "E kompakte Statusfilter gouf bäigesat fir nei Bestellunge séier ze fannen.",
+      "change4": "De Verkeefer-Login gouf fir kuerz, formatéiert an agepecht international Telefonsnummere verbessert.",
+      "change5": "E Problem gouf behuewen, deen d'Aktualiséierung vum Gesamtpräis beim Erstelle konnt verhënneren.",
+      "change6": "D'Auswiel u Liwwerween ass op aktuell ënnerstëtzt Optioune limitéiert.",
+      "change7": "D'Guide-Tour verschwënnt elo automatesch, soubal Äre Restaurant Bestellungen huet.",
+      "change8": "Iwwersetzunge fir all nei Ecranen a Verbesserunge goufen bäigesat."
+    },
+    "v1012": {
+      "date": "19. Juli 2026",
+      "change1": "Verbesserte Verkeefer-Login mat landspezifescher Formatéierung an Ënnerstëtzung fir kuerz Testnummeren.",
+      "change2": "Ënnerstëtzung fir agepecht international Nummeren mat automatescher Landerkennung fir + an 00.",
+      "change3": "Ënnerstëtzung fir formatéiert Telefonsnummeren an arabesch a persesch Zifferen."
+    },
+    "v1011": {
+      "date": "17. Juli 2026",
+      "change1": "Präisser an Totaler fir Verkeefer eenheetlech mam Euro-Symbol ugewisen.",
+      "change2": "Währungsuweisung an Bestellungen, Akommes, Menüen, Hëllef an PDF-Quittungen aktualiséiert.",
+      "change3": "Web-App-Konfiguratioun an Hosting fir eng méi konsequent Versioun ugepasst."
+    },
+    "v1010": {
+      "date": "11. Juli 2026",
+      "change1": "Präis vun Iessbestellungen gëtt bei Ännerunge vun Telefon oder Land aktualiséiert.",
+      "change2": "Gefiertyp bei Präis, Erstellen an Aktualiséiere vun Iessbestellungen dobäigesat.",
+      "change3": "Genauegkeet vun der Präisvirschau virum Ofschécke verbessert."
+    },
+    "v109": {
+      "date": "10. Juli 2026",
+      "change1": "Verkeeferprofil mat kompakter Restaurant-Kappzeil a gruppéierten Astellungen nei gestalt.",
+      "change2": "Steierung vun der Liwwerverfügbarkeet dobäigesat an de Restaurantstatus synchron gehalen.",
+      "change3": "Bestellaktiounen un déi vum Server erlaabte Statussen ugepasst."
+    }
   },
   "earnings": {
     "title": "Akommes",

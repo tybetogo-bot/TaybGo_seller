@@ -46,6 +46,27 @@ class PhoneNumberNormalizer {
   static String? normalize(String input, Country selectedCountry) =>
       parse(input, selectedCountry)?.e164;
 
+  /// Returns a submission-ready number without enforcing real-world length or
+  /// numbering-plan rules. Valid numbers are normalized as usual; short test
+  /// numbers fall back to the selected country's dialing code.
+  static String? normalizeLenient(String input, Country selectedCountry) {
+    final normalized = normalize(input, selectedCountry);
+    if (normalized != null) return normalized;
+
+    final rawInput = input.trim();
+    final digits = _asciiDigitsOnly(rawInput);
+    if (digits.isEmpty) return null;
+
+    if (rawInput.startsWith('+')) return '+$digits';
+
+    if (digits.startsWith('00')) {
+      final internationalDigits = digits.substring(2);
+      return internationalDigits.isEmpty ? null : '+$internationalDigits';
+    }
+
+    return '${selectedCountry.dialCode}$digits';
+  }
+
   static bool isValid(String input, Country selectedCountry) =>
       normalize(input, selectedCountry) != null;
 

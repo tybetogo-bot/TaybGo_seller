@@ -18,6 +18,7 @@ import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/orders_screen.dart';
 import '../../features/orders/presentation/screens/scan_order_screen.dart';
 import '../../features/profile/presentation/screens/about_screen.dart';
+import '../../features/profile/presentation/screens/changelog_screen.dart';
 import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
@@ -358,6 +359,11 @@ class AppRouter {
                 path: 'help',
                 name: Routes.helpName,
                 builder: (context, state) => const HelpScreen(),
+              ),
+              GoRoute(
+                path: 'changelog',
+                name: Routes.changelogName,
+                builder: (context, state) => const ChangelogScreen(),
               ),
               GoRoute(
                 path: 'about',

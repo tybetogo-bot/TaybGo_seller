@@ -12,20 +12,49 @@ import '../../../../features/tour/presentation/widgets/tour_section_widget.dart'
 import '../../../../features/tour/utils/tour_keys.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../orders/application/orders_notifier.dart';
+import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/animated_order_card.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 
 /// Home screen - Manager Dashboard
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  OrderStatusEnum? _newOrdersStatusFilter;
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ordersState = ref.watch(ordersProvider);
-    final pendingOrders = ordersState.pendingOrders;
+    final newOrders = ordersState.orders
+        .where(
+          (order) =>
+              order.status == OrderStatusEnum.pending ||
+              order.status == OrderStatusEnum.accepted ||
+              order.status == OrderStatusEnum.searchingForDriver ||
+              order.status == OrderStatusEnum.driverNotificationSent,
+        )
+        .toList();
     final expiredOrders = ordersState.expiredOrders;
+    final availableNewOrderStatuses = newOrders
+        .map((order) => order.status)
+        .toSet()
+        .toList();
+    final selectedNewOrderStatus =
+        availableNewOrderStatuses.contains(_newOrdersStatusFilter)
+        ? _newOrdersStatusFilter
+        : null;
+    final visibleNewOrders = selectedNewOrderStatus == null
+        ? newOrders
+        : newOrders
+              .where((order) => order.status == selectedNewOrderStatus)
+              .toList();
 
     // Use restaurant stats from API if available, fallback to calculated values
     final selectedRestaurant = ref.watch(selectedRestaurantProvider);
@@ -120,8 +149,8 @@ class HomeScreen extends ConsumerWidget {
                         key: TourKeys.homeStatsCardKey,
                         children: [
                           _StatBox(
-                            value: pendingOrders.length.toString(),
-                            label: 'orders.status.pending'.tr,
+                            value: newOrders.length.toString(),
+                            label: 'orders.new'.tr,
                             color: AppColors.warning,
                             isDark: isDark,
                             onTap: () => context.go(Routes.orders),
@@ -185,8 +214,9 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  // Tour section - only show when completed orders < 3 and tour not dismissed
-                  if (ordersState.completedOrders.length < 3 &&
+                  // Tour section - only show before the seller has any orders.
+                  if (!ordersState.isLoading &&
+                      ordersState.orders.isEmpty &&
                       !ref.watch(tourProvider).isDismissedFromHome)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -195,7 +225,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
 
-                  // Pending Orders Header
+                  // New Orders Header
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(20.w, 28.h, 20.w, 12.h),
@@ -213,15 +243,33 @@ class HomeScreen extends ConsumerWidget {
                                   : LightColors.textPrimary,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => context.go(Routes.orders),
-                            child: Text(
-                              'common.seeAll'.tr,
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                color: primaryColor,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (availableNewOrderStatuses.length > 1) ...[
+                                _NewOrdersStatusFilter(
+                                  statuses: availableNewOrderStatuses,
+                                  selectedStatus: selectedNewOrderStatus,
+                                  isDark: isDark,
+                                  onSelected: (status) {
+                                    setState(
+                                      () => _newOrdersStatusFilter = status,
+                                    );
+                                  },
+                                ),
+                                SizedBox(width: 10.w),
+                              ],
+                              GestureDetector(
+                                onTap: () => context.go(Routes.orders),
+                                child: Text(
+                                  'common.seeAll'.tr,
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    color: primaryColor,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
@@ -229,7 +277,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
 
                   // Orders List
-                  if (pendingOrders.isEmpty)
+                  if (visibleNewOrders.isEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.all(40.w),
@@ -259,7 +307,7 @@ class HomeScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(horizontal: 20.w),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
-                          final order = pendingOrders[index];
+                          final order = visibleNewOrders[index];
                           return RepaintBoundary(
                             child: AnimatedOrderCard(
                               key: ValueKey(order.id),
@@ -269,7 +317,7 @@ class HomeScreen extends ConsumerWidget {
                               ),
                             ),
                           );
-                        }, childCount: pendingOrders.length.clamp(0, 5)),
+                        }, childCount: visibleNewOrders.length.clamp(0, 5)),
                       ),
                     ),
 
@@ -282,6 +330,94 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _NewOrdersStatusFilter extends StatelessWidget {
+  const _NewOrdersStatusFilter({
+    required this.statuses,
+    required this.selectedStatus,
+    required this.isDark,
+    required this.onSelected,
+  });
+
+  final List<OrderStatusEnum> statuses;
+  final OrderStatusEnum? selectedStatus;
+  final bool isDark;
+  final ValueChanged<OrderStatusEnum?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final borderColor = isDark ? DarkColors.border : LightColors.border;
+    final textColor = selectedStatus == null
+        ? primaryColor
+        : (isDark ? DarkColors.textPrimary : LightColors.textPrimary);
+
+    return PopupMenuButton<String>(
+      initialValue: selectedStatus?.name ?? 'all',
+      onSelected: (value) {
+        if (value == 'all') {
+          onSelected(null);
+          return;
+        }
+        onSelected(statuses.firstWhere((status) => status.name == value));
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(value: 'all', child: Text('orders.all'.tr)),
+        for (final status in statuses)
+          PopupMenuItem<String>(
+            value: status.name,
+            child: Text(_newOrderStatusLabel(status)),
+          ),
+      ],
+      color: isDark ? DarkColors.surface : LightColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: selectedStatus == null
+              ? primaryColor.withValues(alpha: 0.08)
+              : (isDark ? DarkColors.surface : LightColors.surface),
+          borderRadius: BorderRadius.circular(999.r),
+          border: Border.all(
+            color: selectedStatus == null
+                ? primaryColor.withValues(alpha: 0.35)
+                : borderColor,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tune_rounded, size: 14.w, color: textColor),
+            SizedBox(width: 5.w),
+            Text(
+              selectedStatus == null
+                  ? 'orders.all'.tr
+                  : _newOrderStatusLabel(selectedStatus!),
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+            SizedBox(width: 2.w),
+            Icon(Icons.arrow_drop_down_rounded, size: 16.w, color: textColor),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _newOrderStatusLabel(OrderStatusEnum status) {
+  return switch (status) {
+    OrderStatusEnum.pending => 'orders.status.pending'.tr,
+    OrderStatusEnum.accepted => 'orders.status.accepted'.tr,
+    OrderStatusEnum.searchingForDriver => 'orders.status.searchingForDriver'.tr,
+    OrderStatusEnum.driverNotificationSent =>
+      'orders.status.driverNotificationSent'.tr,
+    _ => status.displayName,
+  };
 }
 
 class _StatBox extends StatelessWidget {

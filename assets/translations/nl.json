@@ -125,7 +125,7 @@
     "all": "Alle",
     "done": "Klaar",
     "expired": "Verlopen",
-    "pending": "Openstaande bestellingen",
+    "pending": "Nieuwe bestellingen",
     "createOrder": "Bestelling aanmaken",
     "editOrder": "Bestelling bewerken",
     "saveChanges": "Wijzigingen opslaan",
@@ -233,7 +233,7 @@
     "tip": "Fooi",
     "orderRejected": "Deze bestelling is afgewezen",
     "orderCancelled": "Deze bestelling is geannuleerd",
-    "noPendingOrders": "Geen openstaande bestellingen",
+    "noPendingOrders": "Geen nieuwe bestellingen",
     "noActiveOrders": "Geen actieve bestellingen",
     "noCurrentOrders": "Geen huidige bestellingen",
     "noCompletedOrders": "Geen voltooide bestellingen",
@@ -500,6 +500,7 @@
     "notifications": "Meldingen",
     "help": "Help",
     "helpSupport": "Help en ondersteuning",
+    "changelog": "Wat is er nieuw",
     "about": "Over",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurantinstellingen",
@@ -641,6 +642,48 @@
     "emailDescription": "Stuur een bericht naar ons ondersteuningsteam vanuit uw standaard mail-app.",
     "responseNote": "Bij live account- of bestelproblemen is het aanmaken van een supportticket in de app de snelste manier voor ons team om het probleem te volgen en op te lossen.",
     "linkError": "Kon TaybGo nu niet openen. Probeer het opnieuw."
+  },
+  "changelog": {
+    "title": "Wat is er nieuw",
+    "subtitle": "De nieuwste verbeteringen en oplossingen in TaybGo Seller.",
+    "menuSubtitle": "Bekijk wat er is veranderd in de nieuwste TaybGo Seller-versies.",
+    "current": "Huidig",
+    "version": "Versie {version}",
+    "v1013": {
+      "date": "20 augustus 2026",
+      "change1": "Een nieuwe pagina Wat is er nieuw toegevoegd onder Hulp en ondersteuning.",
+      "change2": "Openstaande bestellingen heet nu Nieuwe bestellingen en bevat openstaande, geaccepteerde en naar een chauffeur zoekende bestellingen.",
+      "change3": "Een compact statusfilter toegevoegd om verschillende nieuwe bestellingen snel te vinden.",
+      "change4": "De verkoperslogin verbeterd voor korte, opgemaakte en geplakte internationale telefoonnummers.",
+      "change5": "Een probleem opgelost waardoor het ordertotaal tijdens het aanmaken soms niet werd bijgewerkt.",
+      "change6": "De keuze voor bezorgvoertuigen beperkt tot momenteel ondersteunde opties.",
+      "change7": "De rondleiding verdwijnt nu automatisch zodra je restaurant bestellingen heeft.",
+      "change8": "Vertalingen toegevoegd voor alle nieuwe schermen en verbeteringen."
+    },
+    "v1012": {
+      "date": "19 juli 2026",
+      "change1": "Verbeterde verkoperslogin met landspecifieke opmaak en ondersteuning voor korte testnummers.",
+      "change2": "Ondersteuning voor geplakte internationale nummers met automatische landdetectie voor + en 00.",
+      "change3": "Ondersteuning voor opgemaakte telefoonnummers en Arabische en Perzische cijfers."
+    },
+    "v1011": {
+      "date": "17 juli 2026",
+      "change1": "Prijzen en totalen voor verkopers consequent met het eurosymbool weergegeven.",
+      "change2": "Valutaweergave bijgewerkt in bestellingen, inkomsten, menu’s, hulp en pdf-bonnen.",
+      "change3": "Webapp-configuratie en hosting afgestemd voor een consistentere release."
+    },
+    "v1010": {
+      "date": "11 juli 2026",
+      "change1": "Prijs van voedselbestellingen vernieuwd bij wijzigingen in telefoon of land van de klant.",
+      "change2": "Voertuigtype toegevoegd aan prijsberekening, aanmaak en updates van bestellingen.",
+      "change3": "Nauwkeurigheid van prijsvoorbeelden vóór verzending verbeterd."
+    },
+    "v109": {
+      "date": "10 juli 2026",
+      "change1": "Verkopersprofiel vernieuwd met compacte restaurantkop en gegroepeerde instellingen.",
+      "change2": "Bediening voor bezorgbeschikbaarheid toegevoegd en restaurantstatus gesynchroniseerd.",
+      "change3": "Bestelacties bijgewerkt volgens de door de server toegestane statussen."
+    }
   },
   "earnings": {
     "title": "Verdiensten",

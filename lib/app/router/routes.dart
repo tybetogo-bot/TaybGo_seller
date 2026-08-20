@@ -112,6 +112,9 @@ class Routes {
   static const String help = '/profile/help';
   static const String helpName = 'help';
 
+  static const String changelog = '/profile/changelog';
+  static const String changelogName = 'changelog';
+
   static const String about = '/profile/about';
   static const String aboutName = 'about';
 

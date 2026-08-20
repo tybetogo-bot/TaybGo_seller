@@ -125,7 +125,7 @@
     "all": "Tutti",
     "done": "Fatto",
     "expired": "Scaduti",
-    "pending": "Ordini in attesa",
+    "pending": "Nuovi ordini",
     "createOrder": "Crea ordine",
     "editOrder": "Modifica ordine",
     "saveChanges": "Salva modifiche",
@@ -233,7 +233,7 @@
     "tip": "Mancia",
     "orderRejected": "Questo ordine è stato rifiutato",
     "orderCancelled": "Questo ordine è stato annullato",
-    "noPendingOrders": "Nessun ordine in attesa",
+    "noPendingOrders": "Nessun nuovo ordine",
     "noActiveOrders": "Nessun ordine attivo",
     "noCurrentOrders": "Nessun ordine corrente",
     "noCompletedOrders": "Nessun ordine completato",
@@ -500,6 +500,7 @@
     "notifications": "Notifiche",
     "help": "Aiuto",
     "helpSupport": "Aiuto e supporto",
+    "changelog": "Novità",
     "about": "Informazioni",
     "restaurant": "Ristorante",
     "restaurantSettings": "Impostazioni ristorante",
@@ -641,6 +642,48 @@
     "emailDescription": "Invia un messaggio al nostro team di supporto dalla tua app e-mail predefinita.",
     "responseNote": "Per problemi con account o ordini in corso, creare un ticket di supporto nell’app è il modo più rapido perché il nostro team possa seguire e risolvere il problema.",
     "linkError": "Impossibile aprire TaybGo in questo momento. Riprova."
+  },
+  "changelog": {
+    "title": "Novità",
+    "subtitle": "Gli ultimi miglioramenti e correzioni di TaybGo Seller.",
+    "menuSubtitle": "Scopri cosa è cambiato nelle ultime versioni di TaybGo Seller.",
+    "current": "Attuale",
+    "version": "Versione {version}",
+    "v1013": {
+      "date": "20 agosto 2026",
+      "change1": "Aggiunta una nuova pagina Novità in Aiuto e assistenza.",
+      "change2": "Ordini in sospeso è stato rinominato Nuovi ordini e ora include ordini in sospeso, accettati e in cerca di autista.",
+      "change3": "Aggiunto un filtro di stato compatto per trovare rapidamente i diversi tipi di nuovi ordini.",
+      "change4": "Migliorato l'accesso del venditore per numeri brevi, formattati e internazionali incollati.",
+      "change5": "Risolto un problema che poteva impedire l'aggiornamento del totale durante la creazione dell'ordine.",
+      "change6": "Le opzioni del veicolo di consegna sono limitate a quelle attualmente supportate.",
+      "change7": "Il tour guidato ora scompare automaticamente quando il ristorante ha degli ordini.",
+      "change8": "Aggiunte le traduzioni per tutte le nuove schermate e i miglioramenti."
+    },
+    "v1012": {
+      "date": "19 luglio 2026",
+      "change1": "Accesso venditore migliorato con formattazione per paese e supporto dei numeri brevi o di test.",
+      "change2": "Supporto dei numeri internazionali incollati con rilevamento automatico del paese per + e 00.",
+      "change3": "Supporto dei numeri formattati e delle cifre arabe e persiane."
+    },
+    "v1011": {
+      "date": "17 luglio 2026",
+      "change1": "Prezzi e totali per i venditori uniformati con il simbolo dell’euro.",
+      "change2": "Visualizzazione della valuta aggiornata in ordini, guadagni, menu, guida e ricevute PDF.",
+      "change3": "Configurazione e hosting dell’app web allineati per una versione più coerente."
+    },
+    "v1010": {
+      "date": "11 luglio 2026",
+      "change1": "Aggiornamento del prezzo degli ordini quando cambiano telefono o paese del cliente.",
+      "change2": "Aggiunto il tipo di veicolo a prezzo, creazione e aggiornamento degli ordini.",
+      "change3": "Migliorata la precisione dell’anteprima del prezzo prima dell’invio."
+    },
+    "v109": {
+      "date": "10 luglio 2026",
+      "change1": "Profilo venditore ridisegnato con intestazione compatta e impostazioni raggruppate.",
+      "change2": "Aggiunti i controlli di disponibilità della consegna e sincronizzato lo stato del ristorante.",
+      "change3": "Azioni degli ordini aggiornate in base agli stati consentiti dal server."
+    }
   },
   "earnings": {
     "title": "Guadagni",

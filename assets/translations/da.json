@@ -125,7 +125,7 @@
     "all": "Alle",
     "done": "Færdige",
     "expired": "Udløbne",
-    "pending": "Afventende ordrer",
+    "pending": "Nye ordrer",
     "createOrder": "Opret ordre",
     "editOrder": "Rediger ordre",
     "saveChanges": "Gem ændringer",
@@ -233,7 +233,7 @@
     "tip": "Drikkepenge",
     "orderRejected": "Denne ordre blev afvist",
     "orderCancelled": "Denne ordre blev annulleret",
-    "noPendingOrders": "Ingen afventende ordrer",
+    "noPendingOrders": "Ingen nye ordrer",
     "noActiveOrders": "Ingen aktive ordrer",
     "noCurrentOrders": "Ingen nuværende ordrer",
     "noCompletedOrders": "Ingen gennemførte ordrer",
@@ -500,6 +500,7 @@
     "notifications": "Notifikationer",
     "help": "Hjælp",
     "helpSupport": "Hjælp og support",
+    "changelog": "Nyheder",
     "about": "Om",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurantindstillinger",
@@ -641,6 +642,48 @@
     "emailDescription": "Send en besked til vores supportteam fra din standardmailapp.",
     "responseNote": "Ved problemer med konto eller ordrer er det hurtigst at oprette en supportsag i appen, så vores team kan følge og løse problemet.",
     "linkError": "Kunne ikke åbne TaybGo lige nu. Prøv igen."
+  },
+  "changelog": {
+    "title": "Nyheder",
+    "subtitle": "De seneste forbedringer og rettelser i TaybGo Seller.",
+    "menuSubtitle": "Se, hvad der er ændret i de seneste TaybGo Seller-versioner.",
+    "current": "Aktuel",
+    "version": "Version {version}",
+    "v1013": {
+      "date": "20. august 2026",
+      "change1": "Tilføjede en ny side med nyheder under Hjælp og support.",
+      "change2": "Omdøbte Afventende ordrer til Nye ordrer og inkluderede afventende, accepterede og chaufførsøgende ordrer.",
+      "change3": "Tilføjede et kompakt statusfilter til hurtigt at finde forskellige typer nye ordrer.",
+      "change4": "Forbedrede sælgerlogin for korte, formaterede og indsatte internationale telefonnumre.",
+      "change5": "Rettede et problem, der kunne forhindre ordrebeløbet i at blive opdateret under oprettelse.",
+      "change6": "Begrænsede valg af leveringskøretøj til de aktuelt understøttede muligheder.",
+      "change7": "Guiden forsvinder nu automatisk, når din restaurant har ordrer.",
+      "change8": "Tilføjede oversættelser til alle nye skærme og forbedringer."
+    },
+    "v1012": {
+      "date": "19. juli 2026",
+      "change1": "Forbedret sælgerlogin med landespecifik formatering og støtte til korte testnumre.",
+      "change2": "Støtte til indsatte internationale numre med automatisk landegenkendelse for + og 00.",
+      "change3": "Støtte til formaterede telefonnumre samt arabiske og persiske cifre."
+    },
+    "v1011": {
+      "date": "17. juli 2026",
+      "change1": "Priser og totaler for sælgere vises konsekvent med eurosymbolet.",
+      "change2": "Valutavisning opdateret i ordrer, indtjening, menuer, hjælp og PDF-kvitteringer.",
+      "change3": "Webappens konfiguration og hosting tilpasset for en mere ensartet udgivelse."
+    },
+    "v1010": {
+      "date": "11. juli 2026",
+      "change1": "Prisberegning opdateres, når kundens telefon eller land ændres.",
+      "change2": "Køretøjstype tilføjet til pris, oprettelse og opdatering af madordrer.",
+      "change3": "Mere præcise prisoversigter før en ordre sendes."
+    },
+    "v109": {
+      "date": "10. juli 2026",
+      "change1": "Sælgerprofilen er redesignet med kompakt restauranthoved og grupperede indstillinger.",
+      "change2": "Kontroller for leveringsmulighed tilføjet, og restaurantstatus holdes synkroniseret.",
+      "change3": "Ordrehandlinger følger nu de statusser, som serveren tillader."
+    }
   },
   "earnings": {
     "title": "Indtjening",
