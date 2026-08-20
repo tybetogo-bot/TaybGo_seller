@@ -124,7 +124,7 @@
     "all": "Alle",
     "done": "Erledigt",
     "expired": "Abgelaufen",
-    "pending": "Ausstehend",
+    "pending": "Neue Bestellungen",
     "createOrder": "Bestellung erstellen",
     "editOrder": "Bestellung bearbeiten",
     "saveChanges": "Änderungen speichern",
@@ -229,7 +229,7 @@
     "tip": "Trinkgeld",
     "orderRejected": "Diese Bestellung wurde abgelehnt",
     "orderCancelled": "Diese Bestellung wurde storniert",
-    "noPendingOrders": "Keine ausstehenden Bestellungen",
+    "noPendingOrders": "Keine neuen Bestellungen",
     "noActiveOrders": "Keine aktiven Bestellungen",
     "noCurrentOrders": "Keine aktuellen Bestellungen",
     "noCompletedOrders": "Keine abgeschlossenen Bestellungen",
@@ -501,6 +501,7 @@
     "notifications": "Benachrichtigungen",
     "help": "Hilfe",
     "helpSupport": "Hilfe & Support",
+    "changelog": "Neuigkeiten",
     "about": "Über",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurant-Einst.",
@@ -642,6 +643,48 @@
     "emailDescription": "Senden Sie eine Nachricht an unser Support-Team über Ihre Standard-Mail-App.",
     "responseNote": "Bei Problemen mit Konto oder Bestellungen ist ein Support-Ticket in der App der schnellste Weg, damit unser Team das Problem verfolgen und lösen kann.",
     "linkError": "TaybGo konnte gerade nicht geöffnet werden. Bitte versuchen Sie es erneut."
+  },
+  "changelog": {
+    "title": "Neuigkeiten",
+    "subtitle": "Die neuesten Verbesserungen und Fehlerbehebungen in TaybGo Seller.",
+    "menuSubtitle": "Sehen Sie, was sich in den neuesten TaybGo-Seller-Versionen geändert hat.",
+    "current": "Aktuell",
+    "version": "Version {version}",
+    "v1013": {
+      "date": "20. August 2026",
+      "change1": "Eine neue Seite „Neuigkeiten“ unter Hilfe & Support wurde hinzugefügt.",
+      "change2": "Ausstehende Bestellungen wurden in Neue Bestellungen umbenannt und um ausstehende, angenommene sowie Bestellungen mit Fahrersuche ergänzt.",
+      "change3": "Ein kompakter Statusfilter erleichtert das schnelle Finden verschiedener neuer Bestellungen.",
+      "change4": "Die Verkäuferanmeldung unterstützt kurze, formatierte und eingefügte internationale Telefonnummern besser.",
+      "change5": "Ein Problem wurde behoben, durch das die Bestellsumme beim Erstellen nicht aktualisiert werden konnte.",
+      "change6": "Die Auswahl der Lieferfahrzeuge wurde auf aktuell unterstützte Optionen begrenzt.",
+      "change7": "Die Einführung wird nun automatisch ausgeblendet, sobald Ihr Restaurant Bestellungen hat.",
+      "change8": "Übersetzungen für alle neuen Bildschirme und Verbesserungen wurden hinzugefügt."
+    },
+    "v1012": {
+      "date": "19. Juli 2026",
+      "change1": "Verbesserte Verkäuferanmeldung mit länderspezifischer Formatierung und Unterstützung kurzer Testnummern.",
+      "change2": "Unterstützung eingefügter internationaler Nummern mit automatischer Ländererkennung für + und 00.",
+      "change3": "Unterstützung formatierter Telefonnummern sowie arabischer und persischer Ziffern."
+    },
+    "v1011": {
+      "date": "17. Juli 2026",
+      "change1": "Preise und Summen für Verkäufer einheitlich mit dem Euro-Symbol dargestellt.",
+      "change2": "Währungsanzeige in Bestellungen, Einnahmen, Menüs, Hilfe und PDF-Belegen aktualisiert.",
+      "change3": "Web-App-Konfiguration und Hosting für eine einheitlichere Veröffentlichung abgestimmt."
+    },
+    "v1010": {
+      "date": "11. Juli 2026",
+      "change1": "Preisberechnung für Essensbestellungen bei Änderungen an Telefon oder Land aktualisiert.",
+      "change2": "Fahrzeugtyp zu Preisberechnung, Erstellung und Aktualisierung von Essensbestellungen hinzugefügt.",
+      "change3": "Genauigkeit der Preisvorschau vor dem Absenden einer Bestellung verbessert."
+    },
+    "v109": {
+      "date": "10. Juli 2026",
+      "change1": "Verkäuferprofil mit kompakter Restaurant-Kopfzeile und gruppierten Einstellungen neu gestaltet.",
+      "change2": "Steuerung der Lieferverfügbarkeit hinzugefügt und Restaurantstatus synchron gehalten.",
+      "change3": "Bestellaktionen an die vom Server erlaubten Status angepasst."
+    }
   },
   "earnings": {
     "title": "Einnahmen",

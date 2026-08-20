@@ -84,5 +84,22 @@ void main() {
         isNull,
       );
     });
+
+    test('lenient normalization accepts a short test number', () {
+      expect(
+        PhoneNumberNormalizer.normalizeLenient('90002', Countries.austria),
+        '+4390002',
+      );
+    });
+
+    test('lenient normalization still rejects input without digits', () {
+      expect(
+        PhoneNumberNormalizer.normalizeLenient(
+          'not a phone',
+          Countries.austria,
+        ),
+        isNull,
+      );
+    });
   });
 }

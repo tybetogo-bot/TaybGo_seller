@@ -465,8 +465,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
     if (translated != 'orders.emptyItemsWarning') return translated;
 
     return switch (TranslationService.instance.currentLanguage) {
-      'ar' => 'هذا الطلب لا يحتوي على عناصر. الرجاء إضافة عنصر واحد على الأقل للمتابعة.',
-      'da' => 'Denne ordre har ingen varer. Tilføj mindst én vare for at fortsætte.',
+      'ar' =>
+        'هذا الطلب لا يحتوي على عناصر. الرجاء إضافة عنصر واحد على الأقل للمتابعة.',
+      'da' =>
+        'Denne ordre har ingen varer. Tilføj mindst én vare for at fortsætte.',
       'de' =>
         'Diese Bestellung enthält keine Artikel. Bitte fügen Sie mindestens einen Artikel hinzu, um fortzufahren.',
       'fi' =>
@@ -809,8 +811,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
       restaurantId: restaurantId,
       pickupAddressData: OrderAddressData.fromRestaurant(selectedRestaurant),
       dropoffAddressData: dropoffAddressData,
-      customerName: _customerNameController.text.trim(),
-      customerPhoneNumber: _fullCustomerPhoneNumber(),
       tip: _tips.toStringAsFixed(2),
       couponCode: _selectedCoupon?.code,
       items: _buildCartItems(),
@@ -1443,232 +1443,64 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                     maxWidth: Breakpoints.maxContentWidth,
                   ),
                   child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  padding: AppSpacing.screenPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_isEditMode) ...[
-                        _EditOrderBanner(
-                          orderId: widget.editOrderId!,
-                          isDark: isDark,
-                        ),
-                        SizedBox(height: 24.h),
-                      ] else ...[
-                        // Prominent Scan Card
-                        KeyedSubtree(
-                          key: TourKeys.scanOrderCardKey,
-                          child: _ScanOrderCard(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ScanOrderScreen(
-                                    onDataScanned: _fillWithScannedData,
-                                  ),
-                                ),
-                              );
-                            },
-                            isDark: isDark,
-                          ),
-                        ),
-                        SizedBox(height: 24.h),
-                      ],
-
-                      // Customer Information Section
-                      _SectionTitle(
-                        title: 'orders.customerInfo'.tr,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 12.h),
-
-                      // Customer Name
-                      AppTextField(
-                        controller: _customerNameController,
-                        label: 'orders.customerName'.tr,
-                        hint: 'validation.enterCustomerName'.tr,
-                        prefixIcon: Icons.person_outline,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'validation.enterCustomerName'.tr;
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 12.h),
-
-                      // Phone Number with Country Code
-                      Text(
-                        'orders.phone'.tr,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                          color: isDark
-                              ? DarkColors.textPrimary
-                              : LightColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      PhoneInputField(
-                        controller: _phoneController,
-                        selectedCountry: _selectedCountry,
-                        onCountrySelected: (country) {
-                          setState(() {
-                            _selectedCountry = country;
-                          });
-                        },
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Delivery Address Section
-                      _SectionTitle(
-                        title: 'orders.deliveryAddress'.tr,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'address.enterManually'.tr,
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: isDark
-                              ? DarkColors.textTertiary
-                              : LightColors.textTertiary,
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-
-                      AddressSearchWidget(
-                        initialAddress: _selectedAddress,
-                        onAddressSelected: (address) {
-                          setState(() {
-                            _selectedAddress = address;
-                          });
-                          markAsChanged();
-                          _schedulePricingPreview();
-                        },
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Order Items Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      padding: AppSpacing.screenPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _SectionTitle(
-                            title: 'orders.orderItems'.tr,
-                            isDark: isDark,
-                          ),
-                          TextButton.icon(
-                            onPressed: _showAddItemDialog,
-                            icon: Icon(Icons.add, size: 18.w),
-                            label: Text('orders.addItem'.tr),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.h),
-
-                      if (_orderItems.isEmpty)
-                        _EmptyItemsCard(
-                          isDark: isDark,
-                          onAddItem: _showAddItemDialog,
-                        )
-                      else
-                        ...List.generate(_orderItems.length, (index) {
-                          final item = _orderItems[index];
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 12.h),
-                            child: _OrderItemCard(
-                              item: item,
-                              onRemove: () => _removeItem(index),
-                              onQuantityChanged: (delta) =>
-                                  _updateItemQuantity(index, delta),
-                              onNotesChanged: (notes) =>
-                                  _updateItemNotes(index, notes),
+                          if (_isEditMode) ...[
+                            _EditOrderBanner(
+                              orderId: widget.editOrderId!,
                               isDark: isDark,
                             ),
-                          );
-                        }),
+                            SizedBox(height: 24.h),
+                          ] else ...[
+                            // Prominent Scan Card
+                            KeyedSubtree(
+                              key: TourKeys.scanOrderCardKey,
+                              child: _ScanOrderCard(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ScanOrderScreen(
+                                        onDataScanned: _fillWithScannedData,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                isDark: isDark,
+                              ),
+                            ),
+                            SizedBox(height: 24.h),
+                          ],
 
-                      SizedBox(height: 24.h),
+                          // Customer Information Section
+                          _SectionTitle(
+                            title: 'orders.customerInfo'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
 
-                      // Delivery Options Section
-                      _SectionTitle(
-                        title: 'orders.deliveryOptions'.tr,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 12.h),
+                          // Customer Name
+                          AppTextField(
+                            controller: _customerNameController,
+                            label: 'orders.customerName'.tr,
+                            hint: 'validation.enterCustomerName'.tr,
+                            prefixIcon: Icons.person_outline,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'validation.enterCustomerName'.tr;
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 12.h),
 
-                      // Vehicle Type dropdown
-                      _VehicleTypeDropdown(
-                        label: 'orders.requestedVehicleType'.tr,
-                        value: _selectedVehicleType,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedVehicleType = value;
-                          });
-                          markAsChanged();
-                          _schedulePricingPreview();
-                        },
-                        isDark: isDark,
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Coupon Section
-                      _SectionTitle(title: 'orders.coupon'.tr, isDark: isDark),
-                      SizedBox(height: 12.h),
-
-                      _CouponDropdown(
-                        key: ValueKey('coupon_dropdown_$_subtotal'),
-                        selectedCouponId: _selectedCouponId,
-                        subtotal: _subtotal,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedCouponId = value;
-                          });
-                          markAsChanged();
-                          _schedulePricingPreview();
-                        },
-                        isDark: isDark,
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Payment Section
-                      _SectionTitle(title: 'orders.payment'.tr, isDark: isDark),
-                      SizedBox(height: 12.h),
-
-                      AppTextField(
-                        controller: _tipsController,
-                        label: 'orders.tips'.tr,
-                        hint: '0.00',
-                        prefixIcon: Icons.volunteer_activism,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        onChanged: (_) {
-                          setState(() {});
-                          markAsChanged();
-                          _schedulePricingPreview();
-                        },
-                      ),
-
-                      SizedBox(height: 16.h),
-
-                      // Paid checkbox
-                      AppCard(
-                        child: CheckboxListTile(
-                          value: _isPaid,
-                          onChanged: (value) {
-                            setState(() {
-                              _isPaid = value ?? false;
-                            });
-                            markAsChanged();
-                          },
-                          title: Text(
-                            'orders.isPaid'.tr,
+                          // Phone Number with Country Code
+                          Text(
+                            'orders.phone'.tr,
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w500,
@@ -1677,59 +1509,233 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
                                   : LightColors.textPrimary,
                             ),
                           ),
-                          subtitle: Text(
-                            _isPaid
-                                ? 'orders.paymentReceived'.tr
-                                : 'orders.paymentPending'.tr,
+                          SizedBox(height: 8.h),
+                          PhoneInputField(
+                            controller: _phoneController,
+                            selectedCountry: _selectedCountry,
+                            onCountrySelected: (country) {
+                              setState(() {
+                                _selectedCountry = country;
+                              });
+                            },
+                          ),
+
+                          SizedBox(height: 24.h),
+
+                          // Delivery Address Section
+                          _SectionTitle(
+                            title: 'orders.deliveryAddress'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'address.enterManually'.tr,
                             style: TextStyle(
                               fontSize: 12.sp,
-                              color: _isPaid
-                                  ? AppColors.success
-                                  : AppColors.warning,
+                              color: isDark
+                                  ? DarkColors.textTertiary
+                                  : LightColors.textTertiary,
                             ),
                           ),
-                          secondary: Icon(
-                            _isPaid ? Icons.check_circle : Icons.pending,
-                            color: _isPaid
-                                ? AppColors.success
-                                : AppColors.warning,
+                          SizedBox(height: 12.h),
+
+                          AddressSearchWidget(
+                            initialAddress: _selectedAddress,
+                            onAddressSelected: (address) {
+                              setState(() {
+                                _selectedAddress = address;
+                              });
+                              markAsChanged();
+                              _schedulePricingPreview();
+                            },
                           ),
-                          controlAffinity: ListTileControlAffinity.trailing,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+
+                          SizedBox(height: 24.h),
+
+                          // Order Items Section
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _SectionTitle(
+                                title: 'orders.orderItems'.tr,
+                                isDark: isDark,
+                              ),
+                              TextButton.icon(
+                                onPressed: _showAddItemDialog,
+                                icon: Icon(Icons.add, size: 18.w),
+                                label: Text('orders.addItem'.tr),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+
+                          if (_orderItems.isEmpty)
+                            _EmptyItemsCard(
+                              isDark: isDark,
+                              onAddItem: _showAddItemDialog,
+                            )
+                          else
+                            ...List.generate(_orderItems.length, (index) {
+                              final item = _orderItems[index];
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: 12.h),
+                                child: _OrderItemCard(
+                                  item: item,
+                                  onRemove: () => _removeItem(index),
+                                  onQuantityChanged: (delta) =>
+                                      _updateItemQuantity(index, delta),
+                                  onNotesChanged: (notes) =>
+                                      _updateItemNotes(index, notes),
+                                  isDark: isDark,
+                                ),
+                              );
+                            }),
+
+                          SizedBox(height: 24.h),
+
+                          // Delivery Options Section
+                          _SectionTitle(
+                            title: 'orders.deliveryOptions'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
+
+                          // Vehicle Type dropdown
+                          _VehicleTypeDropdown(
+                            label: 'orders.requestedVehicleType'.tr,
+                            value: _selectedVehicleType,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedVehicleType = value;
+                              });
+                              markAsChanged();
+                              _schedulePricingPreview();
+                            },
+                            isDark: isDark,
+                          ),
+
+                          SizedBox(height: 24.h),
+
+                          // Coupon Section
+                          _SectionTitle(
+                            title: 'orders.coupon'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
+
+                          _CouponDropdown(
+                            key: ValueKey('coupon_dropdown_$_subtotal'),
+                            selectedCouponId: _selectedCouponId,
+                            subtotal: _subtotal,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCouponId = value;
+                              });
+                              markAsChanged();
+                              _schedulePricingPreview();
+                            },
+                            isDark: isDark,
+                          ),
+
+                          SizedBox(height: 24.h),
+
+                          // Payment Section
+                          _SectionTitle(
+                            title: 'orders.payment'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
+
+                          AppTextField(
+                            controller: _tipsController,
+                            label: 'orders.tips'.tr,
+                            hint: '0.00',
+                            prefixIcon: Icons.volunteer_activism,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            onChanged: (_) {
+                              setState(() {});
+                              markAsChanged();
+                              _schedulePricingPreview();
+                            },
+                          ),
+
+                          SizedBox(height: 16.h),
+
+                          // Paid checkbox
+                          AppCard(
+                            child: CheckboxListTile(
+                              value: _isPaid,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isPaid = value ?? false;
+                                });
+                                markAsChanged();
+                              },
+                              title: Text(
+                                'orders.isPaid'.tr,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark
+                                      ? DarkColors.textPrimary
+                                      : LightColors.textPrimary,
+                                ),
+                              ),
+                              subtitle: Text(
+                                _isPaid
+                                    ? 'orders.paymentReceived'.tr
+                                    : 'orders.paymentPending'.tr,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: _isPaid
+                                      ? AppColors.success
+                                      : AppColors.warning,
+                                ),
+                              ),
+                              secondary: Icon(
+                                _isPaid ? Icons.check_circle : Icons.pending,
+                                color: _isPaid
+                                    ? AppColors.success
+                                    : AppColors.warning,
+                              ),
+                              controlAffinity: ListTileControlAffinity.trailing,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+
+                          SizedBox(height: 24.h),
+
+                          // Order Summary
+                          _SectionTitle(
+                            title: 'orders.orderSummary'.tr,
+                            isDark: isDark,
+                          ),
+                          SizedBox(height: 12.h),
+
+                          _buildPricingSummaryCard(
+                            isDark: isDark,
+                            pricingState: customerOrdersState,
+                            pricingRequirements: pricingRequirements,
+                            pricingQuote: pricingQuote,
+                          ),
+
+                          SizedBox(height: 24.h),
+
+                          // Submit Button
+                          AppButton(
+                            label: submitLabel,
+                            icon: _isEditMode ? Icons.save_outlined : null,
+                            onPressed: _submitOrder,
+                            isLoading: _isLoading,
+                            isDisabled: !canSubmitOrder,
+                          ),
+                          SizedBox(height: 24.h),
+                        ],
                       ),
-
-                      SizedBox(height: 24.h),
-
-                      // Order Summary
-                      _SectionTitle(
-                        title: 'orders.orderSummary'.tr,
-                        isDark: isDark,
-                      ),
-                      SizedBox(height: 12.h),
-
-                      _buildPricingSummaryCard(
-                        isDark: isDark,
-                        pricingState: customerOrdersState,
-                        pricingRequirements: pricingRequirements,
-                        pricingQuote: pricingQuote,
-                      ),
-
-                      SizedBox(height: 24.h),
-
-                      // Submit Button
-                      AppButton(
-                        label: submitLabel,
-                        icon: _isEditMode ? Icons.save_outlined : null,
-                        onPressed: _submitOrder,
-                        isLoading: _isLoading,
-                        isDisabled: !canSubmitOrder,
-                      ),
-                      SizedBox(height: 24.h),
-                    ],
+                    ),
                   ),
-                ),
-              ),
                 ),
               ),
       ),

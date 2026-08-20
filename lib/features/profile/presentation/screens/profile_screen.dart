@@ -97,150 +97,156 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   maxWidth: Breakpoints.maxContentWidth,
                 ),
                 child: ListView(
-              padding: EdgeInsets.all(16.w),
-              children: [
-                // Restaurant/User info
-                _ProfileCard(
-                  name:
-                      effectiveRestaurant?.name ??
-                      userProfileState.profile?.name ??
-                      'profile.yourRestaurant'.tr,
-                  email:
-                      userProfileState.profile?.email ??
-                      userProfileState.profile?.phone ??
-                      '',
-                  logoUrl: effectiveRestaurant?.logoUrl,
-                  deliveryEnabled: visibleDeliveryEnabled ?? false,
-                  isDark: isDark,
-                  canSwitchRestaurant: hasMultipleRestaurants,
-                  onRestaurantTap: hasMultipleRestaurants
-                      ? () => _showRestaurantPicker(
-                          context,
-                          ref,
-                          restaurants,
-                          effectiveRestaurant,
-                        )
-                      : null,
-                  isUpdatingDelivery: _isUpdatingDeliveryEnabled,
-                  onDeliveryChanged: effectiveRestaurant == null
-                      ? null
-                      : (value) =>
-                            _updateDeliveryEnabled(effectiveRestaurant, value),
-                  onEditProfileTap: () => context.push(Routes.editProfile),
-                ),
-                SizedBox(height: 12.h),
-                _RegistrationDocumentCard(
-                  isDark: isDark,
-                  sellerProfileAsync: sellerProfileAsync,
-                  onViewProfile: () => context.push(Routes.editProfile),
-                  onRetry: () => ref.invalidate(sellerProfileProvider),
-                ),
-                SizedBox(height: 20.h),
-
-                // Quick stats row
-                Row(
-                  key: TourKeys.quickStatsKey,
+                  padding: EdgeInsets.all(16.w),
                   children: [
-                    _QuickStat(
-                      label: 'profile.today'.tr,
-                      value: selectedRestaurant?.todayStats != null
-                          ? '€${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
-                          : '€0',
+                    // Restaurant/User info
+                    _ProfileCard(
+                      name:
+                          effectiveRestaurant?.name ??
+                          userProfileState.profile?.name ??
+                          'profile.yourRestaurant'.tr,
+                      email:
+                          userProfileState.profile?.email ??
+                          userProfileState.profile?.phone ??
+                          '',
+                      logoUrl: effectiveRestaurant?.logoUrl,
+                      deliveryEnabled: visibleDeliveryEnabled ?? false,
                       isDark: isDark,
+                      canSwitchRestaurant: hasMultipleRestaurants,
+                      onRestaurantTap: hasMultipleRestaurants
+                          ? () => _showRestaurantPicker(
+                              context,
+                              ref,
+                              restaurants,
+                              effectiveRestaurant,
+                            )
+                          : null,
+                      isUpdatingDelivery: _isUpdatingDeliveryEnabled,
+                      onDeliveryChanged: effectiveRestaurant == null
+                          ? null
+                          : (value) => _updateDeliveryEnabled(
+                              effectiveRestaurant,
+                              value,
+                            ),
+                      onEditProfileTap: () => context.push(Routes.editProfile),
                     ),
-                    SizedBox(width: 10.w),
-                    _QuickStat(
-                      label: 'navigation.orders'.tr,
-                      value:
-                          selectedRestaurant?.todayStats?.totalOrders
-                              .toString() ??
-                          '0',
+                    SizedBox(height: 12.h),
+                    _RegistrationDocumentCard(
                       isDark: isDark,
+                      sellerProfileAsync: sellerProfileAsync,
+                      onViewProfile: () => context.push(Routes.editProfile),
+                      onRetry: () => ref.invalidate(sellerProfileProvider),
                     ),
-                    SizedBox(width: 10.w),
-                    _QuickStat(
-                      label: 'settings.statistics'.tr,
-                      value: 'profile.viewStats'.tr,
-                      isDark: isDark,
-                      isAction: true,
-                      onTap: () => context.push(Routes.statistics),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 24.h),
+                    SizedBox(height: 20.h),
 
-                _SectionMenuTile(
-                  key: TourKeys.settingsOptionsKey,
-                  title: 'profile.settingsSectionTitle'.tr,
-                  subtitle: 'profile.settingsSectionSubtitle'.tr,
-                  isDark: isDark,
-                  onTap: () => _showSettingsSectionSheet(context),
-                ),
-                SizedBox(height: 10.h),
-                _SectionMenuTile(
-                  key: TourKeys.themeSettingKey,
-                  title: 'profile.preferencesSectionTitle'.tr,
-                  subtitle: 'profile.preferencesSectionSubtitle'.tr,
-                  isDark: isDark,
-                  onTap: () => _showPreferencesSectionSheet(context),
-                ),
-                SizedBox(height: 10.h),
-                _SectionMenuTile(
-                  key: TourKeys.knowledgeBaseRowKey,
-                  title: 'profile.helpSupportSectionTitle'.tr,
-                  subtitle: 'profile.helpSupportSectionSubtitle'.tr,
-                  isDark: isDark,
-                  onTap: () => _showHelpSectionSheet(context),
-                ),
-                if (ordersState.completedOrders.length >= 3) ...[
-                  SizedBox(height: 16.h),
-                  const TourSectionWidget(),
-                  SizedBox(height: 12.h),
-                ],
-                SizedBox(height: 24.h),
-
-                // Logout
-                GestureDetector(
-                  onTap: () => _showLogoutConfirmation(context, ref),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    // Quick stats row
+                    Row(
+                      key: TourKeys.quickStatsKey,
                       children: [
-                        Icon(Icons.logout, size: 18.w, color: AppColors.error),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'auth.logout'.tr,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.error,
-                          ),
+                        _QuickStat(
+                          label: 'profile.today'.tr,
+                          value: selectedRestaurant?.todayStats != null
+                              ? '€${selectedRestaurant!.todayStats!.totalRevenue.toStringAsFixed(0)}'
+                              : '€0',
+                          isDark: isDark,
+                        ),
+                        SizedBox(width: 10.w),
+                        _QuickStat(
+                          label: 'navigation.orders'.tr,
+                          value:
+                              selectedRestaurant?.todayStats?.totalOrders
+                                  .toString() ??
+                              '0',
+                          isDark: isDark,
+                        ),
+                        SizedBox(width: 10.w),
+                        _QuickStat(
+                          label: 'settings.statistics'.tr,
+                          value: 'profile.viewStats'.tr,
+                          isDark: isDark,
+                          isAction: true,
+                          onTap: () => context.push(Routes.statistics),
                         ),
                       ],
                     ),
-                  ),
+                    SizedBox(height: 24.h),
+
+                    _SectionMenuTile(
+                      key: TourKeys.settingsOptionsKey,
+                      title: 'profile.settingsSectionTitle'.tr,
+                      subtitle: 'profile.settingsSectionSubtitle'.tr,
+                      isDark: isDark,
+                      onTap: () => _showSettingsSectionSheet(context),
+                    ),
+                    SizedBox(height: 10.h),
+                    _SectionMenuTile(
+                      key: TourKeys.themeSettingKey,
+                      title: 'profile.preferencesSectionTitle'.tr,
+                      subtitle: 'profile.preferencesSectionSubtitle'.tr,
+                      isDark: isDark,
+                      onTap: () => _showPreferencesSectionSheet(context),
+                    ),
+                    SizedBox(height: 10.h),
+                    _SectionMenuTile(
+                      key: TourKeys.knowledgeBaseRowKey,
+                      title: 'profile.helpSupportSectionTitle'.tr,
+                      subtitle: 'profile.helpSupportSectionSubtitle'.tr,
+                      isDark: isDark,
+                      onTap: () => _showHelpSectionSheet(context),
+                    ),
+                    if (ordersState.completedOrders.length >= 3) ...[
+                      SizedBox(height: 16.h),
+                      const TourSectionWidget(),
+                      SizedBox(height: 12.h),
+                    ],
+                    SizedBox(height: 24.h),
+
+                    // Logout
+                    GestureDetector(
+                      onTap: () => _showLogoutConfirmation(context, ref),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.logout,
+                              size: 18.w,
+                              color: AppColors.error,
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'auth.logout'.tr,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.error,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      AppConfig.compactReleaseLabel,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: isDark
+                            ? DarkColors.textTertiary
+                            : LightColors.textTertiary,
+                      ),
+                    ),
+                    SizedBox(height: 80.h),
+                  ],
                 ),
-                SizedBox(height: 8.h),
-                Text(
-                  AppConfig.compactReleaseLabel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: isDark
-                        ? DarkColors.textTertiary
-                        : LightColors.textTertiary,
-                  ),
-                ),
-                SizedBox(height: 80.h),
-              ],
-            ),
               ),
             ),
     );
@@ -505,6 +511,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             isDark: isDark,
             onTap: () =>
                 _navigateFromSheet(sheetContext, parentContext, Routes.help),
+          ),
+          _SettingRow(
+            label: 'changelog.title'.tr,
+            isDark: isDark,
+            onTap: () => _navigateFromSheet(
+              sheetContext,
+              parentContext,
+              Routes.changelog,
+            ),
           ),
           _SettingRow(
             label: 'settings.about'.tr,

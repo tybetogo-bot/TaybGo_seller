@@ -125,7 +125,7 @@
     "all": "Kaikki",
     "done": "Valmiit",
     "expired": "Vanhentuneet",
-    "pending": "Odottavat tilaukset",
+    "pending": "Uudet tilaukset",
     "createOrder": "Luo tilaus",
     "editOrder": "Muokkaa tilausta",
     "saveChanges": "Tallenna muutokset",
@@ -233,7 +233,7 @@
     "tip": "Juomaraha",
     "orderRejected": "Tämä tilaus hylättiin",
     "orderCancelled": "Tämä tilaus peruutettiin",
-    "noPendingOrders": "Ei odottavia tilauksia",
+    "noPendingOrders": "Ei uusia tilauksia",
     "noActiveOrders": "Ei aktiivisia tilauksia",
     "noCurrentOrders": "Ei nykyisiä tilauksia",
     "noCompletedOrders": "Ei valmiita tilauksia",
@@ -500,6 +500,7 @@
     "notifications": "Ilmoitukset",
     "help": "Ohje",
     "helpSupport": "Ohje ja tuki",
+    "changelog": "Uutta",
     "about": "Tietoja",
     "restaurant": "Ravintola",
     "restaurantSettings": "Ravintolan asetukset",
@@ -641,6 +642,48 @@
     "emailDescription": "Lähetä viesti tukitiimille oletussähköpostisovelluksestasi.",
     "responseNote": "Jos ongelma liittyy aktiiviseen tiliin tai tilaukseen, tukipyynnön luominen sovelluksessa on nopein tapa, jotta tiimimme voi seurata ja ratkaista sen.",
     "linkError": "TaybGoa ei voitu avata juuri nyt. Yritä uudelleen."
+  },
+  "changelog": {
+    "title": "Uutta",
+    "subtitle": "TaybGo Sellerin uusimmat parannukset ja korjaukset.",
+    "menuSubtitle": "Katso uusimpien TaybGo Seller -versioiden muutokset.",
+    "current": "Nykyinen",
+    "version": "Versio {version}",
+    "v1013": {
+      "date": "20. elokuuta 2026",
+      "change1": "Ohje ja tuki -osioon lisättiin uusi Mitä uutta -sivu.",
+      "change2": "Odottavat tilaukset nimettiin Uusiksi tilauksiksi ja mukaan lisättiin odottavat, hyväksytyt sekä kuljettajaa etsivät tilaukset.",
+      "change3": "Lisättiin kompakti tilasuodatin uusien tilausten nopeaan löytämiseen.",
+      "change4": "Myyjän kirjautumista parannettiin lyhyille, muotoilluille ja liitetyille kansainvälisille puhelinnumeroille.",
+      "change5": "Korjattiin ongelma, joka saattoi estää tilauksen loppusumman päivittymisen tilausta luotaessa.",
+      "change6": "Toimitusajoneuvon valinnat rajattiin tällä hetkellä tuettuihin vaihtoehtoihin.",
+      "change7": "Opastettu kierros poistuu nyt automaattisesti, kun ravintolallasi on tilauksia.",
+      "change8": "Kaikille uusille näytöille ja parannuksille lisättiin käännökset."
+    },
+    "v1012": {
+      "date": "19. heinäkuuta 2026",
+      "change1": "Myyjän kirjautumista parannettiin maakohtaisella muotoilulla ja lyhyiden testinumeroiden tuella.",
+      "change2": "Liitettyjen kansainvälisten numeroiden tuki ja automaattinen maatunnistus + ja 00 -etuliitteille.",
+      "change3": "Muotoiltujen puhelinnumeroiden sekä arabialaisten ja persialaisten numeroiden tuki."
+    },
+    "v1011": {
+      "date": "17. heinäkuuta 2026",
+      "change1": "Myyjälle näkyvät hinnat ja summat yhtenäistettiin euro-symboliin.",
+      "change2": "Valuuttanäyttö päivitettiin tilauksiin, tuloihin, ruokalistoihin, ohjeisiin ja PDF-kuitteihin.",
+      "change3": "Verkkosovelluksen asetukset ja hosting yhdenmukaistettiin."
+    },
+    "v1010": {
+      "date": "11. heinäkuuta 2026",
+      "change1": "Ruokatilauksen hinta päivittyy asiakkaan puhelimen tai maan muuttuessa.",
+      "change2": "Ajoneuvotyyppi lisättiin ruokatilausten hinnoitteluun, luontiin ja päivitykseen.",
+      "change3": "Hinta-arvioiden tarkkuutta parannettiin ennen tilauksen lähettämistä."
+    },
+    "v109": {
+      "date": "10. heinäkuuta 2026",
+      "change1": "Myyjäprofiili uudistettiin kompaktilla ravintolaotsikolla ja ryhmitellyillä asetuksilla.",
+      "change2": "Toimituksen saatavuuden hallinta lisättiin ja ravintolan tila pidetään synkronoituna.",
+      "change3": "Tilaustoiminnot päivitettiin palvelimen sallimien tilojen mukaisiksi."
+    }
   },
   "earnings": {
     "title": "Ansiot",
