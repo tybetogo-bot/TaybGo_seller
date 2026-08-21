@@ -99,6 +99,7 @@ abstract class OrderStatus {
   static const String accepted = 'ACCEPTED';
   static const String onTheWay = 'ON_THE_WAY';
   static const String delivered = 'DELIVERED';
+  static const String restaurantDelivered = 'RESTAURANT_DELIVERED';
   static const String completed = 'COMPLETED';
   static const String expired = 'EXPIRED';
   static const String rejected = 'REJECTED';

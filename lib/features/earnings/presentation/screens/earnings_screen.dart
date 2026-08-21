@@ -414,7 +414,7 @@ class _SummarySection extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  '\$${summary.totalEarnings.toStringAsFixed(2)}',
+                  '€${summary.totalEarnings.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
@@ -440,8 +440,8 @@ class _SummarySection extends StatelessWidget {
               Expanded(
                 child: _MiniStatCard(
                   label: 'earnings.subtotal'.tr,
-                  value: '\$${summary.grossSubtotal.toStringAsFixed(2)}',
-                  icon: Icons.attach_money,
+                  value: '€${summary.grossSubtotal.toStringAsFixed(2)}',
+                  icon: Icons.euro,
                   isDark: isDark,
                 ),
               ),
@@ -449,7 +449,7 @@ class _SummarySection extends StatelessWidget {
               Expanded(
                 child: _MiniStatCard(
                   label: 'earnings.discounts'.tr,
-                  value: '\$${summary.totalDiscounts.toStringAsFixed(2)}',
+                  value: '€${summary.totalDiscounts.toStringAsFixed(2)}',
                   icon: Icons.discount_outlined,
                   isDark: isDark,
                 ),
@@ -568,7 +568,7 @@ class _EarningItemCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${item.earningAmount.toStringAsFixed(2)}',
+                '€${item.earningAmount.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -625,7 +625,7 @@ class _EarningItemCard extends StatelessWidget {
               ),
               if (item.discountAmount > 0)
                 Text(
-                  '-\$${item.discountAmount.toStringAsFixed(2)}',
+                  '-€${item.discountAmount.toStringAsFixed(2)}',
                   style: TextStyle(fontSize: 12.sp, color: AppColors.error),
                 ),
             ],

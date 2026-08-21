@@ -38,7 +38,8 @@
     "version": "Versioun",
     "undo": "Réckgängeg maachen",
     "optional": "Optional",
-    "required": "Erfuerderlech"
+    "required": "Erfuerderlech",
+    "missing": "Feelt"
   },
   "auth": {
     "phoneNumber": "Telefonsnummer",
@@ -124,7 +125,7 @@
     "all": "All",
     "done": "Fäerdeg",
     "expired": "Ofgelaf",
-    "pending": "Offstehend Bestellungen",
+    "pending": "Nei Bestellungen",
     "createOrder": "Bestelling erstellen",
     "editOrder": "Bestellung änneren",
     "saveChanges": "Ännerunge späicheren",
@@ -165,6 +166,7 @@
     "noItems": "Keng Artikelen derbäigesat",
     "emptyItemsWarning": "Dës Bestellung huet keng Artikelen. Füügt wgl. mindestens een Artikel derbäi fir weiderzefueren.",
     "orderCreated": "Bestelling erfollegräich erstellt!",
+    "orderCreationFailed": "D'Bestellung konnt net erstallt ginn",
     "reorder": "Nach eng Kéier bestellen",
     "selectItemFromMenu": "Wielt w.e.g. en Artikel aus dem Menü",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Chauffeur gesäit ginn",
       "driverNotificationSent": "Waart op Chauffeur",
       "delivered": "Geliwwert",
+      "restaurantDelivered": "Vum Restaurant geliwwert",
       "rejected": "Ofgeleent",
       "cancelled": "Annuléiert"
     },
     "requestDriver": "Chauffeur ufroe",
+    "markRestaurantDelivered": "Als vum Restaurant geliwwert markéieren",
     "waitingForDriver": "Op Chauffeur waarden...",
     "orderRejectedByRestaurant": "Dës Bestelling gouf vum Restaurant ofgeleent",
     "orderWasCancelled": "Dës Bestelling gouf annuléiert",
@@ -219,6 +223,7 @@
       "onTheWay": "Ënnerwee beim Client",
       "delivery": "Ënnerwee beim Client",
       "delivered": "Bestelling erfollegräich ofgeschloss",
+      "restaurantDelivered": "Direkt vum Restaurant ofgehandelt",
       "rejected": "Bestelling gouf ofgeleent",
       "cancelled": "Bestelling gouf annuléiert"
     },
@@ -228,7 +233,7 @@
     "tip": "Trinkgeld",
     "orderRejected": "Dës Bestelling gouf ofgeleent",
     "orderCancelled": "Dës Bestelling gouf annuléiert",
-    "noPendingOrders": "Keng aussteend Bestellungen",
+    "noPendingOrders": "Keng nei Bestellungen",
     "noActiveOrders": "Keng aktiv Bestellungen",
     "noCurrentOrders": "Keng aktuell Bestellungen",
     "noCompletedOrders": "Keng ofgeschloss Bestellungen",
@@ -244,6 +249,30 @@
     "orderItems": "Bestallt Artikelen",
     "payment": "Bezuelung",
     "orderSummary": "Bestellungszesummenfaassung",
+    "pricingAddressError": "D'Liwwerungsadress konnt net benotzt ginn. Wielt se nach eng Kéier aus.",
+    "pricingServerError": "D'Bestelltotal konnt elo net aktualiséiert ginn. Probéiert et gläich nach eng Kéier.",
+    "pricingError": "D'Bestelltotal konnt net aktualiséiert ginn. Kontrolléiert d'Detailer a probéiert et nach eng Kéier.",
+    "pricingAddressCoordinatesRequired": "Wielt e Virschlag fir d'Liwwerungsadress, fir d'Distanz ze berechnen.",
+    "pricingAddressRequired": "Gitt d'Liwwerungsadress an, fir de Präis ze berechnen.",
+    "pricingItemsRequired": "Setzt op d'mannst een Artikel derbäi, fir d'Bestelltotal ze gesinn.",
+    "pricingPickupRequired": "Beim ausgewielte Restaurant feelt eng Ofhuelplaz.",
+    "livePricingPendingTitle": "Fëllt d'Detailer aus, fir d'Bestelltotal ze gesinn",
+    "livePricingErrorTitle": "D'Bestelltotal konnt net aktualiséiert ginn",
+    "livePricingLoadingTitle": "Bestelltotal gëtt aktualiséiert",
+    "livePricingLoading": "Bestelltotal gëtt aktualiséiert...",
+    "livePricingWaiting": "D'Bestelltotal gëtt aktualiséiert, wann Är lescht Ännerunge veraarbecht sinn.",
+    "livePricingRefreshing": "D'Bestelltotal gëtt nach aktualiséiert. Waart w.e.g. e Moment.",
+    "livePricingRequired": "Waart w.e.g. op d'Aktualiséierung vun der Bestelltotal.",
+    "livePricingTitle": "Bestelltotal",
+    "livePricingSubtitle": "D'Total aktualiséiert sech automatesch, wann Dir d'Bestellung ännert.",
+    "deliveryFeeCalculatedTitle": "Liwwerungsdetailer",
+    "deliveryFeeCalculatedHint": "D'Liwwerungskäschte sinn an der Bestelltotal abegraff.",
+    "customerLabel": "Client",
+    "customerAddressLabel": "Client: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} Min.",
+    "percentOff": "{value}% Remise",
+    "quantity": "Quantitéit",
     "deliveryOptions": "Liwwerungsoptiounen",
     "requestedVehicleType": "Fuerzeegart",
     "requestedDeliveryType": "Liwwerungsaart",
@@ -471,6 +500,7 @@
     "notifications": "Notifikatiounen",
     "help": "Hëllef",
     "helpSupport": "Hëllef & Support",
+    "changelog": "Neiheeten",
     "about": "Iwwer",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurantastellungen",
@@ -534,7 +564,16 @@
     "registrationDocumentAddedLocked": "Dobäigesat a gespaart. Dës Säit ass nëmme fir d'Vue.",
     "registrationDocumentMissing": "Keng Registratiounsdokument gouf op dësem Verkeeferprofil fonnt.",
     "invalidDocumentUrl": "Ongëlteg Dokument-URL.",
-    "documentOpenFailed": "D'Dokument konnt net opgemaach ginn."
+    "documentOpenFailed": "D'Dokument konnt net opgemaach ginn.",
+    "deliveryEnabled": "Liwwerung aktivéiert",
+    "deliveryDisabled": "Liwwerung desaktivéiert",
+    "editProfile": "Profil änneren",
+    "settingsSectionTitle": "Astellungen",
+    "settingsSectionSubtitle": "Akommes, Couponen a Notifikatiounen",
+    "preferencesSectionTitle": "Preferenzen",
+    "preferencesSectionSubtitle": "Däischtere Modus, Sprooch an Akzentfaarf",
+    "helpSupportSectionTitle": "Hëllef & Support",
+    "helpSupportSectionSubtitle": "Wëssensdatenbank, Support, Hëllef, Iwwer an Account läschen"
   },
   "deleteAccount": {
     "title": "Kont läschen",
@@ -594,7 +633,57 @@
     "contactUs": "Kontaktéiert eis",
     "callSupport": "Support uruffen",
     "liveChat": "Live-Chat",
-    "liveChatDesc": "Mat eisem Supportteam chaten"
+    "liveChatDesc": "Mat eisem Supportteam chaten",
+    "description": "Benotzt den TaybGo-Support wann Dir Hëllef mam Kontozougang, Bestellungen, Ausbezuelungen oder dem alldeegleche Verkeeferbetrib braucht.",
+    "visitWebsite": "Op taybgo.com goen",
+    "websiteTitle": "TaybGo Websäit",
+    "websiteDescription": "Maacht taybgo.com op fir Plattforminformatiounen an direkt Kontaktméiglechkeeten.",
+    "emailTitle": "Support per E-Mail",
+    "emailDescription": "Schéckt eng Noriicht un eist Supportteam iwwer Är Standard-Mail-App.",
+    "responseNote": "Bei Problemer mam Kont oder mat Bestellungen ass e Support-Ticket an der App déi schnellst Manéier, fir datt eist Team de Problem novollzéie kann an léist.",
+    "linkError": "TaybGo konnt elo net opgemaach ginn. Probéiert et nach eng Kéier."
+  },
+  "changelog": {
+    "title": "Neiheeten",
+    "subtitle": "Déi lescht Verbesserungen a Korrekturen am TaybGo Seller.",
+    "menuSubtitle": "Kuckt, wat sech an de leschten TaybGo Seller-Versioune geännert huet.",
+    "current": "Aktuell",
+    "version": "Versioun {version}",
+    "v1013": {
+      "date": "20. August 2026",
+      "change1": "Eng nei Säit Wat ass nei ënner Hëllef & Support gouf bäigesat.",
+      "change2": "Waarden Bestellunge goufen op Nei Bestellungen ëmbenannt an enthalen elo waarden, akzeptéiert a Bestellunge mat Chauffersich.",
+      "change3": "E kompakte Statusfilter gouf bäigesat fir nei Bestellunge séier ze fannen.",
+      "change4": "De Verkeefer-Login gouf fir kuerz, formatéiert an agepecht international Telefonsnummere verbessert.",
+      "change5": "E Problem gouf behuewen, deen d'Aktualiséierung vum Gesamtpräis beim Erstelle konnt verhënneren.",
+      "change6": "D'Auswiel u Liwwerween ass op aktuell ënnerstëtzt Optioune limitéiert.",
+      "change7": "D'Guide-Tour verschwënnt elo automatesch, soubal Äre Restaurant Bestellungen huet.",
+      "change8": "Iwwersetzunge fir all nei Ecranen a Verbesserunge goufen bäigesat."
+    },
+    "v1012": {
+      "date": "19. Juli 2026",
+      "change1": "Verbesserte Verkeefer-Login mat landspezifescher Formatéierung an Ënnerstëtzung fir kuerz Testnummeren.",
+      "change2": "Ënnerstëtzung fir agepecht international Nummeren mat automatescher Landerkennung fir + an 00.",
+      "change3": "Ënnerstëtzung fir formatéiert Telefonsnummeren an arabesch a persesch Zifferen."
+    },
+    "v1011": {
+      "date": "17. Juli 2026",
+      "change1": "Präisser an Totaler fir Verkeefer eenheetlech mam Euro-Symbol ugewisen.",
+      "change2": "Währungsuweisung an Bestellungen, Akommes, Menüen, Hëllef an PDF-Quittungen aktualiséiert.",
+      "change3": "Web-App-Konfiguratioun an Hosting fir eng méi konsequent Versioun ugepasst."
+    },
+    "v1010": {
+      "date": "11. Juli 2026",
+      "change1": "Präis vun Iessbestellungen gëtt bei Ännerunge vun Telefon oder Land aktualiséiert.",
+      "change2": "Gefiertyp bei Präis, Erstellen an Aktualiséiere vun Iessbestellungen dobäigesat.",
+      "change3": "Genauegkeet vun der Präisvirschau virum Ofschécke verbessert."
+    },
+    "v109": {
+      "date": "10. Juli 2026",
+      "change1": "Verkeeferprofil mat kompakter Restaurant-Kappzeil a gruppéierten Astellungen nei gestalt.",
+      "change2": "Steierung vun der Liwwerverfügbarkeet dobäigesat an de Restaurantstatus synchron gehalen.",
+      "change3": "Bestellaktiounen un déi vum Server erlaabte Statussen ugepasst."
+    }
   },
   "earnings": {
     "title": "Akommes",
@@ -628,7 +717,11 @@
     "title": "Iwwer",
     "version": "Versioun {version}",
     "description": "Verwaltet Är Restaurantbestellungen, Menü a Clienten alles op enger Plaz.",
-    "copyright": "© 2024 TaybGo. All Rechter virbehal."
+    "copyright": "© 2024 TaybGo. All Rechter virbehal.",
+    "partnerTools": "Verkeefer-Aarbechtsberäich",
+    "websiteLabel": "Websäit",
+    "supportEmailLabel": "Support-E-Mail",
+    "visitWebsite": "TaybGo besichen"
   },
   "validation": {
     "required": "Dëst Feld ass erfuerderlech",
@@ -639,6 +732,7 @@
     "invalidPrice": "Ongültege Präis",
     "enterCustomerName": "Gitt w.e.g. den Clientsnumm an",
     "enterAddress": "Gitt w.e.g. d'Liwwerungsadress an",
+    "noRestaurantSelected": "Kee Restaurant ausgewielt",
     "enterStreetAndBuilding": "Gitt w.e.g. Adress mat Strooss a Gebäudnummer an",
     "addAtLeastOneItem": "Setzt w.e.g. op mannst een Artikel derbäi",
     "codeTooShort": "Code muss op mannst 4 Zeeche laang sinn",
@@ -738,6 +832,8 @@
     "goHome": "Heem goen"
   },
   "restaurantStatus": {
+    "active": "Restaurant ass aktiv",
+    "pending": "Restaurant waart op Geneemegung",
     "pendingApproval": "Restaurant waart op Geneemegung",
     "inactive": "Restaurant ass inaktiv"
   },
@@ -1182,7 +1278,13 @@
     "initialMessageHint": "Beschreift Äre Problem am Detail...",
     "noTickets": "Keng Ticketen nach",
     "noTicketsDesc": "Erstellt ee Ticket fir Hëllef vun eisem Supportteam ze kréien",
-    "ticketCreated": "Ticket erfollegräich erstellt"
+    "ticketCreated": "Ticket erfollegräich erstellt",
+    "statusWaitingOnCustomer": "Waart op de Client",
+    "statusResolved": "Geléist",
+    "categoryPayment": "Bezuelung",
+    "categoryDelivery": "Liwwerung",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Dréngend"
   },
   "location": {
     "permissionRequired": "Standuerterlabnis erfuerderlech",
