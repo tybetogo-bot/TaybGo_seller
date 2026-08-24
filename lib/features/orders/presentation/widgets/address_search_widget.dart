@@ -9,7 +9,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:geolocator/geolocator.dart';
 
+import '../../../../core/config/google_maps_config.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/services/web_places_bridge.dart';
 import '../../../../core/theme/theme.dart';
 import '../../data/models/order_model.dart';
 
@@ -227,14 +229,8 @@ const List<_SupportedCountry> _supportedCountries = [
   _SupportedCountry(code: 'zw', name: 'Zimbabwe'),
 ];
 
-/// Google Places API key
-const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
-
-/// Google Places API service using Places API (New) v1.
-///
-/// The legacy `maps.googleapis.com/maps/api/place/*` endpoints don't send
-/// CORS headers, so browsers block them. The new `places.googleapis.com/v1`
-/// endpoints support CORS. Enable "Places API (New)" in your GCP console.
+/// Google Places service. Web uses the Maps JavaScript API while native
+/// platforms use Places API (New) REST.
 class _PlacesApiService {
   static final Dio _dio = Dio(
     BaseOptions(
@@ -249,6 +245,25 @@ class _PlacesApiService {
     String? countryCode,
   }) async {
     try {
+      if (kIsWeb) {
+        final suggestions = await webPlacesAutocomplete(
+          GoogleMapsConfig.apiKey,
+          query,
+          countryCode: countryCode,
+        );
+        return suggestions
+            .map(
+              (prediction) => _PlacePrediction(
+                placeId: prediction['placeId'] as String? ?? '',
+                description: prediction['description'] as String? ?? '',
+                mainText: prediction['mainText'] as String? ?? '',
+                secondaryText: prediction['secondaryText'] as String? ?? '',
+              ),
+            )
+            .where((prediction) => prediction.placeId.isNotEmpty)
+            .toList();
+      }
+
       const url = 'https://places.googleapis.com/v1/places:autocomplete';
       final body = <String, dynamic>{
         'input': query,
@@ -267,7 +282,7 @@ class _PlacesApiService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
           },
         ),
       );
@@ -288,7 +303,8 @@ class _PlacesApiService {
               if (prediction == null) return null;
 
               final placeResource = prediction['place'] as String? ?? '';
-              final placeId = prediction['placeId'] as String? ??
+              final placeId =
+                  prediction['placeId'] as String? ??
                   (placeResource.startsWith('places/')
                       ? placeResource.substring(7)
                       : placeResource);
@@ -324,6 +340,10 @@ class _PlacesApiService {
   /// Reverse geocode coordinates to a country ISO code.
   static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
     try {
+      if (kIsWeb) {
+        return webReverseGeocodeCountry(GoogleMapsConfig.apiKey, lat, lng);
+      }
+
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       final body = <String, dynamic>{
         'locationRestriction': {
@@ -341,7 +361,7 @@ class _PlacesApiService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask': 'places.addressComponents',
           },
         ),
@@ -356,12 +376,12 @@ class _PlacesApiService {
       final components =
           (places[0] as Map<String, dynamic>)['addressComponents']
               as List<dynamic>? ??
-              [];
+          [];
       for (final component in components) {
         final types =
             ((component as Map<String, dynamic>)['types'] as List<dynamic>?)
-                    ?.cast<String>() ??
-                [];
+                ?.cast<String>() ??
+            [];
         if (types.contains('country')) {
           return (component['shortText'] as String?)?.toLowerCase();
         }
@@ -380,6 +400,18 @@ class _PlacesApiService {
     String address,
   ) async {
     try {
+      if (kIsWeb) {
+        final result = await webGeocodeAddress(
+          GoogleMapsConfig.apiKey,
+          address,
+        );
+        if (result == null) return null;
+        return (
+          lat: (result['latitude'] as num).toDouble(),
+          lng: (result['longitude'] as num).toDouble(),
+        );
+      }
+
       const url = 'https://places.googleapis.com/v1/places:searchText';
       final body = <String, dynamic>{'textQuery': address};
 
@@ -389,7 +421,7 @@ class _PlacesApiService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask': 'places.location',
           },
         ),
@@ -421,6 +453,21 @@ class _PlacesApiService {
   /// Get place details including lat/lng
   static Future<_PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
+      if (kIsWeb) {
+        final data = await webPlaceDetails(GoogleMapsConfig.apiKey, placeId);
+        if (data == null) return null;
+        return _PlaceDetails(
+          latitude: (data['latitude'] as num?)?.toDouble(),
+          longitude: (data['longitude'] as num?)?.toDouble(),
+          formattedAddress: data['formattedAddress'] as String?,
+          streetName: data['streetName'] as String?,
+          streetNumber: data['streetNumber'] as String?,
+          city: data['city'] as String?,
+          postalCode: data['postalCode'] as String?,
+          country: data['country'] as String?,
+        );
+      }
+
       final url = 'https://places.googleapis.com/v1/places/$placeId';
 
       if (kDebugMode) {
@@ -433,7 +480,7 @@ class _PlacesApiService {
         url,
         options: Options(
           headers: {
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask':
                 'id,location,addressComponents,formattedAddress',
           },
@@ -443,8 +490,7 @@ class _PlacesApiService {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final location = data['location'] as Map<String, dynamic>?;
-        final components =
-            data['addressComponents'] as List<dynamic>? ?? [];
+        final components = data['addressComponents'] as List<dynamic>? ?? [];
 
         String? streetNumber;
         String? streetName;
