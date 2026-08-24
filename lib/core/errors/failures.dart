@@ -30,10 +30,7 @@ class NetworkFailure extends Failure {
 
 /// Validation failure
 class ValidationFailure extends Failure {
-  const ValidationFailure({
-    required super.message,
-    this.errors,
-  });
+  const ValidationFailure({required super.message, this.errors});
 
   final Map<String, List<String>>? errors;
 
@@ -43,5 +40,10 @@ class ValidationFailure extends Failure {
 
 /// Authentication failure
 class AuthFailure extends Failure {
-  const AuthFailure({required super.message});
+  const AuthFailure({required super.message, this.code});
+
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, code];
 }

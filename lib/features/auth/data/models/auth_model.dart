@@ -5,6 +5,33 @@ library;
 import '../../../../core/config/constants.dart';
 
 // ============================================================================
+// Password Login Models
+// ============================================================================
+
+class PasswordLoginRequest {
+  const PasswordLoginRequest({required this.phone, required this.password});
+
+  final String phone;
+  final String password;
+
+  Map<String, dynamic> toJson() => {'phone': phone, 'password': password};
+}
+
+class PasswordLoginResponse {
+  const PasswordLoginResponse({required this.access, required this.refresh});
+
+  final String access;
+  final String refresh;
+
+  factory PasswordLoginResponse.fromJson(Map<String, dynamic> json) {
+    return PasswordLoginResponse(
+      access: json['access'] as String,
+      refresh: json['refresh'] as String,
+    );
+  }
+}
+
+// ============================================================================
 // OTP Request Models
 // ============================================================================
 

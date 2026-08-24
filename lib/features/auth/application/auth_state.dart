@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/constants.dart';
+import '../../../core/errors/failures.dart';
 import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/location_permission_service.dart';
@@ -57,10 +58,11 @@ class AuthUnauthenticated extends AuthState {
 
 /// Authentication error
 class AuthError extends AuthState {
-  const AuthError({required this.message, this.previousState});
+  const AuthError({required this.message, this.previousState, this.code});
 
   final String message;
   final AuthState? previousState;
+  final String? code;
 }
 
 enum SellerAccessStatus { seller, needsOnboarding, forbidden }
@@ -101,6 +103,33 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> loginWithPassword({
+    required String phone,
+    required String password,
+  }) async {
+    state = const AuthLoading();
+    final result = await _repository.loginWithPassword(
+      phone: phone,
+      password: password,
+    );
+
+    if (result.failure != null) {
+      state = AuthError(
+        message: result.failure!.message,
+        code: result.failure is AuthFailure
+            ? (result.failure! as AuthFailure).code
+            : null,
+        previousState: const AuthUnauthenticated(),
+      );
+      return;
+    }
+
+    await _completeSellerAuthentication(
+      phone: phone,
+      previousState: const AuthUnauthenticated(),
+    );
+  }
+
   /// Request OTP for phone number
   Future<void> requestOtp({
     required String phone,
@@ -116,6 +145,9 @@ class AuthNotifier extends Notifier<AuthState> {
     if (result.failure != null) {
       state = AuthError(
         message: result.failure!.message,
+        code: result.failure is AuthFailure
+            ? (result.failure! as AuthFailure).code
+            : null,
         previousState: const AuthUnauthenticated(),
       );
     } else {
@@ -161,28 +193,10 @@ class AuthNotifier extends Notifier<AuthState> {
         previousState: otpState,
       );
     } else {
-      final accessStatus = await _getSellerAccessStatus();
-      if (accessStatus == SellerAccessStatus.forbidden) {
-        await _repository.clearAuthData();
-        state = AuthError(
-          message: 'errors.auth.forbidden'.tr,
-          previousState: otpState,
-        );
-        return;
-      }
-
-      state = AuthAuthenticated(phone: otpState.phone);
-
-      ref
-          .read(locationPermissionAutoRequestProvider.notifier)
-          .queueAfterLogin();
-
-      if (accessStatus == SellerAccessStatus.needsOnboarding) {
-        ref.read(restaurantProvider.notifier).setOnboardingPending();
-      } else {
-        // Trigger restaurant fetch after successful login
-        ref.read(restaurantProvider.notifier).fetchRestaurants();
-      }
+      await _completeSellerAuthentication(
+        phone: otpState.phone,
+        previousState: otpState,
+      );
     }
   }
 
@@ -200,6 +214,10 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Go back to phone input (from OTP screen)
   void goBackToPhoneInput() {
     state = const AuthUnauthenticated();
+  }
+
+  void clearError() {
+    if (state is AuthError) state = const AuthUnauthenticated();
   }
 
   /// Logout
@@ -259,6 +277,30 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Check if user is logged in
   bool get isLoggedIn => state is AuthAuthenticated;
+
+  Future<void> _completeSellerAuthentication({
+    required String phone,
+    required AuthState previousState,
+  }) async {
+    final accessStatus = await _getSellerAccessStatus();
+    if (accessStatus == SellerAccessStatus.forbidden) {
+      await _repository.clearAuthData();
+      state = AuthError(
+        message: 'errors.auth.forbidden'.tr,
+        previousState: previousState,
+      );
+      return;
+    }
+
+    state = AuthAuthenticated(phone: phone);
+    ref.read(locationPermissionAutoRequestProvider.notifier).queueAfterLogin();
+
+    if (accessStatus == SellerAccessStatus.needsOnboarding) {
+      ref.read(restaurantProvider.notifier).setOnboardingPending();
+    } else {
+      ref.read(restaurantProvider.notifier).fetchRestaurants();
+    }
+  }
 
   Future<SellerAccessStatus> _getSellerAccessStatus() async {
     try {

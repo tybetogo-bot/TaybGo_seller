@@ -13,6 +13,20 @@ class AuthApi {
 
   AuthApi(this._dio);
 
+  /// Authenticate a password-only role and get tokens.
+  /// POST /api/auth/token/
+  Future<PasswordLoginResponse> loginWithPassword(
+    PasswordLoginRequest request,
+  ) async {
+    final response = await _dio.post(
+      '/api/auth/token/',
+      data: request.toJson(),
+    );
+    return PasswordLoginResponse.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
   /// Request OTP for phone number
   /// POST /api/auth/otp/request/
   Future<OtpRequestResponse> requestOtp(OtpRequest request) async {
