@@ -11,6 +11,9 @@ class EnvConfig {
   static const String supportEmail = 'support@taybgo.com';
 
   static const String _env = String.fromEnvironment('ENV', defaultValue: 'dev');
+  static const String _apiBaseUrlOverride = String.fromEnvironment(
+    'API_BASE_URL',
+  );
 
   static Environment get environment =>
       _env == 'prod' ? Environment.prod : Environment.dev;
@@ -19,8 +22,9 @@ class EnvConfig {
   static bool get isProd => environment == Environment.prod;
 
   /// API base URL
-  static String get apiBaseUrl =>
-      isDev ? 'https://dev.taybgo.com' : 'https://taybgo.com';
+  static String get apiBaseUrl => _apiBaseUrlOverride.isNotEmpty
+      ? _apiBaseUrlOverride
+      : (isDev ? 'https://dev.taybgo.com' : 'https://taybgo.com');
 
   /// App display name
   static String get appName => isDev ? 'Seller Dev' : 'TaybGo Seller';
@@ -30,9 +34,7 @@ class EnvConfig {
 
   /// Web deployment base URL
   static String get webBaseUrl =>
-      isDev
-          ? 'https://dev-seller.taybgo.com'
-          : 'https://tybetogoseller.web.app';
+      isDev ? 'https://dev-seller.taybgo.com' : 'https://sellertaybgo.web.app';
 
   /// Whether to show debug banner and verbose logging
   static bool get showDebugBanner => isDev;

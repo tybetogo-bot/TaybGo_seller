@@ -38,7 +38,8 @@
     "version": "Versione",
     "undo": "Annulla",
     "optional": "Opzionale",
-    "required": "Obbligatorio"
+    "required": "Obbligatorio",
+    "missing": "Mancante"
   },
   "auth": {
     "phoneNumber": "Numero di telefono",
@@ -124,7 +125,7 @@
     "all": "Tutti",
     "done": "Fatto",
     "expired": "Scaduti",
-    "pending": "Ordini in attesa",
+    "pending": "Nuovi ordini",
     "createOrder": "Crea ordine",
     "editOrder": "Modifica ordine",
     "saveChanges": "Salva modifiche",
@@ -165,6 +166,7 @@
     "noItems": "Nessun articolo aggiunto",
     "emptyItemsWarning": "Questo ordine non contiene articoli. Aggiungi almeno un articolo per continuare.",
     "orderCreated": "Ordine creato con successo!",
+    "orderCreationFailed": "Impossibile creare l'ordine",
     "reorder": "Riordina",
     "selectItemFromMenu": "Seleziona un articolo dal menu",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Ricerca autista",
       "driverNotificationSent": "In attesa autista",
       "delivered": "Consegnato",
+      "restaurantDelivered": "Consegnato dal ristorante",
       "rejected": "Rifiutato",
       "cancelled": "Annullato"
     },
     "requestDriver": "Richiedi autista",
+    "markRestaurantDelivered": "Segna come consegnato dal ristorante",
     "waitingForDriver": "In attesa dell'autista...",
     "orderRejectedByRestaurant": "Questo ordine è stato rifiutato dal ristorante",
     "orderWasCancelled": "Questo ordine è stato annullato",
@@ -219,6 +223,7 @@
       "onTheWay": "In viaggio verso il cliente",
       "delivery": "In viaggio verso il cliente",
       "delivered": "Ordine completato con successo",
+      "restaurantDelivered": "Gestito direttamente dal ristorante",
       "rejected": "Ordine rifiutato",
       "cancelled": "Ordine annullato"
     },
@@ -228,7 +233,7 @@
     "tip": "Mancia",
     "orderRejected": "Questo ordine è stato rifiutato",
     "orderCancelled": "Questo ordine è stato annullato",
-    "noPendingOrders": "Nessun ordine in attesa",
+    "noPendingOrders": "Nessun nuovo ordine",
     "noActiveOrders": "Nessun ordine attivo",
     "noCurrentOrders": "Nessun ordine corrente",
     "noCompletedOrders": "Nessun ordine completato",
@@ -244,6 +249,30 @@
     "orderItems": "Articoli dell'ordine",
     "payment": "Pagamento",
     "orderSummary": "Riepilogo ordine",
+    "pricingAddressError": "Non è stato possibile usare questo indirizzo di consegna. Selezionalo di nuovo.",
+    "pricingServerError": "Non è stato possibile aggiornare il totale. Riprova tra poco.",
+    "pricingError": "Non è stato possibile aggiornare il totale. Controlla i dettagli dell'ordine e riprova.",
+    "pricingAddressCoordinatesRequired": "Seleziona un suggerimento per l'indirizzo di consegna per calcolare la distanza.",
+    "pricingAddressRequired": "Inserisci l'indirizzo di consegna per calcolare il prezzo.",
+    "pricingItemsRequired": "Aggiungi almeno un articolo per vedere il totale dell'ordine.",
+    "pricingPickupRequired": "Al ristorante selezionato manca un punto di ritiro.",
+    "livePricingPendingTitle": "Completa i dettagli dell'ordine per vedere il totale",
+    "livePricingErrorTitle": "Impossibile aggiornare il totale dell'ordine",
+    "livePricingLoadingTitle": "Aggiornamento del totale dell'ordine",
+    "livePricingLoading": "Aggiornamento del totale dell'ordine...",
+    "livePricingWaiting": "Il totale si aggiornerà dopo l'elaborazione delle ultime modifiche.",
+    "livePricingRefreshing": "Il totale è ancora in aggiornamento. Attendi un momento.",
+    "livePricingRequired": "Attendi l'aggiornamento del totale prima di continuare.",
+    "livePricingTitle": "Totale dell'ordine",
+    "livePricingSubtitle": "Il totale si aggiorna automaticamente quando modifichi l'ordine.",
+    "deliveryFeeCalculatedTitle": "Dettagli della consegna",
+    "deliveryFeeCalculatedHint": "Il costo di consegna è incluso nel totale dell'ordine.",
+    "customerLabel": "Cliente",
+    "customerAddressLabel": "Cliente: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% di sconto",
+    "quantity": "Quantità",
     "deliveryOptions": "Opzioni di consegna",
     "requestedVehicleType": "Tipo di veicolo",
     "requestedDeliveryType": "Tipo di consegna",
@@ -471,6 +500,7 @@
     "notifications": "Notifiche",
     "help": "Aiuto",
     "helpSupport": "Aiuto e supporto",
+    "changelog": "Novità",
     "about": "Informazioni",
     "restaurant": "Ristorante",
     "restaurantSettings": "Impostazioni ristorante",
@@ -534,7 +564,16 @@
     "registrationDocumentAddedLocked": "Aggiunto e bloccato. Questa pagina è solo di visualizzazione.",
     "registrationDocumentMissing": "Nessun documento di registrazione trovato in questo profilo venditore.",
     "invalidDocumentUrl": "URL del documento non valido.",
-    "documentOpenFailed": "Impossibile aprire il documento."
+    "documentOpenFailed": "Impossibile aprire il documento.",
+    "deliveryEnabled": "Consegna abilitata",
+    "deliveryDisabled": "Consegna disabilitata",
+    "editProfile": "Modifica profilo",
+    "settingsSectionTitle": "Impostazioni",
+    "settingsSectionSubtitle": "Guadagni, coupon e notifiche",
+    "preferencesSectionTitle": "Preferenze",
+    "preferencesSectionSubtitle": "Modalità scura, lingua e tema accento",
+    "helpSupportSectionTitle": "Aiuto e supporto",
+    "helpSupportSectionSubtitle": "Base di conoscenza, supporto, aiuto, info ed elimina account"
   },
   "deleteAccount": {
     "title": "Elimina account",
@@ -594,7 +633,57 @@
     "contactUs": "Contattaci",
     "callSupport": "Chiama il supporto",
     "liveChat": "Chat dal vivo",
-    "liveChatDesc": "Chatta con il nostro team di supporto"
+    "liveChatDesc": "Chatta con il nostro team di supporto",
+    "description": "Usa il supporto TaybGo ogni volta che hai bisogno di aiuto con accesso all’account, ordini, pagamenti o operazioni quotidiane del venditore.",
+    "visitWebsite": "Vai su taybgo.com",
+    "websiteTitle": "Sito TaybGo",
+    "websiteDescription": "Apri taybgo.com per informazioni sulla piattaforma e opzioni di contatto diretto.",
+    "emailTitle": "Invia un’e-mail al supporto",
+    "emailDescription": "Invia un messaggio al nostro team di supporto dalla tua app e-mail predefinita.",
+    "responseNote": "Per problemi con account o ordini in corso, creare un ticket di supporto nell’app è il modo più rapido perché il nostro team possa seguire e risolvere il problema.",
+    "linkError": "Impossibile aprire TaybGo in questo momento. Riprova."
+  },
+  "changelog": {
+    "title": "Novità",
+    "subtitle": "Gli ultimi miglioramenti e correzioni di TaybGo Seller.",
+    "menuSubtitle": "Scopri cosa è cambiato nelle ultime versioni di TaybGo Seller.",
+    "current": "Attuale",
+    "version": "Versione {version}",
+    "v1013": {
+      "date": "20 agosto 2026",
+      "change1": "Aggiunta una nuova pagina Novità in Aiuto e assistenza.",
+      "change2": "Ordini in sospeso è stato rinominato Nuovi ordini e ora include ordini in sospeso, accettati e in cerca di autista.",
+      "change3": "Aggiunto un filtro di stato compatto per trovare rapidamente i diversi tipi di nuovi ordini.",
+      "change4": "Migliorato l'accesso del venditore per numeri brevi, formattati e internazionali incollati.",
+      "change5": "Risolto un problema che poteva impedire l'aggiornamento del totale durante la creazione dell'ordine.",
+      "change6": "Le opzioni del veicolo di consegna sono limitate a quelle attualmente supportate.",
+      "change7": "Il tour guidato ora scompare automaticamente quando il ristorante ha degli ordini.",
+      "change8": "Aggiunte le traduzioni per tutte le nuove schermate e i miglioramenti."
+    },
+    "v1012": {
+      "date": "19 luglio 2026",
+      "change1": "Accesso venditore migliorato con formattazione per paese e supporto dei numeri brevi o di test.",
+      "change2": "Supporto dei numeri internazionali incollati con rilevamento automatico del paese per + e 00.",
+      "change3": "Supporto dei numeri formattati e delle cifre arabe e persiane."
+    },
+    "v1011": {
+      "date": "17 luglio 2026",
+      "change1": "Prezzi e totali per i venditori uniformati con il simbolo dell’euro.",
+      "change2": "Visualizzazione della valuta aggiornata in ordini, guadagni, menu, guida e ricevute PDF.",
+      "change3": "Configurazione e hosting dell’app web allineati per una versione più coerente."
+    },
+    "v1010": {
+      "date": "11 luglio 2026",
+      "change1": "Aggiornamento del prezzo degli ordini quando cambiano telefono o paese del cliente.",
+      "change2": "Aggiunto il tipo di veicolo a prezzo, creazione e aggiornamento degli ordini.",
+      "change3": "Migliorata la precisione dell’anteprima del prezzo prima dell’invio."
+    },
+    "v109": {
+      "date": "10 luglio 2026",
+      "change1": "Profilo venditore ridisegnato con intestazione compatta e impostazioni raggruppate.",
+      "change2": "Aggiunti i controlli di disponibilità della consegna e sincronizzato lo stato del ristorante.",
+      "change3": "Azioni degli ordini aggiornate in base agli stati consentiti dal server."
+    }
   },
   "earnings": {
     "title": "Guadagni",
@@ -628,7 +717,11 @@
     "title": "Informazioni",
     "version": "Versione {version}",
     "description": "Gestisci gli ordini del tuo ristorante, il menu e i clienti tutto in un unico posto.",
-    "copyright": "© 2024 TaybGo. Tutti i diritti riservati."
+    "copyright": "© 2024 TaybGo. Tutti i diritti riservati.",
+    "partnerTools": "Spazio di lavoro venditore",
+    "websiteLabel": "Sito web",
+    "supportEmailLabel": "E-mail di supporto",
+    "visitWebsite": "Visita TaybGo"
   },
   "validation": {
     "required": "Questo campo è obbligatorio",
@@ -639,6 +732,7 @@
     "invalidPrice": "Prezzo non valido",
     "enterCustomerName": "Inserisci il nome del cliente",
     "enterAddress": "Inserisci l'indirizzo di consegna",
+    "noRestaurantSelected": "Nessun ristorante selezionato",
     "enterStreetAndBuilding": "Inserisci l'indirizzo con via e numero civico",
     "addAtLeastOneItem": "Aggiungi almeno un articolo",
     "codeTooShort": "Il codice deve avere almeno 4 caratteri",
@@ -738,6 +832,8 @@
     "goHome": "Vai alla home"
   },
   "restaurantStatus": {
+    "active": "Ristorante attivo",
+    "pending": "In attesa di approvazione",
     "pendingApproval": "Ristorante in attesa di approvazione",
     "inactive": "Il ristorante è inattivo"
   },
@@ -1182,7 +1278,13 @@
     "initialMessageHint": "Descrivi il tuo problema in dettaglio...",
     "noTickets": "Nessun ticket ancora",
     "noTicketsDesc": "Crea un ticket per ricevere assistenza dal nostro team di supporto",
-    "ticketCreated": "Ticket creato con successo"
+    "ticketCreated": "Ticket creato con successo",
+    "statusWaitingOnCustomer": "In attesa del cliente",
+    "statusResolved": "Risolto",
+    "categoryPayment": "Pagamento",
+    "categoryDelivery": "Consegna",
+    "categoryAccount": "Account",
+    "priorityUrgent": "Urgente"
   },
   "location": {
     "permissionRequired": "Autorizzazione posizione richiesta",

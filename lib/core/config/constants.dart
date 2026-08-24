@@ -34,6 +34,7 @@ abstract class ApiEndpoints {
   static const String otpVerify = '/api/auth/otp/verify/';
 
   // Auth - Token
+  static const String passwordLogin = '/api/auth/token/';
   static const String tokenRefresh = '/api/auth/token/refresh/';
   static const String tokenBlacklist = '/api/auth/token/blacklist/';
   static const String tokenVerify = '/api/auth/token/verify/';
@@ -87,6 +88,7 @@ abstract class ApiEndpoints {
   static const String sellerEarnings = '/api/seller/earnings/';
 
   // Config
+  static const String configPublic = '/api/config/public';
   static const String configLegal = '/api/config/legal';
   static const String configVersion = '/api/config/version';
 }
@@ -99,6 +101,7 @@ abstract class OrderStatus {
   static const String accepted = 'ACCEPTED';
   static const String onTheWay = 'ON_THE_WAY';
   static const String delivered = 'DELIVERED';
+  static const String restaurantDelivered = 'RESTAURANT_DELIVERED';
   static const String completed = 'COMPLETED';
   static const String expired = 'EXPIRED';
   static const String rejected = 'REJECTED';

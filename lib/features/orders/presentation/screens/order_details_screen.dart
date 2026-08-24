@@ -11,6 +11,7 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
+import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
@@ -58,7 +59,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     if (_isProcessing) return;
 
     // Get the target status for confirmation
-    final targetStatus = _getTargetStatus(order.status);
+    final targetStatus = _getTargetStatus(order);
     if (targetStatus == null) return;
 
     // Show confirmation dialog
@@ -71,8 +72,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     setState(() => _isProcessing = true);
     HapticFeedback.mediumImpact();
 
-    // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered → Completed
-    // Use moveToNextStatus to advance to the next status in sequence
     final success = await ref
         .read(ordersProvider.notifier)
         .moveToNextStatus(order.id);
@@ -115,14 +114,24 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
-  OrderStatusEnum? _getTargetStatus(OrderStatusEnum currentStatus) {
-    // Seller can only accept orders (move PENDING → SEARCHING_FOR_DRIVER)
-    // All subsequent status transitions are handled by the backend/driver
-    switch (currentStatus) {
-      case OrderStatusEnum.pending:
-        return OrderStatusEnum.searchingForDriver;
+  OrderStatusEnum? _getTargetStatus(OrderModel order) {
+    return ref.read(ordersProvider.notifier).getNextStatusForOrder(order);
+  }
+
+  String _getActionLabel(OrderStatusEnum targetStatus) {
+    switch (targetStatus) {
+      case OrderStatusEnum.accepted:
+        return 'orders.acceptOrder'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.requestDriver'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.markOnTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.markDelivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.markRestaurantDelivered'.tr;
       default:
-        return null;
+        return _getStatusDisplayName(targetStatus);
     }
   }
 
@@ -140,6 +149,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.status.restaurantDelivered'.tr;
       case OrderStatusEnum.expired:
         return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
@@ -293,6 +304,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
+    ref.watch(selectedRestaurantProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final order = ref.watch(orderByIdProvider(widget.orderId));
@@ -520,13 +532,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     // Flow: Pending → Searching → Driver Notified → Accepted/Rejected → On the Way → Delivered
     // Delivered, rejected, or cancelled orders don't need action buttons
     if (status == OrderStatusEnum.delivered ||
+        status == OrderStatusEnum.restaurantDelivered ||
         status == OrderStatusEnum.rejected ||
         status == OrderStatusEnum.cancelled) {
       return _ActionButtonStack(children: actionButtons);
     }
 
     // Get the next status label for the button
-    final targetStatus = _getTargetStatus(status);
+    final targetStatus = _getTargetStatus(order);
     if (targetStatus == null) {
       return _ActionButtonStack(children: actionButtons);
     }
@@ -534,7 +547,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     // Show button with action label
     actionButtons.add(
       AppButton(
-        label: 'orders.requestDriver'.tr,
+        label: _getActionLabel(targetStatus),
         icon: _getStatusIcon(targetStatus),
         isLoading: _isProcessing,
         onPressed: () => _handleStatusAction(order),
@@ -558,6 +571,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       case OrderStatusEnum.onTheWay:
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return Icons.check_circle_rounded; // Delivered (final success)
       case OrderStatusEnum.expired:
         return Icons.timer_off_rounded; // Expired before completion
@@ -620,6 +634,8 @@ class _OrderStatusTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     // Calculate progress (0.0 to 1.0) based on current status
     final progress = _getProgress(order.status);
+    final isRestaurantDelivered =
+        order.status == OrderStatusEnum.restaurantDelivered;
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -752,31 +768,44 @@ class _OrderStatusTimeline extends StatelessWidget {
             // Progress bar
             _SimpleProgressBar(progress: progress, isDark: isDark),
             SizedBox(height: 8.h),
-            // 4 milestone labels
+            // Milestone labels
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _MilestoneLabel(
-                  label: 'orders.statusShort.pending'.tr,
-                  isActive: progress >= 0,
-                  isDark: isDark,
-                ),
-                _MilestoneLabel(
-                  label: 'orders.statusShort.accepted'.tr,
-                  isActive: progress >= 0.5,
-                  isDark: isDark,
-                ),
-                _MilestoneLabel(
-                  label: 'orders.statusShort.onTheWay'.tr,
-                  isActive: progress >= 0.75,
-                  isDark: isDark,
-                ),
-                _MilestoneLabel(
-                  label: 'orders.statusShort.done'.tr,
-                  isActive: progress >= 1.0,
-                  isDark: isDark,
-                ),
-              ],
+              children: isRestaurantDelivered
+                  ? [
+                      _MilestoneLabel(
+                        label: 'orders.statusShort.pending'.tr,
+                        isActive: true,
+                        isDark: isDark,
+                      ),
+                      _MilestoneLabel(
+                        label: 'orders.status.restaurantDelivered'.tr,
+                        isActive: true,
+                        isDark: isDark,
+                      ),
+                    ]
+                  : [
+                      _MilestoneLabel(
+                        label: 'orders.statusShort.pending'.tr,
+                        isActive: progress >= 0,
+                        isDark: isDark,
+                      ),
+                      _MilestoneLabel(
+                        label: 'orders.statusShort.accepted'.tr,
+                        isActive: progress >= 0.5,
+                        isDark: isDark,
+                      ),
+                      _MilestoneLabel(
+                        label: 'orders.statusShort.onTheWay'.tr,
+                        isActive: progress >= 0.75,
+                        isDark: isDark,
+                      ),
+                      _MilestoneLabel(
+                        label: 'orders.statusShort.done'.tr,
+                        isActive: progress >= 1.0,
+                        isDark: isDark,
+                      ),
+                    ],
             ),
           ] else ...[
             Container(
@@ -841,6 +870,7 @@ class _OrderStatusTimeline extends StatelessWidget {
       case OrderStatusEnum.onTheWay:
         return 0.75;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return 1.0;
       case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
@@ -862,6 +892,7 @@ class _OrderStatusTimeline extends StatelessWidget {
       case OrderStatusEnum.onTheWay:
         return const Color(0xFF3F51B5); // Indigo - On the way
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return const Color(0xFF4CAF50); // Green - Delivered (final success)
       case OrderStatusEnum.expired:
         return AppColors.warning; // Amber - Order expired before completion
@@ -885,6 +916,7 @@ class _OrderStatusTimeline extends StatelessWidget {
       case OrderStatusEnum.onTheWay:
         return Icons.delivery_dining_rounded; // On delivery
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return Icons.check_circle_rounded; // Delivered (final success)
       case OrderStatusEnum.expired:
         return Icons.timer_off_rounded; // Expired before completion
@@ -909,6 +941,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 'orders.status.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.status.delivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.status.restaurantDelivered'.tr;
       case OrderStatusEnum.expired:
         return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
@@ -932,6 +966,8 @@ class _OrderStatusTimeline extends StatelessWidget {
         return 'orders.statusDesc.onTheWay'.tr;
       case OrderStatusEnum.delivered:
         return 'orders.statusDesc.delivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.statusDesc.restaurantDelivered'.tr;
       case OrderStatusEnum.expired:
         return 'coupons.expired'.tr;
       case OrderStatusEnum.rejected:
@@ -1218,7 +1254,7 @@ class _OrderItemsCard extends ConsumerWidget {
                   // Only show price if available
                   if (itemPrice > 0)
                     Text(
-                      '\$${itemPrice.toStringAsFixed(2)}',
+                      '€${itemPrice.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -1316,7 +1352,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (subtotal > 0) ...[
             _SummaryRow(
               label: 'orders.subtotal'.tr,
-              value: '\$${subtotal.toStringAsFixed(2)}',
+              value: '€${subtotal.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1325,7 +1361,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (deliveryFee > 0) ...[
             _SummaryRow(
               label: 'orders.deliveryFee'.tr,
-              value: '\$${deliveryFee.toStringAsFixed(2)}',
+              value: '€${deliveryFee.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1334,7 +1370,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (discountAmount > 0) ...[
             _SummaryRow(
               label: 'orders.discount'.tr,
-              value: '-\$${discountAmount.toStringAsFixed(2)}',
+              value: '-€${discountAmount.toStringAsFixed(2)}',
               isDark: isDark,
               isDiscount: true,
             ),
@@ -1344,7 +1380,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
           if (tip > 0) ...[
             _SummaryRow(
               label: 'orders.tip'.tr,
-              value: '\$${tip.toStringAsFixed(2)}',
+              value: '€${tip.toStringAsFixed(2)}',
               isDark: isDark,
             ),
             SizedBox(height: 8.h),
@@ -1360,7 +1396,7 @@ class _PaymentSummaryCard extends ConsumerWidget {
             ],
             _SummaryRow(
               label: 'orders.total'.tr,
-              value: '\$${total.toStringAsFixed(2)}',
+              value: '€${total.toStringAsFixed(2)}',
               isDark: isDark,
               isTotal: true,
             ),

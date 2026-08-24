@@ -38,7 +38,8 @@
     "version": "Versjon",
     "undo": "Angre",
     "optional": "Valgfritt",
-    "required": "Påkrevd"
+    "required": "Påkrevd",
+    "missing": "Mangler"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -124,7 +125,7 @@
     "all": "Alle",
     "done": "Ferdig",
     "expired": "Utløpte",
-    "pending": "Ventende bestillinger",
+    "pending": "Nye bestillinger",
     "createOrder": "Opprett bestilling",
     "editOrder": "Rediger bestilling",
     "saveChanges": "Lagre endringer",
@@ -165,6 +166,7 @@
     "noItems": "Ingen elementer lagt til",
     "emptyItemsWarning": "Denne bestillingen har ingen varer. Legg til minst én vare for å fortsette.",
     "orderCreated": "Bestilling opprettet!",
+    "orderCreationFailed": "Kunne ikke opprette bestillingen",
     "reorder": "Bestill på nytt",
     "selectItemFromMenu": "Velg et element fra menyen",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Søker etter sjåfør",
       "driverNotificationSent": "Venter på sjåfør",
       "delivered": "Levert",
+      "restaurantDelivered": "Levert av restauranten",
       "rejected": "Avvist",
       "cancelled": "Avbrutt"
     },
     "requestDriver": "Be om sjåfør",
+    "markRestaurantDelivered": "Marker som levert av restauranten",
     "waitingForDriver": "Venter på sjåfør...",
     "orderRejectedByRestaurant": "Denne bestillingen ble avvist av restauranten",
     "orderWasCancelled": "Denne bestillingen ble avbrutt",
@@ -219,6 +223,7 @@
       "onTheWay": "På vei til kunden",
       "delivery": "På vei til kunden",
       "delivered": "Bestilling fullført",
+      "restaurantDelivered": "Håndteres direkte av restauranten",
       "rejected": "Bestilling ble avvist",
       "cancelled": "Bestilling ble avbrutt"
     },
@@ -228,7 +233,7 @@
     "tip": "Drikkepenger",
     "orderRejected": "Denne bestillingen ble avvist",
     "orderCancelled": "Denne bestillingen ble avbrutt",
-    "noPendingOrders": "Ingen ventende bestillinger",
+    "noPendingOrders": "Ingen nye bestillinger",
     "noActiveOrders": "Ingen aktive bestillinger",
     "noCurrentOrders": "Ingen aktuelle bestillinger",
     "noCompletedOrders": "Ingen fullførte bestillinger",
@@ -244,6 +249,30 @@
     "orderItems": "Bestillingselementer",
     "payment": "Betaling",
     "orderSummary": "Bestillingssammendrag",
+    "pricingAddressError": "Leveringsadressen kunne ikke brukes. Velg den på nytt.",
+    "pricingServerError": "Bestillingens total kunne ikke oppdateres akkurat nå. Prøv igjen om litt.",
+    "pricingError": "Bestillingens total kunne ikke oppdateres. Kontroller bestillingsdetaljene og prøv igjen.",
+    "pricingAddressCoordinatesRequired": "Velg et forslag til leveringsadresse slik at avstanden kan beregnes.",
+    "pricingAddressRequired": "Skriv inn leveringsadressen for å beregne prisen.",
+    "pricingItemsRequired": "Legg til minst ett element for å se bestillingens total.",
+    "pricingPickupRequired": "Den valgte restauranten mangler et hentested.",
+    "livePricingPendingTitle": "Fullfør bestillingsdetaljene for å se totalen",
+    "livePricingErrorTitle": "Bestillingens total kunne ikke oppdateres",
+    "livePricingLoadingTitle": "Oppdaterer bestillingens total",
+    "livePricingLoading": "Oppdaterer bestillingens total...",
+    "livePricingWaiting": "Totalen oppdateres når de siste endringene er behandlet.",
+    "livePricingRefreshing": "Totalen oppdateres fortsatt. Vent litt.",
+    "livePricingRequired": "Vent til totalen er oppdatert før du fortsetter.",
+    "livePricingTitle": "Bestillingens total",
+    "livePricingSubtitle": "Totalen oppdateres automatisk når du endrer bestillingen.",
+    "deliveryFeeCalculatedTitle": "Leveringsdetaljer",
+    "deliveryFeeCalculatedHint": "Leveringsgebyret er inkludert i bestillingens total.",
+    "customerLabel": "Kunde",
+    "customerAddressLabel": "Kunde: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% rabatt",
+    "quantity": "Antall",
     "deliveryOptions": "Leveringsalternativer",
     "requestedVehicleType": "Kjøretøytype",
     "requestedDeliveryType": "Leveringstype",
@@ -471,6 +500,7 @@
     "notifications": "Varsler",
     "help": "Hjelp",
     "helpSupport": "Hjelp og støtte",
+    "changelog": "Hva er nytt",
     "about": "Om",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurantinnstillinger",
@@ -534,7 +564,16 @@
     "registrationDocumentAddedLocked": "Lagt til og låst. Denne siden er kun for visning.",
     "registrationDocumentMissing": "Fant ikke noe registreringsdokument for denne selgerprofilen.",
     "invalidDocumentUrl": "Ugyldig dokument-URL.",
-    "documentOpenFailed": "Kunne ikke åpne dokumentet."
+    "documentOpenFailed": "Kunne ikke åpne dokumentet.",
+    "deliveryEnabled": "Levering aktivert",
+    "deliveryDisabled": "Levering deaktivert",
+    "editProfile": "Rediger profil",
+    "settingsSectionTitle": "Innstillinger",
+    "settingsSectionSubtitle": "Inntekter, kuponger og varsler",
+    "preferencesSectionTitle": "Preferanser",
+    "preferencesSectionSubtitle": "Mørk modus, språk og aksenttema",
+    "helpSupportSectionTitle": "Hjelp og støtte",
+    "helpSupportSectionSubtitle": "Kunnskapsbase, støtte, hjelp, om og slett konto"
   },
   "deleteAccount": {
     "title": "Slett konto",
@@ -594,7 +633,57 @@
     "contactUs": "Kontakt oss",
     "callSupport": "Ring support",
     "liveChat": "Live-chat",
-    "liveChatDesc": "Chat med supportteamet vårt"
+    "liveChatDesc": "Chat med supportteamet vårt",
+    "description": "Bruk TaybGo-support når du trenger hjelp med kontotilgang, bestillinger, utbetalinger eller den daglige driften som selger.",
+    "visitWebsite": "Gå til taybgo.com",
+    "websiteTitle": "TaybGo-nettsted",
+    "websiteDescription": "Åpne taybgo.com for plattforminformasjon og direkte kontaktmuligheter.",
+    "emailTitle": "Send e-post til support",
+    "emailDescription": "Send en melding til supportteamet vårt fra standard e-postapp.",
+    "responseNote": "Ved konto- eller bestillingsproblemer er det raskest å opprette en supportsak i appen, slik at teamet vårt kan følge opp og løse problemet.",
+    "linkError": "Kunne ikke åpne TaybGo akkurat nå. Prøv igjen."
+  },
+  "changelog": {
+    "title": "Hva er nytt",
+    "subtitle": "De nyeste forbedringene og rettelsene i TaybGo Seller.",
+    "menuSubtitle": "Se hva som er endret i de nyeste TaybGo Seller-versjonene.",
+    "current": "Gjeldende",
+    "version": "Versjon {version}",
+    "v1013": {
+      "date": "20. august 2026",
+      "change1": "La til en ny Dette er nytt-side under Hjelp og støtte.",
+      "change2": "Ventende bestillinger heter nå Nye bestillinger og inkluderer ventende, aksepterte og bestillinger som søker etter sjåfør.",
+      "change3": "La til et kompakt statusfilter for raskt å finne ulike typer nye bestillinger.",
+      "change4": "Forbedret selgerinnlogging for korte, formaterte og innlimte internasjonale telefonnumre.",
+      "change5": "Rettet et problem som kunne hindre at ordretotalen ble oppdatert under oppretting.",
+      "change6": "Begrenset valg av leveringskjøretøy til alternativene som støttes nå.",
+      "change7": "Omvisningen forsvinner nå automatisk når restauranten din har bestillinger.",
+      "change8": "La til oversettelser for alle nye skjermer og forbedringer."
+    },
+    "v1012": {
+      "date": "19. juli 2026",
+      "change1": "Forbedret selgerinnlogging med landstilpasset formatering og støtte for korte testnumre.",
+      "change2": "Støtte for innlimte internasjonale numre med automatisk landgjenkjenning for + og 00.",
+      "change3": "Støtte for formaterte telefonnumre og arabiske og persiske sifre."
+    },
+    "v1011": {
+      "date": "17. juli 2026",
+      "change1": "Priser og totaler for selgere vises konsekvent med eurosymbolet.",
+      "change2": "Valutavisning oppdatert i bestillinger, inntekter, menyer, hjelp og PDF-kvitteringer.",
+      "change3": "Webapp-konfigurasjon og hosting samordnet for en mer konsekvent utgivelse."
+    },
+    "v1010": {
+      "date": "11. juli 2026",
+      "change1": "Pris på matbestillinger oppdateres når kundens telefon eller land endres.",
+      "change2": "Kjøretøytype lagt til i pris, opprettelse og oppdatering av matbestillinger.",
+      "change3": "Mer nøyaktige prisforhåndsvisninger før en bestilling sendes."
+    },
+    "v109": {
+      "date": "10. juli 2026",
+      "change1": "Selgerprofilen er redesignet med kompakt restauranthode og grupperte innstillinger.",
+      "change2": "Kontroller for leveringstilgjengelighet lagt til og restaurantstatus synkronisert.",
+      "change3": "Bestillingshandlinger følger nå statusene serveren tillater."
+    }
   },
   "earnings": {
     "title": "Inntekter",
@@ -628,7 +717,11 @@
     "title": "Om",
     "version": "Versjon {version}",
     "description": "Administrer restaurantbestillinger, meny og kunder på ett sted.",
-    "copyright": "© 2024 TaybGo. Alle rettigheter forbeholdt."
+    "copyright": "© 2024 TaybGo. Alle rettigheter forbeholdt.",
+    "partnerTools": "Selgerarbeidsområde",
+    "websiteLabel": "Nettsted",
+    "supportEmailLabel": "Support-e-post",
+    "visitWebsite": "Besøk TaybGo"
   },
   "validation": {
     "required": "Dette feltet er påkrevd",
@@ -639,6 +732,7 @@
     "invalidPrice": "Ugyldig pris",
     "enterCustomerName": "Skriv inn kundenavn",
     "enterAddress": "Skriv inn leveringsadresse",
+    "noRestaurantSelected": "Ingen restaurant valgt",
     "enterStreetAndBuilding": "Skriv inn adresse med gate og bygningsnummer",
     "addAtLeastOneItem": "Legg til minst ett element",
     "codeTooShort": "Koden må ha minst 4 tegn",
@@ -738,6 +832,8 @@
     "goHome": "Gå til hjem"
   },
   "restaurantStatus": {
+    "active": "Restauranten er aktiv",
+    "pending": "Venter på godkjenning",
     "pendingApproval": "Restaurant venter på godkjenning",
     "inactive": "Restaurant er inaktiv"
   },
@@ -1182,7 +1278,13 @@
     "initialMessageHint": "Beskriv problemet ditt i detalj...",
     "noTickets": "Ingen saker ennå",
     "noTicketsDesc": "Opprett en sak for å få hjelp fra supportteamet vårt",
-    "ticketCreated": "Sak opprettet"
+    "ticketCreated": "Sak opprettet",
+    "statusWaitingOnCustomer": "Venter på kunde",
+    "statusResolved": "Løst",
+    "categoryPayment": "Betaling",
+    "categoryDelivery": "Levering",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Haster"
   },
   "location": {
     "permissionRequired": "Plasseringstillatelse kreves",

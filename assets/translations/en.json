@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Undo",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "missing": "Missing"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -63,10 +64,25 @@
     "restaurantName": "Restaurant Name",
     "email": "Email",
     "password": "Password",
+    "enterPassword": "Enter your password",
+    "signIn": "Sign In",
+    "otpLoginDescription": "We’ll send a verification code to your registered phone number.",
+    "passwordLoginDescription": "Sign in with the phone number and password registered to your seller account.",
+    "checkingSignIn": "Checking the available sign-in method…",
+    "configFallback": "We couldn’t load sign-in settings. Secure password sign-in is still available.",
     "createAccount": "Create Account",
     "forgotPassword": "Forgot Password",
     "sendResetLink": "Send Reset Link",
     "backToLogin": "Back to Login"
+  },
+  "update": {
+    "requiredTitle": "Update required",
+    "requiredMessage": "A newer version of TaybGo Seller is required to continue. Update now to keep your account secure and your orders running smoothly.",
+    "latestVersion": "Latest version: {version}",
+    "updateNow": "Update now",
+    "checkAgain": "I’ve updated — check again",
+    "invalidUrl": "The update link is unavailable. Please contact support.",
+    "openFailed": "We couldn’t open the update page. Please try again."
   },
   "errors": {
     "unexpected": "An unexpected error occurred. Please try again.",
@@ -74,6 +90,7 @@
     "server": "Server error. Please try again later.",
     "notFound": "The requested resource was not found.",
     "timeout": "Connection timeout. Please try again.",
+    "openLink": "We couldn’t open this link. Please try again.",
     "noRestaurantSelected": "No restaurant selected",
     "failedToLoadOrders": "Failed to load orders",
     "failedToAcceptOrder": "Failed to accept order",
@@ -105,6 +122,8 @@
       "invalidPhone": "Please enter a valid phone number.",
       "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
       "unauthorized": "Authentication failed. Please try again.",
+      "invalidCredentials": "The phone number or password is incorrect.",
+      "otpDisabledForSeller": "OTP sign-in is unavailable for sellers. Please use your password.",
       "forbidden": "Access denied. You don't have permission to access this.",
       "sessionExpired": "Your session has expired. Please log in again."
     }
@@ -123,7 +142,7 @@
     "all": "All",
     "done": "Done",
     "expired": "Expired",
-    "pending": "Pending Orders",
+    "pending": "New Orders",
     "createOrder": "Create Order",
     "editOrder": "Edit Order",
     "saveChanges": "Save Changes",
@@ -164,6 +183,7 @@
     "noItems": "No items added",
     "emptyItemsWarning": "This order has no items. Please add at least one item to continue.",
     "orderCreated": "Order created successfully!",
+    "orderCreationFailed": "Could not create the order",
     "reorder": "Reorder",
     "selectItemFromMenu": "Please select an item from the menu",
     "status": {
@@ -176,10 +196,12 @@
       "searchingForDriver": "Searching for Driver",
       "driverNotificationSent": "Awaiting Driver",
       "delivered": "Delivered",
+      "restaurantDelivered": "Restaurant Delivered",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
     "requestDriver": "Request Driver",
+    "markRestaurantDelivered": "Mark Restaurant Delivered",
     "waitingForDriver": "Waiting for driver...",
     "orderRejectedByRestaurant": "This order was rejected by the restaurant",
     "orderWasCancelled": "This order was cancelled",
@@ -218,6 +240,7 @@
       "onTheWay": "On the way to customer",
       "delivery": "On the way to customer",
       "delivered": "Order completed successfully",
+      "restaurantDelivered": "Handled directly by the restaurant",
       "rejected": "Order was declined",
       "cancelled": "Order was cancelled"
     },
@@ -227,7 +250,7 @@
     "tip": "Tip",
     "orderRejected": "This order was rejected",
     "orderCancelled": "This order was cancelled",
-    "noPendingOrders": "No pending orders",
+    "noPendingOrders": "No new orders",
     "noActiveOrders": "No active orders",
     "noCurrentOrders": "No current orders",
     "noCompletedOrders": "No completed orders",
@@ -243,6 +266,30 @@
     "orderItems": "Order Items",
     "payment": "Payment",
     "orderSummary": "Order Summary",
+    "pricingAddressCoordinatesRequired": "Select a delivery address suggestion so distance can be calculated.",
+    "pricingAddressRequired": "Enter the delivery address to calculate pricing.",
+    "pricingItemsRequired": "Add at least one item to see the order total.",
+    "pricingPickupRequired": "The selected restaurant is missing a pickup location.",
+    "customerLabel": "Customer",
+    "customerAddressLabel": "Customer: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% off",
+    "quantity": "Quantity",
+    "pricingAddressError": "We couldn't use this delivery address. Please select it again and try again.",
+    "pricingServerError": "We couldn't update the order total right now. Please try again in a moment.",
+    "pricingError": "We couldn't update the order total. Please check the order details and try again.",
+    "livePricingPendingTitle": "Complete your order details to see the total",
+    "livePricingErrorTitle": "We couldn't update the order total",
+    "livePricingLoadingTitle": "Updating your order total",
+    "livePricingLoading": "Updating your order total...",
+    "livePricingWaiting": "Your order total will update as soon as your latest changes settle.",
+    "livePricingRefreshing": "Your order total is still updating. Please wait a moment.",
+    "livePricingRequired": "Please wait for the order total to update before continuing.",
+    "livePricingTitle": "Order total",
+    "livePricingSubtitle": "Your total updates automatically as you change the order.",
+    "deliveryFeeCalculatedTitle": "Delivery details",
+    "deliveryFeeCalculatedHint": "Your delivery fee is included in the order total.",
     "deliveryOptions": "Delivery Options",
     "requestedVehicleType": "Vehicle Type",
     "requestedDeliveryType": "Delivery Type",
@@ -470,6 +517,7 @@
     "notifications": "Notifications",
     "help": "Help",
     "helpSupport": "Help & Support",
+    "changelog": "What's New",
     "about": "About",
     "restaurant": "Restaurant",
     "restaurantSettings": "Restaurant Settings",
@@ -533,7 +581,16 @@
     "registrationDocumentAddedLocked": "Added and locked. This page is view-only.",
     "registrationDocumentMissing": "No registration document found on this seller profile.",
     "invalidDocumentUrl": "Invalid document URL.",
-    "documentOpenFailed": "Could not open document."
+    "documentOpenFailed": "Could not open document.",
+    "deliveryEnabled": "Delivery Enabled",
+    "deliveryDisabled": "Delivery Disabled",
+    "editProfile": "Edit Profile",
+    "settingsSectionTitle": "Settings",
+    "settingsSectionSubtitle": "Earnings, coupons, and notifications",
+    "preferencesSectionTitle": "Preferences",
+    "preferencesSectionSubtitle": "Dark mode, language, and accent theme",
+    "helpSupportSectionTitle": "Help & Support",
+    "helpSupportSectionSubtitle": "Knowledge base, support, help, about, and delete account"
   },
   "deleteAccount": {
     "title": "Delete Account",
@@ -603,6 +660,57 @@
     "responseNote": "For live account or order issues, creating a support ticket in the app is the fastest way for our team to track and resolve the problem.",
     "linkError": "Could not open TaybGo right now. Please try again."
   },
+  "changelog": {
+    "title": "What's New",
+    "subtitle": "Recent improvements and fixes in TaybGo Seller.",
+    "menuSubtitle": "See what changed in the latest TaybGo Seller versions.",
+    "current": "Current",
+    "version": "Version {version}",
+    "v1014": {
+      "date": "24 August 2026",
+      "change1": "Added flexible seller sign-in that follows the latest account policy automatically.",
+      "change2": "Added secure password sign-in while keeping verification-code sign-in available when enabled.",
+      "change3": "Added a required-update screen so unsupported app versions can be upgraded safely.",
+      "change4": "Terms and Privacy links now stay synchronized with TaybGo services.",
+      "change5": "Improved sign-in validation and error messages while preserving short and international phone-number support.",
+      "change6": "Added safer fallback behavior when online app settings are temporarily unavailable."
+    },
+    "v1013": {
+      "date": "20 August 2026",
+      "change1": "Added a new What's New page under Help & Support.",
+      "change2": "Renamed Pending Orders to New Orders and included pending, accepted, and driver-search orders.",
+      "change3": "Added a compact status filter to quickly find different types of new orders.",
+      "change4": "Improved seller login for short, formatted, and pasted international phone numbers.",
+      "change5": "Fixed an issue that could prevent the order total from updating during order creation.",
+      "change6": "Limited delivery vehicle choices to currently supported options.",
+      "change7": "The guided tour now disappears automatically once your restaurant has orders.",
+      "change8": "Added translations for all new screens and improvements."
+    },
+    "v1012": {
+      "date": "19 July 2026",
+      "change1": "Improved seller login with country-aware formatting and support for short or test numbers.",
+      "change2": "Added pasted international number support with automatic country detection for + and 00 prefixes.",
+      "change3": "Added support for formatted phone numbers and Arabic and Persian digits."
+    },
+    "v1011": {
+      "date": "17 July 2026",
+      "change1": "Standardized seller-facing prices and totals on the euro symbol.",
+      "change2": "Updated currency display across orders, earnings, menus, help content, and PDF receipts.",
+      "change3": "Aligned the web app configuration and hosting for a more consistent release."
+    },
+    "v1010": {
+      "date": "11 July 2026",
+      "change1": "Refreshed food-order pricing when customer phone or country details change.",
+      "change2": "Added vehicle type to food-order pricing, creation, and update flows.",
+      "change3": "Improved the accuracy of pricing previews before an order is submitted."
+    },
+    "v109": {
+      "date": "10 July 2026",
+      "change1": "Redesigned the seller profile with a compact restaurant header and grouped settings.",
+      "change2": "Added delivery availability controls and kept restaurant state synchronized.",
+      "change3": "Updated order actions to follow the statuses allowed by the server."
+    }
+  },
   "earnings": {
     "title": "Earnings",
     "totalEarnings": "Total Earnings",
@@ -643,6 +751,7 @@
   },
   "validation": {
     "required": "This field is required",
+    "passwordTooShort": "Password must be at least {length} characters",
     "invalidPhone": "Invalid phone number",
     "phoneTooShort": "Phone number too short",
     "phoneTooLong": "Phone number too long",
@@ -650,6 +759,7 @@
     "invalidPrice": "Invalid price",
     "enterCustomerName": "Please enter customer name",
     "enterAddress": "Please enter delivery address",
+    "noRestaurantSelected": "No restaurant selected",
     "enterStreetAndBuilding": "Please enter address with street and building number",
     "addAtLeastOneItem": "Please add at least one item",
     "codeTooShort": "Code must be at least 4 characters",
@@ -749,6 +859,8 @@
     "goHome": "Go Home"
   },
   "restaurantStatus": {
+    "active": "Restaurant is active",
+    "pending": "Restaurant pending approval",
     "pendingApproval": "Restaurant pending approval",
     "inactive": "Restaurant is inactive"
   },
@@ -875,7 +987,7 @@
       "title": "Item Customizations & Extras",
       "description": "Set up extras and removal options for menu items.",
       "s1Title": "What Are Customizations?",
-      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +$1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
+      "s1Body": "Customizations let customers modify their order items. There are two types:\n\n• Extras (Additions) — Options that add ingredients with an additional cost (e.g., \"Extra Cheese +€1.50\")\n• Removals — Ingredients customers can request to remove (e.g., \"No Onions\", \"No Pickles\")",
       "s2Title": "Adding Extras",
       "s2Body": "When editing a menu item, scroll to the Customizations section and tap \"Add Extra\". Enter the extra's name and additional price. You can add as many extras as needed.",
       "s3Title": "Adding Removal Options",
@@ -1197,7 +1309,9 @@
     "initialMessageHint": "Describe your issue in detail...",
     "noTickets": "No tickets yet",
     "noTicketsDesc": "Create a ticket to get help from our support team",
-    "ticketCreated": "Ticket created successfully"
+    "ticketCreated": "Ticket created successfully",
+    "categoryRestaurant": "Restaurant",
+    "categoryDriver": "Driver"
   },
   "location": {
     "permissionRequired": "Location Permission Required",

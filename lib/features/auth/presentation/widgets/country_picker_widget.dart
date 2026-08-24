@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../../core/utils/phone_number_normalizer.dart';
+import '../formatters/pasted_phone_number_formatter.dart';
 
 /// Country picker widget for selecting country code
 class CountryPickerWidget extends StatelessWidget {
@@ -249,6 +251,7 @@ class PhoneInputField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.enabled = true,
+    this.allowInternationalInput = false,
   });
 
   final TextEditingController controller;
@@ -257,6 +260,7 @@ class PhoneInputField extends StatelessWidget {
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
   final bool enabled;
+  final bool allowInternationalInput;
 
   @override
   Widget build(BuildContext context) {
@@ -279,7 +283,14 @@ class PhoneInputField extends StatelessWidget {
             controller: controller,
             keyboardType: TextInputType.phone,
             textDirection: ui.TextDirection.ltr,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: allowInternationalInput
+                ? [
+                    PastedPhoneNumberFormatter(
+                      selectedCountry: selectedCountry,
+                      onCountryDetected: onCountrySelected,
+                    ),
+                  ]
+                : [FilteringTextInputFormatter.digitsOnly],
             enabled: enabled,
             onChanged: onChanged,
             validator:
@@ -288,10 +299,16 @@ class PhoneInputField extends StatelessWidget {
                   if (value == null || value.isEmpty) {
                     return 'validation.required'.tr;
                   }
-                  if (value.length < selectedCountry.minLength) {
+                  if (allowInternationalInput &&
+                      !PhoneNumberNormalizer.isValid(value, selectedCountry)) {
+                    return 'validation.invalidPhone'.tr;
+                  }
+                  if (!allowInternationalInput &&
+                      value.length < selectedCountry.minLength) {
                     return 'validation.phoneTooShort'.tr;
                   }
-                  if (value.length > selectedCountry.maxLength) {
+                  if (!allowInternationalInput &&
+                      value.length > selectedCountry.maxLength) {
                     return 'validation.phoneTooLong'.tr;
                   }
                   return null;

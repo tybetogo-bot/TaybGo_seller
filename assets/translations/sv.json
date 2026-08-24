@@ -38,7 +38,8 @@
     "version": "Version",
     "undo": "Ångra",
     "optional": "Valfritt",
-    "required": "Obligatorisk"
+    "required": "Obligatorisk",
+    "missing": "Saknas"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -124,7 +125,7 @@
     "all": "Alla",
     "done": "Klar",
     "expired": "Utgångna",
-    "pending": "Väntande beställningar",
+    "pending": "Nya beställningar",
     "createOrder": "Skapa beställning",
     "editOrder": "Redigera beställning",
     "saveChanges": "Spara ändringar",
@@ -165,6 +166,7 @@
     "noItems": "Inga artiklar tillagda",
     "emptyItemsWarning": "Den här beställningen har inga artiklar. Lägg till minst en artikel för att fortsätta.",
     "orderCreated": "Beställning skapad!",
+    "orderCreationFailed": "Det gick inte att skapa beställningen",
     "reorder": "Beställ igen",
     "selectItemFromMenu": "Välj en artikel från menyn",
     "status": {
@@ -177,10 +179,12 @@
       "searchingForDriver": "Söker efter chaufför",
       "driverNotificationSent": "Väntar på chaufför",
       "delivered": "Levererad",
+      "restaurantDelivered": "Levererad av restaurangen",
       "rejected": "Avvisad",
       "cancelled": "Avbruten"
     },
     "requestDriver": "Begär chaufför",
+    "markRestaurantDelivered": "Markera som levererad av restaurangen",
     "waitingForDriver": "Väntar på chaufför...",
     "orderRejectedByRestaurant": "Den här beställningen avvisades av restaurangen",
     "orderWasCancelled": "Den här beställningen avbröts",
@@ -219,6 +223,7 @@
       "onTheWay": "På väg till kunden",
       "delivery": "På väg till kunden",
       "delivered": "Beställning slutförd",
+      "restaurantDelivered": "Hanteras direkt av restaurangen",
       "rejected": "Beställning avvisades",
       "cancelled": "Beställning avbröts"
     },
@@ -228,7 +233,7 @@
     "tip": "Dricks",
     "orderRejected": "Den här beställningen avvisades",
     "orderCancelled": "Den här beställningen avbröts",
-    "noPendingOrders": "Inga väntande beställningar",
+    "noPendingOrders": "Inga nya beställningar",
     "noActiveOrders": "Inga aktiva beställningar",
     "noCurrentOrders": "Inga aktuella beställningar",
     "noCompletedOrders": "Inga slutförda beställningar",
@@ -244,6 +249,30 @@
     "orderItems": "Beställda artiklar",
     "payment": "Betalning",
     "orderSummary": "Beställningssammanfattning",
+    "pricingAddressError": "Leveransadressen kunde inte användas. Välj den igen.",
+    "pricingServerError": "Beställningens totalsumma kunde inte uppdateras just nu. Försök igen om en stund.",
+    "pricingError": "Beställningens totalsumma kunde inte uppdateras. Kontrollera uppgifterna och försök igen.",
+    "pricingAddressCoordinatesRequired": "Välj ett förslag på leveransadress så att avståndet kan beräknas.",
+    "pricingAddressRequired": "Ange leveransadressen för att beräkna priset.",
+    "pricingItemsRequired": "Lägg till minst en artikel för att se beställningens totalsumma.",
+    "pricingPickupRequired": "Den valda restaurangen saknar en upphämtningsplats.",
+    "livePricingPendingTitle": "Fyll i beställningsuppgifterna för att se totalsumman",
+    "livePricingErrorTitle": "Totalsumman kunde inte uppdateras",
+    "livePricingLoadingTitle": "Uppdaterar totalsumman",
+    "livePricingLoading": "Uppdaterar totalsumman...",
+    "livePricingWaiting": "Totalsumman uppdateras när dina senaste ändringar har behandlats.",
+    "livePricingRefreshing": "Totalsumman uppdateras fortfarande. Vänta en stund.",
+    "livePricingRequired": "Vänta tills totalsumman har uppdaterats innan du fortsätter.",
+    "livePricingTitle": "Beställningens totalsumma",
+    "livePricingSubtitle": "Totalsumman uppdateras automatiskt när du ändrar beställningen.",
+    "deliveryFeeCalculatedTitle": "Leveransuppgifter",
+    "deliveryFeeCalculatedHint": "Leveransavgiften ingår i beställningens totalsumma.",
+    "customerLabel": "Kund",
+    "customerAddressLabel": "Kund: {name}",
+    "distanceKm": "{value} km",
+    "estimatedMinutes": "{value} min",
+    "percentOff": "{value}% rabatt",
+    "quantity": "Antal",
     "deliveryOptions": "Leveransalternativ",
     "requestedVehicleType": "Fordonstyp",
     "requestedDeliveryType": "Leveranstyp",
@@ -471,6 +500,7 @@
     "notifications": "Aviseringar",
     "help": "Hjälp",
     "helpSupport": "Hjälp och support",
+    "changelog": "Nyheter",
     "about": "Om",
     "restaurant": "Restaurang",
     "restaurantSettings": "Restauranginställningar",
@@ -534,7 +564,16 @@
     "registrationDocumentAddedLocked": "Tillagt och låst. Den här sidan är endast för visning.",
     "registrationDocumentMissing": "Inget registreringsdokument hittades för den här säljarprofilen.",
     "invalidDocumentUrl": "Ogiltig dokument-URL.",
-    "documentOpenFailed": "Det gick inte att öppna dokumentet."
+    "documentOpenFailed": "Det gick inte att öppna dokumentet.",
+    "deliveryEnabled": "Leverans aktiverad",
+    "deliveryDisabled": "Leverans inaktiverad",
+    "editProfile": "Redigera profil",
+    "settingsSectionTitle": "Inställningar",
+    "settingsSectionSubtitle": "Intäkter, kuponger och aviseringar",
+    "preferencesSectionTitle": "Preferenser",
+    "preferencesSectionSubtitle": "Mörkt läge, språk och accenttema",
+    "helpSupportSectionTitle": "Hjälp och support",
+    "helpSupportSectionSubtitle": "Kunskapsbas, support, hjälp, om och radera konto"
   },
   "deleteAccount": {
     "title": "Radera konto",
@@ -594,7 +633,57 @@
     "contactUs": "Kontakta oss",
     "callSupport": "Ring support",
     "liveChat": "Livechatt",
-    "liveChatDesc": "Chatta med vårt supportteam"
+    "liveChatDesc": "Chatta med vårt supportteam",
+    "description": "Använd TaybGo-support när du behöver hjälp med kontotillgång, beställningar, utbetalningar eller den dagliga säljarverksamheten.",
+    "visitWebsite": "Gå till taybgo.com",
+    "websiteTitle": "TaybGo-webbplats",
+    "websiteDescription": "Öppna taybgo.com för plattformsinformation och direkta kontaktalternativ.",
+    "emailTitle": "Skicka e-post till support",
+    "emailDescription": "Skicka ett meddelande till vårt supportteam från din vanliga e-postapp.",
+    "responseNote": "Vid konto- eller orderproblem är det snabbaste sättet att skapa ett supportärende i appen så att vårt team kan följa och lösa problemet.",
+    "linkError": "Det gick inte att öppna TaybGo just nu. Försök igen."
+  },
+  "changelog": {
+    "title": "Nyheter",
+    "subtitle": "De senaste förbättringarna och rättningarna i TaybGo Seller.",
+    "menuSubtitle": "Se vad som har ändrats i de senaste TaybGo Seller-versionerna.",
+    "current": "Aktuell",
+    "version": "Version {version}",
+    "v1013": {
+      "date": "20 augusti 2026",
+      "change1": "Lade till en ny sida med nyheter under Hjälp och support.",
+      "change2": "Väntande beställningar heter nu Nya beställningar och omfattar väntande, accepterade och beställningar som söker förare.",
+      "change3": "Lade till ett kompakt statusfilter för att snabbt hitta olika typer av nya beställningar.",
+      "change4": "Förbättrade säljarinloggningen för korta, formaterade och inklistrade internationella telefonnummer.",
+      "change5": "Åtgärdade ett problem som kunde hindra ordersumman från att uppdateras när en order skapades.",
+      "change6": "Begränsade val av leveransfordon till alternativ som stöds för närvarande.",
+      "change7": "Guiden försvinner nu automatiskt när din restaurang har beställningar.",
+      "change8": "Lade till översättningar för alla nya skärmar och förbättringar."
+    },
+    "v1012": {
+      "date": "19 juli 2026",
+      "change1": "Förbättrad säljarinloggning med landsanpassad formatering och stöd för korta testnummer.",
+      "change2": "Stöd för inklistrade internationella nummer med automatisk landsidentifiering för + och 00.",
+      "change3": "Stöd för formaterade telefonnummer samt arabiska och persiska siffror."
+    },
+    "v1011": {
+      "date": "17 juli 2026",
+      "change1": "Priser och totalsummor för säljare visas konsekvent med eurosymbolen.",
+      "change2": "Valutavisning uppdaterad i beställningar, intäkter, menyer, hjälp och PDF-kvitton.",
+      "change3": "Webbappens konfiguration och hosting samordnade för en mer enhetlig version."
+    },
+    "v1010": {
+      "date": "11 juli 2026",
+      "change1": "Pris för matbeställningar uppdateras när kundens telefon eller land ändras.",
+      "change2": "Fordonstyp tillagd i pris, skapande och uppdatering av matbeställningar.",
+      "change3": "Mer exakta prisförhandsvisningar innan en beställning skickas."
+    },
+    "v109": {
+      "date": "10 juli 2026",
+      "change1": "Säljarprofilen har gjorts om med kompakt restauranghuvud och grupperade inställningar.",
+      "change2": "Kontroller för leveranstillgänglighet tillagda och restaurangstatus synkroniserad.",
+      "change3": "Beställningsåtgärder följer nu statusarna som servern tillåter."
+    }
   },
   "earnings": {
     "title": "Intäkter",
@@ -628,7 +717,11 @@
     "title": "Om",
     "version": "Version {version}",
     "description": "Hantera din restaurangs beställningar, meny och kunder – allt på ett ställe.",
-    "copyright": "© 2024 TaybGo. Alla rättigheter förbehållna."
+    "copyright": "© 2024 TaybGo. Alla rättigheter förbehållna.",
+    "partnerTools": "Säljararbetsyta",
+    "websiteLabel": "Webbplats",
+    "supportEmailLabel": "Support-e-post",
+    "visitWebsite": "Besök TaybGo"
   },
   "validation": {
     "required": "Det här fältet är obligatoriskt",
@@ -639,6 +732,7 @@
     "invalidPrice": "Ogiltigt pris",
     "enterCustomerName": "Ange kundnamn",
     "enterAddress": "Ange leveransadress",
+    "noRestaurantSelected": "Ingen restaurang vald",
     "enterStreetAndBuilding": "Ange adress med gatunamn och byggnadsnummer",
     "addAtLeastOneItem": "Lägg till minst en artikel",
     "codeTooShort": "Koden måste vara minst 4 tecken",
@@ -738,6 +832,8 @@
     "goHome": "Gå till startsidan"
   },
   "restaurantStatus": {
+    "active": "Restaurangen är aktiv",
+    "pending": "Väntar på godkännande",
     "pendingApproval": "Restaurang väntar på godkännande",
     "inactive": "Restaurangen är inaktiv"
   },
@@ -1182,7 +1278,13 @@
     "initialMessageHint": "Beskriv ditt problem i detalj...",
     "noTickets": "Inga ärenden ännu",
     "noTicketsDesc": "Skapa ett ärende för att få hjälp av vårt supportteam",
-    "ticketCreated": "Ärende skapat"
+    "ticketCreated": "Ärende skapat",
+    "statusWaitingOnCustomer": "Väntar på kund",
+    "statusResolved": "Löst",
+    "categoryPayment": "Betalning",
+    "categoryDelivery": "Leverans",
+    "categoryAccount": "Konto",
+    "priorityUrgent": "Brådskande"
   },
   "location": {
     "permissionRequired": "Platsbehörighet krävs",

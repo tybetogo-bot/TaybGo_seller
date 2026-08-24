@@ -78,13 +78,13 @@ class StatisticsScreen extends ConsumerWidget {
               children: [
                 Expanded(child: _StatCard(title: 'statistics.totalOrders'.tr, value: '$totalOrders', icon: Icons.receipt_long_outlined, color: Theme.of(context).colorScheme.primary, isDark: isDark)),
                 SizedBox(width: 12.w),
-                Expanded(child: _StatCard(title: 'statistics.revenue'.tr, value: '\$${revenue.toStringAsFixed(0)}', icon: Icons.attach_money, color: AppColors.success, isDark: isDark)),
+                Expanded(child: _StatCard(title: 'statistics.revenue'.tr, value: '€${revenue.toStringAsFixed(0)}', icon: Icons.euro, color: AppColors.success, isDark: isDark)),
               ],
             ),
             SizedBox(height: 12.h),
             Row(
               children: [
-                Expanded(child: _StatCard(title: 'statistics.avgOrder'.tr, value: '\$${avgOrder.toStringAsFixed(2)}', icon: Icons.trending_up, color: AppColors.info, isDark: isDark)),
+                Expanded(child: _StatCard(title: 'statistics.avgOrder'.tr, value: '€${avgOrder.toStringAsFixed(2)}', icon: Icons.trending_up, color: AppColors.info, isDark: isDark)),
                 SizedBox(width: 12.w),
                 Expanded(child: _StatCard(title: 'statistics.customers'.tr, value: '$uniqueCustomers', icon: Icons.people_outline, color: AppColors.warning, isDark: isDark)),
               ],
@@ -147,4 +147,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
