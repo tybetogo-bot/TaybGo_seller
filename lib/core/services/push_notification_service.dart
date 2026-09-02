@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -33,6 +35,25 @@ const AndroidNotificationChannel _highImportanceChannel =
       sound: _androidNotificationSound,
     );
 
+/// Decode the payload stored on a foreground local notification.
+///
+/// FCM data is JSON-serializable, so using JSON here keeps the payload intact
+/// instead of relying on Dart's non-parseable [Map.toString] format.
+Map<String, dynamic> decodeLocalNotificationPayload(String? payload) {
+  if (payload == null || payload.trim().isEmpty) return const {};
+
+  try {
+    final decoded = jsonDecode(payload);
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+  } catch (_) {
+    // Treat malformed payloads as generic notifications.
+  }
+
+  return const {};
+}
+
 /// Service that manages Firebase Cloud Messaging and local notifications.
 class PushNotificationService {
   PushNotificationService._();
@@ -44,10 +65,26 @@ class PushNotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  Map<String, dynamic>? _pendingNotificationTapData;
+  void Function(Map<String, dynamic> data)? _onNotificationTap;
 
   /// Callback invoked when the user taps a notification.
   /// Set this from the app layer to handle navigation.
-  void Function(Map<String, dynamic> data)? onNotificationTap;
+  void Function(Map<String, dynamic> data)? get onNotificationTap =>
+      _onNotificationTap;
+
+  set onNotificationTap(void Function(Map<String, dynamic> data)? handler) {
+    _onNotificationTap = handler;
+
+    // A terminated-state tap can be delivered before the app shell has had a
+    // chance to register its navigation callback. Replay it once the handler
+    // is available so the notification is not silently lost.
+    final pendingData = _pendingNotificationTapData;
+    if (handler == null || pendingData == null) return;
+
+    _pendingNotificationTapData = null;
+    Future<void>.microtask(() => handler(pendingData));
+  }
 
   /// Callback invoked when a foreground message is received.
   /// Use this to refresh in-app notification lists.
@@ -206,7 +243,7 @@ class PushNotificationService {
           sound: _iosNotificationSound,
         ),
       ),
-      payload: message.data.toString(),
+      payload: jsonEncode(message.data),
     );
   }
 
@@ -214,14 +251,23 @@ class PushNotificationService {
   /// background/terminated state.
   void _handleNotificationTap(RemoteMessage message) {
     print('🔔 [FCM] Notification tap: ${message.data}');
-    onNotificationTap?.call(message.data);
+    _dispatchNotificationTap(message.data);
   }
 
   /// Called when the user taps a local (foreground) notification.
   void _onLocalNotificationTap(NotificationResponse response) {
     print('🔔 [FCM] Local notification tap: ${response.payload}');
-    // The payload is a stringified map; for now just trigger a generic tap.
-    onNotificationTap?.call({});
+    _dispatchNotificationTap(decodeLocalNotificationPayload(response.payload));
+  }
+
+  void _dispatchNotificationTap(Map<String, dynamic> data) {
+    final handler = _onNotificationTap;
+    if (handler == null) {
+      _pendingNotificationTapData = Map<String, dynamic>.from(data);
+      return;
+    }
+
+    handler(data);
   }
 }
 

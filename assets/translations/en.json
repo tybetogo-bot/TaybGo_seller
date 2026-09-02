@@ -666,6 +666,19 @@
     "menuSubtitle": "See what changed in the latest TaybGo Seller versions.",
     "current": "Current",
     "version": "Version {version}",
+    "v1016": {
+      "date": "2 September 2026",
+      "change1": "Fixed order notification taps so order details open smoothly without a temporary ‘Order not found’ message.",
+      "change2": "Improved direct order loading and notification payload handling for foreground, background, and terminated app states.",
+      "change3": "Added regression coverage for notification-opened order details and built dev and prod split APKs locally for all supported Android ABIs."
+    },
+    "v1015": {
+      "date": "24 August 2026",
+      "change1": "Restored address autocomplete and coordinate lookup in Flutter Web through the Google Maps JavaScript Places library.",
+      "change2": "Added a compatibility fallback for Google projects that still use the established Places JavaScript service.",
+      "change3": "Centralized Google Maps configuration while preserving the existing native Places REST behavior for Android and iOS.",
+      "change4": "Published signed dev and prod split APKs for ARM 64-bit, ARM 32-bit, and x86 64-bit devices."
+    },
     "v1014": {
       "date": "24 August 2026",
       "change1": "Added flexible seller sign-in that follows the latest account policy automatically.",

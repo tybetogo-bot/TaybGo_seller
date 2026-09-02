@@ -346,15 +346,24 @@ class OrdersNotifier extends Notifier<OrdersState> {
         return null;
       }
 
-      // Update local state if order exists in list
-      final index = state.orders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        final updatedOrders = List<OrderModel>.from(state.orders);
-        updatedOrders[index] = result.data!;
-        state = state.copyWith(orders: updatedOrders);
+      final fetchedOrder = result.data;
+      if (fetchedOrder == null) {
+        state = state.copyWith(error: 'Failed to fetch order');
+        return null;
       }
 
-      return result.data;
+      // Keep the fetched order available for a notification-opened detail
+      // route, even when it was not present in the currently loaded page.
+      final index = state.orders.indexWhere((o) => o.id == orderId);
+      final updatedOrders = List<OrderModel>.from(state.orders);
+      if (index == -1) {
+        updatedOrders.insert(0, fetchedOrder);
+      } else {
+        updatedOrders[index] = fetchedOrder;
+      }
+      state = state.copyWith(orders: updatedOrders);
+
+      return fetchedOrder;
     } catch (e) {
       state = state.copyWith(error: 'Failed to fetch order: $e');
       return null;

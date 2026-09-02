@@ -16,6 +16,7 @@ import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 import '../widgets/order_api_debug_inspector.dart';
+
 // TODO: Re-enable when print button is enabled
 // import '../../data/services/pdf_receipt_service.dart';
 
@@ -35,6 +36,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   late Animation<double> _fadeAnimation;
   bool _isProcessing = false;
   bool _isLoadingDebugData = false;
+  OrderModel? _loadedOrder;
+  bool _isLoadingOrder = true;
+  bool _hasStartedOrderLoad = false;
 
   @override
   void initState() {
@@ -47,6 +51,23 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadOrder();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant OrderDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.orderId == widget.orderId) return;
+
+    _loadedOrder = null;
+    _isLoadingOrder = true;
+    _hasStartedOrderLoad = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadOrder();
+    });
   }
 
   @override
@@ -301,36 +322,120 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     );
   }
 
+  Future<void> _loadOrder() async {
+    if (_hasStartedOrderLoad) return;
+
+    _hasStartedOrderLoad = true;
+    final requestedOrderId = widget.orderId;
+    final cachedOrder = ref.read(orderByIdProvider(requestedOrderId));
+
+    if (cachedOrder != null) {
+      if (!mounted || widget.orderId != requestedOrderId) return;
+      setState(() {
+        _loadedOrder = cachedOrder;
+        _isLoadingOrder = false;
+      });
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _isLoadingOrder = true);
+    }
+
+    OrderModel? fetchedOrder;
+    try {
+      fetchedOrder = await ref
+          .read(ordersProvider.notifier)
+          .fetchOrderById(requestedOrderId);
+    } catch (_) {
+      // The notifier normally converts failures to a null result. Keep the
+      // screen in a settled state even if a future implementation throws.
+    }
+
+    if (!mounted || widget.orderId != requestedOrderId) return;
+
+    setState(() {
+      _loadedOrder = fetchedOrder;
+      _isLoadingOrder = false;
+    });
+  }
+
+  void _retryLoadOrder() {
+    if (_isLoadingOrder) return;
+
+    setState(() {
+      _loadedOrder = null;
+      _isLoadingOrder = true;
+      _hasStartedOrderLoad = false;
+    });
+    _loadOrder();
+  }
+
+  Widget _buildOrderUnavailable({required bool isDark}) {
+    return AppScaffold(
+      appBar: AppAppBar(title: 'orders.orderDetails'.tr),
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_isLoadingOrder) ...[
+                SizedBox(
+                  width: 32.w,
+                  height: 32.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'common.loading'.tr,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ] else ...[
+                Icon(Icons.error_outline, size: 48.w, color: AppColors.error),
+                SizedBox(height: 16.h),
+                Text(
+                  'orderNotFound'.tr,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                TextButton.icon(
+                  onPressed: _retryLoadOrder,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text('common.retry'.tr),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     ref.watch(selectedRestaurantProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final order = ref.watch(orderByIdProvider(widget.orderId));
+    final cachedOrder = ref.watch(orderByIdProvider(widget.orderId));
+    final order = cachedOrder ?? _loadedOrder;
 
     if (order == null) {
-      return AppScaffold(
-        appBar: AppAppBar(title: 'orders.orderDetails'.tr),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48.w, color: AppColors.error),
-              SizedBox(height: 16.h),
-              Text(
-                'orderNotFound'.tr,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: isDark
-                      ? DarkColors.textSecondary
-                      : LightColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildOrderUnavailable(isDark: isDark);
     }
 
     return AppScaffold(
@@ -1518,31 +1623,37 @@ class _OrderInfoCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 12.w),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'orders.orderType'.tr,
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: isDark
-                            ? DarkColors.textSecondary
-                            : LightColors.textSecondary,
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'orders.orderType'.tr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      order.orderType == 'FOOD'
-                          ? 'orders.foodOrder'.tr
-                          : 'orders.parcelOrder'.tr,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? DarkColors.textPrimary
-                            : LightColors.textPrimary,
+                      Text(
+                        order.orderType == 'FOOD'
+                            ? 'orders.foodOrder'.tr
+                            : 'orders.parcelOrder'.tr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

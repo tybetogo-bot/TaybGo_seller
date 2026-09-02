@@ -37,12 +37,19 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     // Set up notification tap handler for navigation.
     PushNotificationService.instance.onNotificationTap = (data) {
-      final orderId = data['order_id']?.toString();
-      if (orderId != null && mounted) {
-        context.go(Routes.orderDetailsPath(orderId));
-      } else if (mounted) {
-        context.go(Routes.notifications);
-      }
+      // Wait until the current frame is complete. This also handles a
+      // terminated-state notification replayed during shell initialization.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        final rawOrderId = data['order_id'] ?? data['orderId'];
+        final orderId = rawOrderId?.toString().trim();
+        if (orderId != null && orderId.isNotEmpty) {
+          context.go(Routes.orderDetailsPath(orderId));
+        } else {
+          context.go(Routes.notifications);
+        }
+      });
     };
 
     // Refresh in-app notifications when a push arrives in the foreground.

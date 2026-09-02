@@ -4,7 +4,7 @@
 TybeToGo Vendor App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.15+16`
+**Current Version:** `1.0.16+17`
 
 ---
 
@@ -14,16 +14,16 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 | File | Architecture | Target Devices |
 |------|--------------|----------------|
-| `taybgo-seller-v1.0.15+16-2026-08-24-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
-| `taybgo-seller-v1.0.15+16-2026-08-24-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
-| `taybgo-seller-v1.0.15+16-2026-08-24-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+| `taybgo-seller-v1.0.16+17-2026-09-02-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
+| `taybgo-seller-v1.0.16+17-2026-09-02-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
+| `taybgo-seller-v1.0.16+17-2026-09-02-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
 
 ### Dev Split APKs
 | File | Architecture | Target Use |
 |------|--------------|------------|
-| `taybgo-seller-v1.0.15+16-2026-08-24-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
-| `taybgo-seller-v1.0.15+16-2026-08-24-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
-| `taybgo-seller-v1.0.15+16-2026-08-24-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+| `taybgo-seller-v1.0.16+17-2026-09-02-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.16+17-2026-09-02-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.16+17-2026-09-02-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 ### Latest Web Build
 | File | Description |
@@ -65,6 +65,12 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 ---
 
 ## Changelog
+
+### v1.0.16 (2 September, 2026)
+- Fixed order notification taps so order details open smoothly without a temporary “Order not found” message
+- Improved direct order loading and notification payload handling for foreground, background, and terminated app states
+- Added regression coverage for notification-opened order details
+- Built dated dev and prod split APKs locally for ARM 64-bit, ARM 32-bit, and x86 64-bit devices; APK files are kept out of GitHub
 
 ### v1.0.15 (24 August, 2026)
 - Restored address autocomplete and coordinate lookup in Flutter Web through the Google Maps JavaScript Places library
@@ -159,4 +165,4 @@ TybeToGo Vendor App - Restaurant management and order handling application for s
 
 ---
 
-*Last updated: 2026-08-24*
+*Last updated: 2026-09-02*
