@@ -37,6 +37,8 @@ enum OrdersScreenTab {
 
 enum CurrentOrdersFilter { newOnly, activeOnly, all }
 
+enum DoneOrdersFilter { all, rejected }
+
 /// Orders screen
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key, this.initialTab = OrdersScreenTab.current});
@@ -53,6 +55,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   final _searchController = TextEditingController();
   bool _isRefreshing = false;
   CurrentOrdersFilter _currentOrdersFilter = CurrentOrdersFilter.all;
+  DoneOrdersFilter _doneOrdersFilter = DoneOrdersFilter.all;
   Timer? _searchDebounce;
   OrdersPollingNotifier? _ordersPollingNotifier;
   NotificationsPollingNotifier? _notificationsPollingNotifier;
@@ -168,6 +171,17 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
       CurrentOrdersFilter.newOnly => 'orders.noPendingOrders'.tr,
       CurrentOrdersFilter.activeOnly => 'orders.noActiveOrders'.tr,
       CurrentOrdersFilter.all => 'orders.noCurrentOrders'.tr,
+    };
+    final filteredDoneOrders = switch (_doneOrdersFilter) {
+      DoneOrdersFilter.all => ordersState.completedOrders,
+      DoneOrdersFilter.rejected =>
+        ordersState.completedOrders
+            .where((order) => order.status == OrderStatusEnum.rejected)
+            .toList(),
+    };
+    final doneEmptyMessage = switch (_doneOrdersFilter) {
+      DoneOrdersFilter.all => 'orders.noCompletedOrders'.tr,
+      DoneOrdersFilter.rejected => 'orders.noRejectedOrders'.tr,
     };
 
     return Scaffold(
@@ -355,13 +369,17 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                                 ? 'orders.noSearchResults'.tr
                                 : currentEmptyMessage,
                           ),
-                          _OrdersList(
-                            key: TourKeys.activeOrdersListKey,
-                            orders: ordersState.completedOrders,
+                          _DoneOrdersTab(
+                            orders: filteredDoneOrders,
+                            selectedFilter: _doneOrdersFilter,
+                            onFilterSelected: (filter) {
+                              setState(() => _doneOrdersFilter = filter);
+                            },
                             isDark: isDark,
                             emptyMessage: ordersState.searchQuery.isNotEmpty
                                 ? 'orders.noSearchResults'.tr
-                                : 'orders.noCompletedOrders'.tr,
+                                : doneEmptyMessage,
+                            listKey: TourKeys.activeOrdersListKey,
                           ),
                           _OrdersList(
                             orders: ordersState.expiredOrders,
@@ -440,6 +458,68 @@ class _CurrentOrdersTab extends StatelessWidget {
         Expanded(
           child: _OrdersList(
             key: TourKeys.pendingOrdersListKey,
+            orders: orders,
+            isDark: isDark,
+            emptyMessage: emptyMessage,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DoneOrdersTab extends StatelessWidget {
+  const _DoneOrdersTab({
+    required this.orders,
+    required this.selectedFilter,
+    required this.onFilterSelected,
+    required this.isDark,
+    required this.emptyMessage,
+    this.listKey,
+  });
+
+  final List<OrderModel> orders;
+  final DoneOrdersFilter selectedFilter;
+  final ValueChanged<DoneOrdersFilter> onFilterSelected;
+  final bool isDark;
+  final String emptyMessage;
+  final Key? listKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                _FilterChip(
+                  label: 'orders.all'.tr,
+                  isSelected: selectedFilter == DoneOrdersFilter.all,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  onSelected: () => onFilterSelected(DoneOrdersFilter.all),
+                ),
+                _FilterChip(
+                  label: 'orders.status.rejected'.tr,
+                  isSelected: selectedFilter == DoneOrdersFilter.rejected,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  onSelected: () => onFilterSelected(DoneOrdersFilter.rejected),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: _OrdersList(
+            key: listKey,
             orders: orders,
             isDark: isDark,
             emptyMessage: emptyMessage,

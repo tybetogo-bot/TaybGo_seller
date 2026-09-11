@@ -75,14 +75,6 @@ class ErrorInterceptor extends Interceptor {
     // Try to extract error message from response
     String message = 'An error occurred';
 
-    if (statusCode == 409) {
-      return ApiException(
-        message: _getDefaultMessageForCode(statusCode),
-        statusCode: statusCode,
-        code: code,
-      );
-    }
-
     if (data is Map<String, dynamic>) {
       // API uses 'detail' for error messages
       if (data['detail'] != null) {
@@ -125,6 +117,12 @@ class ErrorInterceptor extends Interceptor {
           message: message,
           code: code,
           errors: _extractValidationErrors(data),
+        );
+      case 409:
+        return ApiException(
+          message: message,
+          statusCode: statusCode,
+          code: code,
         );
       case 429:
         return ApiException(
@@ -175,7 +173,7 @@ class ErrorInterceptor extends Interceptor {
       case 404:
         return 'The requested resource was not found.';
       case 409:
-        return 'This number is already registered.';
+        return 'Conflict. The resource may have changed. Please refresh and try again.';
       case 422:
         return 'Validation error. Please check your input.';
       case 429:

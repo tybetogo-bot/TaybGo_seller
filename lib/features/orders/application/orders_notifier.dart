@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/failures.dart';
+import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
 import '../../restaurant/application/restaurant_state.dart';
@@ -248,7 +250,22 @@ class OrdersNotifier extends Notifier<OrdersState> {
       if (oldOrder.id != newOrder.id ||
           oldOrder.status != newOrder.status ||
           oldOrder.isPaid != newOrder.isPaid ||
-          oldOrder.assignedDriverId != newOrder.assignedDriverId) {
+          oldOrder.assignedDriverId != newOrder.assignedDriverId ||
+          oldOrder.sellerTotalAmount != newOrder.sellerTotalAmount ||
+          oldOrder.driverDispatchDueAt != newOrder.driverDispatchDueAt ||
+          oldOrder.driverDispatchStatus != newOrder.driverDispatchStatus ||
+          oldOrder.driverDispatchRemainingSeconds !=
+              newOrder.driverDispatchRemainingSeconds ||
+          oldOrder.driverDispatchServerTime !=
+              newOrder.driverDispatchServerTime ||
+          oldOrder.driverDispatchMaxDelayMinutes !=
+              newOrder.driverDispatchMaxDelayMinutes ||
+          oldOrder.fulfillmentType != newOrder.fulfillmentType ||
+          !_listEquals(oldOrder.allowedActions, newOrder.allowedActions) ||
+          !_listEquals(
+            oldOrder.allowedStatusOptions,
+            newOrder.allowedStatusOptions,
+          )) {
         return true;
       }
     }
@@ -256,58 +273,33 @@ class OrdersNotifier extends Notifier<OrdersState> {
     return false;
   }
 
+  bool _listEquals<T>(List<T> first, List<T> second) {
+    if (identical(first, second)) return true;
+    if (first.length != second.length) return false;
+
+    for (var index = 0; index < first.length; index++) {
+      if (first[index] != second[index]) return false;
+    }
+
+    return true;
+  }
+
   /// Cancel an order (sellers can only cancel, not accept - acceptance is done by drivers)
   Future<bool> cancelOrder(String orderId, {String? reason}) async {
-    state = state.copyWith(clearError: true);
-
-    try {
-      final result = await _repository.updateOrderStatus(orderId, 'CANCELLED');
-
-      if (result.failure != null) {
-        state = state.copyWith(error: result.failure!.message);
-        return false;
-      }
-
-      // Update local state with server response
-      final index = state.orders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        final updatedOrders = List<OrderModel>.from(state.orders);
-        updatedOrders[index] = result.data!;
-        state = state.copyWith(orders: updatedOrders);
-      }
-
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: 'Failed to cancel order: $e');
-      return false;
-    }
+    return _performOrderAction(
+      orderId,
+      () => _repository.updateOrderStatus(orderId, 'CANCELLED'),
+      fallbackError: 'Failed to cancel order',
+    );
   }
 
   /// Update order status
   Future<bool> _updateStatus(String orderId, String status) async {
-    state = state.copyWith(clearError: true);
-
-    try {
-      final result = await _repository.updateOrderStatus(orderId, status);
-
-      if (result.failure != null) {
-        state = state.copyWith(error: result.failure!.message);
-        return false;
-      }
-
-      // Update local state with server response
-      final index = state.orders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        final updatedOrders = List<OrderModel>.from(state.orders);
-        updatedOrders[index] = result.data!;
-        state = state.copyWith(orders: updatedOrders);
-      }
-
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: 'Failed to update order status: $e');
-      return false;
-    }
+    return _performOrderAction(
+      orderId,
+      () => _repository.updateOrderStatus(orderId, status),
+      fallbackError: 'Failed to update order status',
+    );
   }
 
   /// Mark order as on the way
@@ -320,9 +312,145 @@ class OrdersNotifier extends Notifier<OrdersState> {
     return _updateStatus(orderId, 'DELIVERED');
   }
 
-  /// Accept an order
-  Future<bool> acceptOrder(String orderId) async {
-    return _updateStatus(orderId, 'ACCEPTED');
+  /// Accept an order, optionally delaying driver dispatch on the server.
+  Future<bool> acceptOrder(
+    String orderId, {
+    int? driverDispatchDelayMinutes,
+  }) async {
+    return _performOrderAction(
+      orderId,
+      () => _repository.acceptOrder(
+        orderId,
+        driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+      ),
+      fallbackError: 'Failed to accept order',
+    );
+  }
+
+  /// Reject a new order before preparation begins.
+  Future<bool> rejectOrder(String orderId) async {
+    return _performOrderAction(
+      orderId,
+      () => _repository.rejectOrder(orderId),
+      fallbackError: 'Failed to reject order',
+    );
+  }
+
+  /// Request driver matching immediately.
+  Future<bool> requestDriverNow(String orderId) async {
+    return _performOrderAction(
+      orderId,
+      () => _repository.driverDispatch(
+        orderId,
+        action: DriverDispatchAction.requestNow,
+      ),
+      fallbackError: 'Failed to request a driver',
+    );
+  }
+
+  /// Schedule driver matching after a server-validated delay.
+  Future<bool> scheduleDriver(String orderId, int delayMinutes) async {
+    return _performOrderAction(
+      orderId,
+      () => _repository.driverDispatch(
+        orderId,
+        action: DriverDispatchAction.schedule,
+        driverDispatchDelayMinutes: delayMinutes,
+      ),
+      fallbackError: 'Failed to schedule driver request',
+    );
+  }
+
+  /// Change an existing driver schedule. This operation is not retried by Dio;
+  /// a failed response is treated as unknown and reconciled with a GET.
+  Future<bool> rescheduleDriver(String orderId, int delayMinutes) async {
+    return _performOrderAction(
+      orderId,
+      () => _repository.driverDispatch(
+        orderId,
+        action: DriverDispatchAction.reschedule,
+        driverDispatchDelayMinutes: delayMinutes,
+      ),
+      fallbackError: 'Failed to change driver request time',
+      refreshOnUnknownOutcome: true,
+    );
+  }
+
+  Future<bool> _performOrderAction(
+    String orderId,
+    Future<OrdersResult<OrderModel>> Function() operation, {
+    required String fallbackError,
+    bool refreshOnUnknownOutcome = false,
+  }) async {
+    state = state.copyWith(clearError: true);
+
+    try {
+      final result = await operation();
+      final failure = result.failure;
+      if (failure != null) {
+        if (failure.statusCode == 409 || refreshOnUnknownOutcome) {
+          await _refreshOrderForActionRace(orderId);
+        }
+        state = state.copyWith(error: _actionErrorMessage(failure));
+        return false;
+      }
+
+      final updatedOrder = result.data;
+      if (updatedOrder == null) {
+        state = state.copyWith(error: fallbackError);
+        return false;
+      }
+      _replaceOrder(updatedOrder);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: '$fallbackError: $e');
+      return false;
+    }
+  }
+
+  Future<void> _refreshOrderForActionRace(String orderId) async {
+    try {
+      final result = await _repository.getOrderById(orderId);
+      if (result.failure == null && result.data != null) {
+        _replaceOrder(result.data!);
+      }
+    } catch (_) {
+      // Preserve the original action error when the reconciliation request
+      // cannot reach the server as well.
+    }
+  }
+
+  void _replaceOrder(OrderModel updatedOrder) {
+    final index = state.orders.indexWhere((o) => o.id == updatedOrder.id);
+    final updatedOrders = List<OrderModel>.from(state.orders);
+    if (index == -1) {
+      updatedOrders.insert(0, updatedOrder);
+    } else {
+      updatedOrders[index] = updatedOrder;
+    }
+    state = state.copyWith(orders: updatedOrders, clearError: true);
+  }
+
+  String _actionErrorMessage(Failure failure) {
+    final key = switch (failure.code) {
+      'driver_dispatch_delay_too_long' =>
+        'orders.driverDispatchErrors.delayTooLong',
+      'invalid_driver_dispatch_delay' =>
+        'orders.driverDispatchErrors.invalidDelay',
+      'pickup_driver_dispatch_unavailable' =>
+        'orders.driverDispatchErrors.pickupUnavailable',
+      'driver_dispatch_already_scheduled' =>
+        'orders.driverDispatchErrors.alreadyScheduled',
+      'driver_dispatch_not_scheduled' =>
+        'orders.driverDispatchErrors.notScheduled',
+      'driver_dispatch_schedule_due' =>
+        'orders.driverDispatchErrors.scheduleDue',
+      'driver_already_assigned' =>
+        'orders.driverDispatchErrors.alreadyAssigned',
+      'invalid_order_status' => 'orders.driverDispatchErrors.invalidStatus',
+      _ => null,
+    };
+    return key == null ? failure.message : key.tr;
   }
 
   /// Get order by ID from local state
@@ -516,7 +644,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   OrderStatusEnum? getNextStatusForOrder(OrderModel order) {
-    if (order.hasAllowedStatusOptions) {
+    if (order.hasAllowedStatusOptions || order.allowedActions.isNotEmpty) {
       return order.preferredAllowedNextStatus;
     }
 
@@ -525,7 +653,84 @@ class OrdersNotifier extends Notifier<OrdersState> {
     );
   }
 
+  /// Return the highest-priority action supplied by the backend. Legacy
+  /// responses are mapped to the equivalent status action for compatibility.
+  OrderAllowedAction? getPrimaryAllowedAction(OrderModel order) {
+    const priority = [
+      'ACCEPTED',
+      'REQUEST_DRIVER_NOW',
+      'SCHEDULE_DRIVER',
+      'RESCHEDULE_DRIVER',
+      'REJECTED',
+      'CANCELLED',
+    ];
+    for (final value in priority) {
+      final action = order.allowedAction(value);
+      if (action != null) return action;
+    }
+
+    if (order.allowedActions.isNotEmpty) {
+      return order.allowedActions.first;
+    }
+
+    // Acceptance is a dedicated seller action even for legacy responses that
+    // do not yet include allowed_actions. Do not derive PENDING -> SEARCHING
+    // from the old status-only flow.
+    if (order.status == OrderStatusEnum.pending) {
+      return const OrderAllowedAction(value: 'ACCEPTED');
+    }
+
+    final nextStatus = getNextStatusForOrder(order);
+    if (nextStatus != null) {
+      return OrderAllowedAction(value: _statusToApiString(nextStatus));
+    }
+    return null;
+  }
+
+  bool canRejectOrder(OrderModel order) {
+    if (order.allowedActions.isNotEmpty) {
+      return order.allowsAction('REJECTED');
+    }
+    return order.status == OrderStatusEnum.pending;
+  }
+
+  bool canCancelOrder(OrderModel order) {
+    return order.allowedActions.isNotEmpty && order.allowsAction('CANCELLED');
+  }
+
+  bool isDriverDispatchAvailableForOrder(OrderModel order) {
+    if (order.orderType.trim().toUpperCase() != 'FOOD') return false;
+    final fulfillmentType =
+        (order.fulfillmentType ?? order.requestedDeliveryType ?? '')
+            .trim()
+            .toUpperCase();
+    if (fulfillmentType != 'DELIVERY') return false;
+
+    final embeddedDeliveryEnabled = order.restaurant?.deliveryEnabled;
+    if (embeddedDeliveryEnabled != null) return embeddedDeliveryEnabled;
+
+    final orderRestaurantId =
+        order.restaurantId ?? order.restaurant?.id.toString();
+    final restaurantState = ref.read(restaurantProvider);
+    if (restaurantState is RestaurantLoaded) {
+      final matching = restaurantState.restaurants.where(
+        (restaurant) =>
+            orderRestaurantId == null || restaurant.id == orderRestaurantId,
+      );
+      if (matching.length == 1) return matching.first.deliveryEnabled == true;
+    }
+
+    final selectedRestaurant = ref.read(selectedRestaurantProvider);
+    return selectedRestaurant != null &&
+        (orderRestaurantId == null ||
+            selectedRestaurant.id == orderRestaurantId) &&
+        selectedRestaurant.deliveryEnabled == true;
+  }
+
   bool isDeliveryEnabledForOrder(OrderModel order) {
+    final embeddedDeliveryEnabled = order.restaurant?.deliveryEnabled;
+    if (embeddedDeliveryEnabled != null) return embeddedDeliveryEnabled;
+
     final orderRestaurantId =
         order.restaurantId ?? order.restaurant?.id.toString();
 
@@ -606,7 +811,7 @@ final orderByIdProvider = Provider.family<OrderModel?, String>((ref, id) {
 
 /// Provider for orders polling service
 ///
-/// This provider creates a polling service that refreshes orders every 30 seconds.
+/// This provider creates a polling service that refreshes orders every 5 seconds.
 /// Only updates UI when there's new data to avoid unnecessary rebuilds.
 /// Usage:
 /// ```dart
@@ -638,14 +843,31 @@ class OrdersPollingNotifier extends Notifier<PollingState> {
   }
 
   void _initializeService() {
+    final wasPolling = _service?.isPolling ?? false;
     _service?.dispose();
-    _service = PollingService(
+    _service = _createPollingService(state.interval);
+    if (wasPolling) {
+      _service?.start();
+    }
+  }
+
+  PollingService _createPollingService(Duration interval) {
+    return PollingService(
       onPoll: () async {
         // Use silentRefresh to only update UI when data changes
         await ref.read(ordersProvider.notifier).silentRefresh();
       },
-      interval: state.interval,
+      interval: interval,
       debugLabel: 'OrdersPolling',
+      onNextPollScheduled: (nextPollAt) {
+        state = state.copyWith(nextPollAt: nextPollAt);
+      },
+      onPollStarted: () {
+        state = state.copyWith(isSyncing: true);
+      },
+      onPollCompleted: () {
+        state = state.copyWith(isSyncing: false, lastPollAt: DateTime.now());
+      },
     );
   }
 
@@ -660,7 +882,11 @@ class OrdersPollingNotifier extends Notifier<PollingState> {
 
   /// Stop polling
   void stop() {
-    state = state.copyWith(isEnabled: false);
+    state = state.copyWith(
+      isEnabled: false,
+      isSyncing: false,
+      clearNextPollAt: true,
+    );
     _service?.stop();
   }
 
@@ -675,20 +901,15 @@ class OrdersPollingNotifier extends Notifier<PollingState> {
 
   /// Update the polling interval
   void setInterval(Duration interval) {
+    final wasPolling = _service?.isPolling ?? false;
     state = state.copyWith(interval: interval);
     if (_service != null) {
-      final wasPolling = _service!.isPolling;
       _service?.dispose();
-      _service = PollingService(
-        onPoll: () async {
-          // Use silentRefresh to only update UI when data changes
-          await ref.read(ordersProvider.notifier).silentRefresh();
-        },
-        interval: interval,
-        debugLabel: 'OrdersPolling',
-      );
+      _service = _createPollingService(interval);
       if (wasPolling) {
         _service?.start();
+      } else {
+        state = state.copyWith(isSyncing: false, clearNextPollAt: true);
       }
     }
   }

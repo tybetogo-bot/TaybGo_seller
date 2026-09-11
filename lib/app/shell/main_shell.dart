@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,7 +11,9 @@ import '../../core/services/location_permission_service.dart';
 import '../../core/services/push_notification_service.dart';
 import '../../core/theme/theme.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
+import '../../features/orders/application/orders_notifier.dart';
 import '../../features/tour/utils/tour_keys.dart';
+import '../../features/orders/presentation/widgets/incoming_order_alert.dart';
 import '../../shared/widgets/location_warning_banner.dart';
 import '../router/routes.dart';
 
@@ -35,26 +39,19 @@ class _MainShellState extends ConsumerState<MainShell> {
   void initState() {
     super.initState();
 
-    // Set up notification tap handler for navigation.
-    PushNotificationService.instance.onNotificationTap = (data) {
-      // Wait until the current frame is complete. This also handles a
-      // terminated-state notification replayed during shell initialization.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-
-        final rawOrderId = data['order_id'] ?? data['orderId'];
-        final orderId = rawOrderId?.toString().trim();
-        if (orderId != null && orderId.isNotEmpty) {
-          context.go(Routes.orderDetailsPath(orderId));
-        } else {
-          context.go(Routes.notifications);
-        }
-      });
-    };
-
     // Refresh in-app notifications when a push arrives in the foreground.
-    PushNotificationService.instance.onForegroundMessage = (_) {
+    PushNotificationService.instance.onForegroundMessage = (message) {
       ref.read(notificationsProvider.notifier).refresh();
+
+      final notificationType = message.data['type']?.toString().toLowerCase();
+      if (notificationType == 'new_order' ||
+          notificationType == 'new-order' ||
+          notificationType == 'order_created' ||
+          notificationType == 'order-created') {
+        // The alert host compares the refreshed snapshot with its baseline, so
+        // only a genuinely new pending order opens the full-screen experience.
+        unawaited(ref.read(ordersProvider.notifier).refreshOrders());
+      }
     };
   }
 
@@ -107,41 +104,41 @@ class _MainShellState extends ConsumerState<MainShell> {
     final useRail = formFactor != FormFactor.phone;
     final extended = formFactor == FormFactor.desktop;
 
-    if (useRail) {
-      return Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: Row(
-            children: [
-              _AppNavigationRail(extended: extended),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(
-                child: Column(
-                  children: [
-                    const LocationWarningBanner(),
-                    Expanded(child: widget.child),
-                  ],
-                ),
+    final shell = useRail
+        ? Scaffold(
+            body: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  _AppNavigationRail(extended: extended),
+                  const VerticalDivider(thickness: 1, width: 1),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const LocationWarningBanner(),
+                        Expanded(child: widget.child),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      );
-    }
+            ),
+          )
+        : Scaffold(
+            // Phone layout: keep the original bottom-navigation shell.
+            body: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  const LocationWarningBanner(),
+                  Expanded(child: widget.child),
+                ],
+              ),
+            ),
+            bottomNavigationBar: const AppBottomNavBar(),
+          );
 
-    // Phone layout: keep the original bottom-navigation shell.
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const LocationWarningBanner(),
-            Expanded(child: widget.child),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const AppBottomNavBar(),
-    );
+    return IncomingOrderAlertHost(child: shell);
   }
 }
 

@@ -40,6 +40,73 @@ void main() {
     await TranslationService.instance.load(AppLocales.english);
   });
 
+  test('parses the server-provided nullable seller total', () {
+    final order = OrderModel.fromJson({
+      'id': 'seller-total-1',
+      'customer_name': 'Test Customer',
+      'customer_phone_number': '+43123456789',
+      'items': const [],
+      'subtotal_amount': '20.00',
+      'discount_amount': '2.00',
+      'delivery_fee': '5.00',
+      'tip': '1.00',
+      'total_amount': '24.00',
+      'seller_total_amount': '18.00',
+      'created_at': '2026-09-02T12:00:00Z',
+    });
+
+    expect(order.sellerTotalAmount, 18.00);
+
+    final legacyOrder = OrderModel.fromJson({
+      'id': 'legacy-1',
+      'customer_name': 'Legacy Customer',
+      'customer_phone_number': '+43123456789',
+      'items': const [],
+      'created_at': '2026-09-02T12:00:00Z',
+      'seller_total_amount': null,
+    });
+
+    expect(legacyOrder.sellerTotalAmount, isNull);
+  });
+
+  test('preserves delayed dispatch fields and non-status allowed actions', () {
+    final order = OrderModel.fromJson({
+      'id': 'dispatch-1',
+      'customer_name': 'Delivery Customer',
+      'items': const [],
+      'created_at': '2026-09-02T12:00:00Z',
+      'order_type': 'FOOD',
+      'fulfillment_type': 'DELIVERY',
+      'restaurant': {'id': 9, 'name': 'Test Cafe', 'delivery_enabled': true},
+      'driver_dispatch_status': 'SCHEDULED',
+      'driver_dispatch_remaining_seconds': 600,
+      'driver_dispatch_max_delay_minutes': 30,
+      'allowed_actions': [
+        {'value': 'REQUEST_DRIVER_NOW', 'label': 'Request driver now'},
+        {'value': 'RESCHEDULE_DRIVER', 'label': 'Change driver request time'},
+        {'value': 'CANCELLED', 'label': 'Cancel order'},
+      ],
+    });
+
+    expect(order.fulfillmentType, 'DELIVERY');
+    expect(order.restaurant?.deliveryEnabled, isTrue);
+    expect(order.driverDispatchStatus, 'SCHEDULED');
+    expect(order.driverDispatchRemainingSeconds, 600);
+    expect(order.driverDispatchMaxDelayMinutes, 30);
+    expect(
+      order.allowedActions.map((action) => action.value),
+      containsAll(<String>[
+        'REQUEST_DRIVER_NOW',
+        'RESCHEDULE_DRIVER',
+        'CANCELLED',
+      ]),
+    );
+    expect(
+      order.allowedStatusOptions.map((option) => option.value),
+      contains('CANCELLED'),
+    );
+  });
+
   testWidgets('keeps order details loading until the ID request settles', (
     tester,
   ) async {

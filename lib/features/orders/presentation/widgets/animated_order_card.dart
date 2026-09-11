@@ -11,6 +11,8 @@ import '../../../restaurant/application/restaurant_state.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
 import 'order_api_debug_inspector.dart';
+import 'driver_dispatch_selector.dart';
+import 'incoming_order_timer.dart';
 
 /// Swipeable order card with clean design
 /// - Swipe right: Update to next status
@@ -87,7 +89,7 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final previousExtent = _dragExtent;
     final newExtent = _dragExtent + (details.primaryDelta ?? 0);
     final maxDrag = maxWidth * _maxSwipeRatio;
-    final canAdvanceOrder = _getNextStatus() != null;
+    final canAdvanceOrder = _canSwipeToAdvance();
     // Only allow left-swipe (negative) when the order has a next actionable state.
     final minDrag = canAdvanceOrder ? -maxDrag : 0.0;
     final clampedExtent = newExtent.clamp(minDrag, maxDrag);
@@ -117,10 +119,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     _isDragging = false;
 
     final swipeRatio = _dragExtent / maxWidth;
-    final nextStatus = _getNextStatus();
 
     // Swipe left threshold reached - update status when another action is available.
-    if (swipeRatio < -_swipeThreshold && nextStatus != null) {
+    if (swipeRatio < -_swipeThreshold && _canSwipeToAdvance()) {
       await _handleSwipeToUpdateStatus();
     }
     // Swipe right threshold reached - open details
@@ -228,6 +229,143 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
   }
 
+  Future<void> _handlePrimaryAction() async {
+    if (_isProcessing) return;
+
+    final action = _getPrimaryAction();
+    if (action == null) return;
+
+    switch (action.normalizedValue) {
+      case 'ACCEPTED':
+        await _handleAcceptAction();
+      case 'REQUEST_DRIVER_NOW':
+        await _handleDriverDispatchAction(DriverDispatchAction.requestNow);
+      case 'SCHEDULE_DRIVER':
+        await _handleDriverDispatchAction(DriverDispatchAction.schedule);
+      case 'RESCHEDULE_DRIVER':
+        await _handleDriverDispatchAction(DriverDispatchAction.reschedule);
+      case 'REJECTED':
+        await _handleReject();
+      case 'CANCELLED':
+        await _handleCancel();
+      default:
+        if (action.status != null) await _handleMoveToNextStatus();
+    }
+  }
+
+  Future<void> _handleAcceptAction() async {
+    int? delayMinutes;
+    final notifier = ref.read(ordersProvider.notifier);
+    if (notifier.isDriverDispatchAvailableForOrder(widget.order)) {
+      delayMinutes = await showDriverDispatchDelaySelector(
+        context,
+        order: widget.order,
+      );
+      if (!mounted || delayMinutes == null) return;
+    }
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+    await _scaleController.forward();
+
+    final success = await notifier.acceptOrder(
+      widget.order.id,
+      driverDispatchDelayMinutes: delayMinutes,
+    );
+    if (!mounted) return;
+
+    if (success) {
+      _showSimpleSnackBar(
+        delayMinutes != null && delayMinutes > 0
+            ? 'orders.driverRequestScheduled'.tr
+            : 'orders.orderAcceptedSuccess'.tr,
+        AppColors.success,
+      );
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    await _scaleController.reverse();
+    if (mounted) setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleDriverDispatchAction(DriverDispatchAction action) async {
+    int? delayMinutes;
+    if (action != DriverDispatchAction.requestNow) {
+      delayMinutes = await showDriverDispatchDelaySelector(
+        context,
+        order: widget.order,
+      );
+      if (!mounted || delayMinutes == null) return;
+      // Choosing "Immediately" is semantically a request-now operation and
+      // avoids sending a zero-delay RESCHEDULE to the backend.
+      if (delayMinutes == 0) action = DriverDispatchAction.requestNow;
+    }
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+    final notifier = ref.read(ordersProvider.notifier);
+    final success = switch (action) {
+      DriverDispatchAction.requestNow => await notifier.requestDriverNow(
+        widget.order.id,
+      ),
+      DriverDispatchAction.schedule => await notifier.scheduleDriver(
+        widget.order.id,
+        delayMinutes!,
+      ),
+      DriverDispatchAction.reschedule => await notifier.rescheduleDriver(
+        widget.order.id,
+        delayMinutes!,
+      ),
+    };
+
+    if (!mounted) return;
+    if (success) {
+      _showSimpleSnackBar(
+        action == DriverDispatchAction.requestNow
+            ? 'orders.driverRequestStarted'.tr
+            : 'orders.driverRequestScheduled'.tr,
+        AppColors.success,
+      );
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    if (mounted) setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handlePrimaryActionForReschedule() {
+    return _handleDriverDispatchAction(DriverDispatchAction.reschedule);
+  }
+
+  Future<void> _handleCancel() async {
+    setState(() => _isProcessing = true);
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .cancelOrder(widget.order.id);
+    if (!mounted) return;
+    if (success) {
+      _showSimpleSnackBar('orders.orderCancelled'.tr, AppColors.success);
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    setState(() => _isProcessing = false);
+  }
+
+  void _showSimpleSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: color,
+      ),
+    );
+  }
+
   Future<void> _handleReorder() async {
     if (_isProcessing) return;
 
@@ -260,6 +398,61 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     }
 
     setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleReject() async {
+    if (_isProcessing) return;
+
+    final confirmed = await _showRejectConfirmationDialog();
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .rejectOrder(widget.order.id);
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('orders.orderRejectedSuccess'.tr),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.orderRejectFailed'.tr,
+      );
+    }
+
+    setState(() => _isProcessing = false);
+  }
+
+  Future<bool?> _showRejectConfirmationDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('orders.rejectOrder'.tr),
+          content: Text('orders.rejectConfirmMessage'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('orders.cancel'.tr),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: Text('orders.rejectOrder'.tr),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _handleShowDebugInspector() async {
@@ -358,6 +551,59 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
         .getNextStatusForOrder(widget.order);
   }
 
+  OrderAllowedAction? _getPrimaryAction() {
+    return ref
+        .read(ordersProvider.notifier)
+        .getPrimaryAllowedAction(widget.order);
+  }
+
+  bool _canSwipeToAdvance() {
+    // Explicit allowed_actions may represent ACCEPTED, scheduling, or a
+    // destructive command. Keep those choices behind their dedicated button
+    // and selector instead of silently executing a status swipe.
+    return widget.order.status != OrderStatusEnum.pending &&
+        widget.order.allowedActions.isEmpty &&
+        _getNextStatus() != null;
+  }
+
+  String _getActionLabel(OrderAllowedAction action) {
+    switch (action.normalizedValue) {
+      case 'ACCEPTED':
+        return 'orders.acceptOrder'.tr;
+      case 'REQUEST_DRIVER_NOW':
+        return 'orders.requestDriverNow'.tr;
+      case 'SCHEDULE_DRIVER':
+        return 'orders.scheduleDriver'.tr;
+      case 'RESCHEDULE_DRIVER':
+        return 'orders.changeDriverRequestTime'.tr;
+      case 'REJECTED':
+        return 'orders.rejectOrder'.tr;
+      case 'CANCELLED':
+        return 'orders.cancelOrder'.tr;
+      default:
+        return action.status == null
+            ? (action.label ?? action.value)
+            : _getPrimaryActionLabel(action.status!);
+    }
+  }
+
+  IconData _getActionIcon(OrderAllowedAction action) {
+    switch (action.normalizedValue) {
+      case 'REQUEST_DRIVER_NOW':
+      case 'SCHEDULE_DRIVER':
+      case 'RESCHEDULE_DRIVER':
+        return Icons.delivery_dining_rounded;
+      case 'REJECTED':
+        return Icons.close_rounded;
+      case 'CANCELLED':
+        return Icons.block_rounded;
+      default:
+        return action.status == null
+            ? Icons.touch_app_rounded
+            : _getStatusIcon(action.status!);
+    }
+  }
+
   String _getPrimaryActionLabel(OrderStatusEnum nextStatus) {
     switch (nextStatus) {
       case OrderStatusEnum.accepted:
@@ -405,11 +651,17 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     if (diff.inMinutes < 1) {
       return 'time.justNow'.tr;
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m';
+      return 'orders.incoming.receivedMinutesAgo'.trParams({
+        'count': '${diff.inMinutes}',
+      });
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}h';
+      return 'orders.incoming.receivedHoursAgo'.trParams({
+        'count': '${diff.inHours}',
+      });
     } else {
-      return '${diff.inDays}d';
+      return 'orders.incoming.receivedDaysAgo'.trParams({
+        'count': '${diff.inDays}',
+      });
     }
   }
 
@@ -521,6 +773,11 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final statusColor = _getStatusColor(status);
     final isTerminal = status.isTerminal;
     final nextStatus = _getNextStatus();
+    final primaryAction = _getPrimaryAction();
+    final notifier = ref.read(ordersProvider.notifier);
+    final canReject = notifier.canRejectOrder(order);
+    final canCancel = notifier.canCancelOrder(order);
+    final canReschedule = order.allowsAction('RESCHEDULE_DRIVER');
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -742,7 +999,9 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                           CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          '€${order.total.toStringAsFixed(2)}',
+                                          order.sellerTotalAmount == null
+                                              ? '—'
+                                              : '€${order.sellerTotalAmount!.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             fontSize: 16.sp,
                                             fontWeight: FontWeight.w700,
@@ -776,16 +1035,37 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                   ],
                                 ),
 
+                                if (order.driverDispatchStatus != null &&
+                                    status != OrderStatusEnum.pending) ...[
+                                  SizedBox(height: 12.h),
+                                  IncomingOrderTimer(
+                                    order: order,
+                                    textPrimary: isDark
+                                        ? DarkColors.textPrimary
+                                        : LightColors.textPrimary,
+                                    textSecondary: isDark
+                                        ? DarkColors.textSecondary
+                                        : LightColors.textSecondary,
+                                    onRefresh: () async {
+                                      await ref
+                                          .read(ordersProvider.notifier)
+                                          .fetchOrderById(order.id);
+                                    },
+                                  ),
+                                ],
+
                                 // Action button for explicit order actions
-                                if (nextStatus != null) ...[
+                                if (primaryAction != null) ...[
                                   SizedBox(height: 14.h),
                                   _StatusActionButton(
-                                    onTap: _handleMoveToNextStatus,
+                                    onTap: _handlePrimaryAction,
                                     isLoading: _isProcessing,
-                                    nextStatusLabel: _getPrimaryActionLabel(
-                                      nextStatus,
+                                    nextStatusLabel: _getActionLabel(
+                                      primaryAction,
                                     ),
-                                    nextStatusIcon: _getStatusIcon(nextStatus),
+                                    nextStatusIcon: _getActionIcon(
+                                      primaryAction,
+                                    ),
                                   ),
                                 ] else if (status ==
                                     OrderStatusEnum.expired) ...[
@@ -795,6 +1075,33 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                     isLoading: _isProcessing,
                                     nextStatusLabel: 'orders.reorder'.tr,
                                     nextStatusIcon: Icons.refresh_rounded,
+                                  ),
+                                ],
+                                if (canReschedule &&
+                                    primaryAction?.normalizedValue ==
+                                        'REQUEST_DRIVER_NOW') ...[
+                                  SizedBox(height: 8.h),
+                                  _SecondaryActionButton(
+                                    onTap: _handlePrimaryActionForReschedule,
+                                    label: 'orders.changeDriverRequestTime'.tr,
+                                    icon: Icons.schedule_rounded,
+                                    isLoading: _isProcessing,
+                                  ),
+                                ],
+                                if (canReject) ...[
+                                  SizedBox(height: 8.h),
+                                  _RejectOrderButton(
+                                    onTap: _handleReject,
+                                    isLoading: _isProcessing,
+                                  ),
+                                ],
+                                if (canCancel && !canReject) ...[
+                                  SizedBox(height: 8.h),
+                                  _SecondaryActionButton(
+                                    onTap: _handleCancel,
+                                    label: 'orders.cancelOrder'.tr,
+                                    icon: Icons.block_rounded,
+                                    isLoading: _isProcessing,
                                   ),
                                 ],
                               ],
@@ -1096,6 +1403,96 @@ class _StatusActionButton extends StatelessWidget {
                   ),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+class _RejectOrderButton extends StatelessWidget {
+  const _RejectOrderButton({required this.onTap, required this.isLoading});
+
+  final VoidCallback onTap;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 11.h, horizontal: 16.w),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.45)),
+        ),
+        child: isLoading
+            ? Center(
+                child: SizedBox(
+                  width: 18.w,
+                  height: 18.w,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.error,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.close_rounded, size: 18.w, color: AppColors.error),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'orders.rejectOrder'.tr,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.error,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _SecondaryActionButton extends StatelessWidget {
+  const _SecondaryActionButton({
+    required this.onTap,
+    required this.label,
+    required this.icon,
+    required this.isLoading,
+  });
+
+  final VoidCallback onTap;
+  final String label;
+  final IconData icon;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    return OutlinedButton.icon(
+      onPressed: isLoading ? null : onTap,
+      icon: isLoading
+          ? SizedBox(
+              width: 16.w,
+              height: 16.w,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: primaryColor,
+              ),
+            )
+          : Icon(icon, size: 17.w),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryColor,
+        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
+        side: BorderSide(color: primaryColor.withValues(alpha: 0.35)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
       ),
     );
   }

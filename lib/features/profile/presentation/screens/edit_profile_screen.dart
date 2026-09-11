@@ -190,6 +190,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             controller: _emailController,
                             isDark: isDark,
                             keyboardType: TextInputType.emailAddress,
+                            readOnly: true,
+                            suffixIcon: Icons.lock_outline,
                           ),
                           SizedBox(height: 12.h),
                           _EditableField(
@@ -419,7 +421,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         .read(userProfileProvider.notifier)
         .updateProfile(
           name: _sellerNameController.text.trim(),
-          email: _emailController.text.trim(),
         );
     if (!updatedUser) {
       errorMessage =

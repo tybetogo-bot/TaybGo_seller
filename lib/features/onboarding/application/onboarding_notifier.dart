@@ -47,6 +47,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
   Future<void> submitOnboarding({
     // Profile fields
     required String name,
+    required String email,
     required String phone,
     DateTime? birthdate,
     required String registrationDocumentUrl,
@@ -76,6 +77,7 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       await _userApi.submitOnboarding({
         'seller_profile': {
           'name': name,
+          'email': email,
           'phone': phone,
           if (birthdate != null) 'birthdate': _formatDate(birthdate),
           'restaurant_registration_license_document': registrationDocumentUrl

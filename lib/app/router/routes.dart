@@ -91,6 +91,9 @@ class Routes {
   static const String notifications = '/profile/notifications';
   static const String notificationsName = 'notifications';
 
+  static const String notificationSettings = '/profile/notification-settings';
+  static const String notificationSettingsName = 'notificationSettings';
+
   static const String language = '/profile/language';
   static const String languageName = 'language';
 

@@ -83,6 +83,88 @@ class OrdersApi {
     }
   }
 
+  /// Reject a pending seller order through the dedicated seller action.
+  Future<OrderModel> rejectOrder(
+    String id, {
+    String reasonCode = 'OTHER',
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderReject(id),
+      data: {'reason_code': reasonCode},
+    );
+
+    try {
+      return await getOrderById(id);
+    } on DioException {
+      return OrderModel.fromJson(response.data as Map<String, dynamic>);
+    }
+  }
+
+  /// Accept a seller order, optionally scheduling driver dispatch.
+  /// POST /api/seller/orders/{id}/accept/
+  Future<OrderModel> acceptOrder(
+    String id, {
+    int? driverDispatchDelayMinutes,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderAccept(id),
+      data: {
+        if (driverDispatchDelayMinutes != null)
+          'driver_dispatch_delay_minutes': driverDispatchDelayMinutes,
+      },
+    );
+    return _refreshOrderFromActionResponse(id, response);
+  }
+
+  /// Request or schedule driver dispatch for an accepted delivery order.
+  /// POST /api/seller/orders/{id}/driver-dispatch/
+  Future<OrderModel> driverDispatch(
+    String id, {
+    required DriverDispatchAction action,
+    int? driverDispatchDelayMinutes,
+  }) async {
+    if ((action == DriverDispatchAction.schedule ||
+            action == DriverDispatchAction.reschedule) &&
+        driverDispatchDelayMinutes == null) {
+      throw ArgumentError.value(
+        driverDispatchDelayMinutes,
+        'driverDispatchDelayMinutes',
+        'A delay is required when scheduling driver dispatch.',
+      );
+    }
+
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderDriverDispatch(id),
+      data: {
+        'action': action.apiValue,
+        if (action != DriverDispatchAction.requestNow &&
+            driverDispatchDelayMinutes != null)
+          'driver_dispatch_delay_minutes': driverDispatchDelayMinutes,
+      },
+      options: action == DriverDispatchAction.reschedule
+          ? Options(extra: {'disableRetry': true})
+          : null,
+    );
+    return _refreshOrderFromActionResponse(id, response);
+  }
+
+  Future<OrderModel> _refreshOrderFromActionResponse(
+    String id,
+    Response<dynamic> response,
+  ) async {
+    // Action responses may be compact, while the detail response is the
+    // canonical shape used by cards and details. Prefer it after every action.
+    try {
+      return await getOrderById(id);
+    } on DioException {
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return OrderModel.fromJson(data);
+      }
+      rethrow;
+    }
+  }
+
   /// Process refund
   /// POST /api/seller/orders/{order_id}/refund/
   Future<RefundResponse> refundOrder({

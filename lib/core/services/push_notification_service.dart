@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -5,10 +6,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/constants.dart';
 import '../providers/providers.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
+import '../../features/notifications/application/notification_settings_notifier.dart';
 
 /// Top-level background message handler (must be top-level function).
 @pragma('vm:entry-point')
@@ -21,6 +24,7 @@ const _androidNotificationSound = RawResourceAndroidNotificationSound(
   'notif_sound',
 );
 const _iosNotificationSound = 'notif_sound.caf';
+const _orderAlertRepeatInterval = Duration(seconds: 5);
 
 /// Android notification channel for high-importance messages.
 const AndroidNotificationChannel _highImportanceChannel =
@@ -217,34 +221,65 @@ class PushNotificationService {
     onForegroundMessage?.call(message);
 
     final notification = message.notification;
-    if (notification == null) return;
+    if (notification == null || kIsWeb) return;
+
+    unawaited(_showForegroundNotification(message, notification));
+  }
+
+  Future<void> _showForegroundNotification(
+    RemoteMessage message,
+    RemoteNotification notification,
+  ) async {
+    var repeatCount = 1;
+    if (message.data['type']?.toString() == 'new_order') {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        repeatCount = AppNotificationSettings.fromPreferences(
+          prefs,
+        ).orderAlertRepeatCount;
+      } catch (e) {
+        print('🟡 [FCM] Could not load notification preferences: $e');
+      }
+    }
 
     final android = notification.android;
-
-    _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _highImportanceChannel.id,
-          _highImportanceChannel.name,
-          channelDescription: _highImportanceChannel.description,
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: true,
-          sound: _androidNotificationSound,
-          icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          sound: _iosNotificationSound,
-        ),
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _highImportanceChannel.id,
+        _highImportanceChannel.name,
+        channelDescription: _highImportanceChannel.description,
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        sound: _androidNotificationSound,
+        icon: android?.smallIcon ?? '@mipmap/ic_launcher',
       ),
-      payload: jsonEncode(message.data),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: _iosNotificationSound,
+      ),
     );
+
+    for (var repeatIndex = 0; repeatIndex < repeatCount; repeatIndex++) {
+      if (repeatIndex > 0) {
+        await Future<void>.delayed(_orderAlertRepeatInterval);
+      }
+
+      await _localNotifications.show(
+        _notificationId(message, repeatIndex),
+        notification.title,
+        notification.body,
+        details,
+        payload: jsonEncode(message.data),
+      );
+    }
+  }
+
+  int _notificationId(RemoteMessage message, int repeatIndex) {
+    final baseId = message.hashCode & 0x7fffffff;
+    return (baseId + repeatIndex) & 0x7fffffff;
   }
 
   /// Called when the user taps a notification that opened the app from

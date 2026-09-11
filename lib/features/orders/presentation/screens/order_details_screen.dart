@@ -15,6 +15,8 @@ import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/order_model.dart';
+import '../widgets/driver_dispatch_selector.dart';
+import '../widgets/incoming_order_timer.dart';
 import '../widgets/order_api_debug_inspector.dart';
 
 // TODO: Re-enable when print button is enabled
@@ -79,6 +81,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
   Future<void> _handleStatusAction(OrderModel order) async {
     if (_isProcessing) return;
 
+    final primaryAction = ref
+        .read(ordersProvider.notifier)
+        .getPrimaryAllowedAction(order);
+    if (primaryAction != null &&
+        _isServerAction(primaryAction.normalizedValue)) {
+      await _handleServerAction(order, primaryAction);
+      return;
+    }
+
     // Get the target status for confirmation
     final targetStatus = _getTargetStatus(order);
     if (targetStatus == null) return;
@@ -113,6 +124,170 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
   }
 
+  bool _isServerAction(String value) {
+    return value == 'ACCEPTED' ||
+        value == 'REQUEST_DRIVER_NOW' ||
+        value == 'SCHEDULE_DRIVER' ||
+        value == 'RESCHEDULE_DRIVER' ||
+        value == 'REJECTED' ||
+        value == 'CANCELLED';
+  }
+
+  Future<void> _handleServerAction(
+    OrderModel order,
+    OrderAllowedAction action,
+  ) async {
+    switch (action.normalizedValue) {
+      case 'ACCEPTED':
+        await _handleAccept(order);
+      case 'REQUEST_DRIVER_NOW':
+        await _handleDriverDispatch(order, DriverDispatchAction.requestNow);
+      case 'SCHEDULE_DRIVER':
+        await _handleDriverDispatch(order, DriverDispatchAction.schedule);
+      case 'RESCHEDULE_DRIVER':
+        await _handleDriverDispatch(order, DriverDispatchAction.reschedule);
+      case 'REJECTED':
+        await _handleReject(order);
+      case 'CANCELLED':
+        await _handleCancel(order);
+    }
+  }
+
+  Future<void> _handleAccept(OrderModel order) async {
+    int? delayMinutes;
+    final notifier = ref.read(ordersProvider.notifier);
+    if (notifier.isDriverDispatchAvailableForOrder(order)) {
+      delayMinutes = await showDriverDispatchDelaySelector(
+        context,
+        order: order,
+      );
+      if (!mounted || delayMinutes == null) return;
+    }
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+    final success = await notifier.acceptOrder(
+      order.id,
+      driverDispatchDelayMinutes: delayMinutes,
+    );
+    if (!mounted) return;
+
+    if (success) {
+      _showSuccessSnackBar(
+        delayMinutes != null && delayMinutes > 0
+            ? 'orders.driverRequestScheduled'.tr
+            : 'orders.orderAcceptedSuccess'.tr,
+      );
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleDriverDispatch(
+    OrderModel order,
+    DriverDispatchAction action,
+  ) async {
+    int? delayMinutes;
+    if (action != DriverDispatchAction.requestNow) {
+      delayMinutes = await showDriverDispatchDelaySelector(
+        context,
+        order: order,
+      );
+      if (!mounted || delayMinutes == null) return;
+      if (delayMinutes == 0) action = DriverDispatchAction.requestNow;
+    }
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+    final notifier = ref.read(ordersProvider.notifier);
+    final success = switch (action) {
+      DriverDispatchAction.requestNow => await notifier.requestDriverNow(
+        order.id,
+      ),
+      DriverDispatchAction.schedule => await notifier.scheduleDriver(
+        order.id,
+        delayMinutes!,
+      ),
+      DriverDispatchAction.reschedule => await notifier.rescheduleDriver(
+        order.id,
+        delayMinutes!,
+      ),
+    };
+    if (!mounted) return;
+
+    if (success) {
+      _showSuccessSnackBar(
+        action == DriverDispatchAction.requestNow
+            ? 'orders.driverRequestStarted'.tr
+            : 'orders.driverRequestScheduled'.tr,
+      );
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleCancel(OrderModel order) async {
+    setState(() => _isProcessing = true);
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .cancelOrder(order.id);
+    if (!mounted) return;
+    if (success) {
+      _showSuccessSnackBar('orders.orderCancelled'.tr);
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.statusUpdateFailed'.tr,
+      );
+    }
+    setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleReject(OrderModel order) async {
+    if (_isProcessing) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('orders.rejectOrder'.tr),
+        content: Text('orders.rejectConfirmMessage'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text('orders.cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text('orders.rejectOrder'.tr),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
+    final success = await ref
+        .read(ordersProvider.notifier)
+        .rejectOrder(order.id);
+    if (!mounted) return;
+
+    if (success) {
+      _showSuccessSnackBar('orders.orderRejectedSuccess'.tr);
+    } else {
+      _showErrorSnackBar(
+        ref.read(ordersProvider).error ?? 'orders.orderRejectFailed'.tr,
+      );
+    }
+    setState(() => _isProcessing = false);
+  }
+
   Future<void> _handleReorder(OrderModel order) async {
     if (_isProcessing) return;
 
@@ -137,23 +312,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   OrderStatusEnum? _getTargetStatus(OrderModel order) {
     return ref.read(ordersProvider.notifier).getNextStatusForOrder(order);
-  }
-
-  String _getActionLabel(OrderStatusEnum targetStatus) {
-    switch (targetStatus) {
-      case OrderStatusEnum.accepted:
-        return 'orders.acceptOrder'.tr;
-      case OrderStatusEnum.searchingForDriver:
-        return 'orders.requestDriver'.tr;
-      case OrderStatusEnum.onTheWay:
-        return 'orders.markOnTheWay'.tr;
-      case OrderStatusEnum.delivered:
-        return 'orders.markDelivered'.tr;
-      case OrderStatusEnum.restaurantDelivered:
-        return 'orders.markRestaurantDelivered'.tr;
-      default:
-        return _getStatusDisplayName(targetStatus);
-    }
   }
 
   String _getStatusDisplayName(OrderStatusEnum status) {
@@ -517,6 +675,31 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                   _OrderInfoCard(order: order, isDark: isDark),
                   SizedBox(height: 20.h),
 
+                  // Backend-owned driver dispatch state and countdown
+                  if (order.driverDispatchStatus != null ||
+                      order.hasDriverDispatchTimer) ...[
+                    _SectionTitle(
+                      title: 'orders.driverDispatch'.tr,
+                      isDark: isDark,
+                    ),
+                    SizedBox(height: 12.h),
+                    IncomingOrderTimer(
+                      order: order,
+                      textPrimary: isDark
+                          ? DarkColors.textPrimary
+                          : LightColors.textPrimary,
+                      textSecondary: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
+                      onRefresh: () async {
+                        await ref
+                            .read(ordersProvider.notifier)
+                            .fetchOrderById(order.id);
+                      },
+                    ),
+                    SizedBox(height: 20.h),
+                  ],
+
                   // Pickup & Dropoff Addresses
                   _SectionTitle(title: 'orders.addresses'.tr, isDark: isDark),
                   SizedBox(height: 12.h),
@@ -605,7 +788,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
 
   Widget _buildActionButtons(OrderModel order, bool isDark) {
     final status = order.status;
-    final canEditOrder = order.isManual && !order.isCompleted;
+    final notifier = ref.read(ordersProvider.notifier);
+    final canEditOrder = order.isManual && !order.isCompleted && !order.isPaid;
     final actionButtons = <Widget>[];
 
     if (canEditOrder) {
@@ -634,8 +818,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       return _ActionButtonStack(children: actionButtons);
     }
 
-    // Flow: Pending → Searching → Driver Notified → Accepted/Rejected → On the Way → Delivered
-    // Delivered, rejected, or cancelled orders don't need action buttons
+    // Terminal orders only retain edit/reorder actions above.
     if (status == OrderStatusEnum.delivered ||
         status == OrderStatusEnum.restaurantDelivered ||
         status == OrderStatusEnum.rejected ||
@@ -643,24 +826,128 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       return _ActionButtonStack(children: actionButtons);
     }
 
-    // Get the next status label for the button
-    final targetStatus = _getTargetStatus(order);
-    if (targetStatus == null) {
-      return _ActionButtonStack(children: actionButtons);
+    final primaryAction = notifier.getPrimaryAllowedAction(order);
+    if (primaryAction != null) {
+      final isDanger =
+          primaryAction.normalizedValue == 'REJECTED' ||
+          primaryAction.normalizedValue == 'CANCELLED';
+      actionButtons.add(
+        AppButton(
+          label: _getActionLabel(primaryAction),
+          icon: _getActionIcon(primaryAction),
+          variant: isDanger
+              ? AppButtonVariant.danger
+              : AppButtonVariant.primary,
+          isLoading: _isProcessing,
+          onPressed: () => _handleStatusAction(order),
+          isFullWidth: true,
+        ),
+      );
     }
 
-    // Show button with action label
-    actionButtons.add(
-      AppButton(
-        label: _getActionLabel(targetStatus),
-        icon: _getStatusIcon(targetStatus),
-        isLoading: _isProcessing,
-        onPressed: () => _handleStatusAction(order),
-        isFullWidth: true,
-      ),
-    );
+    // A scheduled order exposes both a fast path and a deliberate reschedule
+    // path. The server's allowed_actions list is the source of truth.
+    if (order.allowsAction('RESCHEDULE_DRIVER') &&
+        primaryAction?.normalizedValue == 'REQUEST_DRIVER_NOW') {
+      actionButtons.add(
+        AppButton(
+          label: 'orders.changeDriverRequestTime'.tr,
+          icon: Icons.schedule_rounded,
+          variant: AppButtonVariant.secondary,
+          isLoading: _isProcessing,
+          onPressed: () => _handleServerAction(
+            order,
+            const OrderAllowedAction(value: 'RESCHEDULE_DRIVER'),
+          ),
+          isFullWidth: true,
+        ),
+      );
+    }
+
+    if (notifier.canRejectOrder(order) &&
+        primaryAction?.normalizedValue != 'REJECTED') {
+      actionButtons.add(
+        AppButton(
+          label: 'orders.rejectOrder'.tr,
+          icon: Icons.close_rounded,
+          variant: AppButtonVariant.danger,
+          isLoading: _isProcessing,
+          onPressed: () => _handleReject(order),
+          isFullWidth: true,
+        ),
+      );
+    }
+
+    if (notifier.canCancelOrder(order) &&
+        primaryAction?.normalizedValue != 'CANCELLED') {
+      actionButtons.add(
+        AppButton(
+          label: 'orders.cancelOrder'.tr,
+          icon: Icons.block_rounded,
+          variant: AppButtonVariant.outline,
+          isLoading: _isProcessing,
+          onPressed: () => _handleCancel(order),
+          isFullWidth: true,
+        ),
+      );
+    }
 
     return _ActionButtonStack(children: actionButtons);
+  }
+
+  String _getActionLabel(OrderAllowedAction action) {
+    switch (action.normalizedValue) {
+      case 'ACCEPTED':
+        return 'orders.acceptOrder'.tr;
+      case 'REQUEST_DRIVER_NOW':
+        return 'orders.requestDriverNow'.tr;
+      case 'SCHEDULE_DRIVER':
+        return 'orders.scheduleDriver'.tr;
+      case 'RESCHEDULE_DRIVER':
+        return 'orders.changeDriverRequestTime'.tr;
+      case 'REJECTED':
+        return 'orders.rejectOrder'.tr;
+      case 'CANCELLED':
+        return 'orders.cancelOrder'.tr;
+      default:
+        return action.status == null
+            ? (action.label ?? action.value)
+            : _getActionLabelForStatus(action.status!);
+    }
+  }
+
+  String _getActionLabelForStatus(OrderStatusEnum status) {
+    switch (status) {
+      case OrderStatusEnum.accepted:
+        return 'orders.acceptOrder'.tr;
+      case OrderStatusEnum.searchingForDriver:
+        return 'orders.requestDriver'.tr;
+      case OrderStatusEnum.onTheWay:
+        return 'orders.markOnTheWay'.tr;
+      case OrderStatusEnum.delivered:
+        return 'orders.markDelivered'.tr;
+      case OrderStatusEnum.restaurantDelivered:
+        return 'orders.markRestaurantDelivered'.tr;
+      default:
+        return _getStatusDisplayName(status);
+    }
+  }
+
+  IconData _getActionIcon(OrderAllowedAction action) {
+    switch (action.normalizedValue) {
+      case 'REQUEST_DRIVER_NOW':
+      case 'SCHEDULE_DRIVER':
+      case 'RESCHEDULE_DRIVER':
+        return Icons.delivery_dining_rounded;
+      case 'REJECTED':
+        return Icons.close_rounded;
+      case 'CANCELLED':
+        return Icons.block_rounded;
+      default:
+        return action.status == null
+            ? Icons.touch_app_rounded
+            : _getStatusIcon(action.status!);
+    }
   }
 
   IconData _getStatusIcon(OrderStatusEnum status) {
@@ -1391,45 +1678,17 @@ class _PaymentSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final menuState = ref.watch(menuProvider);
-
-    // Calculate subtotal from menu prices if order subtotal is 0
-    double calculateSubtotalFromMenu() {
-      double total = 0;
-      for (final item in order.items) {
-        if (item.unitPrice > 0) {
-          total += item.totalPrice;
-        } else {
-          // Try to find price from menu
-          final menuItem = menuState.items
-              .where((m) => m.id == item.menuItemId || m.name == item.name)
-              .firstOrNull;
-          if (menuItem != null) {
-            total += menuItem.price * item.quantity;
-          }
-        }
-      }
-      return total;
-    }
-
-    // Get subtotal - try API value first, then calculated, then from menu
-    double subtotal = order.subtotal;
-    if (subtotal <= 0) {
-      subtotal = order.calculatedSubtotal;
-    }
-    if (subtotal <= 0) {
-      subtotal = calculateSubtotalFromMenu();
-    }
-
-    final deliveryFee = order.deliveryFee;
+    final subtotal = order.subtotal;
     final discountAmount = order.discountAmount;
-    final tip = order.tips;
-    final total = order.total > 0
-        ? order.total
-        : (subtotal + deliveryFee - discountAmount + tip);
+    final sellerTotal = order.sellerTotalAmount;
 
-    // Check if we have any meaningful payment data
-    final hasPaymentData = total > 0 || subtotal > 0 || order.isPaid;
+    // Legacy orders may not have a server-calculated seller total. Never
+    // derive one from customer totals or local item prices.
+    final hasPaymentData =
+        sellerTotal != null ||
+        subtotal > 0 ||
+        discountAmount > 0 ||
+        order.isPaid;
 
     if (!hasPaymentData) {
       return AppCard(
@@ -1462,15 +1721,6 @@ class _PaymentSummaryCard extends ConsumerWidget {
             ),
             SizedBox(height: 8.h),
           ],
-          // Only show delivery fee if available
-          if (deliveryFee > 0) ...[
-            _SummaryRow(
-              label: 'orders.deliveryFee'.tr,
-              value: '€${deliveryFee.toStringAsFixed(2)}',
-              isDark: isDark,
-            ),
-            SizedBox(height: 8.h),
-          ],
           // Only show discount if available
           if (discountAmount > 0) ...[
             _SummaryRow(
@@ -1481,27 +1731,16 @@ class _PaymentSummaryCard extends ConsumerWidget {
             ),
             SizedBox(height: 8.h),
           ],
-          // Only show tip if available
-          if (tip > 0) ...[
-            _SummaryRow(
-              label: 'orders.tip'.tr,
-              value: '€${tip.toStringAsFixed(2)}',
-              isDark: isDark,
-            ),
-            SizedBox(height: 8.h),
-          ],
-          // Show total if available
-          if (total > 0) ...[
-            if (subtotal > 0 ||
-                deliveryFee > 0 ||
-                discountAmount > 0 ||
-                tip > 0) ...[
+          // Show only the server-calculated seller total. It may be null for
+          // legacy orders, in which case no amount is displayed.
+          if (sellerTotal != null) ...[
+            if (subtotal > 0 || discountAmount > 0) ...[
               Divider(color: isDark ? DarkColors.border : LightColors.border),
               SizedBox(height: 12.h),
             ],
             _SummaryRow(
               label: 'orders.total'.tr,
-              value: '€${total.toStringAsFixed(2)}',
+              value: '€${sellerTotal.toStringAsFixed(2)}',
               isDark: isDark,
               isTotal: true,
             ),

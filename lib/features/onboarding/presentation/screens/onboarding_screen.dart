@@ -33,6 +33,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // Profile fields
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _birthdateController = TextEditingController();
   DateTime? _selectedBirthdate;
@@ -65,6 +66,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     _birthdateController.dispose();
     _restaurantNameController.dispose();
@@ -159,6 +161,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         .read(onboardingProvider.notifier)
         .submitOnboarding(
           name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
           birthdate: _selectedBirthdate,
           registrationDocumentUrl: _registrationDocumentUrl!,
@@ -457,6 +460,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'validation.required'.tr;
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 16.h),
+
+            // Email (required)
+            AppEmailField(
+              controller: _emailController,
+              label: 'auth.email'.tr,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'validation.required'.tr;
+                }
+                if (!value.contains('@')) {
+                  return 'validation.invalidEmail'.tr;
                 }
                 return null;
               },

@@ -22,6 +22,7 @@ abstract class StorageKeys {
   static const String currency = 'currency';
   static const String onboardingComplete = 'onboarding_complete';
   static const String fcmToken = 'fcm_token';
+  static const String orderAlertRepeatCount = 'order_alert_repeat_count';
   static const String lastSyncTime = 'last_sync_time';
   static const String restaurantId = 'restaurant_id';
   static const String selectedCity = 'selected_city';
@@ -63,6 +64,12 @@ abstract class ApiEndpoints {
   // Seller Orders
   static const String sellerOrders = '/api/seller/orders/';
   static String sellerOrder(String id) => '/api/seller/orders/$id/';
+  static String sellerOrderAccept(String id) =>
+      '/api/seller/orders/$id/accept/';
+  static String sellerOrderReject(String id) =>
+      '/api/seller/orders/$id/reject/';
+  static String sellerOrderDriverDispatch(String id) =>
+      '/api/seller/orders/$id/driver-dispatch/';
   static String sellerOrderStatus(String id) =>
       '/api/seller/orders/$id/status/';
   static String sellerOrderRefund(String id) =>

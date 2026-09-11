@@ -68,7 +68,7 @@ class OrderAllowedStatusOption {
   factory OrderAllowedStatusOption.fromJson(Map<String, dynamic> json) {
     return OrderAllowedStatusOption(
       value: json['value']?.toString() ?? '',
-      label: json['label'] as String?,
+      label: json['label']?.toString(),
     );
   }
 
@@ -82,6 +82,61 @@ class OrderAllowedStatusOption {
 
   @override
   int get hashCode => Object.hash(value, label);
+}
+
+/// An action the authenticated seller is currently allowed to perform.
+///
+/// Unlike the legacy status-options list, this also preserves non-status
+/// actions such as REQUEST_DRIVER_NOW and RESCHEDULE_DRIVER.
+class OrderAllowedAction {
+  const OrderAllowedAction({required this.value, this.label});
+
+  final String value;
+  final String? label;
+
+  String get normalizedValue => value.trim().toUpperCase();
+
+  OrderStatusEnum? get status => orderStatusFromApi(value);
+
+  factory OrderAllowedAction.fromJson(Map<String, dynamic> json) {
+    return OrderAllowedAction(
+      value: json['value']?.toString() ?? '',
+      label: json['label']?.toString(),
+    );
+  }
+
+  factory OrderAllowedAction.fromStatusOption(OrderAllowedStatusOption option) {
+    return OrderAllowedAction(value: option.value, label: option.label);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is OrderAllowedAction &&
+            other.value == value &&
+            other.label == label);
+  }
+
+  @override
+  int get hashCode => Object.hash(value, label);
+}
+
+/// Driver-dispatch commands accepted by the seller API.
+enum DriverDispatchAction {
+  requestNow,
+  schedule,
+  reschedule;
+
+  String get apiValue {
+    switch (this) {
+      case DriverDispatchAction.requestNow:
+        return 'REQUEST_NOW';
+      case DriverDispatchAction.schedule:
+        return 'SCHEDULE';
+      case DriverDispatchAction.reschedule:
+        return 'RESCHEDULE';
+    }
+  }
 }
 
 /// Extension to get display name for order status
@@ -251,6 +306,7 @@ class OrderRestaurantModel {
   final double? lng;
   final String? phone;
   final String? status;
+  final bool? deliveryEnabled;
   final DateTime? createdAt;
 
   const OrderRestaurantModel({
@@ -262,6 +318,7 @@ class OrderRestaurantModel {
     this.lng,
     this.phone,
     this.status,
+    this.deliveryEnabled,
     this.createdAt,
   });
 
@@ -286,6 +343,8 @@ class OrderRestaurantModel {
       lng: parsedAddress?.lng ?? _parseDouble(json['lng']),
       phone: json['phone'] as String?,
       status: json['status'] as String?,
+      deliveryEnabled:
+          json['delivery_enabled'] as bool? ?? json['deliveryEnabled'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -654,10 +713,14 @@ sealed class OrderModel with _$OrderModel {
     @Default(0.0) double discountAmount,
     @Default(0.0) double tips,
     @Default(0.0) double total,
+
+    /// Server-calculated seller amount; null for legacy orders without a subtotal.
+    double? sellerTotalAmount,
     @Default(false) bool isPaid,
     @Default(OrderStatusEnum.pending) OrderStatusEnum status,
     @Default(false) bool hasAllowedStatusOptions,
     @Default([]) List<OrderAllowedStatusOption> allowedStatusOptions,
+    @Default([]) List<OrderAllowedAction> allowedActions,
     String? notes,
     String? rejectionReason,
     required DateTime createdAt,
@@ -669,6 +732,7 @@ sealed class OrderModel with _$OrderModel {
     String? assignedDriverId,
     // New fields from API
     @Default('FOOD') String orderType,
+    String? fulfillmentType,
     OrderRestaurantModel? restaurant,
     OrderCouponModel? coupon,
     OrderAddressModel? pickupAddress,
@@ -677,6 +741,17 @@ sealed class OrderModel with _$OrderModel {
     String? requestedDeliveryType,
     OrderDriverModel? driver,
     @Default(false) bool isManual,
+
+    /// Backend-controlled delayed driver-dispatch fields.
+    ///
+    /// These remain nullable because older orders and orders that have not
+    /// been accepted yet do not have an active dispatch schedule.
+    DateTime? driverDispatchDueAt,
+    int? driverDispatchDelayMinutes,
+    String? driverDispatchStatus,
+    int? driverDispatchRemainingSeconds,
+    DateTime? driverDispatchServerTime,
+    int? driverDispatchMaxDelayMinutes,
   }) = _OrderModel;
 
   /// Custom fromJson to handle API response format
@@ -696,6 +771,36 @@ sealed class OrderModel with _$OrderModel {
           .map(OrderAllowedStatusOption.fromJson)
           .toList();
     }
+
+    List<OrderAllowedAction> parseAllowedActions(dynamic actions) {
+      if (actions is! List) return const [];
+      return actions.map((action) {
+        if (action is Map<String, dynamic>) {
+          return OrderAllowedAction.fromJson(action);
+        }
+        return OrderAllowedAction(value: action.toString());
+      }).toList();
+    }
+
+    final allowedStatusOptions = parseAllowedStatusOptions(
+      json['allowed_status_options'] ?? json['allowedStatusOptions'],
+    );
+    final parsedAllowedActions = parseAllowedActions(
+      json['allowed_actions'] ?? json['allowedActions'],
+    );
+    final legacyAllowedActions = parseAllowedStatusOptions(
+      json['allowed_actions'] ?? json['allowedActions'],
+    );
+    final mergedAllowedStatusOptions = [
+      ...allowedStatusOptions,
+      for (final action in legacyAllowedActions)
+        if (action.status != null &&
+            !allowedStatusOptions.any(
+              (option) =>
+                  option.value.toUpperCase() == action.value.toUpperCase(),
+            ))
+          action,
+    ];
 
     // Parse new API address format
     OrderAddressModel? parseOrderAddress(dynamic addressJson) {
@@ -814,6 +919,17 @@ sealed class OrderModel with _$OrderModel {
       return null;
     }
 
+    DateTime? parseDateTime(dynamic value) {
+      if (value is! String || value.isEmpty) return null;
+      return DateTime.tryParse(value);
+    }
+
+    int? parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '');
+    }
+
     // Get restaurant ID from nested object or direct field
     String? getRestaurantId(Map<String, dynamic> json) {
       if (json['restaurant'] is Map<String, dynamic>) {
@@ -876,6 +992,7 @@ sealed class OrderModel with _$OrderModel {
                 '0',
           ) ??
           0.0,
+      sellerTotalAmount: _parseDouble(json['seller_total_amount']),
       isPaid: json['is_paid'] ?? json['isPaid'] ?? json['paid'] ?? false,
       status:
           orderStatusFromApi(json['status'] as String?) ??
@@ -883,9 +1000,8 @@ sealed class OrderModel with _$OrderModel {
       hasAllowedStatusOptions:
           json.containsKey('allowed_status_options') ||
           json.containsKey('allowedStatusOptions'),
-      allowedStatusOptions: parseAllowedStatusOptions(
-        json['allowed_status_options'] ?? json['allowedStatusOptions'],
-      ),
+      allowedStatusOptions: mergedAllowedStatusOptions,
+      allowedActions: parsedAllowedActions,
       notes: (json['notes'] ?? json['delivery_instructions']) as String?,
       rejectionReason:
           json['rejection_reason'] ?? json['rejectionReason'] as String?,
@@ -910,6 +1026,9 @@ sealed class OrderModel with _$OrderModel {
       assignedDriverId: getDriverId(json),
       // New fields
       orderType: json['order_type'] as String? ?? 'FOOD',
+      fulfillmentType:
+          json['fulfillment_type'] as String? ??
+          json['fulfillmentType'] as String?,
       restaurant: parseRestaurant(json['restaurant']),
       coupon: parseCoupon(json['coupon']),
       pickupAddress: parseOrderAddress(json['pickup_address']),
@@ -918,6 +1037,27 @@ sealed class OrderModel with _$OrderModel {
       requestedDeliveryType: json['requested_delivery_type'] as String?,
       driver: parseDriver(json['driver']),
       isManual: json['is_manual'] as bool? ?? false,
+      driverDispatchDueAt: parseDateTime(
+        json['driver_dispatch_due_at'] ?? json['driverDispatchDueAt'],
+      ),
+      driverDispatchDelayMinutes: parseInt(
+        json['driver_dispatch_delay_minutes'] ??
+            json['driverDispatchDelayMinutes'],
+      ),
+      driverDispatchStatus:
+          json['driver_dispatch_status']?.toString() ??
+          json['driverDispatchStatus']?.toString(),
+      driverDispatchRemainingSeconds: parseInt(
+        json['driver_dispatch_remaining_seconds'] ??
+            json['driverDispatchRemainingSeconds'],
+      ),
+      driverDispatchServerTime: parseDateTime(
+        json['driver_dispatch_server_time'] ?? json['driverDispatchServerTime'],
+      ),
+      driverDispatchMaxDelayMinutes: parseInt(
+        json['driver_dispatch_max_delay_minutes'] ??
+            json['driverDispatchMaxDelayMinutes'],
+      ),
     );
   }
 }
@@ -959,7 +1099,33 @@ extension OrderModelExtension on OrderModel {
       status == OrderStatusEnum.rejected ||
       status == OrderStatusEnum.cancelled;
 
+  /// Whether the backend has supplied an active or completed driver timer.
+  bool get hasDriverDispatchTimer =>
+      driverDispatchDueAt != null || driverDispatchRemainingSeconds != null;
+
+  /// Returns the server-provided action with this value, if present.
+  OrderAllowedAction? allowedAction(String value) {
+    final normalizedValue = value.trim().toUpperCase();
+    for (final action in allowedActions) {
+      if (action.normalizedValue == normalizedValue) return action;
+    }
+    return null;
+  }
+
+  bool allowsAction(String value) => allowedAction(value) != null;
+
   OrderStatusEnum? get preferredAllowedNextStatus {
+    for (final action in allowedActions) {
+      final status = action.status;
+      if (status == null) continue;
+      if (status == OrderStatusEnum.cancelled ||
+          status == OrderStatusEnum.rejected ||
+          status == OrderStatusEnum.expired) {
+        continue;
+      }
+      return status;
+    }
+
     for (final option in allowedStatusOptions) {
       final status = option.status;
       if (status == null) continue;

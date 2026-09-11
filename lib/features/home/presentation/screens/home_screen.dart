@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,14 +26,75 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
   OrderStatusEnum? _newOrdersStatusFilter;
+  Timer? _refreshCountdownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startHomeOrdersPolling();
+    });
+  }
+
+  void _startHomeOrdersPolling() {
+    if (!mounted) return;
+
+    ref.read(ordersPollingProvider.notifier).start();
+    _refreshCountdownTimer ??= Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  void _stopHomeOrdersPolling() {
+    _refreshCountdownTimer?.cancel();
+    _refreshCountdownTimer = null;
+    ref.read(ordersPollingProvider.notifier).stop();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startHomeOrdersPolling();
+    } else if (state == AppLifecycleState.paused) {
+      _stopHomeOrdersPolling();
+    }
+  }
+
+  @override
+  void dispose() {
+    _stopHomeOrdersPolling();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  int? _secondsUntilRefresh(DateTime? nextPollAt, bool isPolling) {
+    if (!isPolling || nextPollAt == null) return null;
+
+    final remainingMilliseconds = nextPollAt
+        .difference(DateTime.now())
+        .inMilliseconds;
+    if (remainingMilliseconds <= 0) return 1;
+    return (remainingMilliseconds + 999) ~/ 1000;
+  }
 
   @override
   Widget build(BuildContext context) {
     ref.watch(translationsLoadedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ordersState = ref.watch(ordersProvider);
+    final pollingState = ref.watch(ordersPollingProvider);
+    final secondsUntilRefresh = _secondsUntilRefresh(
+      pollingState.nextPollAt,
+      pollingState.isEnabled,
+    );
+    final wasJustRefreshed =
+        pollingState.lastPollAt != null &&
+        DateTime.now().difference(pollingState.lastPollAt!).inMilliseconds <
+            1200;
     final newOrders = ordersState.orders
         .where(
           (order) =>
@@ -126,6 +189,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                if (pollingState.isEnabled &&
+                                    (pollingState.isSyncing ||
+                                        secondsUntilRefresh != null)) ...[
+                                  SizedBox(height: 3.h),
+                                  _NextRefreshLabel(
+                                    seconds: secondsUntilRefresh,
+                                    isDark: isDark,
+                                    isSyncing: pollingState.isSyncing,
+                                    wasJustRefreshed: wasJustRefreshed,
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -582,6 +656,70 @@ class _CompactAction extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NextRefreshLabel extends StatelessWidget {
+  const _NextRefreshLabel({
+    required this.seconds,
+    required this.isDark,
+    required this.isSyncing,
+    required this.wasJustRefreshed,
+  });
+
+  final int? seconds;
+  final bool isDark;
+  final bool isSyncing;
+  final bool wasJustRefreshed;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDark ? DarkColors.textSecondary : LightColors.textSecondary;
+    final String label;
+    final IconData icon;
+    if (isSyncing) {
+      label = 'orders.refreshing'.tr;
+      icon = Icons.sync_rounded;
+    } else if (wasJustRefreshed) {
+      label = 'orders.checkedJustNow'.tr;
+      icon = Icons.check_rounded;
+    } else {
+      label = 'orders.nextRefreshIn'.trParams({'seconds': '$seconds'});
+      icon = Icons.sync_rounded;
+    }
+
+    return Semantics(
+      label: label,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        child: Row(
+          key: ValueKey(label),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSyncing)
+              SizedBox(
+                width: 13.w,
+                height: 13.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                ),
+              )
+            else
+              Icon(icon, size: 13.w, color: AppColors.primary),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
         ),
       ),
     );

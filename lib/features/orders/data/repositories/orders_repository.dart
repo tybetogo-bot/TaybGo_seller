@@ -28,6 +28,22 @@ abstract class OrdersRepository {
   /// Update order status (e.g., CANCELLED)
   Future<OrdersResult<OrderModel>> updateOrderStatus(String id, String status);
 
+  /// Reject a pending order through the dedicated seller action.
+  Future<OrdersResult<OrderModel>> rejectOrder(String id);
+
+  /// Accept a seller order, optionally delaying driver dispatch.
+  Future<OrdersResult<OrderModel>> acceptOrder(
+    String id, {
+    int? driverDispatchDelayMinutes,
+  });
+
+  /// Request, schedule, or reschedule driver dispatch.
+  Future<OrdersResult<OrderModel>> driverDispatch(
+    String id, {
+    required DriverDispatchAction action,
+    int? driverDispatchDelayMinutes,
+  });
+
   /// Process refund for an order
   Future<OrdersResult<RefundResponse>> refundOrder({
     required String orderId,
@@ -120,10 +136,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ValidationFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: _actionFailure(e), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -135,6 +148,85 @@ class OrdersRepositoryImpl implements OrdersRepository {
         data: null,
       );
     }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> rejectOrder(String id) async {
+    try {
+      final order = await _remoteDataSource.rejectOrder(id);
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (failure: _actionFailure(e), data: null);
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> acceptOrder(
+    String id, {
+    int? driverDispatchDelayMinutes,
+  }) async {
+    try {
+      final order = await _remoteDataSource.acceptOrder(
+        id,
+        driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+      );
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      return (failure: _actionFailure(e), data: null);
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> driverDispatch(
+    String id, {
+    required DriverDispatchAction action,
+    int? driverDispatchDelayMinutes,
+  }) async {
+    try {
+      final order = await _remoteDataSource.driverDispatch(
+        id,
+        action: action,
+        driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+      );
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      return (failure: _actionFailure(e), data: null);
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
+        data: null,
+      );
+    }
+  }
+
+  Failure _actionFailure(DioException error) {
+    final apiError = error.error;
+    if (apiError is ApiException) {
+      final statusCode = apiError.statusCode ?? error.response?.statusCode;
+      return ValidationFailure(
+        message: apiError.message,
+        statusCode: statusCode,
+        code: apiError.code,
+      );
+    }
+    return const NetworkFailure(message: 'Network error occurred');
   }
 
   @override

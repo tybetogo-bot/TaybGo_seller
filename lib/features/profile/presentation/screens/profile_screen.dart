@@ -411,7 +411,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onTap: () => _navigateFromSheet(
               sheetContext,
               parentContext,
-              Routes.notifications,
+              Routes.notificationSettings,
             ),
           ),
         ],

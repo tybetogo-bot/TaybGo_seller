@@ -41,9 +41,8 @@ abstract class MenuRepository {
 
 /// Implementation of menu repository
 class MenuRepositoryImpl implements MenuRepository {
-  MenuRepositoryImpl({
-    required MenuDataSource remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource;
+  MenuRepositoryImpl({required MenuDataSource remoteDataSource})
+    : _remoteDataSource = remoteDataSource;
 
   final MenuDataSource _remoteDataSource;
 
@@ -58,7 +57,11 @@ class MenuRepositoryImpl implements MenuRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ServerFailure(message: apiError.message),
+          failure: ServerFailure(
+            message: apiError.message,
+            statusCode: apiError.statusCode,
+            code: apiError.code,
+          ),
           data: null,
         );
       }
@@ -146,10 +149,7 @@ class MenuRepositoryImpl implements MenuRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -173,10 +173,7 @@ class MenuRepositoryImpl implements MenuRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: NetworkFailure(message: 'Network error: ${e.message}'),
@@ -203,10 +200,7 @@ class MenuRepositoryImpl implements MenuRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),
@@ -288,7 +282,11 @@ class MenuRepositoryImpl implements MenuRepository {
       final apiError = e.error;
       if (apiError is ApiException) {
         return (
-          failure: ServerFailure(message: apiError.message),
+          failure: ServerFailure(
+            message: apiError.message,
+            statusCode: apiError.statusCode,
+            code: apiError.code,
+          ),
           data: null,
         );
       }
@@ -312,10 +310,7 @@ class MenuRepositoryImpl implements MenuRepository {
     } on DioException catch (e) {
       final apiError = e.error;
       if (apiError is ApiException) {
-        return (
-          failure: ServerFailure(message: apiError.message),
-          data: null,
-        );
+        return (failure: ServerFailure(message: apiError.message), data: null);
       }
       return (
         failure: const NetworkFailure(message: 'Network error occurred'),

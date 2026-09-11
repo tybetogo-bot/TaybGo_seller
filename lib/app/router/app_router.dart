@@ -28,6 +28,7 @@ import '../../features/knowledge_base/presentation/screens/knowledge_base_screen
 import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/notification_settings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
@@ -319,6 +320,11 @@ class AppRouter {
                 path: 'notifications',
                 name: Routes.notificationsName,
                 builder: (context, state) => const NotificationsScreen(),
+              ),
+              GoRoute(
+                path: 'notification-settings',
+                name: Routes.notificationSettingsName,
+                builder: (context, state) => const NotificationSettingsScreen(),
               ),
               GoRoute(
                 path: 'language',
