@@ -9,7 +9,6 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../notifications/application/notifications_notifier.dart';
 import '../../../profile/application/user_profile_notifier.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/utils/tour_keys.dart';
@@ -58,7 +57,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   DoneOrdersFilter _doneOrdersFilter = DoneOrdersFilter.all;
   Timer? _searchDebounce;
   OrdersPollingNotifier? _ordersPollingNotifier;
-  NotificationsPollingNotifier? _notificationsPollingNotifier;
   UserProfilePollingNotifier? _profilePollingNotifier;
 
   @override
@@ -80,11 +78,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
 
         _ordersPollingNotifier = ref.read(ordersPollingProvider.notifier);
         _ordersPollingNotifier!.start();
-
-        _notificationsPollingNotifier = ref.read(
-          notificationsPollingProvider.notifier,
-        );
-        _notificationsPollingNotifier!.start();
 
         _profilePollingNotifier = ref.read(userProfilePollingProvider.notifier);
         _profilePollingNotifier!.start();
@@ -122,7 +115,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   void dispose() {
     debugPrint('[OrdersScreen] dispose() called');
     _ordersPollingNotifier?.stop();
-    _notificationsPollingNotifier?.stop();
     _profilePollingNotifier?.stop();
     WidgetsBinding.instance.removeObserver(this);
     _searchDebounce?.cancel();
@@ -135,11 +127,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(ordersPollingProvider.notifier).start();
-      ref.read(notificationsPollingProvider.notifier).start();
       ref.read(userProfilePollingProvider.notifier).start();
     } else if (state == AppLifecycleState.paused) {
       ref.read(ordersPollingProvider.notifier).stop();
-      ref.read(notificationsPollingProvider.notifier).stop();
       ref.read(userProfilePollingProvider.notifier).stop();
     }
   }

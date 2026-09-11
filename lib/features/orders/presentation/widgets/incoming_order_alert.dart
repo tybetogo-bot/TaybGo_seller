@@ -10,6 +10,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/services/push_notification_service.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../notifications/application/notifications_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../menu/application/menu_notifier.dart';
@@ -20,6 +21,25 @@ import '../../data/models/order_model.dart';
 import 'driver_dispatch_selector.dart';
 import 'incoming_order_item_editor.dart';
 import 'incoming_order_timer.dart';
+
+const _knownOrderNotificationTypes = {
+  'new_order',
+  'new-order',
+  'order_created',
+  'order-created',
+  'order_updated',
+  'order-updated',
+  'order_status_updated',
+  'order-status-updated',
+  'order_accepted',
+  'order-accepted',
+  'order_rejected',
+  'order-rejected',
+  'order_delivered',
+  'order-delivered',
+  'order_cancelled',
+  'order-cancelled',
+};
 
 /// Places a high-attention incoming-order experience above the authenticated
 /// shell. The order remains server-owned: this widget only displays the
@@ -122,7 +142,19 @@ class _IncomingOrderAlertHostState
   Future<void> _handleNotificationTap(Map<String, dynamic> data) async {
     final rawOrderId = data['order_id'] ?? data['orderId'];
     final orderId = rawOrderId?.toString().trim();
-    final notificationType = data['type']?.toString().toLowerCase();
+    final notificationType = data['type']?.toString().trim().toLowerCase();
+
+    if (notificationType == 'support_message_from_staff' ||
+        notificationType == 'support_ticket_updated') {
+      await _handleSupportNotificationTap(data);
+      return;
+    }
+
+    if (notificationType != null &&
+        !_knownOrderNotificationTypes.contains(notificationType)) {
+      if (mounted) context.go(Routes.notifications);
+      return;
+    }
 
     if (orderId == null || orderId.isEmpty) {
       if (notificationType == 'new_order' || notificationType == 'new-order') {
@@ -152,6 +184,30 @@ class _IncomingOrderAlertHostState
     // A notification for an order that is already past the seller decision
     // step should continue to the normal details route.
     context.go(Routes.orderDetailsPath(order?.id ?? orderId));
+  }
+
+  Future<void> _handleSupportNotificationTap(Map<String, dynamic> data) async {
+    final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
+    final messageId = _asInt(data['message_id'] ?? data['messageId']);
+
+    if (ticketId == null) {
+      if (mounted) context.go(Routes.notifications);
+      return;
+    }
+
+    if (!mounted) return;
+    context.go(
+      Routes.supportTicketDetailNotificationPath(
+        ticketId.toString(),
+        messageId: messageId,
+      ),
+    );
+
+    // Reconcile in the background. Navigation must not be blocked by a
+    // missing notification record or a temporary notifications API failure.
+    unawaited(
+      ref.read(notificationsProvider.notifier).markPushTargetAsRead(data),
+    );
   }
 
   Future<bool> _acceptOrder(OrderModel order, int? delayMinutes) async {
@@ -252,6 +308,12 @@ class _IncomingOrderAlertHostState
       ],
     );
   }
+}
+
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }
 
 /// Full-screen incoming order presentation.

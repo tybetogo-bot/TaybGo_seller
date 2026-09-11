@@ -8,8 +8,8 @@ import '../../../core/providers/providers.dart' show sharedPreferencesProvider;
 class AppNotificationSettings {
   const AppNotificationSettings({required this.orderAlertRepeatCount});
 
-  static const List<int> supportedOrderAlertRepeatCounts = [1, 2, 3, 5];
-  static const int defaultOrderAlertRepeatCount = 1;
+  static const List<int> supportedOrderAlertRepeatCounts = [1, 3, 5, 7];
+  static const int defaultOrderAlertRepeatCount = 7;
 
   final int orderAlertRepeatCount;
 

@@ -15,9 +15,14 @@ class NotificationsApi {
   /// GET /api/notifications
   Future<List<NotificationModel>> getNotifications() async {
     final response = await _dio.get('/api/notifications');
-    final List<dynamic> data = response.data as List<dynamic>? ?? [];
-    return data
-        .map((json) => NotificationModel.fromJson(json as Map<String, dynamic>))
+    final rawData = response.data;
+    if (rawData is! List) return const [];
+
+    return rawData
+        .whereType<Map>()
+        .map(
+          (json) => NotificationModel.fromJson(Map<String, dynamic>.from(json)),
+        )
         .toList();
   }
 
@@ -34,9 +39,7 @@ class NotificationsApi {
   /// Mark all notifications as read by patching each one
   /// Note: No bulk endpoint exists in API, so we mark individually
   Future<void> markAllAsRead(List<int> notificationIds) async {
-    await Future.wait(
-      notificationIds.map((id) => markAsRead(id)),
-    );
+    await Future.wait(notificationIds.map((id) => markAsRead(id)));
   }
 
   /// Delete a notification
@@ -47,7 +50,9 @@ class NotificationsApi {
 
   /// Create a notification (for internal use)
   /// POST /api/notifications
-  Future<NotificationModel> createNotification(Map<String, dynamic> data) async {
+  Future<NotificationModel> createNotification(
+    Map<String, dynamic> data,
+  ) async {
     final response = await _dio.post('/api/notifications', data: data);
     return NotificationModel.fromJson(response.data as Map<String, dynamic>);
   }
@@ -58,9 +63,9 @@ class NotificationsApi {
     required String token,
     String? deviceType,
   }) async {
-    await _dio.post('/api/notifications/device', data: {
-      'token': token,
-      if (deviceType != null) 'device_type': deviceType,
-    });
+    await _dio.post(
+      '/api/notifications/device',
+      data: {'token': token, if (deviceType != null) 'device_type': deviceType},
+    );
   }
 }

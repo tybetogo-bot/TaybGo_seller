@@ -20,24 +20,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('🔔 [FCM] Background message: ${message.messageId}');
 }
 
-const _androidNotificationSound = RawResourceAndroidNotificationSound(
-  'notif_sound',
-);
 const _iosNotificationSound = 'notif_sound.caf';
-const _orderAlertRepeatInterval = Duration(seconds: 5);
+const _androidNotificationChannelPrefix = 'seller_order_alerts_v3';
 
-/// Android notification channel for high-importance messages.
-const AndroidNotificationChannel _highImportanceChannel =
-    AndroidNotificationChannel(
-      // Channel settings are immutable after first creation on Android, so use
-      // a versioned id when changing the sound configuration.
-      'high_importance_channel_v2',
-      'High Importance Notifications',
-      description: 'This channel is used for important notifications.',
-      importance: Importance.high,
-      playSound: true,
-      sound: _androidNotificationSound,
-    );
+String _androidNotificationChannelId(int repeatCount) {
+  return '${_androidNotificationChannelPrefix}_$repeatCount';
+}
+
+String _androidNotificationSoundResource(int repeatCount) {
+  return repeatCount == 1 ? 'notif_sound' : 'notif_sound_$repeatCount';
+}
+
+String _iosNotificationSoundResource(int repeatCount) {
+  return repeatCount == 1
+      ? _iosNotificationSound
+      : 'notif_sound_$repeatCount.caf';
+}
 
 /// Decode the payload stored on a foreground local notification.
 ///
@@ -118,13 +116,6 @@ class PushNotificationService {
       // Register the background handler (mobile only).
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      // Create the Android notification channel.
-      await _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(_highImportanceChannel);
-
       // Initialize local notifications plugin.
       await _localNotifications.initialize(
         const InitializationSettings(
@@ -137,6 +128,12 @@ class PushNotificationService {
         ),
         onDidReceiveNotificationResponse: _onLocalNotificationTap,
       );
+
+      // Create one channel per supported sound profile. Android channel sound
+      // settings are immutable after first creation, so each repeat count needs
+      // its own versioned channel. The v3 IDs also avoid stale silent channels
+      // created by earlier app versions.
+      await _createAndroidNotificationChannels();
 
       // Request permission (shows the OS dialog on iOS / Android 13+).
       await requestPermission();
@@ -195,7 +192,10 @@ class PushNotificationService {
   Future<String?> getToken() async {
     try {
       final token = await _messaging.getToken();
-      print('🔔 [FCM] Token: ${token?.substring(0, 20)}...');
+      final preview = token == null
+          ? 'null'
+          : '${token.substring(0, token.length < 20 ? token.length : 20)}...';
+      print('🔔 [FCM] Token: $preview');
       return token;
     } catch (e) {
       print('🔴 [FCM] Failed to get token: $e');
@@ -204,13 +204,39 @@ class PushNotificationService {
   }
 
   /// Listen for token refreshes and call [onRefresh] with the new token.
-  void onTokenRefresh(void Function(String token) onRefresh) {
-    _messaging.onTokenRefresh.listen(onRefresh);
+  StreamSubscription<String> onTokenRefresh(
+    void Function(String token) onRefresh,
+  ) {
+    return _messaging.onTokenRefresh.listen(onRefresh);
   }
 
   // ---------------------------------------------------------------------------
   // Message handlers
   // ---------------------------------------------------------------------------
+
+  Future<void> _createAndroidNotificationChannels() async {
+    final androidNotifications = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidNotifications == null) return;
+
+    for (final repeatCount
+        in AppNotificationSettings.supportedOrderAlertRepeatCounts) {
+      await androidNotifications.createNotificationChannel(
+        AndroidNotificationChannel(
+          _androidNotificationChannelId(repeatCount),
+          'High Importance Notifications',
+          description: 'This channel is used for important notifications.',
+          importance: Importance.high,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound(
+            _androidNotificationSoundResource(repeatCount),
+          ),
+        ),
+      );
+    }
+  }
 
   /// Show a local notification when a message arrives while the app is in
   /// the foreground.
@@ -243,43 +269,48 @@ class PushNotificationService {
     }
 
     final android = notification.android;
+    final normalizedRepeatCount =
+        AppNotificationSettings.supportedOrderAlertRepeatCounts.contains(
+          repeatCount,
+        )
+        ? repeatCount
+        : AppNotificationSettings.defaultOrderAlertRepeatCount;
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        _highImportanceChannel.id,
-        _highImportanceChannel.name,
-        channelDescription: _highImportanceChannel.description,
+        _androidNotificationChannelId(normalizedRepeatCount),
+        'High Importance Notifications',
+        channelDescription: 'This channel is used for important notifications.',
         importance: Importance.high,
         priority: Priority.high,
         playSound: true,
-        sound: _androidNotificationSound,
+        sound: RawResourceAndroidNotificationSound(
+          _androidNotificationSoundResource(normalizedRepeatCount),
+        ),
         icon: android?.smallIcon ?? '@mipmap/ic_launcher',
       ),
-      iOS: const DarwinNotificationDetails(
+      iOS: DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
-        sound: _iosNotificationSound,
+        sound: _iosNotificationSoundResource(normalizedRepeatCount),
       ),
     );
 
-    for (var repeatIndex = 0; repeatIndex < repeatCount; repeatIndex++) {
-      if (repeatIndex > 0) {
-        await Future<void>.delayed(_orderAlertRepeatInterval);
-      }
-
-      await _localNotifications.show(
-        _notificationId(message, repeatIndex),
-        notification.title,
-        notification.body,
-        details,
-        payload: jsonEncode(message.data),
-      );
-    }
+    // The selected platform sound contains the requested number of alert
+    // plays. Posting one notification prevents Android from rate-limiting or
+    // coalescing repeated notification entries in the tray.
+    await _localNotifications.show(
+      _notificationId(message),
+      notification.title,
+      notification.body,
+      details,
+      payload: jsonEncode(message.data),
+    );
   }
 
-  int _notificationId(RemoteMessage message, int repeatIndex) {
+  int _notificationId(RemoteMessage message) {
     final baseId = message.hashCode & 0x7fffffff;
-    return (baseId + repeatIndex) & 0x7fffffff;
+    return baseId;
   }
 
   /// Called when the user taps a notification that opened the app from
@@ -320,50 +351,45 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((_) {
 ///
 /// This should be watched from a widget that is alive while the user is
 /// authenticated (e.g. the main shell or splash screen).
-final fcmTokenProvider = FutureProvider<String?>((ref) async {
+final fcmTokenProvider = FutureProvider.autoDispose<String?>((ref) async {
   final service = ref.watch(pushNotificationServiceProvider);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final api = ref.watch(notificationsApiProvider);
+
+  Future<void> registerToken(String token, {required String logPrefix}) async {
+    await prefs.setString(StorageKeys.fcmToken, token);
+    await api.registerDeviceToken(token: token, deviceType: _deviceType);
+    print('🔔 [FCM] $logPrefix token registered with backend');
+  }
+
+  // Register refresh handling before reading the current token so a token
+  // that becomes available asynchronously is not missed.
+  final tokenRefreshSubscription = service.onTokenRefresh((newToken) async {
+    try {
+      await registerToken(newToken, logPrefix: 'Refreshed');
+    } catch (e) {
+      print('🔴 [FCM] Failed to register refreshed token: $e');
+    }
+  });
+  ref.onDispose(tokenRefreshSubscription.cancel);
 
   // Get current token.
   final token = await service.getToken();
   if (token == null) return null;
 
-  // Persist locally.
-  final prefs = ref.watch(sharedPreferencesProvider);
-  final previousToken = prefs.getString(StorageKeys.fcmToken);
-  await prefs.setString(StorageKeys.fcmToken, token);
-
-  // Register with backend if it's a new or changed token.
-  if (token != previousToken) {
-    try {
-      final api = ref.watch(notificationsApiProvider);
-      await api.registerDeviceToken(
-        token: token,
-        deviceType: defaultTargetPlatform == TargetPlatform.iOS
-            ? 'ios'
-            : 'android',
-      );
-      print('🔔 [FCM] Token registered with backend');
-    } catch (e) {
-      print('🔴 [FCM] Failed to register token with backend: $e');
-    }
+  // Register on every authenticated shell activation. The same device token
+  // can belong to a different seller after logout/login, so a local token
+  // cache alone is not enough to decide whether the backend needs it.
+  try {
+    await registerToken(token, logPrefix: 'Current');
+  } catch (e) {
+    print('🔴 [FCM] Failed to register token with backend: $e');
   }
-
-  // Listen for future refreshes.
-  service.onTokenRefresh((newToken) async {
-    await prefs.setString(StorageKeys.fcmToken, newToken);
-    try {
-      final api = ref.read(notificationsApiProvider);
-      await api.registerDeviceToken(
-        token: newToken,
-        deviceType: defaultTargetPlatform == TargetPlatform.iOS
-            ? 'ios'
-            : 'android',
-      );
-      print('🔔 [FCM] Refreshed token registered with backend');
-    } catch (e) {
-      print('🔴 [FCM] Failed to register refreshed token: $e');
-    }
-  });
 
   return token;
 });
+
+String get _deviceType {
+  if (kIsWeb) return 'web';
+  return defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+}

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,18 +33,34 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   bool _locationRequestScheduled = false;
+  late final void Function(RemoteMessage message) _foregroundMessageHandler;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _startNotificationsPolling();
+    });
 
     // Refresh in-app notifications when a push arrives in the foreground.
-    PushNotificationService.instance.onForegroundMessage = (message) {
+    _foregroundMessageHandler = (message) {
       ref.read(notificationsProvider.notifier).refresh();
 
-      final notificationType = message.data['type']?.toString().toLowerCase();
+      final notificationType = message.data['type']
+          ?.toString()
+          .trim()
+          .toLowerCase();
+      if (notificationType == 'support_message_from_staff' ||
+          notificationType == 'support_ticket_updated') {
+        _showSupportNotificationBanner(message);
+      }
+
       if (notificationType == 'new_order' ||
           notificationType == 'new-order' ||
           notificationType == 'order_created' ||
@@ -53,6 +70,87 @@ class _MainShellState extends ConsumerState<MainShell> {
         unawaited(ref.read(ordersProvider.notifier).refreshOrders());
       }
     };
+    PushNotificationService.instance.onForegroundMessage =
+        _foregroundMessageHandler;
+  }
+
+  void _startNotificationsPolling() {
+    ref.read(notificationsPollingProvider.notifier).start();
+    unawaited(ref.read(notificationsProvider.notifier).refresh());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startNotificationsPolling();
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      ref.read(notificationsPollingProvider.notifier).stop();
+    }
+  }
+
+  void _showSupportNotificationBanner(RemoteMessage message) {
+    if (!mounted) return;
+
+    final title = message.notification?.title?.trim();
+    final body = message.notification?.body?.trim();
+    final displayTitle = title == null || title.isEmpty
+        ? 'notifications.title'.tr
+        : title;
+    final displayBody = body == null || body.isEmpty ? null : body;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              if (displayBody != null)
+                Text(displayBody, maxLines: 2, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'common.open'.tr,
+            onPressed: () => _openNotificationTarget(message.data),
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+  }
+
+  void _openNotificationTarget(Map<String, dynamic> data) {
+    final notificationType = data['type']?.toString().trim().toLowerCase();
+    final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
+    final messageId = _asInt(data['message_id'] ?? data['messageId']);
+
+    if ((notificationType == 'support_message_from_staff' ||
+            notificationType == 'support_ticket_updated') &&
+        ticketId != null) {
+      context.go(
+        Routes.supportTicketDetailNotificationPath(
+          ticketId.toString(),
+          messageId: messageId,
+        ),
+      );
+      unawaited(
+        ref.read(notificationsProvider.notifier).markPushTargetAsRead(data),
+      );
+      return;
+    }
+
+    context.go(Routes.notifications);
   }
 
   Future<void> _requestLocationPermissionAfterLogin() async {
@@ -79,6 +177,17 @@ class _MainShellState extends ConsumerState<MainShell> {
   }
 
   @override
+  void dispose() {
+    if (PushNotificationService.instance.onForegroundMessage ==
+        _foregroundMessageHandler) {
+      PushNotificationService.instance.onForegroundMessage = null;
+    }
+    WidgetsBinding.instance.removeObserver(this);
+    ref.read(notificationsPollingProvider.notifier).stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Watch the FCM token provider to trigger token retrieval & backend
     // registration whenever the main shell is active.
@@ -87,7 +196,7 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     debugPrint(
       '[MainShell] fcmToken state: '
-      '${fcmState.when(data: (t) => "token=${t?.substring(0, 10) ?? "null"}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}',
+      '${fcmState.when(data: (t) => t == null ? "token=null" : "token=${t.substring(0, t.length < 10 ? t.length : 10)}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}',
     );
 
     if (autoRequestState == LocationPermissionAutoRequestState.pending &&
@@ -140,6 +249,12 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     return IncomingOrderAlertHost(child: shell);
   }
+}
+
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }
 
 /// Top-level destinations shown in both the bottom nav and side rail.

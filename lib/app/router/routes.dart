@@ -90,6 +90,8 @@ class Routes {
 
   static const String notifications = '/profile/notifications';
   static const String notificationsName = 'notifications';
+  static const String notificationsCenter = '/notifications';
+  static const String notificationsCenterName = 'notificationsCenter';
 
   static const String notificationSettings = '/profile/notification-settings';
   static const String notificationSettingsName = 'notificationSettings';
@@ -111,6 +113,10 @@ class Routes {
 
   static const String supportTicketDetail = '/profile/support/:ticketId';
   static const String supportTicketDetailName = 'supportTicketDetail';
+  static const String supportTicketsCenter = '/support/tickets';
+  static const String supportTicketsCenterName = 'supportTicketsCenter';
+  static const String supportTicketDetailNotificationName =
+      'supportTicketDetailNotification';
 
   static const String help = '/profile/help';
   static const String helpName = 'help';
@@ -157,8 +163,21 @@ class Routes {
   static String menuItemPath(String itemId) => '/menu/item/$itemId';
 
   /// Get support ticket detail path with id
-  static String supportTicketDetailPath(String ticketId) =>
-      '/profile/support/$ticketId';
+  static String supportTicketDetailPath(String ticketId, {int? messageId}) {
+    final path = '/profile/support/$ticketId';
+    if (messageId == null) return path;
+    return '$path?message_id=$messageId';
+  }
+
+  /// Get the canonical support ticket detail path used by push payloads.
+  static String supportTicketDetailNotificationPath(
+    String ticketId, {
+    int? messageId,
+  }) {
+    final path = '/support/tickets/$ticketId';
+    if (messageId == null) return path;
+    return '$path?message_id=$messageId';
+  }
 
   /// Get public menu path with restaurant id
   static String publicMenuPath(String restaurantId) =>
