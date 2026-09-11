@@ -758,7 +758,7 @@
     "current": "Aktuell",
     "version": "Version {version}",
     "v1018": {
-      "date": "11 september 2026",
+      "date": "12 september 2026",
       "change1": "Lade till en upplevelse i helskärm för inkommande order med mjuka animationer, en kompakt översikt över viktig orderinformation, knappar för Acceptera/Avvisa och stöd för flera nya order.",
       "change2": "Lade till omedelbara, förinställda och anpassade fördröjningar för förarförfrågningar med en live-nedräkning tills förfrågan skickas.",
       "change3": "Lade till borttagning av menyalternativ med bekräftelse, tydliga varningar och översatta meddelanden för lyckade åtgärder och fel.",

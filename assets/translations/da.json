@@ -758,7 +758,7 @@
     "current": "Aktuel",
     "version": "Version {version}",
     "v1018": {
-      "date": "11. september 2026",
+      "date": "12. september 2026",
       "change1": "Tilføjede en fuldskærmsoplevelse for indgående ordrer med glatte animationer, et kompakt overblik over de vigtigste ordreoplysninger, handlingerne Accepter/Afvis og understøttelse af flere nye ordrer.",
       "change2": "Tilføjede øjeblikkelige, forudindstillede og brugerdefinerede forsinkelser for chaufføranmodninger med en live-nedtælling, indtil forespørgslen sendes.",
       "change3": "Tilføjede sletning af menupunkter med bekræftelse, tydelige advarsler og oversat feedback om succes og fejl.",

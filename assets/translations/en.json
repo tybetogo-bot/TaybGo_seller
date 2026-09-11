@@ -757,7 +757,7 @@
     "current": "Current",
     "version": "Version {version}",
     "v1018": {
-      "date": "11 September 2026",
+      "date": "12 September 2026",
       "change1": "Added a full-screen incoming-order experience with smooth animations, compact order essentials, accept/reject actions, and support for multiple new orders.",
       "change2": "Added immediate, preset, and custom driver-request delays with a live countdown until dispatch.",
       "change3": "Added menu-item deletion with confirmation, clear warnings, and translated success and error feedback.",

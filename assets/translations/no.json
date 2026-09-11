@@ -758,7 +758,7 @@
     "current": "Gjeldende",
     "version": "Versjon {version}",
     "v1018": {
-      "date": "11. september 2026",
+      "date": "12. september 2026",
       "change1": "La til en fullskjermopplevelse for nye bestillinger med jevne animasjoner, en kompakt oversikt over de viktigste bestillingsopplysningene, knappene Godta/Avvis og støtte for flere nye bestillinger.",
       "change2": "La til umiddelbare, forhåndsinnstilte og egendefinerte forsinkelser for sjåførforespørsler, med direkte nedtelling til forespørselen sendes.",
       "change3": "La til sletting av menyelementer med bekreftelse, tydelige advarsler og oversatte meldinger for suksess og feil.",

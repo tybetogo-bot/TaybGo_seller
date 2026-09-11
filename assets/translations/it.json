@@ -758,7 +758,7 @@
     "current": "Attuale",
     "version": "Versione {version}",
     "v1018": {
-      "date": "11 settembre 2026",
+      "date": "12 settembre 2026",
       "change1": "Aggiunta un’esperienza a schermo intero per i nuovi ordini, con animazioni fluide, un riepilogo compatto dei dati essenziali, azioni Accetta/Rifiuta e supporto per più ordini.",
       "change2": "Aggiunti ritardi immediati, preimpostati o personalizzati per la richiesta del corriere, con conto alla rovescia in tempo reale prima dell’invio.",
       "change3": "Aggiunta la cancellazione degli elementi del menu con conferma, avvisi chiari e messaggi di successo ed errore tradotti.",

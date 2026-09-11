@@ -759,7 +759,7 @@
     "current": "Actuelle",
     "version": "Version {version}",
     "v1018": {
-      "date": "11 septembre 2026",
+      "date": "12 septembre 2026",
       "change1": "Ajout d’une expérience plein écran pour les nouvelles commandes, avec des animations fluides, un aperçu compact des informations essentielles, les actions Accepter/Refuser et la gestion de plusieurs commandes.",
       "change2": "Ajout de délais de demande de chauffeur immédiats, prédéfinis ou personnalisés, avec un compte à rebours en direct avant le lancement de la recherche.",
       "change3": "Ajout de la suppression des articles du menu avec confirmation, avertissements clairs et messages de réussite et d’erreur traduits.",

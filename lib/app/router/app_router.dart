@@ -215,7 +215,7 @@ class AppRouter {
             builder: (context, state) => const NotificationsScreen(),
           ),
           GoRoute(
-            path: 'support/tickets',
+            path: Routes.supportTicketsCenter,
             name: Routes.supportTicketsCenterName,
             builder: (context, state) => const SupportTicketsScreen(),
             routes: [

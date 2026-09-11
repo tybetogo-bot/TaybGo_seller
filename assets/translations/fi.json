@@ -758,7 +758,7 @@
     "current": "Nykyinen",
     "version": "Versio {version}",
     "v1018": {
-      "date": "11. syyskuuta 2026",
+      "date": "12. syyskuuta 2026",
       "change1": "Uusille saapuville tilauksille lisättiin koko näytön näkymä, jossa on sulavat animaatiot, tiivis yhteenveto tärkeimmistä tiedoista, Hyväksy/Hylkää-toiminnot ja tuki useille uusille tilauksille.",
       "change2": "Kuljettajapyynnölle lisättiin välitön, ennalta määritetty tai mukautettu viive sekä reaaliaikainen lähtölaskenta pyynnön lähettämiseen.",
       "change3": "Valikkokohteiden poistoon lisättiin vahvistus, selkeät varoitukset sekä käännetyt onnistumis- ja virheviestit.",
