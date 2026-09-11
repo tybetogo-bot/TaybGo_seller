@@ -86,7 +86,7 @@ The dev APKs use the `Seller Dev` application label and the dev API configuratio
 
 ## Changelog
 
-### v1.0.18 (11 September, 2026)
+### v1.0.18 (12 September, 2026)
 - Added item-only editing for incoming orders before acceptance, allowing sellers to add, remove, or replace items while the server protects customer, address, payment, delivery-fee, and pricing data
 - Added translated backend-code error handling for order edits and improved reconciliation after ambiguous network failures
 - Fixed accepted timer order cards so tapping the card opens order details while the live timer continues updating
