@@ -22,6 +22,12 @@ class RetryInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+    // Some POST actions are deliberately non-replayable. In particular, a
+    // timed-out RESCHEDULE may have succeeded on the server already.
+    if (err.requestOptions.extra['disableRetry'] == true) {
+      return handler.next(err);
+    }
+
     // Multipart/stream bodies are consumed by Dio once a request starts, so
     // replaying the same RequestOptions would fail before reaching the server.
     if (_hasOneShotBody(err.requestOptions.data)) {

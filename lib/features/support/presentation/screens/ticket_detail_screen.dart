@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
@@ -10,29 +14,64 @@ import '../../application/support_notifier.dart';
 import '../../data/models/support_ticket_model.dart';
 
 class TicketDetailScreen extends ConsumerStatefulWidget {
-  const TicketDetailScreen({super.key, required this.ticketId});
+  const TicketDetailScreen({
+    super.key,
+    required this.ticketId,
+    this.highlightMessageId,
+  });
 
   final int ticketId;
+  final int? highlightMessageId;
 
   @override
   ConsumerState<TicketDetailScreen> createState() => _TicketDetailScreenState();
 }
 
-class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
+class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
+    with WidgetsBindingObserver {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
+  int? _lastRenderedTicketId;
+  int _lastRenderedMessageCount = -1;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () =>
-          ref.read(supportProvider.notifier).loadTicketDetail(widget.ticketId),
-    );
+    WidgetsBinding.instance.addObserver(this);
+    Future.microtask(() {
+      if (!mounted) return;
+      final notifier = ref.read(supportProvider.notifier);
+      notifier.loadTicketDetail(widget.ticketId);
+      notifier.startTicketMessagePolling(widget.ticketId);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant TicketDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ticketId == widget.ticketId) return;
+
+    final notifier = ref.read(supportProvider.notifier);
+    notifier.stopTicketMessagePolling();
+    notifier.loadTicketDetail(widget.ticketId);
+    notifier.startTicketMessagePolling(widget.ticketId);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState appLifecycleState) {
+    final notifier = ref.read(supportProvider.notifier);
+    if (appLifecycleState == AppLifecycleState.resumed) {
+      notifier.startTicketMessagePolling(widget.ticketId);
+      unawaited(notifier.refreshTicketDetail(widget.ticketId));
+    } else {
+      notifier.stopTicketMessagePolling();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    ref.read(supportProvider.notifier).stopTicketMessagePolling();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -50,6 +89,40 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
         }
       });
     }
+  }
+
+  void _scheduleScrollForMessageChange(SupportTicket? ticket) {
+    final ticketId = ticket?.id;
+    final messageCount = ticket?.messages.length ?? 0;
+    if (ticketId == _lastRenderedTicketId &&
+        messageCount == _lastRenderedMessageCount) {
+      return;
+    }
+
+    final shouldScroll =
+        !_scrollController.hasClients ||
+        _scrollController.position.maxScrollExtent -
+                _scrollController.position.pixels <
+            120.h;
+    _lastRenderedTicketId = ticketId;
+    _lastRenderedMessageCount = messageCount;
+
+    if (ticket != null && messageCount > 0 && shouldScroll) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToBottom();
+      });
+    }
+  }
+
+  Future<void> _refreshTicket() async {
+    final refreshed = await ref
+        .read(supportProvider.notifier)
+        .refreshTicketDetail(widget.ticketId);
+    if (!mounted || refreshed) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('support.refreshFailed'.tr)));
   }
 
   Future<void> _sendMessage() async {
@@ -74,10 +147,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
     final ticket = state.selectedTicket;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
-    // Scroll to bottom when messages change
-    if (ticket != null && ticket.messages.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    }
+    _scheduleScrollForMessageChange(ticket);
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -107,6 +177,22 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
         elevation: 0,
         actions: [
           if (ticket != null)
+            IconButton(
+              tooltip: state.isRefreshingDetail
+                  ? 'support.refreshing'.tr
+                  : 'support.refresh'.tr,
+              onPressed: state.isLoadingDetail || state.isRefreshingDetail
+                  ? null
+                  : _refreshTicket,
+              icon: state.isRefreshingDetail
+                  ? SizedBox(
+                      width: 18.w,
+                      height: 18.w,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh_rounded),
+            ),
+          if (ticket != null)
             Padding(
               padding: EdgeInsets.only(right: 12.w),
               child: _StatusBadge(status: ticket.status, isDark: isDark),
@@ -119,79 +205,88 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
             maxWidth: Breakpoints.maxContentWidth,
           ),
           child: state.isLoadingDetail
-          ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48.w, color: AppColors.error),
-                  SizedBox(height: 12.h),
-                  Text(state.error!),
-                  SizedBox(height: 16.h),
-                  TextButton.icon(
-                    onPressed: () => ref
-                        .read(supportProvider.notifier)
-                        .loadTicketDetail(widget.ticketId),
-                    icon: const Icon(Icons.refresh),
-                    label: Text('common.retry'.tr),
+              ? const Center(child: CircularProgressIndicator())
+              : state.error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48.w,
+                        color: AppColors.error,
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(state.error!),
+                      SizedBox(height: 16.h),
+                      TextButton.icon(
+                        onPressed: () => ref
+                            .read(supportProvider.notifier)
+                            .loadTicketDetail(widget.ticketId),
+                        icon: const Icon(Icons.refresh),
+                        label: Text('common.retry'.tr),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )
-          : ticket == null
-          ? const SizedBox.shrink()
-          : Column(
-              children: [
-                // Ticket info header
-                _TicketInfoHeader(ticket: ticket, isDark: isDark),
+                )
+              : ticket == null
+              ? const SizedBox.shrink()
+              : Column(
+                  children: [
+                    // Ticket info header
+                    _TicketInfoHeader(ticket: ticket, isDark: isDark),
 
-                // Messages list
-                Expanded(
-                  child: ticket.messages.isEmpty
-                      ? Center(
-                          child: Text(
-                            'support.noTicketsDesc'.tr,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: isDark
-                                  ? DarkColors.textTertiary
-                                  : LightColors.textTertiary,
+                    // Messages list
+                    Expanded(
+                      child: ticket.messages.isEmpty
+                          ? Center(
+                              child: Text(
+                                'support.noTicketsDesc'.tr,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  color: isDark
+                                      ? DarkColors.textTertiary
+                                      : LightColors.textTertiary,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 12.h,
+                              ),
+                              itemCount: ticket.messages.length,
+                              itemBuilder: (context, index) {
+                                final message = ticket.messages[index];
+                                final isMe =
+                                    message.authorRole == AuthorRole.seller;
+                                return _MessageBubble(
+                                  key: ValueKey(
+                                    'support-message-${message.id}',
+                                  ),
+                                  message: message,
+                                  isMe: isMe,
+                                  isDark: isDark,
+                                  primaryColor: primaryColor,
+                                  isHighlighted:
+                                      message.id == widget.highlightMessageId,
+                                );
+                              },
                             ),
-                          ),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.w,
-                            vertical: 12.h,
-                          ),
-                          itemCount: ticket.messages.length,
-                          itemBuilder: (context, index) {
-                            final message = ticket.messages[index];
-                            final isMe =
-                                message.authorRole == AuthorRole.seller;
-                            return _MessageBubble(
-                              message: message,
-                              isMe: isMe,
-                              isDark: isDark,
-                              primaryColor: primaryColor,
-                            );
-                          },
-                        ),
-                ),
+                    ),
 
-                // Message input bar
-                if (ticket.status != TicketStatus.closed)
-                  _MessageInputBar(
-                    controller: _messageController,
-                    isDark: isDark,
-                    isSending: state.isSending,
-                    primaryColor: primaryColor,
-                    onSend: _sendMessage,
-                  ),
-              ],
-            ),
+                    // Message input bar
+                    if (ticket.status != TicketStatus.closed)
+                      _MessageInputBar(
+                        controller: _messageController,
+                        isDark: isDark,
+                        isSending: state.isSending,
+                        primaryColor: primaryColor,
+                        onSend: _sendMessage,
+                      ),
+                  ],
+                ),
         ),
       ),
     );
@@ -253,16 +348,37 @@ class _TicketInfoHeader extends ConsumerWidget {
               ),
             ],
           ),
-          if (ticket.order != null) ...[
-            SizedBox(height: 8.h),
-            Row(
-              children: [
-                _InfoItem(
-                  label: 'support.relatedOrder'.tr,
-                  value: '#${ticket.order}',
-                  isDark: isDark,
-                ),
-              ],
+          if (ticket.order != null ||
+              ticket.restaurant != null ||
+              ticket.driver != null) ...[
+            SizedBox(height: 10.h),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Wrap(
+                spacing: 8.w,
+                runSpacing: 6.h,
+                children: [
+                  if (ticket.order != null)
+                    _ReferenceLink(
+                      label: 'support.relatedOrder'.tr,
+                      value: '#${ticket.order}',
+                      onTap: () => context.push(
+                        Routes.orderDetailsPath(ticket.order.toString()),
+                      ),
+                    ),
+                  if (ticket.restaurant != null)
+                    _ReferenceLink(
+                      label: 'support.categoryRestaurant'.tr,
+                      value: '#${ticket.restaurant}',
+                      onTap: () => context.push(Routes.restaurantSettings),
+                    ),
+                  if (ticket.driver != null)
+                    _ReferenceLink(
+                      label: 'support.categoryDriver'.tr,
+                      value: '#${ticket.driver}',
+                    ),
+                ],
+              ),
             ),
           ],
         ],
@@ -363,18 +479,64 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
+class _ReferenceLink extends StatelessWidget {
+  const _ReferenceLink({required this.label, required this.value, this.onTap});
+
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$label $value',
+          style: TextStyle(
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w600,
+            color: onTap == null
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : primaryColor,
+          ),
+        ),
+        if (onTap != null) ...[
+          SizedBox(width: 3.w),
+          Icon(Icons.open_in_new_rounded, size: 13.w, color: primaryColor),
+        ],
+      ],
+    );
+
+    return onTap == null
+        ? child
+        : InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(6.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+              child: child,
+            ),
+          );
+  }
+}
+
 class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
+    super.key,
     required this.message,
     required this.isMe,
     required this.isDark,
     required this.primaryColor,
+    required this.isHighlighted,
   });
 
   final TicketMessage message;
   final bool isMe;
   final bool isDark;
   final Color primaryColor;
+  final bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -450,7 +612,8 @@ class _MessageBubble extends StatelessWidget {
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
                       constraints: BoxConstraints(maxWidth: maxBubbleWidth),
                       padding: EdgeInsets.symmetric(
                         horizontal: 14.w,
@@ -472,6 +635,20 @@ class _MessageBubble extends StatelessWidget {
                               ? Radius.circular(4.r)
                               : Radius.circular(16.r),
                         ),
+                        border: isHighlighted
+                            ? Border.all(color: AppColors.warning, width: 2)
+                            : null,
+                        boxShadow: isHighlighted
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.warning.withValues(
+                                    alpha: 0.28,
+                                  ),
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Text(
                         message.body,

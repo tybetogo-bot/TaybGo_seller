@@ -67,13 +67,12 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   }
 
   /// Update user profile
-  Future<bool> updateProfile({String? name, String? email, int? age}) async {
+  Future<bool> updateProfile({String? name, int? age}) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final data = <String, dynamic>{};
       if (name != null) data['name'] = name;
-      if (email != null) data['email'] = email;
       if (age != null) data['age'] = age;
 
       final result = await _repository.updateProfile(data);

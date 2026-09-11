@@ -17,12 +17,126 @@ enum OrderStatusEnum {
   onTheWay,
   @JsonValue('DELIVERED')
   delivered,
+  @JsonValue('RESTAURANT_DELIVERED')
+  restaurantDelivered,
   @JsonValue('EXPIRED')
   expired,
   @JsonValue('REJECTED')
   rejected,
   @JsonValue('CANCELLED')
   cancelled,
+}
+
+OrderStatusEnum? orderStatusFromApi(String? statusStr) {
+  if (statusStr == null) return null;
+  switch (statusStr.toUpperCase()) {
+    case 'PENDING':
+      return OrderStatusEnum.pending;
+    case 'SEARCHING_FOR_DRIVER':
+      return OrderStatusEnum.searchingForDriver;
+    case 'DRIVER_NOTIFICATION_SENT':
+      return OrderStatusEnum.driverNotificationSent;
+    case 'ACCEPTED':
+      return OrderStatusEnum.accepted;
+    case 'ON_THE_WAY':
+      return OrderStatusEnum.onTheWay;
+    case 'DELIVERED':
+      return OrderStatusEnum.delivered;
+    case 'RESTAURANT_DELIVERED':
+      return OrderStatusEnum.restaurantDelivered;
+    case 'COMPLETED':
+      return OrderStatusEnum.delivered;
+    case 'EXPIRED':
+      return OrderStatusEnum.expired;
+    case 'REJECTED':
+      return OrderStatusEnum.rejected;
+    case 'CANCELLED':
+      return OrderStatusEnum.cancelled;
+    default:
+      return null;
+  }
+}
+
+class OrderAllowedStatusOption {
+  const OrderAllowedStatusOption({required this.value, this.label});
+
+  final String value;
+  final String? label;
+
+  OrderStatusEnum? get status => orderStatusFromApi(value);
+
+  factory OrderAllowedStatusOption.fromJson(Map<String, dynamic> json) {
+    return OrderAllowedStatusOption(
+      value: json['value']?.toString() ?? '',
+      label: json['label']?.toString(),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is OrderAllowedStatusOption &&
+            other.value == value &&
+            other.label == label);
+  }
+
+  @override
+  int get hashCode => Object.hash(value, label);
+}
+
+/// An action the authenticated seller is currently allowed to perform.
+///
+/// Unlike the legacy status-options list, this also preserves non-status
+/// actions such as REQUEST_DRIVER_NOW and RESCHEDULE_DRIVER.
+class OrderAllowedAction {
+  const OrderAllowedAction({required this.value, this.label});
+
+  final String value;
+  final String? label;
+
+  String get normalizedValue => value.trim().toUpperCase();
+
+  OrderStatusEnum? get status => orderStatusFromApi(value);
+
+  factory OrderAllowedAction.fromJson(Map<String, dynamic> json) {
+    return OrderAllowedAction(
+      value: json['value']?.toString() ?? '',
+      label: json['label']?.toString(),
+    );
+  }
+
+  factory OrderAllowedAction.fromStatusOption(OrderAllowedStatusOption option) {
+    return OrderAllowedAction(value: option.value, label: option.label);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is OrderAllowedAction &&
+            other.value == value &&
+            other.label == label);
+  }
+
+  @override
+  int get hashCode => Object.hash(value, label);
+}
+
+/// Driver-dispatch commands accepted by the seller API.
+enum DriverDispatchAction {
+  requestNow,
+  schedule,
+  reschedule;
+
+  String get apiValue {
+    switch (this) {
+      case DriverDispatchAction.requestNow:
+        return 'REQUEST_NOW';
+      case DriverDispatchAction.schedule:
+        return 'SCHEDULE';
+      case DriverDispatchAction.reschedule:
+        return 'RESCHEDULE';
+    }
+  }
 }
 
 /// Extension to get display name for order status
@@ -41,6 +155,8 @@ extension OrderStatusExtension on OrderStatusEnum {
         return 'On the Way';
       case OrderStatusEnum.delivered:
         return 'Delivered';
+      case OrderStatusEnum.restaurantDelivered:
+        return 'Restaurant Delivered';
       case OrderStatusEnum.expired:
         return 'Expired';
       case OrderStatusEnum.rejected:
@@ -52,10 +168,12 @@ extension OrderStatusExtension on OrderStatusEnum {
 
   /// Check if order can transition to a new status
   /// Flow: PENDING → SEARCHING_FOR_DRIVER → DRIVER_NOTIFICATION_SENT → ACCEPTED/REJECTED → ON_THE_WAY → DELIVERED
+  /// If restaurant delivery is disabled: PENDING → RESTAURANT_DELIVERED
   bool canTransitionTo(OrderStatusEnum newStatus) {
     switch (this) {
       case OrderStatusEnum.pending:
         return newStatus == OrderStatusEnum.searchingForDriver ||
+            newStatus == OrderStatusEnum.restaurantDelivered ||
             newStatus == OrderStatusEnum.cancelled;
       case OrderStatusEnum.searchingForDriver:
         return newStatus == OrderStatusEnum.driverNotificationSent ||
@@ -70,6 +188,7 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return newStatus == OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
       case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
@@ -92,6 +211,7 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.onTheWay:
         return OrderStatusEnum.delivered;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
       case OrderStatusEnum.expired:
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
@@ -101,10 +221,13 @@ extension OrderStatusExtension on OrderStatusEnum {
 
   /// Get the previous status in the flow (for undo functionality)
   /// Flow: DELIVERED → ON_THE_WAY → ACCEPTED → DRIVER_NOTIFICATION_SENT → SEARCHING_FOR_DRIVER → PENDING
+  /// Direct restaurant-delivered orders revert to PENDING.
   OrderStatusEnum? get previousStatus {
     switch (this) {
       case OrderStatusEnum.delivered:
         return OrderStatusEnum.onTheWay;
+      case OrderStatusEnum.restaurantDelivered:
+        return OrderStatusEnum.pending;
       case OrderStatusEnum.onTheWay:
         return OrderStatusEnum.accepted;
       case OrderStatusEnum.accepted:
@@ -118,6 +241,32 @@ extension OrderStatusExtension on OrderStatusEnum {
       case OrderStatusEnum.rejected:
       case OrderStatusEnum.cancelled:
         return null;
+    }
+  }
+
+  OrderStatusEnum? nextStatusForRestaurant({required bool deliveryEnabled}) {
+    if (this == OrderStatusEnum.pending) {
+      return deliveryEnabled
+          ? OrderStatusEnum.searchingForDriver
+          : OrderStatusEnum.restaurantDelivered;
+    }
+    return nextStatus;
+  }
+
+  bool get isTerminal {
+    switch (this) {
+      case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
+      case OrderStatusEnum.expired:
+      case OrderStatusEnum.rejected:
+      case OrderStatusEnum.cancelled:
+        return true;
+      case OrderStatusEnum.pending:
+      case OrderStatusEnum.searchingForDriver:
+      case OrderStatusEnum.driverNotificationSent:
+      case OrderStatusEnum.accepted:
+      case OrderStatusEnum.onTheWay:
+        return false;
     }
   }
 }
@@ -157,6 +306,7 @@ class OrderRestaurantModel {
   final double? lng;
   final String? phone;
   final String? status;
+  final bool? deliveryEnabled;
   final DateTime? createdAt;
 
   const OrderRestaurantModel({
@@ -168,6 +318,7 @@ class OrderRestaurantModel {
     this.lng,
     this.phone,
     this.status,
+    this.deliveryEnabled,
     this.createdAt,
   });
 
@@ -192,6 +343,8 @@ class OrderRestaurantModel {
       lng: parsedAddress?.lng ?? _parseDouble(json['lng']),
       phone: json['phone'] as String?,
       status: json['status'] as String?,
+      deliveryEnabled:
+          json['delivery_enabled'] as bool? ?? json['deliveryEnabled'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -514,13 +667,15 @@ sealed class OrderItemModel with _$OrderItemModel {
           .toList();
     }
 
+    final rawItem = json['item'] ?? json['menuItemId'] ?? json['menu_item_id'];
+    final nestedItem = rawItem is Map ? rawItem : null;
+    final itemId = nestedItem?['id'] ?? nestedItem?['pk'] ?? rawItem;
+
     return OrderItemModel(
       id: json['id']?.toString() ?? '',
-      menuItemId:
-          (json['item'] ?? json['menuItemId'] ?? json['menu_item_id'])
-              ?.toString() ??
-          '',
-      name: json['item_name'] ?? json['name'] ?? '',
+      menuItemId: itemId?.toString() ?? '',
+      name: (json['item_name'] ?? json['name'] ?? nestedItem?['name'] ?? '')
+          .toString(),
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (priceValue is num)
           ? priceValue.toDouble()
@@ -560,8 +715,14 @@ sealed class OrderModel with _$OrderModel {
     @Default(0.0) double discountAmount,
     @Default(0.0) double tips,
     @Default(0.0) double total,
+
+    /// Server-calculated seller amount; null for legacy orders without a subtotal.
+    double? sellerTotalAmount,
     @Default(false) bool isPaid,
     @Default(OrderStatusEnum.pending) OrderStatusEnum status,
+    @Default(false) bool hasAllowedStatusOptions,
+    @Default([]) List<OrderAllowedStatusOption> allowedStatusOptions,
+    @Default([]) List<OrderAllowedAction> allowedActions,
     String? notes,
     String? rejectionReason,
     required DateTime createdAt,
@@ -573,6 +734,7 @@ sealed class OrderModel with _$OrderModel {
     String? assignedDriverId,
     // New fields from API
     @Default('FOOD') String orderType,
+    String? fulfillmentType,
     OrderRestaurantModel? restaurant,
     OrderCouponModel? coupon,
     OrderAddressModel? pickupAddress,
@@ -581,40 +743,21 @@ sealed class OrderModel with _$OrderModel {
     String? requestedDeliveryType,
     OrderDriverModel? driver,
     @Default(false) bool isManual,
+
+    /// Backend-controlled delayed driver-dispatch fields.
+    ///
+    /// These remain nullable because older orders and orders that have not
+    /// been accepted yet do not have an active dispatch schedule.
+    DateTime? driverDispatchDueAt,
+    int? driverDispatchDelayMinutes,
+    String? driverDispatchStatus,
+    int? driverDispatchRemainingSeconds,
+    DateTime? driverDispatchServerTime,
+    int? driverDispatchMaxDelayMinutes,
   }) = _OrderModel;
 
   /// Custom fromJson to handle API response format
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    // Parse status from API (e.g., "SEARCHING_FOR_DRIVER")
-    OrderStatusEnum parseStatus(String? statusStr) {
-      if (statusStr == null) return OrderStatusEnum.pending;
-      switch (statusStr.toUpperCase()) {
-        case 'PENDING':
-          return OrderStatusEnum.pending;
-        case 'SEARCHING_FOR_DRIVER':
-          return OrderStatusEnum.searchingForDriver;
-        case 'DRIVER_NOTIFICATION_SENT':
-          return OrderStatusEnum.driverNotificationSent;
-        case 'ACCEPTED':
-          return OrderStatusEnum.accepted;
-        case 'ON_THE_WAY':
-          return OrderStatusEnum.onTheWay;
-        case 'DELIVERED':
-          return OrderStatusEnum.delivered;
-        case 'COMPLETED':
-          // Map legacy COMPLETED to DELIVERED since completed status was removed
-          return OrderStatusEnum.delivered;
-        case 'EXPIRED':
-          return OrderStatusEnum.expired;
-        case 'REJECTED':
-          return OrderStatusEnum.rejected;
-        case 'CANCELLED':
-          return OrderStatusEnum.cancelled;
-        default:
-          return OrderStatusEnum.pending;
-      }
-    }
-
     // Parse items list
     List<OrderItemModel> parseItems(dynamic itemsJson) {
       if (itemsJson == null || itemsJson is! List) return [];
@@ -622,6 +765,44 @@ sealed class OrderModel with _$OrderModel {
           .map((item) => OrderItemModel.fromJson(item as Map<String, dynamic>))
           .toList();
     }
+
+    List<OrderAllowedStatusOption> parseAllowedStatusOptions(dynamic options) {
+      if (options is! List) return const [];
+      return options
+          .whereType<Map<String, dynamic>>()
+          .map(OrderAllowedStatusOption.fromJson)
+          .toList();
+    }
+
+    List<OrderAllowedAction> parseAllowedActions(dynamic actions) {
+      if (actions is! List) return const [];
+      return actions.map((action) {
+        if (action is Map<String, dynamic>) {
+          return OrderAllowedAction.fromJson(action);
+        }
+        return OrderAllowedAction(value: action.toString());
+      }).toList();
+    }
+
+    final allowedStatusOptions = parseAllowedStatusOptions(
+      json['allowed_status_options'] ?? json['allowedStatusOptions'],
+    );
+    final parsedAllowedActions = parseAllowedActions(
+      json['allowed_actions'] ?? json['allowedActions'],
+    );
+    final legacyAllowedActions = parseAllowedStatusOptions(
+      json['allowed_actions'] ?? json['allowedActions'],
+    );
+    final mergedAllowedStatusOptions = [
+      ...allowedStatusOptions,
+      for (final action in legacyAllowedActions)
+        if (action.status != null &&
+            !allowedStatusOptions.any(
+              (option) =>
+                  option.value.toUpperCase() == action.value.toUpperCase(),
+            ))
+          action,
+    ];
 
     // Parse new API address format
     OrderAddressModel? parseOrderAddress(dynamic addressJson) {
@@ -740,6 +921,17 @@ sealed class OrderModel with _$OrderModel {
       return null;
     }
 
+    DateTime? parseDateTime(dynamic value) {
+      if (value is! String || value.isEmpty) return null;
+      return DateTime.tryParse(value);
+    }
+
+    int? parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '');
+    }
+
     // Get restaurant ID from nested object or direct field
     String? getRestaurantId(Map<String, dynamic> json) {
       if (json['restaurant'] is Map<String, dynamic>) {
@@ -802,8 +994,16 @@ sealed class OrderModel with _$OrderModel {
                 '0',
           ) ??
           0.0,
+      sellerTotalAmount: _parseDouble(json['seller_total_amount']),
       isPaid: json['is_paid'] ?? json['isPaid'] ?? json['paid'] ?? false,
-      status: parseStatus(json['status'] as String?),
+      status:
+          orderStatusFromApi(json['status'] as String?) ??
+          OrderStatusEnum.pending,
+      hasAllowedStatusOptions:
+          json.containsKey('allowed_status_options') ||
+          json.containsKey('allowedStatusOptions'),
+      allowedStatusOptions: mergedAllowedStatusOptions,
+      allowedActions: parsedAllowedActions,
       notes: (json['notes'] ?? json['delivery_instructions']) as String?,
       rejectionReason:
           json['rejection_reason'] ?? json['rejectionReason'] as String?,
@@ -828,6 +1028,9 @@ sealed class OrderModel with _$OrderModel {
       assignedDriverId: getDriverId(json),
       // New fields
       orderType: json['order_type'] as String? ?? 'FOOD',
+      fulfillmentType:
+          json['fulfillment_type'] as String? ??
+          json['fulfillmentType'] as String?,
       restaurant: parseRestaurant(json['restaurant']),
       coupon: parseCoupon(json['coupon']),
       pickupAddress: parseOrderAddress(json['pickup_address']),
@@ -836,6 +1039,27 @@ sealed class OrderModel with _$OrderModel {
       requestedDeliveryType: json['requested_delivery_type'] as String?,
       driver: parseDriver(json['driver']),
       isManual: json['is_manual'] as bool? ?? false,
+      driverDispatchDueAt: parseDateTime(
+        json['driver_dispatch_due_at'] ?? json['driverDispatchDueAt'],
+      ),
+      driverDispatchDelayMinutes: parseInt(
+        json['driver_dispatch_delay_minutes'] ??
+            json['driverDispatchDelayMinutes'],
+      ),
+      driverDispatchStatus:
+          json['driver_dispatch_status']?.toString() ??
+          json['driverDispatchStatus']?.toString(),
+      driverDispatchRemainingSeconds: parseInt(
+        json['driver_dispatch_remaining_seconds'] ??
+            json['driverDispatchRemainingSeconds'],
+      ),
+      driverDispatchServerTime: parseDateTime(
+        json['driver_dispatch_server_time'] ?? json['driverDispatchServerTime'],
+      ),
+      driverDispatchMaxDelayMinutes: parseInt(
+        json['driver_dispatch_max_delay_minutes'] ??
+            json['driverDispatchMaxDelayMinutes'],
+      ),
     );
   }
 }
@@ -859,6 +1083,7 @@ extension OrderModelExtension on OrderModel {
   /// Check if order is active (not completed or cancelled)
   bool get isActive =>
       status != OrderStatusEnum.delivered &&
+      status != OrderStatusEnum.restaurantDelivered &&
       status != OrderStatusEnum.expired &&
       status != OrderStatusEnum.rejected &&
       status != OrderStatusEnum.cancelled;
@@ -871,9 +1096,50 @@ extension OrderModelExtension on OrderModel {
   /// Check if order is completed
   bool get isCompleted =>
       status == OrderStatusEnum.delivered ||
+      status == OrderStatusEnum.restaurantDelivered ||
       status == OrderStatusEnum.expired ||
       status == OrderStatusEnum.rejected ||
       status == OrderStatusEnum.cancelled;
+
+  /// Whether the backend has supplied an active or completed driver timer.
+  bool get hasDriverDispatchTimer =>
+      driverDispatchDueAt != null || driverDispatchRemainingSeconds != null;
+
+  /// Returns the server-provided action with this value, if present.
+  OrderAllowedAction? allowedAction(String value) {
+    final normalizedValue = value.trim().toUpperCase();
+    for (final action in allowedActions) {
+      if (action.normalizedValue == normalizedValue) return action;
+    }
+    return null;
+  }
+
+  bool allowsAction(String value) => allowedAction(value) != null;
+
+  OrderStatusEnum? get preferredAllowedNextStatus {
+    for (final action in allowedActions) {
+      final status = action.status;
+      if (status == null) continue;
+      if (status == OrderStatusEnum.cancelled ||
+          status == OrderStatusEnum.rejected ||
+          status == OrderStatusEnum.expired) {
+        continue;
+      }
+      return status;
+    }
+
+    for (final option in allowedStatusOptions) {
+      final status = option.status;
+      if (status == null) continue;
+      if (status == OrderStatusEnum.cancelled ||
+          status == OrderStatusEnum.rejected ||
+          status == OrderStatusEnum.expired) {
+        continue;
+      }
+      return status;
+    }
+    return null;
+  }
 
   /// Get formatted phone number
   String get formattedPhone => '$countryCode $phoneNumber';

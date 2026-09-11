@@ -120,6 +120,7 @@ sealed class RestaurantModel with _$RestaurantModel {
     String? openingHours,
     String? closingHours,
     @Default({}) Map<String, List<WorkHourPeriod>> workHours,
+    bool? deliveryEnabled,
     @Default(0.0) double deliveryFee,
     @Default(0.0) double minimumOrder,
     @Default(30) int estimatedDeliveryTime,
@@ -187,6 +188,9 @@ sealed class RestaurantModel with _$RestaurantModel {
       openingHours: (json['opening_hours'] ?? json['openingHours']) as String?,
       closingHours: (json['closing_hours'] ?? json['closingHours']) as String?,
       workHours: _parseWorkHours(json['work_hours'] ?? json['workHours']),
+      deliveryEnabled: _parseOptionalBool(
+        json['delivery_enabled'] ?? json['deliveryEnabled'],
+      ),
       deliveryFee: (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0) is num
           ? (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0).toDouble()
           : 0.0,
@@ -240,6 +244,25 @@ sealed class RestaurantModel with _$RestaurantModel {
     if (value == null) return null;
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static bool? _parseOptionalBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      switch (value.trim().toLowerCase()) {
+        case 'true':
+        case '1':
+        case 'yes':
+          return true;
+        case 'false':
+        case '0':
+        case 'no':
+          return false;
+      }
+    }
     return null;
   }
 

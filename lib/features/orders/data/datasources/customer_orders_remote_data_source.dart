@@ -7,6 +7,9 @@ import '../models/order_model.dart';
 
 /// Abstract interface for customer orders data source
 abstract class CustomerOrdersDataSource {
+  /// Preview live pricing for a food order.
+  Future<FoodPriceQuote> previewFoodOrder(FoodPricePreviewRequest request);
+
   /// Create a food order
   Future<OrderModel> createFoodOrder(FoodCheckoutRequest request);
 
@@ -34,6 +37,13 @@ class CustomerOrdersRemoteDataSource implements CustomerOrdersDataSource {
   CustomerOrdersRemoteDataSource(this._api);
 
   final CustomerOrdersApi _api;
+
+  @override
+  Future<FoodPriceQuote> previewFoodOrder(
+    FoodPricePreviewRequest request,
+  ) async {
+    return await _api.previewFoodOrder(request);
+  }
 
   @override
   Future<OrderModel> createFoodOrder(FoodCheckoutRequest request) async {

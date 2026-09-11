@@ -25,58 +25,79 @@ class OrderStatusTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isRestaurantDelivered =
+        currentStatus == OrderStatusEnum.restaurantDelivered;
 
-    // Full order flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
-    final steps = [
-      _TimelineStep(
-        status: OrderStatusEnum.pending,
-        label: 'orders.status.pending'.tr,
-        icon: Icons.hourglass_empty,
-        isCompleted: _isCompleted(OrderStatusEnum.pending),
-        isCurrent: currentStatus == OrderStatusEnum.pending,
-        timestamp: null,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.searchingForDriver,
-        label: 'orders.status.searchingForDriver'.tr,
-        icon: Icons.search,
-        isCompleted: _isCompleted(OrderStatusEnum.searchingForDriver),
-        isCurrent: currentStatus == OrderStatusEnum.searchingForDriver,
-        timestamp: null,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.driverNotificationSent,
-        label: 'orders.status.driverNotificationSent'.tr,
-        icon: Icons.notifications_active,
-        isCompleted: _isCompleted(OrderStatusEnum.driverNotificationSent),
-        isCurrent: currentStatus == OrderStatusEnum.driverNotificationSent,
-        timestamp: null,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.accepted,
-        label: 'orders.status.accepted'.tr,
-        icon: Icons.check_circle_outline,
-        isCompleted: _isCompleted(OrderStatusEnum.accepted),
-        isCurrent: currentStatus == OrderStatusEnum.accepted,
-        timestamp: acceptedAt,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.onTheWay,
-        label: 'orders.status.onTheWay'.tr,
-        icon: Icons.local_shipping_outlined,
-        isCompleted: _isCompleted(OrderStatusEnum.onTheWay),
-        isCurrent: currentStatus == OrderStatusEnum.onTheWay,
-        timestamp: outForDeliveryAt,
-      ),
-      _TimelineStep(
-        status: OrderStatusEnum.delivered,
-        label: 'orders.status.delivered'.tr,
-        icon: Icons.verified,
-        isCompleted: _isCompleted(OrderStatusEnum.delivered),
-        isCurrent: currentStatus == OrderStatusEnum.delivered,
-        timestamp: deliveredAt,
-      ),
-    ];
+    final steps = isRestaurantDelivered
+        ? [
+            _TimelineStep(
+              status: OrderStatusEnum.pending,
+              label: 'orders.status.pending'.tr,
+              icon: Icons.hourglass_empty,
+              isCompleted: _isCompleted(OrderStatusEnum.pending),
+              isCurrent: currentStatus == OrderStatusEnum.pending,
+              timestamp: null,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.restaurantDelivered,
+              label: 'orders.status.restaurantDelivered'.tr,
+              icon: Icons.verified,
+              isCompleted: _isCompleted(OrderStatusEnum.restaurantDelivered),
+              isCurrent: currentStatus == OrderStatusEnum.restaurantDelivered,
+              timestamp: deliveredAt,
+            ),
+          ]
+        : [
+            _TimelineStep(
+              status: OrderStatusEnum.pending,
+              label: 'orders.status.pending'.tr,
+              icon: Icons.hourglass_empty,
+              isCompleted: _isCompleted(OrderStatusEnum.pending),
+              isCurrent: currentStatus == OrderStatusEnum.pending,
+              timestamp: null,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.searchingForDriver,
+              label: 'orders.status.searchingForDriver'.tr,
+              icon: Icons.search,
+              isCompleted: _isCompleted(OrderStatusEnum.searchingForDriver),
+              isCurrent: currentStatus == OrderStatusEnum.searchingForDriver,
+              timestamp: null,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.driverNotificationSent,
+              label: 'orders.status.driverNotificationSent'.tr,
+              icon: Icons.notifications_active,
+              isCompleted: _isCompleted(OrderStatusEnum.driverNotificationSent),
+              isCurrent:
+                  currentStatus == OrderStatusEnum.driverNotificationSent,
+              timestamp: null,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.accepted,
+              label: 'orders.status.accepted'.tr,
+              icon: Icons.check_circle_outline,
+              isCompleted: _isCompleted(OrderStatusEnum.accepted),
+              isCurrent: currentStatus == OrderStatusEnum.accepted,
+              timestamp: acceptedAt,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.onTheWay,
+              label: 'orders.status.onTheWay'.tr,
+              icon: Icons.local_shipping_outlined,
+              isCompleted: _isCompleted(OrderStatusEnum.onTheWay),
+              isCurrent: currentStatus == OrderStatusEnum.onTheWay,
+              timestamp: outForDeliveryAt,
+            ),
+            _TimelineStep(
+              status: OrderStatusEnum.delivered,
+              label: 'orders.status.delivered'.tr,
+              icon: Icons.verified,
+              isCompleted: _isCompleted(OrderStatusEnum.delivered),
+              isCurrent: currentStatus == OrderStatusEnum.delivered,
+              timestamp: deliveredAt,
+            ),
+          ];
 
     // Handle rejected/cancelled/expired status
     if (currentStatus == OrderStatusEnum.rejected ||
@@ -192,21 +213,24 @@ class OrderStatusTimeline extends StatelessWidget {
   }
 
   bool _isCompleted(OrderStatusEnum status) {
-    // Full flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
-    final statusOrder = [
-      OrderStatusEnum.pending,
-      OrderStatusEnum.searchingForDriver,
-      OrderStatusEnum.driverNotificationSent,
-      OrderStatusEnum.accepted,
-      OrderStatusEnum.onTheWay,
-      OrderStatusEnum.delivered,
-    ];
+    final statusOrder = currentStatus == OrderStatusEnum.restaurantDelivered
+        ? [OrderStatusEnum.pending, OrderStatusEnum.restaurantDelivered]
+        : [
+            OrderStatusEnum.pending,
+            OrderStatusEnum.searchingForDriver,
+            OrderStatusEnum.driverNotificationSent,
+            OrderStatusEnum.accepted,
+            OrderStatusEnum.onTheWay,
+            OrderStatusEnum.delivered,
+          ];
 
     // Get timeline index for any status
     int getTimelineIndex(OrderStatusEnum s) {
       switch (s) {
         case OrderStatusEnum.pending:
           return 0;
+        case OrderStatusEnum.restaurantDelivered:
+          return currentStatus == OrderStatusEnum.restaurantDelivered ? 1 : 5;
         case OrderStatusEnum.searchingForDriver:
           return 1;
         case OrderStatusEnum.driverNotificationSent:
@@ -413,6 +437,7 @@ class OrderActionButtons extends StatelessWidget {
     // Flow: Pending → Searching → Driver Notified → Accepted → On the Way → Delivered
     // Terminal statuses - no action buttons
     if (currentStatus == OrderStatusEnum.delivered ||
+        currentStatus == OrderStatusEnum.restaurantDelivered ||
         currentStatus == OrderStatusEnum.expired ||
         currentStatus == OrderStatusEnum.rejected ||
         currentStatus == OrderStatusEnum.cancelled) {

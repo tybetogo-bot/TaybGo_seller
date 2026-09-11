@@ -1,7 +1,7 @@
 name: teybatseller
 description: "TybeToGo Vendor App - Restaurant management and order handling"
 publish_to: 'none'
-version: 1.0.8+9
+version: 1.0.18+20
 
 environment:
   sdk: ^3.10.4
@@ -43,8 +43,10 @@ dependencies:
   json_annotation: ^4.9.0
   uuid: ^4.4.2
   logger: ^2.4.0
+  package_info_plus: ^9.0.0
   url_launcher: ^6.3.0
   path: ^1.9.0
+  phone_numbers_parser: ^9.0.24
 
   # Forms & Validation
   flutter_form_builder: ^10.2.0

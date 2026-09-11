@@ -5,6 +5,11 @@ import '../models/auth_model.dart';
 
 /// Abstract auth data source interface
 abstract class AuthDataSource {
+  Future<PasswordLoginResponse> loginWithPassword({
+    required String phone,
+    required String password,
+  });
+
   /// Request OTP for phone number
   Future<OtpRequestResponse> requestOtp({
     required String phone,

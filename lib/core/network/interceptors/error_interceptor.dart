@@ -70,16 +70,10 @@ class ErrorInterceptor extends Interceptor {
   ApiException _handleStatusCode(Response? response) {
     final statusCode = response?.statusCode ?? 0;
     final data = response?.data;
+    final code = data is Map<String, dynamic> ? data['code']?.toString() : null;
 
     // Try to extract error message from response
     String message = 'An error occurred';
-
-    if (statusCode == 409) {
-      return ApiException(
-        message: _getDefaultMessageForCode(statusCode),
-        statusCode: statusCode,
-      );
-    }
 
     if (data is Map<String, dynamic>) {
       // API uses 'detail' for error messages
@@ -111,22 +105,30 @@ class ErrorInterceptor extends Interceptor {
 
     switch (statusCode) {
       case 400:
-        return BadRequestException(message: message);
+        return BadRequestException(message: message, code: code);
       case 401:
-        return UnauthorizedException(message: message);
+        return UnauthorizedException(message: message, code: code);
       case 403:
-        return ForbiddenException(message: message);
+        return ForbiddenException(message: message, code: code);
       case 404:
-        return NotFoundException(message: message);
+        return NotFoundException(message: message, code: code);
       case 422:
         return ValidationException(
           message: message,
+          code: code,
           errors: _extractValidationErrors(data),
+        );
+      case 409:
+        return ApiException(
+          message: message,
+          statusCode: statusCode,
+          code: code,
         );
       case 429:
         return ApiException(
           message: 'Too many requests. Please wait and try again.',
           statusCode: 429,
+          code: code,
         );
       case 500:
       case 502:
@@ -135,9 +137,14 @@ class ErrorInterceptor extends Interceptor {
           message: message.isEmpty
               ? 'Server error. Please try again later.'
               : message,
+          code: code,
         );
       default:
-        return ApiException(message: message, statusCode: statusCode);
+        return ApiException(
+          message: message,
+          statusCode: statusCode,
+          code: code,
+        );
     }
   }
 
@@ -166,7 +173,7 @@ class ErrorInterceptor extends Interceptor {
       case 404:
         return 'The requested resource was not found.';
       case 409:
-        return 'This number is already registered.';
+        return 'Conflict. The resource may have changed. Please refresh and try again.';
       case 422:
         return 'Validation error. Please check your input.';
       case 429:

@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
@@ -23,9 +27,26 @@ class NotificationsScreen extends ConsumerWidget {
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
       appBar: AppBar(
         title: Text('notifications.title'.tr),
-        backgroundColor: isDark ? DarkColors.background : LightColors.background,
+        backgroundColor: isDark
+            ? DarkColors.background
+            : LightColors.background,
         elevation: 0,
         actions: [
+          IconButton(
+            tooltip: notificationsState.isLoading
+                ? 'notifications.refreshing'.tr
+                : 'notifications.refresh'.tr,
+            onPressed: notificationsState.isLoading
+                ? null
+                : () => ref.read(notificationsProvider.notifier).refresh(),
+            icon: notificationsState.isLoading
+                ? SizedBox(
+                    width: 18.w,
+                    height: 18.w,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh_rounded),
+          ),
           if (unreadCount > 0)
             TextButton(
               onPressed: () {
@@ -87,13 +108,7 @@ class NotificationsScreen extends ConsumerWidget {
                 return _NotificationTile(
                   notification: notification,
                   isDark: isDark,
-                  onTap: () {
-                    if (!notification.isRead) {
-                      ref
-                          .read(notificationsProvider.notifier)
-                          .markAsRead(notification.id);
-                    }
-                  },
+                  onTap: () => _openNotification(context, ref, notification),
                 );
               },
             ),
@@ -101,6 +116,30 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _openNotification(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationModel notification,
+  ) {
+    if (!notification.isRead) {
+      unawaited(
+        ref.read(notificationsProvider.notifier).markAsRead(notification.id),
+      );
+    }
+
+    final ticketId = notification.ticketId;
+    if (notification.isSupportNotification && ticketId != null) {
+      context.push(
+        Routes.supportTicketDetailPath(
+          ticketId.toString(),
+          messageId: notification.messageId,
+        ),
+      );
+    }
+    // Unknown or incomplete payloads intentionally remain on the notification
+    // page, which is the safe fallback destination.
   }
 
   Widget _buildErrorState(
@@ -115,18 +154,16 @@ class NotificationsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64.w,
-              color: AppColors.error,
-            ),
+            Icon(Icons.error_outline, size: 64.w, color: AppColors.error),
             SizedBox(height: 16.h),
             Text(
               'errors.failedToLoadNotifications'.tr,
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
-                color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+                color: isDark
+                    ? DarkColors.textSecondary
+                    : LightColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -135,7 +172,9 @@ class NotificationsScreen extends ConsumerWidget {
               error,
               style: TextStyle(
                 fontSize: 13.sp,
-                color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+                color: isDark
+                    ? DarkColors.textTertiary
+                    : LightColors.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -177,11 +216,7 @@ class NotificationsScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 18.w,
-            color: AppColors.error,
-          ),
+          Icon(Icons.error_outline, size: 18.w, color: AppColors.error),
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
@@ -227,7 +262,9 @@ class NotificationsScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w500,
-              color: isDark ? DarkColors.textSecondary : LightColors.textSecondary,
+              color: isDark
+                  ? DarkColors.textSecondary
+                  : LightColors.textSecondary,
             ),
           ),
           SizedBox(height: 8.h),
@@ -236,14 +273,15 @@ class NotificationsScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13.sp,
-              color: isDark ? DarkColors.textTertiary : LightColors.textTertiary,
+              color: isDark
+                  ? DarkColors.textTertiary
+                  : LightColors.textTertiary,
             ),
           ),
         ],
       ),
     );
   }
-
 }
 
 /// Individual notification tile widget
@@ -273,7 +311,9 @@ class _NotificationTile extends StatelessWidget {
       }
       return Icons.receipt_long;
     }
-    if (title.contains('promo') || title.contains('discount') || title.contains('offer')) {
+    if (title.contains('promo') ||
+        title.contains('discount') ||
+        title.contains('offer')) {
       return Icons.local_offer;
     }
     if (title.contains('menu') || title.contains('item')) {
@@ -300,7 +340,9 @@ class _NotificationTile extends StatelessWidget {
       }
       return AppColors.info;
     }
-    if (title.contains('promo') || title.contains('discount') || title.contains('offer')) {
+    if (title.contains('promo') ||
+        title.contains('discount') ||
+        title.contains('offer')) {
       return AppColors.warning;
     }
     if (title.contains('menu') || title.contains('item')) {
@@ -332,8 +374,12 @@ class _NotificationTile extends StatelessWidget {
           color: notification.isRead
               ? Colors.transparent
               : (isDark
-                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.05)
-                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.03)),
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.05)
+                    : Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.03)),
           border: Border(
             bottom: BorderSide(
               color: isDark ? DarkColors.border : LightColors.border,
@@ -424,4 +470,3 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 }
-

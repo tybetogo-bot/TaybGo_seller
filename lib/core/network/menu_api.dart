@@ -100,6 +100,9 @@ class MenuApi {
       queryParameters: {
         'restaurant_id': restaurantId,
         'page': page,
+        // The order editor needs the complete catalog so an existing order
+        // item can still be resolved when it is no longer available.
+        'page_size': 200,
       },
     );
     return PaginatedResponse.fromJson(

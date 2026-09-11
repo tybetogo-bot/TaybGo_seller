@@ -16,6 +16,11 @@ typedef AuthResult<T> = ({Failure? failure, T? data});
 
 /// Auth repository interface
 abstract class AuthRepository {
+  Future<AuthResult<PasswordLoginResponse>> loginWithPassword({
+    required String phone,
+    required String password,
+  });
+
   /// Request OTP for phone number
   Future<AuthResult<OtpRequestResponse>> requestOtp({
     required String phone,
@@ -68,6 +73,44 @@ class AuthRepositoryImpl implements AuthRepository {
 
   final AuthDataSource _remoteDataSource;
   final SharedPreferences _prefs;
+
+  @override
+  Future<AuthResult<PasswordLoginResponse>> loginWithPassword({
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      final response = await _remoteDataSource.loginWithPassword(
+        phone: phone,
+        password: password,
+      );
+      await saveAuthData(
+        accessToken: response.access,
+        refreshToken: response.refresh,
+        phone: phone,
+      );
+      return (failure: null, data: response);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (failure: _mapAuthError(apiError, 'password_login'), data: null);
+      }
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
+    } on NetworkException catch (_) {
+      return (
+        failure: NetworkFailure(message: 'errors.network'.tr),
+        data: null,
+      );
+    } catch (_) {
+      return (
+        failure: ServerFailure(message: 'errors.unexpected'.tr),
+        data: null,
+      );
+    }
+  }
 
   @override
   Future<AuthResult<OtpRequestResponse>> requestOtp({
@@ -281,6 +324,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Failure _mapAuthError(ApiException error, String context) {
     final message = error.message.toLowerCase();
     final statusCode = error.statusCode;
+
+    if (error.code == 'otp_disabled_for_role') {
+      return AuthFailure(
+        message: 'errors.auth.otpDisabledForSeller'.tr,
+        code: error.code,
+      );
+    }
+
+    if (context == 'password_login' &&
+        (statusCode == 400 || statusCode == 401)) {
+      return AuthFailure(message: 'errors.auth.invalidCredentials'.tr);
+    }
 
     // Prioritize context-specific errors first
     // For OTP verification context, any 400-level error is likely an invalid OTP
