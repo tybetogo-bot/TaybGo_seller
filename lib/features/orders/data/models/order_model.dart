@@ -667,13 +667,15 @@ sealed class OrderItemModel with _$OrderItemModel {
           .toList();
     }
 
+    final rawItem = json['item'] ?? json['menuItemId'] ?? json['menu_item_id'];
+    final nestedItem = rawItem is Map ? rawItem : null;
+    final itemId = nestedItem?['id'] ?? nestedItem?['pk'] ?? rawItem;
+
     return OrderItemModel(
       id: json['id']?.toString() ?? '',
-      menuItemId:
-          (json['item'] ?? json['menuItemId'] ?? json['menu_item_id'])
-              ?.toString() ??
-          '',
-      name: json['item_name'] ?? json['name'] ?? '',
+      menuItemId: itemId?.toString() ?? '',
+      name: (json['item_name'] ?? json['name'] ?? nestedItem?['name'] ?? '')
+          .toString(),
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (priceValue is num)
           ? priceValue.toDouble()

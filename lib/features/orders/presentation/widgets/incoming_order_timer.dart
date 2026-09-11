@@ -143,11 +143,16 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 4.5,
-                  backgroundColor: Colors.white.withValues(alpha: 0.12),
-                  valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                ExcludeSemantics(
+                  // The parent order card owns the details action. Without
+                  // excluding this progress semantics node, Flutter Web can
+                  // expose the entire card as a non-tappable progress bar.
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 4.5,
+                    backgroundColor: Colors.white.withValues(alpha: 0.12),
+                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                  ),
                 ),
                 Icon(
                   due ? Icons.bolt_rounded : Icons.timer_outlined,

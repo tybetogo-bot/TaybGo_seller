@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../core/i18n/i18n.dart';
@@ -336,6 +337,38 @@ class OrdersNotifier extends Notifier<OrdersState> {
     );
   }
 
+  /// Apply item-only changes before a pending order is accepted.
+  ///
+  /// The server owns validation, pricing, inventory reconciliation, and the
+  /// payment/status boundary. The request deliberately contains no customer,
+  /// address, payment, delivery-fee, or seller-total fields.
+  Future<bool> editPendingOrderItems(
+    String orderId,
+    List<CartItem> items,
+  ) async {
+    if (items.isEmpty) {
+      state = state.copyWith(error: 'orders.emptyItemsWarning'.tr);
+      return false;
+    }
+
+    // Keep one key for the whole user action. The Dio retry interceptor
+    // replays timeout/connection failures with the same request body, and the
+    // reconciliation below prevents a second key from being generated when
+    // the final response is ambiguous.
+    final idempotencyKey = const Uuid().v4();
+    return _performOrderAction(
+      orderId,
+      () => _repository.editOrderItems(
+        orderId,
+        items: items,
+        idempotencyKey: idempotencyKey,
+      ),
+      fallbackError: 'orders.incoming.editItemsFailed'.tr,
+      failureFallbackErrorKey: 'orders.incoming.editItemsFailed',
+      reconcileOnAmbiguousFailure: true,
+    );
+  }
+
   /// Request driver matching immediately.
   Future<bool> requestDriverNow(String orderId) async {
     return _performOrderAction(
@@ -381,6 +414,8 @@ class OrdersNotifier extends Notifier<OrdersState> {
     Future<OrdersResult<OrderModel>> Function() operation, {
     required String fallbackError,
     bool refreshOnUnknownOutcome = false,
+    bool reconcileOnAmbiguousFailure = false,
+    String? failureFallbackErrorKey,
   }) async {
     state = state.copyWith(clearError: true);
 
@@ -388,10 +423,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
       final result = await operation();
       final failure = result.failure;
       if (failure != null) {
-        if (failure.statusCode == 409 || refreshOnUnknownOutcome) {
+        if (failure.statusCode == 409 ||
+            refreshOnUnknownOutcome ||
+            (reconcileOnAmbiguousFailure && _isAmbiguousFailure(failure))) {
           await _refreshOrderForActionRace(orderId);
         }
-        state = state.copyWith(error: _actionErrorMessage(failure));
+        state = state.copyWith(
+          error: _actionErrorMessage(
+            failure,
+            fallbackKey: failureFallbackErrorKey,
+          ),
+        );
         return false;
       }
 
@@ -406,6 +448,14 @@ class OrdersNotifier extends Notifier<OrdersState> {
       state = state.copyWith(error: '$fallbackError: $e');
       return false;
     }
+  }
+
+  bool _isAmbiguousFailure(Failure failure) {
+    final statusCode = failure.statusCode;
+    return statusCode == null ||
+        statusCode == 0 ||
+        statusCode == 408 ||
+        statusCode >= 500;
   }
 
   Future<void> _refreshOrderForActionRace(String orderId) async {
@@ -431,7 +481,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
     state = state.copyWith(orders: updatedOrders, clearError: true);
   }
 
-  String _actionErrorMessage(Failure failure) {
+  String _actionErrorMessage(Failure failure, {String? fallbackKey}) {
     final key = switch (failure.code) {
       'driver_dispatch_delay_too_long' =>
         'orders.driverDispatchErrors.delayTooLong',
@@ -448,9 +498,24 @@ class OrdersNotifier extends Notifier<OrdersState> {
       'driver_already_assigned' =>
         'orders.driverDispatchErrors.alreadyAssigned',
       'invalid_order_status' => 'orders.driverDispatchErrors.invalidStatus',
+      'invalid_order_edit' => 'orders.incoming.invalidItems',
+      'order_repricing_data_missing' => 'orders.incoming.repricingDataMissing',
+      'customer_approval_required' =>
+        'orders.incoming.customerApprovalRequired',
+      'idempotency_conflict' => 'orders.incoming.editItemsConflict',
       _ => null,
     };
-    return key == null ? failure.message : key.tr;
+    if (key != null) return key.tr;
+
+    // Known backend codes above are the source of truth. If a transport or
+    // older backend response has no code, use the localized action fallback
+    // rather than trying to infer the error from message text.
+    if (fallbackKey != null &&
+        (failure.code == null || failure.code!.isEmpty)) {
+      return fallbackKey.tr;
+    }
+
+    return failure.message;
   }
 
   /// Get order by ID from local state

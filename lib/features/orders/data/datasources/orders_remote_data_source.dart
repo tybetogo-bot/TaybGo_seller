@@ -2,6 +2,7 @@
 library;
 
 import '../../../../core/network/orders_api.dart';
+import '../models/food_checkout_model.dart';
 import '../models/order_model.dart';
 
 /// Abstract interface for orders data source
@@ -18,6 +19,13 @@ abstract class OrdersDataSource {
 
   /// Reject a pending order through the dedicated seller action.
   Future<OrderModel> rejectOrder(String id);
+
+  /// Apply an item-only edit to a pending, pre-payment order.
+  Future<OrderModel> editOrderItems(
+    String id, {
+    required List<CartItem> items,
+    required String idempotencyKey,
+  });
 
   /// Accept a seller order, optionally delaying driver dispatch.
   Future<OrderModel> acceptOrder(String id, {int? driverDispatchDelayMinutes});
@@ -66,6 +74,19 @@ class OrdersRemoteDataSource implements OrdersDataSource {
   @override
   Future<OrderModel> rejectOrder(String id) async {
     return await _api.rejectOrder(id);
+  }
+
+  @override
+  Future<OrderModel> editOrderItems(
+    String id, {
+    required List<CartItem> items,
+    required String idempotencyKey,
+  }) async {
+    return await _api.editOrderItems(
+      id,
+      items: items,
+      idempotencyKey: idempotencyKey,
+    );
   }
 
   @override

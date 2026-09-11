@@ -789,337 +789,349 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
           builder: (context, child) {
             return Transform.scale(scale: _scaleAnimation.value, child: child);
           },
-          child: GestureDetector(
+          child: Semantics(
+            // The timer contains a progress indicator. Keep the whole order
+            // card exposed as a details button on Flutter Web instead of
+            // allowing the timer's progress semantics to replace it.
+            container: true,
+            button: true,
             onTap: widget.onTap,
-            onHorizontalDragStart: _onHorizontalDragStart,
-            onHorizontalDragUpdate: (details) =>
-                _onHorizontalDragUpdate(details, maxWidth),
-            onHorizontalDragEnd: (details) =>
-                _onHorizontalDragEnd(details, maxWidth),
-            child: Container(
-              margin: EdgeInsets.only(bottom: 12.h),
-              child: Stack(
-                children: [
-                  // Background layers (revealed when swiping)
-                  Positioned.fill(
-                    child: _SwipeBackground(
-                      swipeProgress: swipeProgress,
-                      isDark: isDark,
-                      nextStatus: nextStatus,
-                      isProcessing: _isProcessing,
-                      getActionLabel: _getPrimaryActionLabel,
-                      getStatusIcon: _getStatusIcon,
-                    ),
-                  ),
-
-                  // Main card (slides on swipe)
-                  Transform.translate(
-                    offset: Offset(_dragExtent, 0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? DarkColors.surface
-                            : LightColors.surface,
-                        borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(
-                          color: isTerminal
-                              ? (isDark
-                                    ? DarkColors.border
-                                    : LightColors.border)
-                              : statusColor.withValues(alpha: 0.5),
-                          width: isTerminal ? 1 : 1.5,
-                        ),
+            child: GestureDetector(
+              onTap: widget.onTap,
+              onHorizontalDragStart: _onHorizontalDragStart,
+              onHorizontalDragUpdate: (details) =>
+                  _onHorizontalDragUpdate(details, maxWidth),
+              onHorizontalDragEnd: (details) =>
+                  _onHorizontalDragEnd(details, maxWidth),
+              child: Container(
+                margin: EdgeInsets.only(bottom: 12.h),
+                child: Stack(
+                  children: [
+                    // Background layers (revealed when swiping)
+                    Positioned.fill(
+                      child: _SwipeBackground(
+                        swipeProgress: swipeProgress,
+                        isDark: isDark,
+                        nextStatus: nextStatus,
+                        isProcessing: _isProcessing,
+                        getActionLabel: _getPrimaryActionLabel,
+                        getStatusIcon: _getStatusIcon,
                       ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(16.w),
-                            child: Column(
-                              children: [
-                                // Top row: Order ID and Time
-                                Row(
-                                  children: [
-                                    // Order ID
-                                    Text(
-                                      '#${order.id}',
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark
-                                            ? DarkColors.textPrimary
-                                            : LightColors.textPrimary,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    if (showOrderApiDebugTools) ...[
-                                      _CardDebugButton(
-                                        isDark: isDark,
-                                        isLoading: _isLoadingDebugData,
-                                        onTap: _handleShowDebugInspector,
-                                      ),
-                                      SizedBox(width: 8.w),
-                                    ],
-                                    // Time ago
-                                    Text(
-                                      _getTimeAgo(order.createdAt),
-                                      style: TextStyle(
-                                        fontSize: 12.sp,
-                                        color: isDark
-                                            ? DarkColors.textTertiary
-                                            : LightColors.textTertiary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 12.h),
+                    ),
 
-                                // Current Status - Prominent display
-                                Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 10.h,
+                    // Main card (slides on swipe)
+                    Transform.translate(
+                      offset: Offset(_dragExtent, 0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? DarkColors.surface
+                              : LightColors.surface,
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: isTerminal
+                                ? (isDark
+                                      ? DarkColors.border
+                                      : LightColors.border)
+                                : statusColor.withValues(alpha: 0.5),
+                            width: isTerminal ? 1 : 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(16.w),
+                              child: Column(
+                                children: [
+                                  // Top row: Order ID and Time
+                                  Row(
+                                    children: [
+                                      // Order ID
+                                      Text(
+                                        '#${order.id}',
+                                        style: TextStyle(
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? DarkColors.textPrimary
+                                              : LightColors.textPrimary,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      if (showOrderApiDebugTools) ...[
+                                        _CardDebugButton(
+                                          isDark: isDark,
+                                          isLoading: _isLoadingDebugData,
+                                          onTap: _handleShowDebugInspector,
+                                        ),
+                                        SizedBox(width: 8.w),
+                                      ],
+                                      // Time ago
+                                      Text(
+                                        _getTimeAgo(order.createdAt),
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          color: isDark
+                                              ? DarkColors.textTertiary
+                                              : LightColors.textTertiary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10.r),
-                                    border: Border.all(
-                                      color: statusColor.withValues(alpha: 0.3),
-                                      width: 1,
+                                  SizedBox(height: 12.h),
+
+                                  // Current Status - Prominent display
+                                  Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12.w,
+                                      vertical: 10.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      border: Border.all(
+                                        color: statusColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8.w),
+                                          decoration: BoxDecoration(
+                                            color: statusColor.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            _getStatusIcon(status),
+                                            size: 18.w,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                        SizedBox(width: 12.w),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _getStatusLabel(status),
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: statusColor,
+                                                ),
+                                              ),
+                                              SizedBox(height: 2.h),
+                                              Text(
+                                                _getStatusDescription(status),
+                                                style: TextStyle(
+                                                  fontSize: 11.sp,
+                                                  color: isDark
+                                                      ? DarkColors.textSecondary
+                                                      : LightColors
+                                                            .textSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: Row(
+                                  SizedBox(height: 12.h),
+
+                                  // Customer info row
+                                  Row(
                                     children: [
+                                      // Customer avatar placeholder
                                       Container(
-                                        padding: EdgeInsets.all(8.w),
+                                        width: 36.w,
+                                        height: 36.w,
                                         decoration: BoxDecoration(
-                                          color: statusColor.withValues(
-                                            alpha: 0.15,
-                                          ),
+                                          color: isDark
+                                              ? DarkColors.backgroundSecondary
+                                              : LightColors.backgroundSecondary,
                                           borderRadius: BorderRadius.circular(
-                                            8.r,
+                                            10.r,
                                           ),
                                         ),
                                         child: Icon(
-                                          _getStatusIcon(status),
-                                          size: 18.w,
-                                          color: statusColor,
+                                          Icons.person_outline,
+                                          size: 20.w,
+                                          color: isDark
+                                              ? DarkColors.textTertiary
+                                              : LightColors.textTertiary,
                                         ),
                                       ),
                                       SizedBox(width: 12.w),
+                                      // Customer info
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              _getStatusLabel(status),
+                                              order.customerName,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontSize: 14.sp,
-                                                fontWeight: FontWeight.w600,
-                                                color: statusColor,
+                                                fontWeight: FontWeight.w500,
+                                                color: isDark
+                                                    ? DarkColors.textPrimary
+                                                    : LightColors.textPrimary,
                                               ),
                                             ),
                                             SizedBox(height: 2.h),
                                             Text(
-                                              _getStatusDescription(status),
+                                              '${_getItemsCount(order)} ${'orders.itemsLabel'.tr}',
                                               style: TextStyle(
-                                                fontSize: 11.sp,
+                                                fontSize: 12.sp,
                                                 color: isDark
-                                                    ? DarkColors.textSecondary
-                                                    : LightColors.textSecondary,
+                                                    ? DarkColors.textTertiary
+                                                    : LightColors.textTertiary,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 12.h),
-
-                                // Customer info row
-                                Row(
-                                  children: [
-                                    // Customer avatar placeholder
-                                    Container(
-                                      width: 36.w,
-                                      height: 36.w,
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? DarkColors.backgroundSecondary
-                                            : LightColors.backgroundSecondary,
-                                        borderRadius: BorderRadius.circular(
-                                          10.r,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.person_outline,
-                                        size: 20.w,
-                                        color: isDark
-                                            ? DarkColors.textTertiary
-                                            : LightColors.textTertiary,
-                                      ),
-                                    ),
-                                    SizedBox(width: 12.w),
-                                    // Customer info
-                                    Expanded(
-                                      child: Column(
+                                      // Total price
+                                      Column(
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            order.customerName,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            order.sellerTotalAmount == null
+                                                ? '—'
+                                                : '€${order.sellerTotalAmount!.toStringAsFixed(2)}',
                                             style: TextStyle(
-                                              fontSize: 14.sp,
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w700,
                                               color: isDark
                                                   ? DarkColors.textPrimary
                                                   : LightColors.textPrimary,
                                             ),
                                           ),
-                                          SizedBox(height: 2.h),
-                                          Text(
-                                            '${_getItemsCount(order)} ${'orders.itemsLabel'.tr}',
-                                            style: TextStyle(
-                                              fontSize: 12.sp,
-                                              color: isDark
-                                                  ? DarkColors.textTertiary
-                                                  : LightColors.textTertiary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // Total price
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          order.sellerTotalAmount == null
-                                              ? '—'
-                                              : '€${order.sellerTotalAmount!.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark
-                                                ? DarkColors.textPrimary
-                                                : LightColors.textPrimary,
-                                          ),
-                                        ),
-                                        if (order.isPaid)
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.check_circle,
-                                                size: 12.w,
-                                                color: AppColors.success,
-                                              ),
-                                              SizedBox(width: 2.w),
-                                              Text(
-                                                'orders.paid'.tr,
-                                                style: TextStyle(
-                                                  fontSize: 10.sp,
-                                                  fontWeight: FontWeight.w500,
+                                          if (order.isPaid)
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  size: 12.w,
                                                   color: AppColors.success,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                      ],
+                                                SizedBox(width: 2.w),
+                                                Text(
+                                                  'orders.paid'.tr,
+                                                  style: TextStyle(
+                                                    fontSize: 10.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: AppColors.success,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+
+                                  if (order.driverDispatchStatus != null &&
+                                      status != OrderStatusEnum.pending) ...[
+                                    SizedBox(height: 12.h),
+                                    IncomingOrderTimer(
+                                      order: order,
+                                      textPrimary: isDark
+                                          ? DarkColors.textPrimary
+                                          : LightColors.textPrimary,
+                                      textSecondary: isDark
+                                          ? DarkColors.textSecondary
+                                          : LightColors.textSecondary,
+                                      onRefresh: () async {
+                                        await ref
+                                            .read(ordersProvider.notifier)
+                                            .fetchOrderById(order.id);
+                                      },
                                     ),
                                   ],
-                                ),
 
-                                if (order.driverDispatchStatus != null &&
-                                    status != OrderStatusEnum.pending) ...[
-                                  SizedBox(height: 12.h),
-                                  IncomingOrderTimer(
-                                    order: order,
-                                    textPrimary: isDark
-                                        ? DarkColors.textPrimary
-                                        : LightColors.textPrimary,
-                                    textSecondary: isDark
-                                        ? DarkColors.textSecondary
-                                        : LightColors.textSecondary,
-                                    onRefresh: () async {
-                                      await ref
-                                          .read(ordersProvider.notifier)
-                                          .fetchOrderById(order.id);
-                                    },
-                                  ),
-                                ],
-
-                                // Action button for explicit order actions
-                                if (primaryAction != null) ...[
-                                  SizedBox(height: 14.h),
-                                  _StatusActionButton(
-                                    onTap: _handlePrimaryAction,
-                                    isLoading: _isProcessing,
-                                    nextStatusLabel: _getActionLabel(
-                                      primaryAction,
+                                  // Action button for explicit order actions
+                                  if (primaryAction != null) ...[
+                                    SizedBox(height: 14.h),
+                                    _StatusActionButton(
+                                      onTap: _handlePrimaryAction,
+                                      isLoading: _isProcessing,
+                                      nextStatusLabel: _getActionLabel(
+                                        primaryAction,
+                                      ),
+                                      nextStatusIcon: _getActionIcon(
+                                        primaryAction,
+                                      ),
                                     ),
-                                    nextStatusIcon: _getActionIcon(
-                                      primaryAction,
+                                  ] else if (status ==
+                                      OrderStatusEnum.expired) ...[
+                                    SizedBox(height: 14.h),
+                                    _StatusActionButton(
+                                      onTap: _handleReorder,
+                                      isLoading: _isProcessing,
+                                      nextStatusLabel: 'orders.reorder'.tr,
+                                      nextStatusIcon: Icons.refresh_rounded,
                                     ),
-                                  ),
-                                ] else if (status ==
-                                    OrderStatusEnum.expired) ...[
-                                  SizedBox(height: 14.h),
-                                  _StatusActionButton(
-                                    onTap: _handleReorder,
-                                    isLoading: _isProcessing,
-                                    nextStatusLabel: 'orders.reorder'.tr,
-                                    nextStatusIcon: Icons.refresh_rounded,
-                                  ),
+                                  ],
+                                  if (canReschedule &&
+                                      primaryAction?.normalizedValue ==
+                                          'REQUEST_DRIVER_NOW') ...[
+                                    SizedBox(height: 8.h),
+                                    _SecondaryActionButton(
+                                      onTap: _handlePrimaryActionForReschedule,
+                                      label:
+                                          'orders.changeDriverRequestTime'.tr,
+                                      icon: Icons.schedule_rounded,
+                                      isLoading: _isProcessing,
+                                    ),
+                                  ],
+                                  if (canReject) ...[
+                                    SizedBox(height: 8.h),
+                                    _RejectOrderButton(
+                                      onTap: _handleReject,
+                                      isLoading: _isProcessing,
+                                    ),
+                                  ],
+                                  if (canCancel && !canReject) ...[
+                                    SizedBox(height: 8.h),
+                                    _SecondaryActionButton(
+                                      onTap: _handleCancel,
+                                      label: 'orders.cancelOrder'.tr,
+                                      icon: Icons.block_rounded,
+                                      isLoading: _isProcessing,
+                                    ),
+                                  ],
                                 ],
-                                if (canReschedule &&
-                                    primaryAction?.normalizedValue ==
-                                        'REQUEST_DRIVER_NOW') ...[
-                                  SizedBox(height: 8.h),
-                                  _SecondaryActionButton(
-                                    onTap: _handlePrimaryActionForReschedule,
-                                    label: 'orders.changeDriverRequestTime'.tr,
-                                    icon: Icons.schedule_rounded,
-                                    isLoading: _isProcessing,
-                                  ),
-                                ],
-                                if (canReject) ...[
-                                  SizedBox(height: 8.h),
-                                  _RejectOrderButton(
-                                    onTap: _handleReject,
-                                    isLoading: _isProcessing,
-                                  ),
-                                ],
-                                if (canCancel && !canReject) ...[
-                                  SizedBox(height: 8.h),
-                                  _SecondaryActionButton(
-                                    onTap: _handleCancel,
-                                    label: 'orders.cancelOrder'.tr,
-                                    icon: Icons.block_rounded,
-                                    isLoading: _isProcessing,
-                                  ),
-                                ],
-                              ],
+                              ),
                             ),
-                          ),
 
-                          // Bottom progress bar
-                          if (!isTerminal)
-                            _MiniProgressBar(
-                              progress: _getProgress(status),
-                              color: statusColor,
-                              isDark: isDark,
-                            ),
-                        ],
+                            // Bottom progress bar
+                            if (!isTerminal)
+                              _MiniProgressBar(
+                                progress: _getProgress(status),
+                                color: statusColor,
+                                isDark: isDark,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

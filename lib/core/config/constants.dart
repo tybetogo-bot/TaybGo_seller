@@ -68,6 +68,7 @@ abstract class ApiEndpoints {
       '/api/seller/orders/$id/accept/';
   static String sellerOrderReject(String id) =>
       '/api/seller/orders/$id/reject/';
+  static String sellerOrderEdit(String id) => '/api/seller/orders/$id/edit/';
   static String sellerOrderDriverDispatch(String id) =>
       '/api/seller/orders/$id/driver-dispatch/';
   static String sellerOrderStatus(String id) =>

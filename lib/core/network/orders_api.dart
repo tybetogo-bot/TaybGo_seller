@@ -4,6 +4,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../features/orders/data/models/food_checkout_model.dart';
 import '../../features/orders/data/models/order_model.dart';
 import '../config/constants.dart';
 import 'restaurant_api.dart';
@@ -100,6 +101,23 @@ class OrdersApi {
     }
   }
 
+  /// Apply an item-only edit to a pending, pre-payment seller order.
+  /// POST /api/seller/orders/{id}/edit/
+  Future<OrderModel> editOrderItems(
+    String id, {
+    required List<CartItem> items,
+    required String idempotencyKey,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderEdit(id),
+      data: {
+        'idempotency_key': idempotencyKey,
+        'items': items.map((item) => item.toJson()).toList(),
+      },
+    );
+    return _refreshOrderFromActionResponse(id, response);
+  }
+
   /// Accept a seller order, optionally scheduling driver dispatch.
   /// POST /api/seller/orders/{id}/accept/
   Future<OrderModel> acceptOrder(
@@ -159,7 +177,16 @@ class OrdersApi {
     } on DioException {
       final data = response.data;
       if (data is Map<String, dynamic>) {
-        return OrderModel.fromJson(data);
+        final order = data['order'];
+        if (order is Map<String, dynamic>) {
+          return OrderModel.fromJson(order);
+        }
+
+        // Keep compatibility with action endpoints that return the order
+        // object directly rather than wrapping it in an `order` field.
+        if (data.containsKey('id')) {
+          return OrderModel.fromJson(data);
+        }
       }
       rethrow;
     }

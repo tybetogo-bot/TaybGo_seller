@@ -10,10 +10,15 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/services/push_notification_service.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/application/tour_notifier.dart';
+import '../../../menu/application/menu_notifier.dart';
+import '../../../menu/data/models/menu_item_model.dart';
 import '../../application/orders_notifier.dart';
+import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
 import 'driver_dispatch_selector.dart';
+import 'incoming_order_item_editor.dart';
 import 'incoming_order_timer.dart';
 
 /// Places a high-attention incoming-order experience above the authenticated
@@ -165,6 +170,36 @@ class _IncomingOrderAlertHostState
     return success;
   }
 
+  Future<bool> _editOrderItems(OrderModel order, List<CartItem> items) async {
+    return ref
+        .read(ordersProvider.notifier)
+        .editPendingOrderItems(order.id, items);
+  }
+
+  Future<List<MenuItemModel>> _loadMenuItems(OrderModel order) async {
+    // An account can own more than one restaurant. The incoming order is the
+    // source of truth for the catalog scope; the currently selected
+    // restaurant is only a compatibility fallback for older payloads.
+    final restaurantId =
+        order.restaurant?.id.toString() ??
+        ref.read(selectedRestaurantIdProvider);
+    if (restaurantId == null) {
+      throw StateError('No restaurant selected');
+    }
+
+    // Fetch a fresh, complete catalog only when the editor opens. Returning
+    // unavailable items is intentional: the editor must map an existing
+    // order line before it can show it as unavailable and let the seller
+    // remove or replace it.
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .getMenuItems(restaurantId);
+    if (result.failure != null) {
+      throw StateError(result.failure!.message);
+    }
+    return (result.data ?? const <MenuItemModel>[]).toList(growable: false);
+  }
+
   @override
   void dispose() {
     if (PushNotificationService.instance.onNotificationTap ==
@@ -199,7 +234,12 @@ class _IncomingOrderAlertHostState
               orders: visibleOrders,
               onAccept: _acceptOrder,
               onReject: _rejectOrder,
+              onEditItems: _editOrderItems,
               onDismiss: (order) => _dismissOrder(order.id),
+              // Load the catalog only when the seller opens the editor. This
+              // keeps the home screen's incoming-order path lightweight.
+              menuItems: const [],
+              loadMenuItems: _loadMenuItems,
               canAccept: (order) =>
                   order.allowedActions.isEmpty ||
                   order.allowsAction('ACCEPTED'),
@@ -226,6 +266,9 @@ class IncomingOrderAlert extends StatefulWidget {
     required this.onAccept,
     required this.onReject,
     required this.onDismiss,
+    this.onEditItems,
+    this.menuItems = const [],
+    this.loadMenuItems,
     this.errorMessage,
     this.canAccept,
     this.canScheduleDriver,
@@ -238,6 +281,10 @@ class IncomingOrderAlert extends StatefulWidget {
   final Future<bool> Function(OrderModel order, int? delayMinutes) onAccept;
   final Future<bool> Function(OrderModel order) onReject;
   final void Function(OrderModel order) onDismiss;
+  final Future<bool> Function(OrderModel order, List<CartItem> items)?
+  onEditItems;
+  final List<MenuItemModel> menuItems;
+  final Future<List<MenuItemModel>> Function(OrderModel order)? loadMenuItems;
   final String? Function()? errorMessage;
   final bool Function(OrderModel order)? canAccept;
   final bool Function(OrderModel order)? canScheduleDriver;
@@ -256,6 +303,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
   bool _isProcessing = false;
   bool _isDismissing = false;
   String? _actionError;
+  String? _actionNotice;
 
   @override
   void initState() {
@@ -281,10 +329,18 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
         : (nextIndex == -1
               ? _pageIndex.clamp(0, widget.orders.length - 1)
               : nextIndex);
+    final nextActiveId = widget.orders.isEmpty
+        ? null
+        : widget.orders[safeNextIndex].id;
+    final activeOrderChanged =
+        oldActiveId != null &&
+        nextActiveId != null &&
+        oldActiveId != nextActiveId;
 
-    if (safeNextIndex != _pageIndex) {
+    if (safeNextIndex != _pageIndex || activeOrderChanged) {
       _pageIndex = safeNextIndex;
       _actionError = null;
+      _actionNotice = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_pageController.hasClients) return;
         _pageController.jumpToPage(safeNextIndex);
@@ -319,6 +375,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     setState(() {
       _isProcessing = true;
       _actionError = null;
+      _actionNotice = null;
     });
 
     final success = await widget.onAccept(order, delayMinutes);
@@ -363,6 +420,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     setState(() {
       _isProcessing = true;
       _actionError = null;
+      _actionNotice = null;
     });
 
     final success = await widget.onReject(order);
@@ -377,6 +435,57 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     }
 
     setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleEditItems(OrderModel order) async {
+    if (_isProcessing || widget.onEditItems == null) return;
+
+    setState(() {
+      _isProcessing = true;
+      _actionError = null;
+      _actionNotice = null;
+    });
+
+    try {
+      var menuItems = widget.menuItems;
+      if (menuItems.isEmpty && widget.loadMenuItems != null) {
+        menuItems = await widget.loadMenuItems!(order);
+      }
+      if (!mounted) return;
+
+      final editedItems = await showIncomingOrderItemEditor(
+        context,
+        order: order,
+        menuItems: menuItems,
+      );
+      if (!mounted) return;
+
+      if (editedItems == null) {
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      final success = await widget.onEditItems!(order, editedItems);
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+        if (success) {
+          _actionNotice = 'orders.incoming.itemsUpdated'.tr;
+        } else {
+          _actionError =
+              widget.errorMessage?.call() ??
+              'orders.incoming.editItemsFailed'.tr;
+        }
+      });
+      if (success) HapticFeedback.mediumImpact();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+        _actionError =
+            widget.errorMessage?.call() ?? 'orders.incoming.editItemsFailed'.tr;
+      });
+    }
   }
 
   void _reviewLater() {
@@ -451,6 +560,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
                           setState(() {
                             _pageIndex = index;
                             _actionError = null;
+                            _actionNotice = null;
                           });
                         },
                         itemBuilder: (context, index) {
@@ -510,6 +620,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     Color textPrimary,
     Color textSecondary,
   ) {
+    final actionBottomPadding = _canEditItems(order) ? 190.h : 126.h;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Stack(
@@ -517,7 +628,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
         children: [
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(0, 10.h, 0, 126.h),
+            padding: EdgeInsets.fromLTRB(0, 10.h, 0, actionBottomPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -553,6 +664,10 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
                 if (_actionError != null) ...[
                   SizedBox(height: 8.h),
                   _buildErrorMessage(_actionError!),
+                ],
+                if (_actionNotice != null) ...[
+                  SizedBox(height: 8.h),
+                  _buildNoticeMessage(_actionNotice!),
                 ],
               ],
             ),
@@ -943,6 +1058,41 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     );
   }
 
+  Widget _buildNoticeMessage(String message) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle_outline_rounded,
+            color: AppColors.primary,
+            size: 18.w,
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : const Color(0xFF356044),
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActions(OrderModel order) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final rejectColor = isDark
@@ -951,8 +1101,46 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     final canAccept = widget.canAccept?.call(order) ?? true;
     final canReject =
         order.allowedActions.isEmpty || order.allowsAction('REJECTED');
+    final canEditItems = _canEditItems(order);
     return Column(
       children: [
+        if (canEditItems)
+          SizedBox(
+            width: double.infinity,
+            height: 46.h,
+            child: OutlinedButton.icon(
+              onPressed: _isProcessing ? null : () => _handleEditItems(order),
+              icon: _isProcessing
+                  ? SizedBox(
+                      width: 17.w,
+                      height: 17.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.1,
+                        color: AppColors.primary.withValues(alpha: 0.8),
+                      ),
+                    )
+                  : Icon(Icons.edit_note_rounded, size: 19.w),
+              label: Text(
+                'orders.incoming.editItems'.tr,
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.07),
+                disabledForegroundColor: AppColors.primary.withValues(
+                  alpha: 0.4,
+                ),
+                side: BorderSide(
+                  color: AppColors.primary.withValues(alpha: 0.5),
+                ),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13.r),
+                ),
+              ),
+            ),
+          ),
+        if (canEditItems && (canAccept || canReject)) SizedBox(height: 10.h),
         if (canAccept)
           SizedBox(
             width: double.infinity,
@@ -1017,6 +1205,14 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
         ],
       ],
     );
+  }
+
+  bool _canEditItems(OrderModel order) {
+    return !widget.previewOnly &&
+        order.status == OrderStatusEnum.pending &&
+        !order.isPaid &&
+        order.allowsAction('EDIT') &&
+        widget.onEditItems != null;
   }
 
   bool _isPickupOrder(OrderModel order) {
