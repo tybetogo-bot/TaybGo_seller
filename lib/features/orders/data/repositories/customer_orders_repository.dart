@@ -18,6 +18,11 @@ typedef CustomerOrdersResult<T> = ({Failure? failure, T? data});
 
 /// Customer orders repository interface
 abstract class CustomerOrdersRepository {
+  /// Preview live pricing for a food order.
+  Future<CustomerOrdersResult<FoodPriceQuote>> previewFoodOrder(
+    FoodPricePreviewRequest request,
+  );
+
   /// Create a food order
   Future<CustomerOrdersResult<OrderModel>> createFoodOrder(
     FoodCheckoutRequest request,
@@ -121,6 +126,44 @@ class CustomerOrdersRepositoryImpl implements CustomerOrdersRepository {
       return apiError.message;
     }
     return _extractErrorMessage(e);
+  }
+
+  @override
+  Future<CustomerOrdersResult<FoodPriceQuote>> previewFoodOrder(
+    FoodPricePreviewRequest request,
+  ) async {
+    try {
+      final quote = await _remoteDataSource.previewFoodOrder(request);
+      return (failure: null, data: quote);
+    } on DioException catch (e, stackTrace) {
+      _log(
+        'DioException in previewFoodOrder',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      final apiError = e.error;
+      final errorMessage = _extractErrorMessage(e);
+
+      if (apiError is ApiException) {
+        return (
+          failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+
+      return (failure: ServerFailure(message: errorMessage), data: null);
+    } catch (e, stackTrace) {
+      _log(
+        'Unexpected error in previewFoodOrder',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return (
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
+        data: null,
+      );
+    }
   }
 
   @override

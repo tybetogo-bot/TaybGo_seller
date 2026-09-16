@@ -4,10 +4,9 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
+import '../../../../core/config/google_maps_config.dart';
+import '../../../../core/services/web_places_bridge.dart';
 import '../models/order_model.dart';
-
-/// Google Places API key
-const String _placesApiKey = 'AIzaSyBIruHrqkvAAWUQRAWtKOWT77qw-5KbAJE';
 
 /// Place prediction from autocomplete
 class PlacePrediction {
@@ -79,7 +78,10 @@ class PlacesSearchService {
   /// don't send CORS headers and are blocked by browsers. The new API must
   /// be enabled in your GCP console ("Places API (New)"), the same API key
   /// works.
-  static Future<List<PlacePrediction>> searchAddress(String query, {String? countryCode}) async {
+  static Future<List<PlacePrediction>> searchAddress(
+    String query, {
+    String? countryCode,
+  }) async {
     if (query.trim().length < 3) {
       if (kDebugMode) {
         print('[PlacesAPI] Query too short: ${query.trim().length} chars');
@@ -88,6 +90,25 @@ class PlacesSearchService {
     }
 
     try {
+      if (kIsWeb) {
+        final suggestions = await webPlacesAutocomplete(
+          GoogleMapsConfig.apiKey,
+          query,
+          countryCode: countryCode,
+        );
+        return suggestions
+            .map(
+              (prediction) => PlacePrediction(
+                placeId: prediction['placeId'] as String? ?? '',
+                description: prediction['description'] as String? ?? '',
+                mainText: prediction['mainText'] as String? ?? '',
+                secondaryText: prediction['secondaryText'] as String? ?? '',
+              ),
+            )
+            .where((prediction) => prediction.placeId.isNotEmpty)
+            .toList();
+      }
+
       const url = 'https://places.googleapis.com/v1/places:autocomplete';
 
       final body = <String, dynamic>{
@@ -107,7 +128,7 @@ class PlacesSearchService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
           },
         ),
       );
@@ -128,7 +149,8 @@ class PlacesSearchService {
               if (prediction == null) return null;
 
               final placeResource = prediction['place'] as String? ?? '';
-              final placeId = prediction['placeId'] as String? ??
+              final placeId =
+                  prediction['placeId'] as String? ??
                   (placeResource.startsWith('places/')
                       ? placeResource.substring(7)
                       : placeResource);
@@ -168,6 +190,21 @@ class PlacesSearchService {
   /// Get place details by place ID (Places API New v1).
   static Future<PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
+      if (kIsWeb) {
+        final data = await webPlaceDetails(GoogleMapsConfig.apiKey, placeId);
+        if (data == null) return null;
+        return PlaceDetails(
+          latitude: (data['latitude'] as num?)?.toDouble(),
+          longitude: (data['longitude'] as num?)?.toDouble(),
+          formattedAddress: data['formattedAddress'] as String?,
+          streetName: data['streetName'] as String?,
+          streetNumber: data['streetNumber'] as String?,
+          city: data['city'] as String?,
+          postalCode: data['postalCode'] as String?,
+          country: data['country'] as String?,
+        );
+      }
+
       final url = 'https://places.googleapis.com/v1/places/$placeId';
 
       if (kDebugMode) {
@@ -178,7 +215,7 @@ class PlacesSearchService {
         url,
         options: Options(
           headers: {
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask':
                 'id,location,addressComponents,formattedAddress',
           },
@@ -200,7 +237,10 @@ class PlacesSearchService {
 
   /// Search and get full details for the best matching address
   /// This combines autocomplete + details in one call
-  static Future<AddressModel?> searchAndGetAddress(String addressQuery, {String? countryCode}) async {
+  static Future<AddressModel?> searchAndGetAddress(
+    String addressQuery, {
+    String? countryCode,
+  }) async {
     if (kDebugMode) {
       print('[PlacesAPI] ===== searchAndGetAddress START =====');
       print('[PlacesAPI] Query: $addressQuery');
@@ -218,7 +258,10 @@ class PlacesSearchService {
 
     try {
       // First, search for matching addresses
-      final predictions = await searchAddress(addressQuery, countryCode: countryCode);
+      final predictions = await searchAddress(
+        addressQuery,
+        countryCode: countryCode,
+      );
 
       if (kDebugMode) {
         print('[PlacesAPI] Got ${predictions.length} predictions');
@@ -279,6 +322,10 @@ class PlacesSearchService {
   /// Uses Places API (New) searchNearby with country-only field mask.
   static Future<String?> reverseGeocodeCountry(double lat, double lng) async {
     try {
+      if (kIsWeb) {
+        return webReverseGeocodeCountry(GoogleMapsConfig.apiKey, lat, lng);
+      }
+
       const url = 'https://places.googleapis.com/v1/places:searchNearby';
       final body = <String, dynamic>{
         'locationRestriction': {
@@ -296,7 +343,7 @@ class PlacesSearchService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask': 'places.addressComponents',
           },
         ),
@@ -311,12 +358,12 @@ class PlacesSearchService {
       final components =
           (places[0] as Map<String, dynamic>)['addressComponents']
               as List<dynamic>? ??
-              [];
+          [];
       for (final component in components) {
         final types =
             ((component as Map<String, dynamic>)['types'] as List<dynamic>?)
-                    ?.cast<String>() ??
-                [];
+                ?.cast<String>() ??
+            [];
         if (types.contains('country')) {
           return (component['shortText'] as String?)?.toLowerCase();
         }
@@ -336,6 +383,18 @@ class PlacesSearchService {
     String address,
   ) async {
     try {
+      if (kIsWeb) {
+        final result = await webGeocodeAddress(
+          GoogleMapsConfig.apiKey,
+          address,
+        );
+        if (result == null) return null;
+        return (
+          lat: (result['latitude'] as num).toDouble(),
+          lng: (result['longitude'] as num).toDouble(),
+        );
+      }
+
       const url = 'https://places.googleapis.com/v1/places:searchText';
       final body = <String, dynamic>{'textQuery': address};
 
@@ -345,7 +404,7 @@ class PlacesSearchService {
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': _placesApiKey,
+            'X-Goog-Api-Key': GoogleMapsConfig.apiKey,
             'X-Goog-FieldMask': 'places.location',
           },
         ),
@@ -377,8 +436,7 @@ class PlacesSearchService {
   /// Parse a Places API (New) place resource to [PlaceDetails].
   static PlaceDetails _parseNewApiResult(Map<String, dynamic> place) {
     final location = place['location'] as Map<String, dynamic>?;
-    final components =
-        place['addressComponents'] as List<dynamic>? ?? [];
+    final components = place['addressComponents'] as List<dynamic>? ?? [];
 
     String? streetNumber;
     String? streetName;

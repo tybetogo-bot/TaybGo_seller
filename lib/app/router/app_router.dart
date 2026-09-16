@@ -18,6 +18,7 @@ import '../../features/orders/presentation/screens/order_details_screen.dart';
 import '../../features/orders/presentation/screens/orders_screen.dart';
 import '../../features/orders/presentation/screens/scan_order_screen.dart';
 import '../../features/profile/presentation/screens/about_screen.dart';
+import '../../features/profile/presentation/screens/changelog_screen.dart';
 import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
@@ -27,8 +28,8 @@ import '../../features/knowledge_base/presentation/screens/knowledge_base_screen
 import '../../features/profile/presentation/screens/help_screen.dart';
 import '../../features/profile/presentation/screens/language_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/notification_settings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
-import '../../features/profile/presentation/screens/restaurant_settings_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/profile/presentation/screens/statistics_screen.dart';
@@ -44,6 +45,10 @@ import 'routes.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   return AppRouter.router;
 });
+
+int? _messageIdFromQuery(GoRouterState state) {
+  return int.tryParse(state.uri.queryParameters['message_id'] ?? '');
+}
 
 /// Main application router
 class AppRouter {
@@ -201,6 +206,30 @@ class AppRouter {
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => MainShell(child: child),
         routes: [
+          // Canonical notification/support destinations used by push payloads.
+          // The profile-prefixed routes below remain available for the
+          // existing settings navigation.
+          GoRoute(
+            path: 'notifications',
+            name: Routes.notificationsCenterName,
+            builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: Routes.supportTicketsCenter,
+            name: Routes.supportTicketsCenterName,
+            builder: (context, state) => const SupportTicketsScreen(),
+            routes: [
+              GoRoute(
+                path: ':ticketId',
+                name: Routes.supportTicketDetailNotificationName,
+                builder: (context, state) => TicketDetailScreen(
+                  ticketId: int.parse(state.pathParameters['ticketId']!),
+                  highlightMessageId: _messageIdFromQuery(state),
+                ),
+              ),
+            ],
+          ),
+
           // Home tab
           GoRoute(
             path: Routes.home,
@@ -298,7 +327,7 @@ class AppRouter {
               GoRoute(
                 path: 'restaurant',
                 name: Routes.restaurantSettingsName,
-                builder: (context, state) => const RestaurantSettingsScreen(),
+                builder: (context, state) => const EditProfileScreen(),
               ),
               GoRoute(
                 path: 'coupons',
@@ -319,6 +348,11 @@ class AppRouter {
                 path: 'notifications',
                 name: Routes.notificationsName,
                 builder: (context, state) => const NotificationsScreen(),
+              ),
+              GoRoute(
+                path: 'notification-settings',
+                name: Routes.notificationSettingsName,
+                builder: (context, state) => const NotificationSettingsScreen(),
               ),
               GoRoute(
                 path: 'language',
@@ -350,7 +384,10 @@ class AppRouter {
                     name: Routes.supportTicketDetailName,
                     builder: (context, state) {
                       final ticketId = state.pathParameters['ticketId']!;
-                      return TicketDetailScreen(ticketId: int.parse(ticketId));
+                      return TicketDetailScreen(
+                        ticketId: int.parse(ticketId),
+                        highlightMessageId: _messageIdFromQuery(state),
+                      );
                     },
                   ),
                 ],
@@ -359,6 +396,11 @@ class AppRouter {
                 path: 'help',
                 name: Routes.helpName,
                 builder: (context, state) => const HelpScreen(),
+              ),
+              GoRoute(
+                path: 'changelog',
+                name: Routes.changelogName,
+                builder: (context, state) => const ChangelogScreen(),
               ),
               GoRoute(
                 path: 'about',

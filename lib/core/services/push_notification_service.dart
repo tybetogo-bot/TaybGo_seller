@@ -1,12 +1,17 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/constants.dart';
 import '../providers/providers.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
+import '../../features/notifications/application/notification_settings_notifier.dart';
 
 /// Top-level background message handler (must be top-level function).
 @pragma('vm:entry-point')
@@ -15,23 +20,41 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('🔔 [FCM] Background message: ${message.messageId}');
 }
 
-const _androidNotificationSound = RawResourceAndroidNotificationSound(
-  'notif_sound',
-);
 const _iosNotificationSound = 'notif_sound.caf';
+const _androidNotificationChannelPrefix = 'seller_order_alerts_v3';
 
-/// Android notification channel for high-importance messages.
-const AndroidNotificationChannel _highImportanceChannel =
-    AndroidNotificationChannel(
-      // Channel settings are immutable after first creation on Android, so use
-      // a versioned id when changing the sound configuration.
-      'high_importance_channel_v2',
-      'High Importance Notifications',
-      description: 'This channel is used for important notifications.',
-      importance: Importance.high,
-      playSound: true,
-      sound: _androidNotificationSound,
-    );
+String _androidNotificationChannelId(int repeatCount) {
+  return '${_androidNotificationChannelPrefix}_$repeatCount';
+}
+
+String _androidNotificationSoundResource(int repeatCount) {
+  return repeatCount == 1 ? 'notif_sound' : 'notif_sound_$repeatCount';
+}
+
+String _iosNotificationSoundResource(int repeatCount) {
+  return repeatCount == 1
+      ? _iosNotificationSound
+      : 'notif_sound_$repeatCount.caf';
+}
+
+/// Decode the payload stored on a foreground local notification.
+///
+/// FCM data is JSON-serializable, so using JSON here keeps the payload intact
+/// instead of relying on Dart's non-parseable [Map.toString] format.
+Map<String, dynamic> decodeLocalNotificationPayload(String? payload) {
+  if (payload == null || payload.trim().isEmpty) return const {};
+
+  try {
+    final decoded = jsonDecode(payload);
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+  } catch (_) {
+    // Treat malformed payloads as generic notifications.
+  }
+
+  return const {};
+}
 
 /// Service that manages Firebase Cloud Messaging and local notifications.
 class PushNotificationService {
@@ -44,10 +67,26 @@ class PushNotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  Map<String, dynamic>? _pendingNotificationTapData;
+  void Function(Map<String, dynamic> data)? _onNotificationTap;
 
   /// Callback invoked when the user taps a notification.
   /// Set this from the app layer to handle navigation.
-  void Function(Map<String, dynamic> data)? onNotificationTap;
+  void Function(Map<String, dynamic> data)? get onNotificationTap =>
+      _onNotificationTap;
+
+  set onNotificationTap(void Function(Map<String, dynamic> data)? handler) {
+    _onNotificationTap = handler;
+
+    // A terminated-state tap can be delivered before the app shell has had a
+    // chance to register its navigation callback. Replay it once the handler
+    // is available so the notification is not silently lost.
+    final pendingData = _pendingNotificationTapData;
+    if (handler == null || pendingData == null) return;
+
+    _pendingNotificationTapData = null;
+    Future<void>.microtask(() => handler(pendingData));
+  }
 
   /// Callback invoked when a foreground message is received.
   /// Use this to refresh in-app notification lists.
@@ -77,13 +116,6 @@ class PushNotificationService {
       // Register the background handler (mobile only).
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      // Create the Android notification channel.
-      await _localNotifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(_highImportanceChannel);
-
       // Initialize local notifications plugin.
       await _localNotifications.initialize(
         const InitializationSettings(
@@ -96,6 +128,12 @@ class PushNotificationService {
         ),
         onDidReceiveNotificationResponse: _onLocalNotificationTap,
       );
+
+      // Create one channel per supported sound profile. Android channel sound
+      // settings are immutable after first creation, so each repeat count needs
+      // its own versioned channel. The v3 IDs also avoid stale silent channels
+      // created by earlier app versions.
+      await _createAndroidNotificationChannels();
 
       // Request permission (shows the OS dialog on iOS / Android 13+).
       await requestPermission();
@@ -154,7 +192,10 @@ class PushNotificationService {
   Future<String?> getToken() async {
     try {
       final token = await _messaging.getToken();
-      print('🔔 [FCM] Token: ${token?.substring(0, 20)}...');
+      final preview = token == null
+          ? 'null'
+          : '${token.substring(0, token.length < 20 ? token.length : 20)}...';
+      print('🔔 [FCM] Token: $preview');
       return token;
     } catch (e) {
       print('🔴 [FCM] Failed to get token: $e');
@@ -163,13 +204,39 @@ class PushNotificationService {
   }
 
   /// Listen for token refreshes and call [onRefresh] with the new token.
-  void onTokenRefresh(void Function(String token) onRefresh) {
-    _messaging.onTokenRefresh.listen(onRefresh);
+  StreamSubscription<String> onTokenRefresh(
+    void Function(String token) onRefresh,
+  ) {
+    return _messaging.onTokenRefresh.listen(onRefresh);
   }
 
   // ---------------------------------------------------------------------------
   // Message handlers
   // ---------------------------------------------------------------------------
+
+  Future<void> _createAndroidNotificationChannels() async {
+    final androidNotifications = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidNotifications == null) return;
+
+    for (final repeatCount
+        in AppNotificationSettings.supportedOrderAlertRepeatCounts) {
+      await androidNotifications.createNotificationChannel(
+        AndroidNotificationChannel(
+          _androidNotificationChannelId(repeatCount),
+          'High Importance Notifications',
+          description: 'This channel is used for important notifications.',
+          importance: Importance.high,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound(
+            _androidNotificationSoundResource(repeatCount),
+          ),
+        ),
+      );
+    }
+  }
 
   /// Show a local notification when a message arrives while the app is in
   /// the foreground.
@@ -180,48 +247,93 @@ class PushNotificationService {
     onForegroundMessage?.call(message);
 
     final notification = message.notification;
-    if (notification == null) return;
+    if (notification == null || kIsWeb) return;
+
+    unawaited(_showForegroundNotification(message, notification));
+  }
+
+  Future<void> _showForegroundNotification(
+    RemoteMessage message,
+    RemoteNotification notification,
+  ) async {
+    var repeatCount = 1;
+    if (message.data['type']?.toString() == 'new_order') {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        repeatCount = AppNotificationSettings.fromPreferences(
+          prefs,
+        ).orderAlertRepeatCount;
+      } catch (e) {
+        print('🟡 [FCM] Could not load notification preferences: $e');
+      }
+    }
 
     final android = notification.android;
+    final normalizedRepeatCount =
+        AppNotificationSettings.supportedOrderAlertRepeatCounts.contains(
+          repeatCount,
+        )
+        ? repeatCount
+        : AppNotificationSettings.defaultOrderAlertRepeatCount;
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _androidNotificationChannelId(normalizedRepeatCount),
+        'High Importance Notifications',
+        channelDescription: 'This channel is used for important notifications.',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound(
+          _androidNotificationSoundResource(normalizedRepeatCount),
+        ),
+        icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: _iosNotificationSoundResource(normalizedRepeatCount),
+      ),
+    );
 
-    _localNotifications.show(
-      notification.hashCode,
+    // The selected platform sound contains the requested number of alert
+    // plays. Posting one notification prevents Android from rate-limiting or
+    // coalescing repeated notification entries in the tray.
+    await _localNotifications.show(
+      _notificationId(message),
       notification.title,
       notification.body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _highImportanceChannel.id,
-          _highImportanceChannel.name,
-          channelDescription: _highImportanceChannel.description,
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: true,
-          sound: _androidNotificationSound,
-          icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          sound: _iosNotificationSound,
-        ),
-      ),
-      payload: message.data.toString(),
+      details,
+      payload: jsonEncode(message.data),
     );
+  }
+
+  int _notificationId(RemoteMessage message) {
+    final baseId = message.hashCode & 0x7fffffff;
+    return baseId;
   }
 
   /// Called when the user taps a notification that opened the app from
   /// background/terminated state.
   void _handleNotificationTap(RemoteMessage message) {
     print('🔔 [FCM] Notification tap: ${message.data}');
-    onNotificationTap?.call(message.data);
+    _dispatchNotificationTap(message.data);
   }
 
   /// Called when the user taps a local (foreground) notification.
   void _onLocalNotificationTap(NotificationResponse response) {
     print('🔔 [FCM] Local notification tap: ${response.payload}');
-    // The payload is a stringified map; for now just trigger a generic tap.
-    onNotificationTap?.call({});
+    _dispatchNotificationTap(decodeLocalNotificationPayload(response.payload));
+  }
+
+  void _dispatchNotificationTap(Map<String, dynamic> data) {
+    final handler = _onNotificationTap;
+    if (handler == null) {
+      _pendingNotificationTapData = Map<String, dynamic>.from(data);
+      return;
+    }
+
+    handler(data);
   }
 }
 
@@ -239,50 +351,45 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((_) {
 ///
 /// This should be watched from a widget that is alive while the user is
 /// authenticated (e.g. the main shell or splash screen).
-final fcmTokenProvider = FutureProvider<String?>((ref) async {
+final fcmTokenProvider = FutureProvider.autoDispose<String?>((ref) async {
   final service = ref.watch(pushNotificationServiceProvider);
+  final prefs = ref.watch(sharedPreferencesProvider);
+  final api = ref.watch(notificationsApiProvider);
+
+  Future<void> registerToken(String token, {required String logPrefix}) async {
+    await prefs.setString(StorageKeys.fcmToken, token);
+    await api.registerDeviceToken(token: token, deviceType: _deviceType);
+    print('🔔 [FCM] $logPrefix token registered with backend');
+  }
+
+  // Register refresh handling before reading the current token so a token
+  // that becomes available asynchronously is not missed.
+  final tokenRefreshSubscription = service.onTokenRefresh((newToken) async {
+    try {
+      await registerToken(newToken, logPrefix: 'Refreshed');
+    } catch (e) {
+      print('🔴 [FCM] Failed to register refreshed token: $e');
+    }
+  });
+  ref.onDispose(tokenRefreshSubscription.cancel);
 
   // Get current token.
   final token = await service.getToken();
   if (token == null) return null;
 
-  // Persist locally.
-  final prefs = ref.watch(sharedPreferencesProvider);
-  final previousToken = prefs.getString(StorageKeys.fcmToken);
-  await prefs.setString(StorageKeys.fcmToken, token);
-
-  // Register with backend if it's a new or changed token.
-  if (token != previousToken) {
-    try {
-      final api = ref.watch(notificationsApiProvider);
-      await api.registerDeviceToken(
-        token: token,
-        deviceType: defaultTargetPlatform == TargetPlatform.iOS
-            ? 'ios'
-            : 'android',
-      );
-      print('🔔 [FCM] Token registered with backend');
-    } catch (e) {
-      print('🔴 [FCM] Failed to register token with backend: $e');
-    }
+  // Register on every authenticated shell activation. The same device token
+  // can belong to a different seller after logout/login, so a local token
+  // cache alone is not enough to decide whether the backend needs it.
+  try {
+    await registerToken(token, logPrefix: 'Current');
+  } catch (e) {
+    print('🔴 [FCM] Failed to register token with backend: $e');
   }
-
-  // Listen for future refreshes.
-  service.onTokenRefresh((newToken) async {
-    await prefs.setString(StorageKeys.fcmToken, newToken);
-    try {
-      final api = ref.read(notificationsApiProvider);
-      await api.registerDeviceToken(
-        token: newToken,
-        deviceType: defaultTargetPlatform == TargetPlatform.iOS
-            ? 'ios'
-            : 'android',
-      );
-      print('🔔 [FCM] Refreshed token registered with backend');
-    } catch (e) {
-      print('🔴 [FCM] Failed to register refreshed token: $e');
-    }
-  });
 
   return token;
 });
+
+String get _deviceType {
+  if (kIsWeb) return 'web';
+  return defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+}

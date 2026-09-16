@@ -4,6 +4,32 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'notification_model.freezed.dart';
 
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
+}
+
+Map<String, dynamic>? _asDataMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
+
+  if (value is String && value.isNotEmpty) {
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry(key.toString(), value));
+      }
+    } catch (_) {
+      // Treat malformed data as a notification without routing metadata.
+    }
+  }
+
+  return null;
+}
+
 /// Notification model for user notifications
 @freezed
 sealed class NotificationModel with _$NotificationModel {
@@ -18,30 +44,20 @@ sealed class NotificationModel with _$NotificationModel {
   }) = _NotificationModel;
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    Map<String, dynamic>? parsedData;
-    final rawData = json['data'];
-    if (rawData is Map<String, dynamic>) {
-      parsedData = rawData;
-    } else if (rawData is String && rawData.isNotEmpty) {
-      try {
-        parsedData = jsonDecode(rawData) as Map<String, dynamic>?;
-      } catch (_) {
-        parsedData = null;
-      }
-    }
-
     return NotificationModel(
-      id: json['id'] as int? ?? 0,
-      title: json['title'] as String? ?? '',
-      body: json['body'] as String? ?? '',
-      data: parsedData,
-      isRead: json['is_read'] as bool? ?? false,
+      id: _asInt(json['id']) ?? 0,
+      title: json['title']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      data: _asDataMap(json['data']),
+      isRead:
+          json['is_read'] == true ||
+          json['is_read'] == 1 ||
+          json['is_read']?.toString().toLowerCase() == 'true',
       readAt: json['read_at'] != null
           ? DateTime.tryParse(json['read_at'].toString())
           : null,
-      createdAt: DateTime.tryParse(
-            (json['created_at'] ?? '').toString(),
-          ) ??
+      createdAt:
+          DateTime.tryParse((json['created_at'] ?? '').toString()) ??
           DateTime.now(),
     );
   }
@@ -64,8 +80,31 @@ extension NotificationModelExtension on NotificationModel {
   }
 
   /// Get notification type from data
-  String? get notificationType => data?['type'] as String?;
+  String? get notificationType =>
+      data?['type']?.toString().trim().toLowerCase();
+
+  /// Get related support ticket ID from data.
+  int? get ticketId => _asInt(data?['ticket_id'] ?? data?['ticketId']);
+
+  /// Get related support message ID from data.
+  int? get messageId => _asInt(data?['message_id'] ?? data?['messageId']);
+
+  /// Whether this notification belongs to the seller support flow.
+  bool get isSupportNotification =>
+      notificationType == 'support_message_from_staff' ||
+      notificationType == 'support_ticket_updated';
+
+  /// Match a push target against the authoritative notification record.
+  bool matchesPushTarget({
+    required String type,
+    required int ticketId,
+    int? messageId,
+  }) {
+    if (notificationType != type.trim().toLowerCase()) return false;
+    if (this.ticketId != ticketId) return false;
+    return messageId == null || this.messageId == messageId;
+  }
 
   /// Get related order ID from data
-  int? get orderId => data?['order_id'] as int?;
+  int? get orderId => _asInt(data?['order_id'] ?? data?['orderId']);
 }

@@ -27,6 +27,7 @@ class _RestaurantSettingsScreenState
   bool _isInitialized = false;
   bool _isSaving = false;
   String? _logoUrl;
+  bool _deliveryEnabled = false;
   bool _isUploadingLogo = false;
   String? _workHoursError;
 
@@ -61,6 +62,7 @@ class _RestaurantSettingsScreenState
       _nameController.text = selectedRestaurant.name;
       _phoneController.text = selectedRestaurant.phone ?? '';
       _logoUrl = selectedRestaurant.logoUrl;
+      _deliveryEnabled = selectedRestaurant.deliveryEnabled ?? false;
       _initializeWorkHours(selectedRestaurant);
       _isInitialized = true;
     }
@@ -129,6 +131,8 @@ class _RestaurantSettingsScreenState
                   isDark,
                   keyboardType: TextInputType.phone,
                 ),
+                SizedBox(height: 12.h),
+                _buildDeliveryEnabledField(isDark),
                 SizedBox(height: 24.h),
 
                 // Restaurant logo
@@ -528,6 +532,73 @@ class _RestaurantSettingsScreenState
     );
   }
 
+  Widget _buildDeliveryEnabledField(bool isDark) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isDark ? DarkColors.surface : LightColors.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark ? DarkColors.border : LightColors.border,
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40.w,
+            height: 40.w,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Icon(
+              Icons.delivery_dining_outlined,
+              size: 20.w,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'profile.deliveryEnabled'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  _deliveryEnabled ? 'common.yes'.tr : 'common.no'.tr,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: _deliveryEnabled,
+            onChanged: (value) {
+              setState(() => _deliveryEnabled = value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _setDayOpen(String day, bool isOpen) {
     setState(() {
       _workHoursError = null;
@@ -592,6 +663,14 @@ class _RestaurantSettingsScreenState
     final validationError = _validateWorkHours();
     if (validationError != null) {
       setState(() => _workHoursError = validationError);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(validationError),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
       return;
     }
 
@@ -605,6 +684,7 @@ class _RestaurantSettingsScreenState
       if (_phoneController.text.trim().isNotEmpty)
         'phone': _phoneController.text.trim(),
       if (_logoUrl != null && _logoUrl!.isNotEmpty) 'logo': _logoUrl,
+      'delivery_enabled': _deliveryEnabled,
       'work_hours': _buildWorkHoursPayload(),
       // PUT expects the writable address foreign key as address_id.
       if (addressId != null) 'address_id': addressId,
@@ -657,7 +737,7 @@ class _RestaurantSettingsScreenState
           return 'settings.invalidWorkHoursFormat'.tr;
         }
 
-        if (_minutesSinceMidnight(open) >= _minutesSinceMidnight(close)) {
+        if (_minutesSinceMidnight(open) == _minutesSinceMidnight(close)) {
           return 'settings.invalidWorkHoursRange'.trParams({
             'day': _dayLabel(day),
           });
@@ -719,13 +799,16 @@ class _RestaurantSettingsScreenState
       openParts[0],
       openParts[1],
     );
-    final closeLocal = DateTime(
+    var closeLocal = DateTime(
       _referenceMonday.year,
       _referenceMonday.month,
       _referenceMonday.day + dayIndex,
       closeParts[0],
       closeParts[1],
     );
+    if (!closeLocal.isAfter(openLocal)) {
+      closeLocal = closeLocal.add(const Duration(days: 1));
+    }
     final openUtc = openLocal.toUtc();
     final closeUtc = closeLocal.toUtc();
 

@@ -152,7 +152,10 @@ class MockOrdersNotifier extends OrdersNotifier {
 
   /// Accept order (for tour demo)
   @override
-  Future<bool> acceptOrder(String orderId) async {
+  Future<bool> acceptOrder(
+    String orderId, {
+    int? driverDispatchDelayMinutes,
+  }) async {
     return updateOrderStatus(orderId, 'ACCEPTED');
   }
 }

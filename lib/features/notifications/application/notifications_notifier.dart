@@ -46,6 +46,7 @@ class NotificationsState {
 /// Notifications state notifier for managing notifications (Riverpod 3.x)
 class NotificationsNotifier extends Notifier<NotificationsState> {
   late final NotificationsRepository _repository;
+  bool _requestInFlight = false;
 
   @override
   NotificationsState build() {
@@ -58,6 +59,9 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
   /// Load notifications from API
   Future<void> loadNotifications() async {
+    if (_requestInFlight) return;
+
+    _requestInFlight = true;
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -80,6 +84,8 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
         isLoading: false,
         error: 'Failed to load notifications: $e',
       );
+    } finally {
+      _requestInFlight = false;
     }
   }
 
@@ -91,6 +97,9 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
   /// Silent refresh - only updates UI if data has changed
   /// Used by polling to avoid unnecessary rebuilds
   Future<bool> silentRefresh() async {
+    if (_requestInFlight) return false;
+
+    _requestInFlight = true;
     try {
       final result = await _repository.getNotifications();
 
@@ -112,6 +121,8 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
       return false;
     } catch (e) {
       return false;
+    } finally {
+      _requestInFlight = false;
     }
   }
 
@@ -125,8 +136,9 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
         orElse: () => newNotif,
       );
 
-      // Check if notification exists and has same read state
-      if (oldNotif.id != newNotif.id || oldNotif.isRead != newNotif.isRead) {
+      // Freezed equality includes the routing payload and all display fields,
+      // so updates to a ticket notification are also reflected locally.
+      if (oldNotif != newNotif) {
         return true;
       }
     }
@@ -164,6 +176,53 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     } catch (_) {
       // Revert on failure
       await loadNotifications();
+    }
+  }
+
+  /// Reconcile a push payload with the server notification list and mark the
+  /// matching database notification as read. Push payloads intentionally do
+  /// not contain the database notification ID, so the stable support target
+  /// fields are used for matching instead.
+  Future<void> markPushTargetAsRead(Map<String, dynamic> data) async {
+    final type = data['type']?.toString().trim().toLowerCase();
+    final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
+    final messageId = _asInt(data['message_id'] ?? data['messageId']);
+
+    if ((type != 'support_message_from_staff' &&
+            type != 'support_ticket_updated') ||
+        ticketId == null) {
+      return;
+    }
+
+    try {
+      final result = await _repository.getNotifications();
+      if (result.failure != null || result.data == null) return;
+
+      final notifications = result.data!;
+      state = state.copyWith(
+        notifications: notifications,
+        isLoading: false,
+        clearError: true,
+      );
+
+      final matches = notifications
+          .where(
+            (notification) => notification.matchesPushTarget(
+              type: type!,
+              ticketId: ticketId,
+              messageId: messageId,
+            ),
+          )
+          .toList();
+      if (matches.isEmpty) return;
+
+      // Ticket updates without a message ID can have several records. The
+      // newest matching server notification is the one the seller opened.
+      matches.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      final matching = matches.first;
+      if (!matching.isRead) await markAsRead(matching.id);
+    } catch (_) {
+      // Push navigation must remain usable even when reconciliation fails.
     }
   }
 
@@ -225,21 +284,26 @@ final notificationsApiProvider = Provider((ref) {
 });
 
 /// Provider for notifications data source
-final notificationsDataSourceProvider = Provider<NotificationsDataSource>((ref) {
+final notificationsDataSourceProvider = Provider<NotificationsDataSource>((
+  ref,
+) {
   final api = ref.watch(notificationsApiProvider);
   return NotificationsRemoteDataSource(api);
 });
 
 /// Provider for notifications repository
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((
+  ref,
+) {
   final dataSource = ref.watch(notificationsDataSourceProvider);
   return NotificationsRepositoryImpl(remoteDataSource: dataSource);
 });
 
 /// Provider for notifications state (Riverpod 3.x)
-final notificationsProvider = NotifierProvider<NotificationsNotifier, NotificationsState>(
-  NotificationsNotifier.new,
-);
+final notificationsProvider =
+    NotifierProvider<NotificationsNotifier, NotificationsState>(
+      NotificationsNotifier.new,
+    );
 
 /// Provider for unread notifications count
 final unreadNotificationsCountProvider = Provider<int>((ref) {
@@ -260,8 +324,8 @@ final unreadNotificationsCountProvider = Provider<int>((ref) {
 /// ```
 final notificationsPollingProvider =
     NotifierProvider<NotificationsPollingNotifier, PollingState>(
-  NotificationsPollingNotifier.new,
-);
+      NotificationsPollingNotifier.new,
+    );
 
 /// Notifier for notifications polling
 class NotificationsPollingNotifier extends Notifier<PollingState> {
@@ -281,6 +345,7 @@ class NotificationsPollingNotifier extends Notifier<PollingState> {
   }
 
   void _initializeService() {
+    final wasPolling = _service?.isPolling ?? false;
     _service?.dispose();
     _service = PollingService(
       onPoll: () async {
@@ -290,6 +355,7 @@ class NotificationsPollingNotifier extends Notifier<PollingState> {
       interval: state.interval,
       debugLabel: 'NotificationsPolling',
     );
+    if (wasPolling) _service?.start();
   }
 
   /// Start polling for new notifications
@@ -343,4 +409,10 @@ class NotificationsPollingNotifier extends Notifier<PollingState> {
 
   /// Whether polling is currently active
   bool get isPolling => _service?.isPolling ?? false;
+}
+
+int? _asInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '');
 }

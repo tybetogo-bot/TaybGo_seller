@@ -8,6 +8,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
+import '../utils/menu_delete_error.dart';
 
 /// Swipeable menu item card with clean design
 /// - Swipe left: Toggle availability (activate/deactivate)
@@ -42,7 +43,8 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
   // Swipe thresholds
   static const double _swipeThreshold = 0.25; // 25% of card width
   static const double _maxSwipeRatio = 0.4; // Max 40% swipe
-  static const double _processingSwipeRatio = 0.35; // Locked position during processing
+  static const double _processingSwipeRatio =
+      0.35; // Locked position during processing
 
   @override
   void initState() {
@@ -51,9 +53,10 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.98,
+    ).animate(CurvedAnimation(parent: _scaleController, curve: Curves.easeOut));
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -130,9 +133,10 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
 
   Future<void> _animateToPosition(double targetExtent) async {
     final startExtent = _dragExtent;
-    _slideAnimation = Tween<double>(begin: startExtent, end: targetExtent).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation = Tween<double>(begin: startExtent, end: targetExtent)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     void listener() {
       setState(() {
@@ -161,7 +165,9 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
     // Smoothly animate to processing position
     await _animateToPosition(targetExtent);
 
-    await ref.read(menuProvider.notifier).toggleItemAvailability(widget.item.id);
+    await ref
+        .read(menuProvider.notifier)
+        .toggleItemAvailability(widget.item.id);
 
     if (mounted) {
       // Smoothly animate back to center
@@ -182,8 +188,13 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('menu.deleteItem'.tr),
-        content: Text('common.actionCannotBeUndone'.tr),
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: AppColors.warning,
+          size: 32.w,
+        ),
+        title: Text('menu.deleteItemTitle'.tr),
+        content: Text('menu.deleteItemWarning'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -191,10 +202,8 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            child: Text('common.delete'.tr),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text('menu.deleteItemConfirm'.tr),
           ),
         ],
       ),
@@ -206,17 +215,19 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
       setState(() => _isProcessing = true);
       HapticFeedback.mediumImpact();
 
-      // Delete the item
-      await ref.read(menuProvider.notifier).deleteItem(widget.item.id);
+      // Delete the item and keep the backend failure metadata for a
+      // translated, user-safe message.
+      final failure = await ref
+          .read(menuProvider.notifier)
+          .deleteItem(widget.item.id);
 
       if (!mounted) return;
 
-      // Check if there was an error
-      final menuState = ref.read(menuProvider);
-
-      if (menuState.error != null) {
+      if (failure != null) {
         // Log error for debugging
-        debugPrint('❌ Delete failed: ${menuState.error}');
+        debugPrint(
+          '❌ Delete failed (${failure.statusCode}): ${failure.message}',
+        );
 
         // Show error message
         setState(() => _isProcessing = false);
@@ -232,7 +243,7 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
-                    menuState.error ?? 'errors.itemDeleteFailed'.tr,
+                    menuDeleteFailureMessage(failure),
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
@@ -296,7 +307,9 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
         content: Row(
           children: [
             Icon(
-              newStatus ? Icons.check_circle_rounded : Icons.remove_circle_rounded,
+              newStatus
+                  ? Icons.check_circle_rounded
+                  : Icons.remove_circle_rounded,
               color: Colors.white,
               size: 20.w,
             ),
@@ -306,10 +319,7 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                 newStatus
                     ? 'menu.itemMarkedAvailable'.tr
                     : 'menu.itemMarkedUnavailable'.tr,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -327,18 +337,16 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
           onPressed: () async {
             // Undo: revert availability
             HapticFeedback.lightImpact();
-            await ref.read(menuProvider.notifier).toggleItemAvailability(itemId);
+            await ref
+                .read(menuProvider.notifier)
+                .toggleItemAvailability(itemId);
 
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
                     children: [
-                      Icon(
-                        Icons.undo_rounded,
-                        color: Colors.white,
-                        size: 20.w,
-                      ),
+                      Icon(Icons.undo_rounded, color: Colors.white, size: 20.w),
                       SizedBox(width: 12.w),
                       Expanded(
                         child: Text(
@@ -381,10 +389,7 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
         return AnimatedBuilder(
           animation: _scaleController,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: child,
-            );
+            return Transform.scale(scale: _scaleAnimation.value, child: child);
           },
           child: GestureDetector(
             onTap: widget.onTap,
@@ -413,11 +418,15 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                     child: Container(
                       padding: EdgeInsets.all(12.w),
                       decoration: BoxDecoration(
-                        color: isDark ? DarkColors.surface : LightColors.surface,
+                        color: isDark
+                            ? DarkColors.surface
+                            : LightColors.surface,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
                           color: item.isAvailable
-                              ? (isDark ? DarkColors.border : LightColors.border)
+                              ? (isDark
+                                    ? DarkColors.border
+                                    : LightColors.border)
                               : AppColors.warning.withValues(alpha: 0.3),
                           width: item.isAvailable ? 0.5 : 1,
                         ),
@@ -436,7 +445,9 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10.r),
-                              child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                              child:
+                                  item.imageUrl != null &&
+                                      item.imageUrl!.isNotEmpty
                                   ? Stack(
                                       fit: StackFit.expand,
                                       children: [
@@ -451,26 +462,32 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                               child: SizedBox(
                                                 width: 20.w,
                                                 height: 20.w,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: isDark
-                                                      ? DarkColors.textTertiary
-                                                      : LightColors.textTertiary,
-                                                ),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: isDark
+                                                          ? DarkColors
+                                                                .textTertiary
+                                                          : LightColors
+                                                                .textTertiary,
+                                                    ),
                                               ),
                                             ),
                                           ),
-                                          errorWidget: (context, url, error) => Icon(
-                                            Icons.restaurant,
-                                            color: isDark
-                                                ? DarkColors.textSecondary
-                                                : LightColors.textSecondary,
-                                            size: 24.w,
-                                          ),
+                                          errorWidget: (context, url, error) =>
+                                              Icon(
+                                                Icons.restaurant,
+                                                color: isDark
+                                                    ? DarkColors.textSecondary
+                                                    : LightColors.textSecondary,
+                                                size: 24.w,
+                                              ),
                                         ),
                                         if (!item.isAvailable)
                                           Container(
-                                            color: Colors.black.withValues(alpha: 0.5),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.5,
+                                            ),
                                             child: Center(
                                               child: Icon(
                                                 Icons.block_rounded,
@@ -509,11 +526,11 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                           fontWeight: FontWeight.w600,
                                           color: item.isAvailable
                                               ? (isDark
-                                                  ? DarkColors.textPrimary
-                                                  : LightColors.textPrimary)
+                                                    ? DarkColors.textPrimary
+                                                    : LightColors.textPrimary)
                                               : (isDark
-                                                  ? DarkColors.textTertiary
-                                                  : LightColors.textTertiary),
+                                                    ? DarkColors.textTertiary
+                                                    : LightColors.textTertiary),
                                         ),
                                       ),
                                     ),
@@ -524,8 +541,12 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                           vertical: 2.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.warning.withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(4.r),
+                                          color: AppColors.warning.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4.r,
+                                          ),
                                         ),
                                         child: Text(
                                           'menu.unavailable'.tr,
@@ -547,7 +568,9 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                         fontSize: 14.sp,
                                         color: item.isAvailable
                                             ? primaryColor
-                                            : primaryColor.withValues(alpha: 0.5),
+                                            : primaryColor.withValues(
+                                                alpha: 0.5,
+                                              ),
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -655,10 +678,7 @@ class _SwipeBackground extends StatelessWidget {
       duration: const Duration(milliseconds: 100),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            backgroundColor.withValues(alpha: 0.9),
-            backgroundColor,
-          ],
+          colors: [backgroundColor.withValues(alpha: 0.9), backgroundColor],
           begin: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
           end: isSwipingRight ? Alignment.centerRight : Alignment.centerLeft,
         ),
@@ -675,18 +695,16 @@ class _SwipeBackground extends StatelessWidget {
               top: -15.h,
               child: Opacity(
                 opacity: 0.1,
-                child: Icon(
-                  icon,
-                  size: 100.w,
-                  color: Colors.white,
-                ),
+                child: Icon(icon, size: 100.w, color: Colors.white),
               ),
             ),
 
             // Content - Text only
             if (absProgress > 0.1 && !isProcessing)
               Align(
-                alignment: isSwipingRight ? Alignment.centerLeft : Alignment.centerRight,
+                alignment: isSwipingRight
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
                   child: AnimatedOpacity(

@@ -17,6 +17,14 @@ class _ThrowingAuthDataSource implements AuthDataSource {
   final DioException exception;
 
   @override
+  Future<PasswordLoginResponse> loginWithPassword({
+    required String phone,
+    required String password,
+  }) async {
+    throw exception;
+  }
+
+  @override
   Future<void> logout(String refreshToken) async {}
 
   @override

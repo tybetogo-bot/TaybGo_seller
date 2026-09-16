@@ -22,6 +22,7 @@ abstract class StorageKeys {
   static const String currency = 'currency';
   static const String onboardingComplete = 'onboarding_complete';
   static const String fcmToken = 'fcm_token';
+  static const String orderAlertRepeatCount = 'order_alert_repeat_count';
   static const String lastSyncTime = 'last_sync_time';
   static const String restaurantId = 'restaurant_id';
   static const String selectedCity = 'selected_city';
@@ -34,6 +35,7 @@ abstract class ApiEndpoints {
   static const String otpVerify = '/api/auth/otp/verify/';
 
   // Auth - Token
+  static const String passwordLogin = '/api/auth/token/';
   static const String tokenRefresh = '/api/auth/token/refresh/';
   static const String tokenBlacklist = '/api/auth/token/blacklist/';
   static const String tokenVerify = '/api/auth/token/verify/';
@@ -62,6 +64,13 @@ abstract class ApiEndpoints {
   // Seller Orders
   static const String sellerOrders = '/api/seller/orders/';
   static String sellerOrder(String id) => '/api/seller/orders/$id/';
+  static String sellerOrderAccept(String id) =>
+      '/api/seller/orders/$id/accept/';
+  static String sellerOrderReject(String id) =>
+      '/api/seller/orders/$id/reject/';
+  static String sellerOrderEdit(String id) => '/api/seller/orders/$id/edit/';
+  static String sellerOrderDriverDispatch(String id) =>
+      '/api/seller/orders/$id/driver-dispatch/';
   static String sellerOrderStatus(String id) =>
       '/api/seller/orders/$id/status/';
   static String sellerOrderRefund(String id) =>
@@ -87,6 +96,7 @@ abstract class ApiEndpoints {
   static const String sellerEarnings = '/api/seller/earnings/';
 
   // Config
+  static const String configPublic = '/api/config/public';
   static const String configLegal = '/api/config/legal';
   static const String configVersion = '/api/config/version';
 }
@@ -99,6 +109,7 @@ abstract class OrderStatus {
   static const String accepted = 'ACCEPTED';
   static const String onTheWay = 'ON_THE_WAY';
   static const String delivered = 'DELIVERED';
+  static const String restaurantDelivered = 'RESTAURANT_DELIVERED';
   static const String completed = 'COMPLETED';
   static const String expired = 'EXPIRED';
   static const String rejected = 'REJECTED';

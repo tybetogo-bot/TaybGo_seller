@@ -3,13 +3,11 @@ library;
 
 /// Base API exception
 class ApiException implements Exception {
-  const ApiException({
-    required this.message,
-    this.statusCode,
-  });
+  const ApiException({required this.message, this.statusCode, this.code});
 
   final String message;
   final int? statusCode;
+  final String? code;
 
   @override
   String toString() => message;
@@ -17,31 +15,32 @@ class ApiException implements Exception {
 
 /// Exception for 400 Bad Request
 class BadRequestException extends ApiException {
-  const BadRequestException({required super.message}) : super(statusCode: 400);
+  const BadRequestException({required super.message, super.code})
+    : super(statusCode: 400);
 }
 
 /// Exception for 401 Unauthorized
 class UnauthorizedException extends ApiException {
-  const UnauthorizedException({required super.message})
-      : super(statusCode: 401);
+  const UnauthorizedException({required super.message, super.code})
+    : super(statusCode: 401);
 }
 
 /// Exception for 403 Forbidden
 class ForbiddenException extends ApiException {
-  const ForbiddenException({required super.message}) : super(statusCode: 403);
+  const ForbiddenException({required super.message, super.code})
+    : super(statusCode: 403);
 }
 
 /// Exception for 404 Not Found
 class NotFoundException extends ApiException {
-  const NotFoundException({required super.message}) : super(statusCode: 404);
+  const NotFoundException({required super.message, super.code})
+    : super(statusCode: 404);
 }
 
 /// Exception for 422 Validation Error
 class ValidationException extends ApiException {
-  const ValidationException({
-    required super.message,
-    this.errors,
-  }) : super(statusCode: 422);
+  const ValidationException({required super.message, super.code, this.errors})
+    : super(statusCode: 422);
 
   final Map<String, List<String>>? errors;
 
@@ -53,21 +52,22 @@ class ValidationException extends ApiException {
   @override
   String toString() {
     if (errors == null || errors!.isEmpty) return message;
-    
+
     final buffer = StringBuffer(message);
     buffer.writeln();
-    
+
     errors!.forEach((field, messages) {
       buffer.writeln('  $field: ${messages.join(", ")}');
     });
-    
+
     return buffer.toString();
   }
 }
 
 /// Exception for 500 Server Error
 class ServerException extends ApiException {
-  const ServerException({required super.message}) : super(statusCode: 500);
+  const ServerException({required super.message, super.code})
+    : super(statusCode: 500);
 }
 
 /// Exception for network/connection errors

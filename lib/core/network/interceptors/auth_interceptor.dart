@@ -35,7 +35,9 @@ class AuthInterceptor extends QueuedInterceptor {
 
   @override
   Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     // Only handle 401 Unauthorized
     if (err.response?.statusCode != 401) {
       return super.onError(err, handler);
@@ -45,6 +47,7 @@ class AuthInterceptor extends QueuedInterceptor {
     final requestPath = err.requestOptions.path;
     if (requestPath.contains('/auth/token/refresh') ||
         requestPath.contains('/auth/otp/') ||
+        requestPath.endsWith('/auth/token/') ||
         requestPath.contains('/auth/token/blacklist')) {
       // Auth endpoint itself failed — clear credentials and log out
       await _clearAuthAndLogout();
@@ -69,15 +72,17 @@ class AuthInterceptor extends QueuedInterceptor {
       debugPrint('🔄 [AuthInterceptor] Access token expired, refreshing...');
 
       // Use a fresh Dio instance to avoid interceptor loops
-      final refreshDio = Dio(BaseOptions(
-        baseUrl: AppConfig.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      ));
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: AppConfig.apiBaseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
+      );
 
       final response = await refreshDio.post(
         '/api/auth/token/refresh/',
@@ -99,19 +104,22 @@ class AuthInterceptor extends QueuedInterceptor {
       final opts = err.requestOptions;
       opts.headers['Authorization'] = 'Bearer $newAccess';
 
-      final retryDio = Dio(BaseOptions(
-        baseUrl: opts.baseUrl,
-        connectTimeout: opts.connectTimeout,
-        receiveTimeout: opts.receiveTimeout,
-        sendTimeout: opts.sendTimeout,
-      ));
+      final retryDio = Dio(
+        BaseOptions(
+          baseUrl: opts.baseUrl,
+          connectTimeout: opts.connectTimeout,
+          receiveTimeout: opts.receiveTimeout,
+          sendTimeout: opts.sendTimeout,
+        ),
+      );
 
       final retryResponse = await retryDio.fetch(opts);
       return handler.resolve(retryResponse);
     } on DioException catch (refreshError) {
       _isRefreshing = false;
       debugPrint(
-          '❌ [AuthInterceptor] Token refresh failed: ${refreshError.message}');
+        '❌ [AuthInterceptor] Token refresh failed: ${refreshError.message}',
+      );
       await _clearAuthAndLogout();
       return super.onError(err, handler);
     } catch (e) {

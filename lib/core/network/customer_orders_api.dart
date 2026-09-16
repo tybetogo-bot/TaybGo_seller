@@ -13,6 +13,9 @@ import 'restaurant_api.dart';
 
 /// Customer Orders API service
 class CustomerOrdersApi {
+  static const String _sellerFoodPreviewPath = '/api/seller/preview/food/';
+  static const String _customerFoodPreviewPath = '/api/customer/preview/food/';
+
   final Dio _dio;
 
   CustomerOrdersApi(this._dio);
@@ -43,6 +46,38 @@ class CustomerOrdersApi {
     final response = await _dio.post('/api/addresses/', data: data);
     _log('Created address response: ${response.data}');
     return CustomerAddressModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<FoodPriceQuote> _postFoodPreview(
+    String path,
+    FoodPricePreviewRequest request,
+  ) async {
+    final data = request.toJson();
+    _log('Previewing food order via $path with data: $data');
+    final response = await _dio.post(path, data: data);
+    return FoodPriceQuote.fromJson(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
+  /// Preview live food pricing without creating an order.
+  Future<FoodPriceQuote> previewFoodOrder(
+    FoodPricePreviewRequest request,
+  ) async {
+    try {
+      return await _postFoodPreview(_sellerFoodPreviewPath, request);
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 404 || statusCode == 405) {
+        _log(
+          'Seller food preview unavailable, retrying customer preview path.',
+          error: e,
+          stackTrace: e.stackTrace,
+        );
+        return await _postFoodPreview(_customerFoodPreviewPath, request);
+      }
+      rethrow;
+    }
   }
 
   /// Create a food order

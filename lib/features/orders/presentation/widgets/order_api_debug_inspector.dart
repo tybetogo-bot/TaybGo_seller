@@ -101,6 +101,7 @@ Map<String, dynamic> _buildParsedOrderSnapshot(OrderModel order) {
     'discountAmount': order.discountAmount,
     'tips': order.tips,
     'total': order.total,
+    'sellerTotalAmount': order.sellerTotalAmount,
     'createdAt': order.createdAt.toIso8601String(),
     'acceptedAt': order.acceptedAt?.toIso8601String(),
     'readyAt': order.readyAt?.toIso8601String(),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
@@ -12,6 +13,7 @@ import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
 import '../widgets/ingredient_chips.dart';
 import '../widgets/image_picker_widget.dart';
+import '../utils/menu_delete_error.dart';
 
 /// Add/Edit menu item screen with full functionality
 class AddMenuItemScreen extends ConsumerStatefulWidget {
@@ -109,198 +111,218 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
 
     return buildWithUnsavedChangesGuard(
       child: Scaffold(
-      backgroundColor: isDark ? DarkColors.background : LightColors.background,
-      appBar: AppBar(
-        title: Text(_isEditing ? 'menu.editItem'.tr : 'menu.addItem'.tr),
         backgroundColor: isDark
             ? DarkColors.background
             : LightColors.background,
-        elevation: 0,
-        actions: [
-          if (_isEditing)
-            IconButton(
-              icon: Icon(Icons.delete_outline, color: AppColors.error),
-              onPressed: _showDeleteDialog,
+        appBar: AppBar(
+          title: Text(_isEditing ? 'menu.editItem'.tr : 'menu.addItem'.tr),
+          backgroundColor: isDark
+              ? DarkColors.background
+              : LightColors.background,
+          elevation: 0,
+          actions: [
+            if (_isEditing)
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: AppColors.error),
+                onPressed: _isLoading ? null : _showDeleteDialog,
+              ),
+          ],
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.maxContentWidth,
             ),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: Breakpoints.maxContentWidth,
-          ),
-          child: Form(
-        key: _formKey,
-        child: ListView(
-          padding: EdgeInsets.all(16.w),
-          children: [
-            // Image picker section
-            ImagePickerWidget(
-              initialImageUrl: _imageUrl,
-              onImageUploaded: (url) {
-                setState(() => _imageUrl = url);
-                if (_initialDataLoaded) markAsChanged();
-              },
-              onImageRemoved: () {
-                setState(() => _imageUrl = null);
-                if (_initialDataLoaded) markAsChanged();
-              },
-              onUploadStateChanged: (isUploading) {
-                setState(() => _isUploadingImage = isUploading);
-              },
-            ),
-            SizedBox(height: 24.h),
-
-            // Basic info section
-            KeyedSubtree(
-              key: TourKeys.menuItemFormKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: EdgeInsets.all(16.w),
                 children: [
-                  _buildSectionTitle('menu.basicInfo'.tr, Icons.info_outline, isDark),
-                  SizedBox(height: 12.h),
-
-                  // Name field
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: _inputDecoration('menu.itemName'.tr, isDark),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'validation.required'.tr;
-                      }
-                      return null;
+                  // Image picker section
+                  ImagePickerWidget(
+                    initialImageUrl: _imageUrl,
+                    onImageUploaded: (url) {
+                      setState(() => _imageUrl = url);
+                      if (_initialDataLoaded) markAsChanged();
                     },
+                    onImageRemoved: () {
+                      setState(() => _imageUrl = null);
+                      if (_initialDataLoaded) markAsChanged();
+                    },
+                    onUploadStateChanged: (isUploading) {
+                      setState(() => _isUploadingImage = isUploading);
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Basic info section
+                  KeyedSubtree(
+                    key: TourKeys.menuItemFormKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle(
+                          'menu.basicInfo'.tr,
+                          Icons.info_outline,
+                          isDark,
+                        ),
+                        SizedBox(height: 12.h),
+
+                        // Name field
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: _inputDecoration(
+                            'menu.itemName'.tr,
+                            isDark,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'validation.required'.tr;
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 16.h),
+
+                        // Description field
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          decoration: _inputDecoration(
+                            'menu.description'.tr,
+                            isDark,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 16.h),
 
-                  // Description field
-                  TextFormField(
-                    controller: _descriptionController,
-                    maxLines: 3,
-                    decoration: _inputDecoration('menu.description'.tr, isDark),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16.h),
-
-            // Price and Prep Time row
-            KeyedSubtree(
-              key: TourKeys.menuItemPricingKey,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _priceController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: _inputDecoration(
-                        'menu.price'.tr,
-                        isDark,
-                        prefix: '€ ',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'validation.required'.tr;
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'validation.invalidPrice'.tr;
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _prepTimeController,
-                      keyboardType: TextInputType.number,
-                      decoration: _inputDecoration(
-                        'menu.preparationTime'.tr,
-                        isDark,
-                        suffix: ' min',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16.h),
-
-            // Category dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedCategoryId,
-              decoration: _inputDecoration('menu.category'.tr, isDark),
-              items: categories
-                  .map(
-                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _selectedCategoryId = value);
-                  if (_initialDataLoaded) markAsChanged();
-                }
-              },
-            ),
-            SizedBox(height: 24.h),
-
-            // Availability toggle
-            _buildAvailabilityToggle(isDark),
-            SizedBox(height: 24.h),
-
-            // Ingredients section
-            IngredientChips(
-              ingredients: _ingredients,
-              onChanged: (ingredients) {
-                setState(() => _ingredients = ingredients);
-                if (_initialDataLoaded) markAsChanged();
-              },
-            ),
-            SizedBox(height: 32.h),
-
-            // TODO: Customizations section - hidden for now
-            // CustomizationEditor(
-            //   customizations: _customizations,
-            //   onChanged: (customizations) =>
-            //       setState(() => _customizations = customizations),
-            // ),
-
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: (_isLoading || _isUploadingImage) ? null : _saveItem,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20.h,
-                        width: 20.h,
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                  // Price and Prep Time row
+                  KeyedSubtree(
+                    key: TourKeys.menuItemPricingKey,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _priceController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: _inputDecoration(
+                              'menu.price'.tr,
+                              isDark,
+                              prefix: '€ ',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'validation.required'.tr;
+                              }
+                              if (double.tryParse(value) == null) {
+                                return 'validation.invalidPrice'.tr;
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      )
-                    : Text(
-                        _isEditing ? 'common.save'.tr : 'menu.addItem'.tr,
-                        style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _prepTimeController,
+                            keyboardType: TextInputType.number,
+                            decoration: _inputDecoration(
+                              'menu.preparationTime'.tr,
+                              isDark,
+                              suffix: ' min',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Category dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategoryId,
+                    decoration: _inputDecoration('menu.category'.tr, isDark),
+                    items: categories
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedCategoryId = value);
+                        if (_initialDataLoaded) markAsChanged();
+                      }
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Availability toggle
+                  _buildAvailabilityToggle(isDark),
+                  SizedBox(height: 24.h),
+
+                  // Ingredients section
+                  IngredientChips(
+                    ingredients: _ingredients,
+                    onChanged: (ingredients) {
+                      setState(() => _ingredients = ingredients);
+                      if (_initialDataLoaded) markAsChanged();
+                    },
+                  ),
+                  SizedBox(height: 32.h),
+
+                  // TODO: Customizations section - hidden for now
+                  // CustomizationEditor(
+                  //   customizations: _customizations,
+                  //   onChanged: (customizations) =>
+                  //       setState(() => _customizations = customizations),
+                  // ),
+
+                  // Save button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: (_isLoading || _isUploadingImage)
+                          ? null
+                          : _saveItem,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
                       ),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 20.h,
+                              width: 20.h,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              _isEditing ? 'common.save'.tr : 'menu.addItem'.tr,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                ],
               ),
             ),
-            SizedBox(height: 24.h),
-          ],
+          ),
         ),
       ),
-        ),
-      ),
-    ),
     );
   }
 
@@ -408,7 +430,10 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
+          width: 2,
+        ),
       ),
     );
   }
@@ -459,7 +484,11 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
         markAsSaved();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_isEditing ? 'menu.itemUpdated'.tr : 'menu.itemAdded'.tr)),
+          SnackBar(
+            content: Text(
+              _isEditing ? 'menu.itemUpdated'.tr : 'menu.itemAdded'.tr,
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -475,30 +504,74 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
     }
   }
 
-  void _showDeleteDialog() {
-    showDialog(
+  Future<void> _showDeleteDialog() async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('menu.deleteItem'.tr),
-        content: Text('common.actionCannotBeUndone'.tr),
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: AppColors.warning,
+          size: 32.w,
+        ),
+        title: Text('menu.deleteItemTitle'.tr),
+        content: Text('menu.deleteItemWarning'.tr),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text('common.cancel'.tr),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(menuProvider.notifier).deleteItem(widget.itemId!);
-              if (mounted) {
-                markAsSaved();
-                context.pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('menu.itemDeleted'.tr)));
-              }
-            },
-            child: Text('common.delete'.tr, style: TextStyle(color: AppColors.error)),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              'menu.deleteItemConfirm'.tr,
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isLoading = true);
+    final failure = await ref
+        .read(menuProvider.notifier)
+        .deleteItem(widget.itemId!);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (failure != null) {
+      debugPrint(
+        'Delete menu item failed (${failure.statusCode}): ${failure.message}',
+      );
+      await _showDeleteFailureDialog(failure);
+      return;
+    }
+
+    markAsSaved();
+    context.pop();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('menu.itemDeleted'.tr)));
+  }
+
+  Future<void> _showDeleteFailureDialog(Failure failure) async {
+    final isWarning = isMenuDeleteWarning(failure);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(
+          isWarning ? Icons.info_outline_rounded : Icons.error_outline_rounded,
+          color: isWarning ? AppColors.warning : AppColors.error,
+          size: 32.w,
+        ),
+        title: Text(menuDeleteFailureTitle(failure)),
+        content: Text(menuDeleteFailureMessage(failure)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text('common.ok'.tr),
           ),
         ],
       ),

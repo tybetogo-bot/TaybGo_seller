@@ -254,6 +254,31 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     }
   }
 
+  /// Apply a successfully updated restaurant to the in-memory state
+  /// without triggering a loading or error transition.
+  void syncUpdatedRestaurant(RestaurantModel updatedRestaurant) {
+    final currentState = state;
+    if (currentState is RestaurantLoaded) {
+      final shouldUpdateSelected =
+          currentState.selectedRestaurant?.id == updatedRestaurant.id;
+      state = currentState.copyWith(
+        restaurants: _replaceRestaurant(
+          currentState.restaurants,
+          updatedRestaurant,
+        ),
+        selectedRestaurant: shouldUpdateSelected
+            ? updatedRestaurant
+            : currentState.selectedRestaurant,
+      );
+      return;
+    }
+
+    state = RestaurantLoaded(
+      restaurants: [updatedRestaurant],
+      selectedRestaurant: updatedRestaurant,
+    );
+  }
+
   /// Patch restaurant (partial update)
   Future<void> patchRestaurant(String id, Map<String, dynamic> data) async {
     final result = await _repository.patchRestaurant(id, data);

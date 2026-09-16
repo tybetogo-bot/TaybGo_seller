@@ -22,6 +22,7 @@ import 'features/auth/application/auth_state.dart';
 import 'features/tour/application/tour_notifier.dart';
 import 'features/tour/presentation/widgets/tour_overlay.dart';
 import 'firebase_options.dart';
+import 'shared/widgets/required_update_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -178,15 +179,17 @@ class TaybGoApp extends ConsumerWidget {
                   final constrainedTextScaleFactor = mediaQueryData.textScaler
                       .clamp(minScaleFactor: 0.8, maxScaleFactor: 1.2);
 
-                  return MediaQuery(
-                    data: mediaQueryData.copyWith(
-                      textScaler: constrainedTextScaleFactor,
-                    ),
-                    child: _DebugCrashlyticsTester(
-                      // Dismiss keyboard when tapping outside of input fields
-                      child: GestureDetector(
-                        onTap: () => FocusScope.of(context).unfocus(),
-                        child: child ?? const SizedBox.shrink(),
+                  return RequiredUpdateGate(
+                    child: MediaQuery(
+                      data: mediaQueryData.copyWith(
+                        textScaler: constrainedTextScaleFactor,
+                      ),
+                      child: _DebugCrashlyticsTester(
+                        // Dismiss keyboard when tapping outside of input fields
+                        child: GestureDetector(
+                          onTap: () => FocusScope.of(context).unfocus(),
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                   );

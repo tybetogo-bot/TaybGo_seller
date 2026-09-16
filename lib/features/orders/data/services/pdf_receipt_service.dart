@@ -374,7 +374,7 @@ class PdfReceiptService {
                 padding: const pw.EdgeInsets.symmetric(vertical: 6),
                 child: pw.Text(
                   item.totalPrice > 0
-                      ? '\$${item.totalPrice.toStringAsFixed(2)}'
+                      ? '€${item.totalPrice.toStringAsFixed(2)}'
                       : '-',
                   style: _style(fontSize: 11),
                   textAlign: pw.TextAlign.right,
@@ -398,19 +398,19 @@ class PdfReceiptService {
     return pw.Column(
       children: [
         if (subtotal > 0)
-          _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
+          _buildSummaryRow('Subtotal', '€${subtotal.toStringAsFixed(2)}'),
         if (deliveryFee > 0)
           _buildSummaryRow(
             'Delivery Fee',
-            '\$${deliveryFee.toStringAsFixed(2)}',
+            '€${deliveryFee.toStringAsFixed(2)}',
           ),
         if (discountAmount > 0)
           _buildSummaryRow(
             'Discount',
-            '-\$${discountAmount.toStringAsFixed(2)}',
+            '-€${discountAmount.toStringAsFixed(2)}',
             isDiscount: true,
           ),
-        if (tip > 0) _buildSummaryRow('Tip', '\$${tip.toStringAsFixed(2)}'),
+        if (tip > 0) _buildSummaryRow('Tip', '€${tip.toStringAsFixed(2)}'),
         pw.SizedBox(height: 8),
         pw.Container(
           padding: const pw.EdgeInsets.symmetric(vertical: 8),
@@ -422,7 +422,7 @@ class PdfReceiptService {
             children: [
               pw.Text('TOTAL', style: _style(fontSize: 14, bold: true)),
               pw.Text(
-                '\$${total.toStringAsFixed(2)}',
+                '€${total.toStringAsFixed(2)}',
                 style: _style(fontSize: 14, bold: true),
               ),
             ],
@@ -519,6 +519,7 @@ class PdfReceiptService {
       case OrderStatusEnum.onTheWay:
         return PdfColors.purple;
       case OrderStatusEnum.delivered:
+      case OrderStatusEnum.restaurantDelivered:
         return PdfColors.green;
       case OrderStatusEnum.expired:
         return PdfColors.amber800;

@@ -12,6 +12,16 @@ class AuthRemoteDataSource implements AuthDataSource {
   final AuthApi _authApi;
 
   @override
+  Future<PasswordLoginResponse> loginWithPassword({
+    required String phone,
+    required String password,
+  }) {
+    return _authApi.loginWithPassword(
+      PasswordLoginRequest(phone: phone, password: password),
+    );
+  }
+
+  @override
   Future<OtpRequestResponse> requestOtp({
     required String phone,
     required String targetRole,

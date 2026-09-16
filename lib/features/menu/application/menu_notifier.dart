@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors/failures.dart';
 import '../../../core/providers/providers.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/models/menu_item_model.dart';
@@ -314,8 +315,8 @@ class MenuNotifier extends Notifier<MenuState> {
     }
   }
 
-  /// Delete a menu item
-  Future<void> deleteItem(String itemId) async {
+  /// Delete a menu item and return the failure when the server rejects it.
+  Future<Failure?> deleteItem(String itemId) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -326,17 +327,19 @@ class MenuNotifier extends Notifier<MenuState> {
           isLoading: false,
           error: result.failure!.message,
         );
-        return;
+        return result.failure;
       }
 
       final updatedItems = state.items.where((i) => i.id != itemId).toList();
 
       state = state.copyWith(items: updatedItems, isLoading: false);
+      return null;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to delete item: $e',
       );
+      return ServerFailure(message: 'Failed to delete item: $e');
     }
   }
 

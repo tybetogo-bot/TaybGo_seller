@@ -69,7 +69,7 @@ class _CustomizationEditorState extends State<CustomizationEditor> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: 'menu.additionalPrice'.tr,
-                    prefixText: '\$ ',
+                    prefixText: '€ ',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.r),
                     ),
@@ -307,7 +307,7 @@ class _CustomizationItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4.r),
               ),
               child: Text(
-                '+\$${option.priceModifier.toStringAsFixed(2)}',
+                '+€${option.priceModifier.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: AppColors.success,
@@ -388,7 +388,7 @@ class CustomizationDisplay extends StatelessWidget {
                 const Spacer(),
                 if (a.priceModifier > 0)
                   Text(
-                    '+\$${a.priceModifier.toStringAsFixed(2)}',
+                    '+€${a.priceModifier.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: AppColors.success,

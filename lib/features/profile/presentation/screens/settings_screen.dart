@@ -6,6 +6,7 @@ import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../notifications/application/notification_settings_notifier.dart';
 import '../../../tour/application/tour_notifier.dart';
 import '../../../tour/application/tour_state.dart';
 
@@ -19,6 +20,7 @@ class SettingsScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final themeMode = ref.watch(themeProvider);
     final accentColor = ref.watch(accentColorProvider);
+    final notificationSettings = ref.watch(notificationSettingsProvider);
 
     return Scaffold(
       backgroundColor: isDark ? DarkColors.background : LightColors.background,
@@ -63,7 +65,10 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.notifications_outlined,
             title: 'settings.notifications'.tr,
-            onTap: () => context.push(Routes.notifications),
+            subtitle: 'notifications.repeatCountValue'.trParams({
+              'count': notificationSettings.orderAlertRepeatCount.toString(),
+            }),
+            onTap: () => context.push(Routes.notificationSettings),
             isDark: isDark,
           ),
           const Divider(height: 32),

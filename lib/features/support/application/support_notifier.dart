@@ -1,6 +1,8 @@
 /// Support tickets state management
 library;
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -18,6 +20,7 @@ class SupportState {
     this.hasMorePages = true,
     this.selectedTicket,
     this.isLoadingDetail = false,
+    this.isRefreshingDetail = false,
     this.isSending = false,
     this.isCreating = false,
     this.statusFilter,
@@ -31,6 +34,7 @@ class SupportState {
   final bool hasMorePages;
   final SupportTicket? selectedTicket;
   final bool isLoadingDetail;
+  final bool isRefreshingDetail;
   final bool isSending;
   final bool isCreating;
   final TicketStatus? statusFilter;
@@ -50,6 +54,7 @@ class SupportState {
     SupportTicket? selectedTicket,
     bool clearSelectedTicket = false,
     bool? isLoadingDetail,
+    bool? isRefreshingDetail,
     bool? isSending,
     bool? isCreating,
     TicketStatus? statusFilter,
@@ -63,13 +68,16 @@ class SupportState {
       error: clearError ? null : (error ?? this.error),
       currentPage: currentPage ?? this.currentPage,
       hasMorePages: hasMorePages ?? this.hasMorePages,
-      selectedTicket:
-          clearSelectedTicket ? null : (selectedTicket ?? this.selectedTicket),
+      selectedTicket: clearSelectedTicket
+          ? null
+          : (selectedTicket ?? this.selectedTicket),
       isLoadingDetail: isLoadingDetail ?? this.isLoadingDetail,
+      isRefreshingDetail: isRefreshingDetail ?? this.isRefreshingDetail,
       isSending: isSending ?? this.isSending,
       isCreating: isCreating ?? this.isCreating,
-      statusFilter:
-          clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
+      statusFilter: clearStatusFilter
+          ? null
+          : (statusFilter ?? this.statusFilter),
     );
   }
 }
@@ -81,11 +89,17 @@ final supportProvider = NotifierProvider<SupportNotifier, SupportState>(
 
 /// Support notifier
 class SupportNotifier extends Notifier<SupportState> {
+  static const ticketMessagePollInterval = Duration(seconds: 3);
+
   late SupportRepository _repository;
+  Timer? _ticketPollingTimer;
+  int? _pollingTicketId;
+  bool _ticketDetailRequestInFlight = false;
 
   @override
   SupportState build() {
     _repository = ref.watch(supportRepositoryProvider);
+    ref.onDispose(stopTicketMessagePolling);
     return SupportState();
   }
 
@@ -96,10 +110,7 @@ class SupportNotifier extends Notifier<SupportState> {
     final result = await _repository.getTickets(page: 1);
 
     if (result.failure != null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: result.failure!.message,
-      );
+      state = state.copyWith(isLoading: false, error: result.failure!.message);
       return;
     }
 
@@ -145,22 +156,108 @@ class SupportNotifier extends Notifier<SupportState> {
 
   /// Load ticket detail with messages
   Future<void> loadTicketDetail(int id) async {
-    state = state.copyWith(isLoadingDetail: true, clearError: true);
+    await _loadTicketDetail(
+      id,
+      showInitialLoading: true,
+      showRefreshIndicator: false,
+      suppressErrors: false,
+    );
+  }
 
-    final result = await _repository.getTicketById(id);
+  /// Refresh the open ticket without replacing the conversation with a
+  /// loading screen. Returns `false` only when the request failed.
+  Future<bool> refreshTicketDetail(int id) {
+    return _loadTicketDetail(
+      id,
+      showInitialLoading: false,
+      showRefreshIndicator: true,
+      suppressErrors: false,
+    );
+  }
 
-    if (result.failure != null) {
-      state = state.copyWith(
-        isLoadingDetail: false,
-        error: result.failure!.message,
+  /// Start polling the selected ticket for new messages.
+  ///
+  /// Polling is owned by the notifier so there is only one request loop for
+  /// the open ticket. In-flight requests are guarded to prevent a slow API
+  /// response from overlapping with the next three-second tick.
+  void startTicketMessagePolling(int id) {
+    if (_pollingTicketId == id && _ticketPollingTimer != null) return;
+
+    stopTicketMessagePolling();
+    _pollingTicketId = id;
+    _ticketPollingTimer = Timer.periodic(ticketMessagePollInterval, (_) {
+      if (_pollingTicketId != id) return;
+      unawaited(
+        _loadTicketDetail(
+          id,
+          showInitialLoading: false,
+          showRefreshIndicator: false,
+          suppressErrors: true,
+        ),
       );
-      return;
-    }
+    });
+  }
+
+  /// Stop polling when the detail page is no longer visible or the app is
+  /// backgrounded.
+  void stopTicketMessagePolling() {
+    _ticketPollingTimer?.cancel();
+    _ticketPollingTimer = null;
+    _pollingTicketId = null;
+  }
+
+  Future<bool> _loadTicketDetail(
+    int id, {
+    required bool showInitialLoading,
+    required bool showRefreshIndicator,
+    required bool suppressErrors,
+  }) async {
+    if (_ticketDetailRequestInFlight) return true;
+
+    _ticketDetailRequestInFlight = true;
+    final hasExistingTicket = state.selectedTicket?.id == id;
 
     state = state.copyWith(
-      isLoadingDetail: false,
-      selectedTicket: result.data,
+      isLoadingDetail: showInitialLoading,
+      isRefreshingDetail: showRefreshIndicator,
+      clearError: true,
     );
+
+    try {
+      final result = await _repository.getTicketById(id);
+
+      if (result.failure != null || result.data == null) {
+        final failureMessage =
+            result.failure?.message ?? 'Unable to load support ticket';
+
+        if (!suppressErrors && !hasExistingTicket) {
+          state = state.copyWith(
+            isLoadingDetail: false,
+            isRefreshingDetail: false,
+            error: failureMessage,
+          );
+        } else {
+          // Keep the existing conversation visible during a polling or
+          // manual-refresh failure and wait for the next retry.
+          state = state.copyWith(
+            isLoadingDetail: false,
+            isRefreshingDetail: false,
+            clearError: true,
+          );
+        }
+        return false;
+      }
+
+      state = state.copyWith(
+        isLoadingDetail: false,
+        isRefreshingDetail: false,
+        selectedTicket: result.data,
+        clearError: true,
+      );
+      return true;
+    } finally {
+      _ticketDetailRequestInFlight = false;
+    }
   }
 
   /// Create a new ticket
@@ -184,10 +281,7 @@ class SupportNotifier extends Notifier<SupportState> {
     );
 
     if (result.failure != null) {
-      state = state.copyWith(
-        isCreating: false,
-        error: result.failure!.message,
-      );
+      state = state.copyWith(isCreating: false, error: result.failure!.message);
       return false;
     }
 
@@ -213,10 +307,11 @@ class SupportNotifier extends Notifier<SupportState> {
     }
 
     // Append the new message to the selected ticket
-    if (state.selectedTicket != null &&
-        state.selectedTicket!.id == ticketId) {
+    if (state.selectedTicket != null && state.selectedTicket!.id == ticketId) {
       final updatedMessages = [
-        ...state.selectedTicket!.messages,
+        ...state.selectedTicket!.messages.where(
+          (message) => message.id != result.data!.id,
+        ),
         result.data!,
       ];
       final updatedTicket = SupportTicket(
