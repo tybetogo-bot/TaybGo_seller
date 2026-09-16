@@ -28,13 +28,18 @@ abstract class OrdersDataSource {
   });
 
   /// Accept a seller order, optionally delaying driver dispatch.
-  Future<OrderModel> acceptOrder(String id, {int? driverDispatchDelayMinutes});
+  Future<OrderModel> acceptOrder(
+    String id, {
+    int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
+  });
 
   /// Request, schedule, or reschedule driver dispatch.
   Future<OrderModel> driverDispatch(
     String id, {
     required DriverDispatchAction action,
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   });
 
   /// Process refund for an order
@@ -93,10 +98,12 @@ class OrdersRemoteDataSource implements OrdersDataSource {
   Future<OrderModel> acceptOrder(
     String id, {
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
     return await _api.acceptOrder(
       id,
       driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+      preparationTimeMinutes: preparationTimeMinutes,
     );
   }
 
@@ -105,11 +112,13 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     String id, {
     required DriverDispatchAction action,
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
     return await _api.driverDispatch(
       id,
       action: action,
       driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+      preparationTimeMinutes: preparationTimeMinutes,
     );
   }
 

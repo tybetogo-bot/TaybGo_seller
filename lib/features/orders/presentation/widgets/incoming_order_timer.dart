@@ -36,21 +36,31 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
   Timer? _clockTimer;
   DateTime _localServerSampleAt = DateTime.now().toUtc();
   bool _hasRefreshedAtZero = false;
+  bool _hasRefreshedPreparationAtZero = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _localServerSampleAt = DateTime.now().toUtc();
+    _localServerSampleAt =
+        widget.order.timingReceivedAt ?? DateTime.now().toUtc();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
+      var needsRefresh = false;
       if (_isCountdownState &&
           _remainingDispatchSeconds(widget.order) <= 0 &&
           !_hasRefreshedAtZero) {
         _hasRefreshedAtZero = true;
-        final refresh = widget.onRefresh;
-        if (refresh != null) unawaited(refresh());
+        needsRefresh = true;
       }
+      if (widget.order.showPreparationEstimate &&
+          _remainingPreparationSeconds(widget.order) <= 0 &&
+          !_hasRefreshedPreparationAtZero) {
+        _hasRefreshedPreparationAtZero = true;
+        needsRefresh = true;
+      }
+      final refresh = widget.onRefresh;
+      if (needsRefresh && refresh != null) unawaited(refresh());
       setState(() {});
     });
   }
@@ -62,22 +72,22 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
         oldWidget.order.driverDispatchStatus !=
             widget.order.driverDispatchStatus ||
         oldWidget.order.driverDispatchDueAt !=
-            widget.order.driverDispatchDueAt ||
-        oldWidget.order.driverDispatchServerTime !=
-            widget.order.driverDispatchServerTime ||
-        oldWidget.order.driverDispatchRemainingSeconds !=
-            widget.order.driverDispatchRemainingSeconds ||
-        oldWidget.order.driverDispatchServerTime !=
-            widget.order.driverDispatchServerTime) {
-      _localServerSampleAt = DateTime.now().toUtc();
+            widget.order.driverDispatchDueAt) {
       _hasRefreshedAtZero = false;
+    }
+    if (oldWidget.order.id != widget.order.id ||
+        oldWidget.order.preparationReadyAt != widget.order.preparationReadyAt) {
+      _hasRefreshedPreparationAtZero = false;
+    }
+    if (oldWidget.order != widget.order) {
+      _localServerSampleAt =
+          widget.order.timingReceivedAt ?? DateTime.now().toUtc();
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !mounted) return;
-    _localServerSampleAt = DateTime.now().toUtc();
     _hasRefreshedAtZero = false;
     setState(() {});
     final refresh = widget.onRefresh;
@@ -94,6 +104,31 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
+    if (order.isCompleted || order.status == OrderStatusEnum.onTheWay) {
+      return const SizedBox.shrink();
+    }
+    final dispatch = _buildDispatchState(order);
+    if (!order.showPreparationEstimate) return dispatch;
+    final remaining = _remainingPreparationSeconds(order);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildStateBanner(
+          icon: Icons.restaurant_rounded,
+          color: remaining > 0 ? AppColors.info : AppColors.warning,
+          title: remaining > 0
+              ? '${'orders.preparation.readyIn'.tr} ${_formatDuration(remaining)}'
+              : 'orders.preparation.estimateElapsed'.tr,
+          subtitle: 'orders.preparation.estimateExplanation'.tr,
+          trailingIcon: Icons.schedule_rounded,
+        ),
+        SizedBox(height: 8.h),
+        dispatch,
+      ],
+    );
+  }
+
+  Widget _buildDispatchState(OrderModel order) {
     final dispatchStatus = order.driverDispatchStatus?.toUpperCase();
     final hasCountdown = _isCountdownState;
 
@@ -112,7 +147,12 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
   }
 
   bool get _isCountdownState {
+    if (widget.order.isCompleted ||
+        widget.order.status == OrderStatusEnum.onTheWay) {
+      return false;
+    }
     final status = widget.order.driverDispatchStatus?.toUpperCase();
+    if (status == 'SEARCHING' || status == 'ASSIGNED') return false;
     return widget.order.hasDriverDispatchTimer ||
         status == 'SCHEDULED' ||
         status == 'DUE';
@@ -122,7 +162,13 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
     final remainingSeconds = _remainingDispatchSeconds(order);
     final totalSeconds = math.max(
       1,
-      (order.driverDispatchDelayMinutes ?? 0) * 60,
+      (order.driverDispatchDelayMinutes ??
+              math.max(
+                0,
+                (order.preparationTimeMinutes ?? 0) -
+                    (order.driverDispatchLeadMinutes ?? 5),
+              )) *
+          60,
     );
     final progress = (remainingSeconds / totalSeconds).clamp(0.0, 1.0);
     final due = remainingSeconds <= 0;
@@ -303,6 +349,7 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
     required Color color,
     required String title,
     required String subtitle,
+    IconData trailingIcon = Icons.check_circle_outline_rounded,
   }) {
     return Container(
       width: double.infinity,
@@ -348,7 +395,7 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
               ],
             ),
           ),
-          Icon(Icons.check_circle_outline_rounded, color: color, size: 20.w),
+          Icon(trailingIcon, color: color, size: 20.w),
         ],
       ),
     );
@@ -377,6 +424,24 @@ class _IncomingOrderTimerState extends State<IncomingOrderTimer>
     if (remaining == null) return 0;
     final elapsed = DateTime.now().toUtc().difference(_localServerSampleAt);
     return math.max(0, remaining - elapsed.inSeconds);
+  }
+
+  int _remainingPreparationSeconds(OrderModel order) {
+    final now = DateTime.now().toUtc();
+    final serverTime =
+        order.preparationServerTime ?? order.driverDispatchServerTime;
+    final serverNow = serverTime == null
+        ? now
+        : serverTime.toUtc().add(now.difference(_localServerSampleAt));
+    final readyAt = order.preparationReadyAt;
+    if (readyAt != null) {
+      return math.max(0, readyAt.toUtc().difference(serverNow).inSeconds);
+    }
+    return math.max(
+      0,
+      (order.preparationRemainingSeconds ?? 0) -
+          now.difference(_localServerSampleAt).inSeconds,
+    );
   }
 
   String _formatDuration(int seconds) {

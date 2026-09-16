@@ -323,7 +323,7 @@
       "responseStatus": "Svarstatus",
       "timerStartsAfterAccept": "Chaufførtiden starter efter accept.",
       "driverRequestIn": "Chaufføranmodning om",
-      "driverReady": "Klar til at anmode om chauffør",
+      "driverReady": "Det er tid til at søge efter en chauffør",
       "receivedSecondsAgo": "for {count} sek siden",
       "receivedMinutesAgo": "for {count} min siden",
       "receivedHoursAgo": "for {count} t siden",
@@ -464,6 +464,20 @@
       "aiScanComplete": "AI-scan fuldført",
       "fieldsExtracted": "Autoudfyldt",
       "fieldsToFill": "Udfyld venligst"
+    },
+    "preparation": {
+      "title": "Tilberedningstid",
+      "description": "Vælg, hvornår maden forventes klar. Søgningen efter en chauffør starter {count} minutter før, eller straks ved kortere tilberedning. Maden markeres ikke automatisk som klar.",
+      "zeroMinutes": "0 minutter",
+      "custom": "Valgfri tilberedningstid",
+      "searchImmediately": "Søgning efter chauffør starter straks",
+      "searchIn": "Søgning efter chauffør starter om {count} min",
+      "readyIn": "Forventes klar om",
+      "estimateElapsed": "Forventet tilberedningstid udløbet",
+      "estimateExplanation": "Dette er et skøn, ikke en bekræftelse på, at maden er klar.",
+      "saved": "Tilberedningstid gemt",
+      "timingSection": "Tilberedning og chauffør",
+      "refreshRequired": "Tidsindstillingerne er ændret. Se den opdaterede ordre, før du prøver igen."
     }
   },
   "address": {

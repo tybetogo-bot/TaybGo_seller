@@ -319,7 +319,7 @@
       "responseStatus": "حالة الاستجابة",
       "timerStartsAfterAccept": "يبدأ توقيت السائق بعد القبول.",
       "driverRequestIn": "طلب السائق خلال",
-      "driverReady": "جاهز لطلب السائق",
+      "driverReady": "حان موعد البحث عن سائق",
       "receivedSecondsAgo": "منذ {count}ث",
       "receivedMinutesAgo": "منذ {count}د",
       "receivedHoursAgo": "منذ {count}س",
@@ -463,7 +463,21 @@
     },
     "cancelOrder": "إلغاء الطلب",
     "confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "preparation": {
+      "title": "وقت التحضير",
+      "description": "اختر الوقت المتوقع لجهوزية الطعام. يبدأ البحث عن سائق قبل ذلك بـ {count} دقائق، أو فورًا إذا كانت مدة التحضير أقصر. هذا لا يغيّر حالة الطعام إلى جاهز.",
+      "zeroMinutes": "0 دقيقة",
+      "custom": "وقت تحضير مخصص",
+      "searchImmediately": "يبدأ البحث عن سائق فورًا",
+      "searchIn": "يبدأ البحث عن سائق خلال {count} د",
+      "readyIn": "الجهوزية المتوقعة خلال",
+      "estimateElapsed": "انتهى الوقت المتوقع للتحضير",
+      "estimateExplanation": "هذا وقت تقديري، وليس تأكيدًا بأن الطعام جاهز.",
+      "saved": "تم حفظ وقت التحضير المتوقع",
+      "timingSection": "التحضير والسائق",
+      "refreshRequired": "تغيّرت خيارات توقيت الطلب. راجع الطلب بعد تحديثه قبل المحاولة مجددًا."
+    }
   },
   "address": {
     "search": "بحث...",

@@ -323,7 +323,7 @@
       "responseStatus": "Svarstatus",
       "timerStartsAfterAccept": "Chaufförstiden börjar efter godkännande.",
       "driverRequestIn": "Chaufförsförfrågan om",
-      "driverReady": "Klar att begära chaufför",
+      "driverReady": "Det är dags att söka efter en förare",
       "receivedSecondsAgo": "för {count} sek sedan",
       "receivedMinutesAgo": "för {count} min sedan",
       "receivedHoursAgo": "för {count} tim sedan",
@@ -464,6 +464,20 @@
       "aiScanComplete": "AI-skanning klar",
       "fieldsExtracted": "Autofylld",
       "fieldsToFill": "Fyll i"
+    },
+    "preparation": {
+      "title": "Tillagningstid",
+      "description": "Välj när maten beräknas vara klar. Sökningen efter en förare börjar {count} minuter tidigare, eller direkt vid kortare tillagning. Maten markeras inte automatiskt som klar.",
+      "zeroMinutes": "0 minuter",
+      "custom": "Egen tillagningstid",
+      "searchImmediately": "Sökning efter förare börjar direkt",
+      "searchIn": "Sökning efter förare börjar om {count} min",
+      "readyIn": "Beräknas klar om",
+      "estimateElapsed": "Beräknad tillagningstid har gått ut",
+      "estimateExplanation": "Detta är en uppskattning, inte en bekräftelse på att maten är klar.",
+      "saved": "Tillagningstid sparad",
+      "timingSection": "Tillagning och förare",
+      "refreshRequired": "Tidsalternativen har ändrats. Granska den uppdaterade beställningen innan du försöker igen."
     }
   },
   "address": {

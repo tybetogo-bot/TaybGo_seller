@@ -754,6 +754,16 @@ sealed class OrderModel with _$OrderModel {
     int? driverDispatchRemainingSeconds,
     DateTime? driverDispatchServerTime,
     int? driverDispatchMaxDelayMinutes,
+    @Default(false) bool supportsPreparationTiming,
+    int? preparationTimeMinutes,
+    DateTime? preparationReadyAt,
+    int? preparationRemainingSeconds,
+    DateTime? preparationServerTime,
+    int? preparationMaxMinutes,
+    int? driverDispatchLeadMinutes,
+
+    /// Local receipt time for the server clock sample; survives widget remounts.
+    DateTime? timingReceivedAt,
   }) = _OrderModel;
 
   /// Custom fromJson to handle API response format
@@ -1060,12 +1070,40 @@ sealed class OrderModel with _$OrderModel {
         json['driver_dispatch_max_delay_minutes'] ??
             json['driverDispatchMaxDelayMinutes'],
       ),
+      timingReceivedAt: DateTime.now().toUtc(),
+      supportsPreparationTiming: json['supports_preparation_timing'] == true,
+      preparationTimeMinutes: parseInt(json['preparation_time_minutes']),
+      preparationReadyAt: parseDateTime(json['preparation_ready_at']),
+      preparationRemainingSeconds: parseInt(
+        json['preparation_remaining_seconds'],
+      ),
+      preparationServerTime: parseDateTime(json['preparation_server_time']),
+      preparationMaxMinutes: parseInt(json['preparation_max_minutes']),
+      driverDispatchLeadMinutes: parseInt(json['driver_dispatch_lead_minutes']),
     );
   }
 }
 
 /// Extension for OrderModel calculations and utilities
 extension OrderModelExtension on OrderModel {
+  /// New requests are only enabled by a complete, explicit server capability.
+  bool get canSetPreparationTime =>
+      supportsPreparationTiming &&
+      preparationMaxMinutes != null &&
+      driverDispatchLeadMinutes != null &&
+      orderType.toUpperCase() == 'FOOD' &&
+      (fulfillmentType ?? requestedDeliveryType)?.toUpperCase() == 'DELIVERY';
+
+  bool get hasPreparationEstimate => preparationReadyAt != null;
+
+  bool get showPreparationEstimate =>
+      hasPreparationEstimate &&
+      preparationRemainingSeconds != null &&
+      !isCompleted &&
+      readyAt == null &&
+      outForDeliveryAt == null &&
+      status != OrderStatusEnum.onTheWay;
+
   /// Calculate subtotal from items
   double get calculatedSubtotal {
     return items.fold<double>(0.0, (sum, item) {

@@ -323,7 +323,7 @@
       "responseStatus": "Äntwertstatus",
       "timerStartsAfterAccept": "D'Chauffeurszäit fänkt nom Ugeholl un.",
       "driverRequestIn": "Chauffeursufro a",
-      "driverReady": "Bereet fir e Chauffeur unzefroen",
+      "driverReady": "Et ass Zäit fir d’Sich no engem Chauffer",
       "receivedSecondsAgo": "virun {count} Sekonnen",
       "receivedMinutesAgo": "virun {count} Minutten",
       "receivedHoursAgo": "virun {count} Stonnen",
@@ -464,6 +464,20 @@
       "aiScanComplete": "KI-Scan ofgeschloss",
       "fieldsExtracted": "Automatesch ausgefëllt",
       "fieldsToFill": "W.e.g. ausfëllen"
+    },
+    "preparation": {
+      "title": "Virbereedungszäit",
+      "description": "Wielt, wéini d’Iesse viraussiichtlech fäerdeg ass. D’Sich no engem Chauffer fänkt {count} Minutte virdrun un, oder direkt bei méi kuerzer Virbereedung. D’Iesse gëtt net automatesch als fäerdeg markéiert.",
+      "zeroMinutes": "0 Minutten",
+      "custom": "Eege Virbereedungszäit",
+      "searchImmediately": "D’Sich no engem Chauffer fänkt direkt un",
+      "searchIn": "D’Sich no engem Chauffer fänkt an {count} Min. un",
+      "readyIn": "Viraussiichtlech fäerdeg an",
+      "estimateElapsed": "Geschate Virbereedungszäit ofgelaf",
+      "estimateExplanation": "Dëst ass eng Schätzung, keng Bestätegung, datt d’Iesse fäerdeg ass.",
+      "saved": "Virbereedungszäit gespäichert",
+      "timingSection": "Virbereedung a Chauffer",
+      "refreshRequired": "D’Zäitoptiounen hu geännert. Kuckt déi aktualiséiert Bestellung un, éier Dir et nach eng Kéier probéiert."
     }
   },
   "address": {

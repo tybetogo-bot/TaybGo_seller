@@ -43,6 +43,7 @@ abstract class OrdersRepository {
   Future<OrdersResult<OrderModel>> acceptOrder(
     String id, {
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   });
 
   /// Request, schedule, or reschedule driver dispatch.
@@ -50,6 +51,7 @@ abstract class OrdersRepository {
     String id, {
     required DriverDispatchAction action,
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   });
 
   /// Process refund for an order
@@ -207,11 +209,13 @@ class OrdersRepositoryImpl implements OrdersRepository {
   Future<OrdersResult<OrderModel>> acceptOrder(
     String id, {
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
     try {
       final order = await _remoteDataSource.acceptOrder(
         id,
         driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+        preparationTimeMinutes: preparationTimeMinutes,
       );
       return (failure: null, data: order);
     } on DioException catch (e) {
@@ -229,12 +233,14 @@ class OrdersRepositoryImpl implements OrdersRepository {
     String id, {
     required DriverDispatchAction action,
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
     try {
       final order = await _remoteDataSource.driverDispatch(
         id,
         action: action,
         driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+        preparationTimeMinutes: preparationTimeMinutes,
       );
       return (failure: null, data: order);
     } on DioException catch (e) {

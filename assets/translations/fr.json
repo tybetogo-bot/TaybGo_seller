@@ -319,7 +319,7 @@
       "responseStatus": "État de la réponse",
       "timerStartsAfterAccept": "Le délai du livreur commence après l'acceptation.",
       "driverRequestIn": "Demande de livreur dans",
-      "driverReady": "Prêt à demander un livreur",
+      "driverReady": "La recherche de livreur doit commencer",
       "receivedSecondsAgo": "il y a {count} s",
       "receivedMinutesAgo": "il y a {count} min",
       "receivedHoursAgo": "il y a {count} h",
@@ -465,7 +465,21 @@
     },
     "cancelOrder": "Annuler la commande",
     "confirmCancel": "Voulez-vous vraiment annuler cette commande ?",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "preparation": {
+      "title": "Temps de préparation",
+      "description": "Indiquez quand le repas devrait être prêt. La recherche de livreur commence {count} minutes avant, ou immédiatement si la préparation est plus courte. Le repas ne sera pas marqué comme prêt automatiquement.",
+      "zeroMinutes": "0 minute",
+      "custom": "Durée personnalisée",
+      "searchImmediately": "La recherche de livreur commence immédiatement",
+      "searchIn": "La recherche de livreur commence dans {count} min",
+      "readyIn": "Prêt dans environ",
+      "estimateElapsed": "Temps de préparation estimé écoulé",
+      "estimateExplanation": "Ce délai est une estimation, pas une confirmation que le repas est prêt.",
+      "saved": "Temps de préparation enregistré",
+      "timingSection": "Préparation et livreur",
+      "refreshRequired": "Les options de délai ont changé. Vérifiez la commande actualisée avant de réessayer."
+    }
   },
   "address": {
     "search": "Rechercher...",

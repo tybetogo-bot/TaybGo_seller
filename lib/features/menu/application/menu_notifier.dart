@@ -272,7 +272,8 @@ class MenuNotifier extends Notifier<MenuState> {
         'price': item.price,
         'category': item.categoryId,
         if (item.description != null) 'description': item.description,
-        if (item.imageUrl != null) 'image': item.imageUrl,
+        // Send null explicitly so removing a photo clears the saved image.
+        'image': item.imageUrl,
         'ingredients': item.ingredients.join(', '),
         'is_available': item.isAvailable,
         'preparation_time': item.preparationTime,

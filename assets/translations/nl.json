@@ -323,7 +323,7 @@
       "responseStatus": "Reactiestatus",
       "timerStartsAfterAccept": "De chauffeursplanning start na acceptatie.",
       "driverRequestIn": "Chauffeursverzoek over",
-      "driverReady": "Klaar om een chauffeur aan te vragen",
+      "driverReady": "Het is tijd om een bezorger te zoeken",
       "receivedSecondsAgo": "{count} sec geleden",
       "receivedMinutesAgo": "{count} min geleden",
       "receivedHoursAgo": "{count} uur geleden",
@@ -464,6 +464,20 @@
       "aiScanComplete": "AI-scan voltooid",
       "fieldsExtracted": "Automatisch ingevuld",
       "fieldsToFill": "Vul in"
+    },
+    "preparation": {
+      "title": "Bereidingstijd",
+      "description": "Kies wanneer het eten naar verwachting klaar is. Het zoeken naar een bezorger begint {count} minuten eerder, of direct bij een kortere bereiding. Het eten wordt niet automatisch als klaar gemarkeerd.",
+      "zeroMinutes": "0 minuten",
+      "custom": "Aangepaste bereidingstijd",
+      "searchImmediately": "Zoeken naar een bezorger begint direct",
+      "searchIn": "Zoeken naar een bezorger begint over {count} min",
+      "readyIn": "Naar verwachting klaar over",
+      "estimateElapsed": "Geschatte bereidingstijd verstreken",
+      "estimateExplanation": "Dit is een schatting, geen bevestiging dat het eten klaar is.",
+      "saved": "Bereidingstijd opgeslagen",
+      "timingSection": "Bereiding en bezorger",
+      "refreshRequired": "De tijdopties zijn gewijzigd. Bekijk de vernieuwde bestelling voordat je het opnieuw probeert."
     }
   },
   "address": {
