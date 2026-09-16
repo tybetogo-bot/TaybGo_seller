@@ -4,7 +4,7 @@
 TaybGo Seller App - Restaurant management and order handling application for sellers/vendors.
 
 **Package Name:** `teybatseller`
-**Current Version:** `1.0.18+20`
+**Current Version:** `1.0.19+21`
 
 ---
 
@@ -17,6 +17,16 @@ TaybGo Seller App - Restaurant management and order handling application for sel
 | `taybgo-seller-v1.0.16+17-2026-09-02-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones (2017+), Samsung Galaxy S8+, Pixel 2+, OnePlus 5+ |
 | `taybgo-seller-v1.0.16+17-2026-09-02-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones, budget devices, some tablets |
 | `taybgo-seller-v1.0.16+17-2026-09-02-prod-x86_64.apk` | x86 64-bit | Android emulators, Intel-based tablets, Chromebooks |
+
+### Current v1.0.19+21 Prod Split APKs (16 September 2026)
+
+| File | Architecture | Target Devices |
+|------|--------------|----------------|
+| `taybgo-seller-v1.0.19+21-2026-09-16-prod-arm64-v8a.apk` | ARM 64-bit | Most modern Android phones |
+| `taybgo-seller-v1.0.19+21-2026-09-16-prod-armeabi-v7a.apk` | ARM 32-bit | Older Android phones and some tablets |
+| `taybgo-seller-v1.0.19+21-2026-09-16-prod-x86_64.apk` | x86 64-bit | Android emulators and Chromebooks |
+
+The v1.0.19+21 APKs are signed release artifacts built from the preparation-timing release and kept locally for distribution.
 
 ### Current v1.0.18+20 Prod Split APKs (12 September 2026)
 
@@ -37,6 +47,16 @@ The APKs are signed production artifacts built with the TaybGo Seller app name. 
 | `taybgo-seller-v1.0.18+20-2026-09-12-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
 
 The dev APKs use the `Seller Dev` application label and the dev API configuration. They are kept locally for internal testing and are not committed to GitHub.
+
+### Current v1.0.19+21 Dev Split APKs (16 September 2026)
+
+| File | Architecture | Target Use |
+|------|--------------|------------|
+| `taybgo-seller-v1.0.19+21-2026-09-16-dev-arm64-v8a.apk` | ARM 64-bit | Internal testing on most modern Android phones |
+| `taybgo-seller-v1.0.19+21-2026-09-16-dev-armeabi-v7a.apk` | ARM 32-bit | Internal testing on older Android phones |
+| `taybgo-seller-v1.0.19+21-2026-09-16-dev-x86_64.apk` | x86 64-bit | Internal testing on emulators and Chromebooks |
+
+The v1.0.19+21 dev APKs use the `Seller Dev` application label and the development API configuration. They are kept locally for internal testing and are not committed to GitHub.
 
 ### Previous v1.0.16+17 Dev Split APKs
 | File | Architecture | Target Use |
@@ -85,6 +105,12 @@ The dev APKs use the `Seller Dev` application label and the dev API configuratio
 ---
 
 ## Changelog
+
+### v1.0.19 (16 September, 2026)
+- Added preparation estimates for food orders and scheduled driver search five minutes before estimated readiness
+- Kept preparation progress visible while driver search or assignment continues
+- Fixed menu-item photo removal so saving an item without a photo clears the previous image
+- Published dated dev and prod split APKs for ARM 64-bit, ARM 32-bit, and x86 64-bit devices
 
 ### v1.0.18 (12 September, 2026)
 - Added item-only editing for incoming orders before acceptance, allowing sellers to add, remove, or replace items while the server protects customer, address, payment, delivery-fee, and pricing data
@@ -193,4 +219,4 @@ The dev APKs use the `Seller Dev` application label and the dev API configuratio
 
 ---
 
-*Last updated: 2026-09-12*
+*Last updated: 2026-09-16*
