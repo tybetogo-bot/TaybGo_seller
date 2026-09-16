@@ -323,7 +323,7 @@
       "responseStatus": "Response status",
       "timerStartsAfterAccept": "Driver timing starts after acceptance.",
       "driverRequestIn": "Driver request in",
-      "driverReady": "Ready to request driver",
+      "driverReady": "Driver search is due",
       "receivedSecondsAgo": "{count}s",
       "receivedMinutesAgo": "{count}m",
       "receivedHoursAgo": "{count}h",
@@ -463,6 +463,20 @@
       "aiScanComplete": "AI Scan Complete",
       "fieldsExtracted": "Auto-filled",
       "fieldsToFill": "Please fill"
+    },
+    "preparation": {
+      "title": "Preparation time",
+      "description": "Choose when you expect the food to be ready. Driver search starts {count} minutes earlier, or immediately for shorter preparation times. This does not mark the food ready.",
+      "zeroMinutes": "0 minutes",
+      "custom": "Custom preparation time",
+      "searchImmediately": "Driver search starts immediately",
+      "searchIn": "Driver search starts in {count} min",
+      "readyIn": "Estimated ready in",
+      "estimateElapsed": "Preparation estimate elapsed",
+      "estimateExplanation": "This is an estimate, not confirmation that the food is ready.",
+      "saved": "Preparation estimate saved",
+      "timingSection": "Preparation and driver",
+      "refreshRequired": "Order timing options have changed. Review the refreshed order before trying again."
     }
   },
   "address": {

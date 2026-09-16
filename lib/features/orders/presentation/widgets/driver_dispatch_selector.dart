@@ -13,8 +13,13 @@ import '../../data/models/order_model.dart';
 Future<int?> showDriverDispatchDelaySelector(
   BuildContext context, {
   required OrderModel order,
+  bool preparationTiming = false,
+  int? preparationMaximum,
+  int leadMinutes = 5,
 }) {
-  final maximum = order.driverDispatchMaxDelayMinutes;
+  final maximum = preparationTiming
+      ? preparationMaximum
+      : order.driverDispatchMaxDelayMinutes;
   final presets = [
     0,
     5,
@@ -28,16 +33,30 @@ Future<int?> showDriverDispatchDelaySelector(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.42),
-    barrierLabel: 'orders.driverDispatchTitle'.tr,
-    builder: (_) => _DriverDispatchSheet(maximum: maximum, presets: presets),
+    barrierLabel: preparationTiming
+        ? 'orders.preparation.title'.tr
+        : 'orders.driverDispatchTitle'.tr,
+    builder: (_) => _DriverDispatchSheet(
+      maximum: maximum,
+      presets: presets,
+      preparationTiming: preparationTiming,
+      leadMinutes: leadMinutes,
+    ),
   );
 }
 
 class _DriverDispatchSheet extends StatefulWidget {
-  const _DriverDispatchSheet({required this.maximum, required this.presets});
+  const _DriverDispatchSheet({
+    required this.maximum,
+    required this.presets,
+    required this.preparationTiming,
+    required this.leadMinutes,
+  });
 
   final int? maximum;
   final List<int> presets;
+  final bool preparationTiming;
+  final int leadMinutes;
 
   @override
   State<_DriverDispatchSheet> createState() => _DriverDispatchSheetState();
@@ -55,7 +74,11 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
     super.initState();
     _customController = TextEditingController();
     _customFocusNode = FocusNode();
-    _selectedMinutes = widget.presets.isNotEmpty ? widget.presets.first : null;
+    _selectedMinutes = widget.presets.isEmpty
+        ? null
+        : widget.preparationTiming
+        ? widget.presets.last
+        : widget.presets.first;
   }
 
   @override
@@ -161,7 +184,9 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'orders.driverDispatchTitle'.tr,
+                          widget.preparationTiming
+                              ? 'orders.preparation.title'.tr
+                              : 'orders.driverDispatchTitle'.tr,
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w700,
@@ -169,7 +194,11 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'orders.driverDispatchDescription'.tr,
+                          widget.preparationTiming
+                              ? 'orders.preparation.description'.trParams({
+                                  'count': '${widget.leadMinutes}',
+                                })
+                              : 'orders.driverDispatchDescription'.tr,
                           style: TextStyle(
                             fontSize: 12.sp,
                             height: 1.3,
@@ -224,11 +253,15 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                   padding: EdgeInsets.only(bottom: 8.h),
                   child: _DispatchChoice(
                     title: minutes == 0
-                        ? 'orders.driverDispatchImmediately'.tr
+                        ? (widget.preparationTiming
+                              ? 'orders.preparation.zeroMinutes'.tr
+                              : 'orders.driverDispatchImmediately'.tr)
                         : 'orders.driverDispatchMinutes'.trParams({
                             'count': minutes.toString(),
                           }),
-                    subtitle: minutes == 0 ? 'orders.requestDriver'.tr : null,
+                    subtitle: widget.preparationTiming
+                        ? _searchExplanation(minutes)
+                        : (minutes == 0 ? 'orders.requestDriver'.tr : null),
                     icon: minutes == 0
                         ? Icons.flash_on_rounded
                         : Icons.schedule_rounded,
@@ -295,6 +328,12 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
     );
   }
 
+  String _searchExplanation(int minutes) => minutes <= widget.leadMinutes
+      ? 'orders.preparation.searchImmediately'.tr
+      : 'orders.preparation.searchIn'.trParams({
+          'count': '${minutes - widget.leadMinutes}',
+        });
+
   Widget _buildCustomChoice(Color primaryColor) {
     final theme = Theme.of(context);
     return Container(
@@ -337,7 +376,9 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
-                      'orders.driverDispatchCustom'.tr,
+                      widget.preparationTiming
+                          ? 'orders.preparation.custom'.tr
+                          : 'orders.driverDispatchCustom'.tr,
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
@@ -354,9 +395,16 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                   focusNode: _customFocusNode,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) => setState(() => _validationMessage = null),
                   decoration: InputDecoration(
                     labelText: 'orders.driverDispatchMinutesLabel'.tr,
                     hintText: '10',
+                    helperText:
+                        widget.preparationTiming &&
+                            int.tryParse(_customController.text) != null
+                        ? _searchExplanation(int.parse(_customController.text))
+                        : null,
+                    helperMaxLines: 3,
                     suffixText: 'orders.driverDispatchMinutesShort'.tr,
                     errorText: _validationMessage,
                     filled: true,
@@ -382,11 +430,6 @@ class _DriverDispatchSheetState extends State<_DriverDispatchSheet> {
                       borderSide: BorderSide(color: primaryColor, width: 1.4),
                     ),
                   ),
-                  onChanged: (_) {
-                    if (_validationMessage != null) {
-                      setState(() => _validationMessage = null);
-                    }
-                  },
                   onSubmitted: (_) => _continue(),
                 ),
               ],

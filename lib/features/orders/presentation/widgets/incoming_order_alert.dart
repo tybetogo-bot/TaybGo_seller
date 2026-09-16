@@ -213,7 +213,15 @@ class _IncomingOrderAlertHostState
   Future<bool> _acceptOrder(OrderModel order, int? delayMinutes) async {
     final success = await ref
         .read(ordersProvider.notifier)
-        .acceptOrder(order.id, driverDispatchDelayMinutes: delayMinutes);
+        .acceptOrder(
+          order.id,
+          driverDispatchDelayMinutes: order.canSetPreparationTime
+              ? null
+              : delayMinutes,
+          preparationTimeMinutes: order.canSetPreparationTime
+              ? delayMinutes
+              : null,
+        );
     if (success) _dismissOrder(order.id);
     return success;
   }
@@ -429,6 +437,9 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
       delayMinutes = await showDriverDispatchDelaySelector(
         context,
         order: order,
+        preparationTiming: order.canSetPreparationTime,
+        preparationMaximum: order.preparationMaxMinutes,
+        leadMinutes: order.driverDispatchLeadMinutes ?? 5,
       );
       if (!mounted || delayMinutes == null) return;
     }

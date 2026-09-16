@@ -261,6 +261,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
               newOrder.driverDispatchServerTime ||
           oldOrder.driverDispatchMaxDelayMinutes !=
               newOrder.driverDispatchMaxDelayMinutes ||
+          oldOrder.preparationReadyAt != newOrder.preparationReadyAt ||
+          oldOrder.preparationRemainingSeconds !=
+              newOrder.preparationRemainingSeconds ||
+          oldOrder.preparationServerTime != newOrder.preparationServerTime ||
+          oldOrder.preparationTimeMinutes != newOrder.preparationTimeMinutes ||
+          oldOrder.supportsPreparationTiming !=
+              newOrder.supportsPreparationTiming ||
+          oldOrder.preparationMaxMinutes != newOrder.preparationMaxMinutes ||
+          oldOrder.driverDispatchLeadMinutes !=
+              newOrder.driverDispatchLeadMinutes ||
+          oldOrder.readyAt != newOrder.readyAt ||
           oldOrder.fulfillmentType != newOrder.fulfillmentType ||
           !_listEquals(oldOrder.allowedActions, newOrder.allowedActions) ||
           !_listEquals(
@@ -317,14 +328,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
   Future<bool> acceptOrder(
     String orderId, {
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
     return _performOrderAction(
       orderId,
       () => _repository.acceptOrder(
         orderId,
         driverDispatchDelayMinutes: driverDispatchDelayMinutes,
+        preparationTimeMinutes: preparationTimeMinutes,
       ),
       fallbackError: 'Failed to accept order',
+      reconcileOnAmbiguousFailure: true,
     );
   }
 
@@ -382,13 +396,18 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   /// Schedule driver matching after a server-validated delay.
-  Future<bool> scheduleDriver(String orderId, int delayMinutes) async {
+  Future<bool> scheduleDriver(
+    String orderId,
+    int delayMinutes, {
+    bool preparationTiming = false,
+  }) async {
     return _performOrderAction(
       orderId,
       () => _repository.driverDispatch(
         orderId,
         action: DriverDispatchAction.schedule,
-        driverDispatchDelayMinutes: delayMinutes,
+        driverDispatchDelayMinutes: preparationTiming ? null : delayMinutes,
+        preparationTimeMinutes: preparationTiming ? delayMinutes : null,
       ),
       fallbackError: 'Failed to schedule driver request',
     );
@@ -396,13 +415,18 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Change an existing driver schedule. This operation is not retried by Dio;
   /// a failed response is treated as unknown and reconciled with a GET.
-  Future<bool> rescheduleDriver(String orderId, int delayMinutes) async {
+  Future<bool> rescheduleDriver(
+    String orderId,
+    int delayMinutes, {
+    bool preparationTiming = false,
+  }) async {
     return _performOrderAction(
       orderId,
       () => _repository.driverDispatch(
         orderId,
         action: DriverDispatchAction.reschedule,
-        driverDispatchDelayMinutes: delayMinutes,
+        driverDispatchDelayMinutes: preparationTiming ? null : delayMinutes,
+        preparationTimeMinutes: preparationTiming ? delayMinutes : null,
       ),
       fallbackError: 'Failed to change driver request time',
       refreshOnUnknownOutcome: true,
@@ -483,6 +507,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   String _actionErrorMessage(Failure failure, {String? fallbackKey}) {
     final key = switch (failure.code) {
+      'invalid_preparation_time' ||
+      'preparation_time_too_long' => 'orders.driverDispatchValidation',
+      'preparation_timing_disabled' ||
+      'preparation_timing_conflict' ||
+      'conflicting_dispatch_timing' => 'orders.preparation.refreshRequired',
       'driver_dispatch_delay_too_long' =>
         'orders.driverDispatchErrors.delayTooLong',
       'invalid_driver_dispatch_delay' =>
@@ -764,6 +793,7 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   bool isDriverDispatchAvailableForOrder(OrderModel order) {
+    if (order.canSetPreparationTime) return true;
     if (order.orderType.trim().toUpperCase() != 'FOOD') return false;
     final fulfillmentType =
         (order.fulfillmentType ?? order.requestedDeliveryType ?? '')

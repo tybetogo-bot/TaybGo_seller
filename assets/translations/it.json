@@ -323,7 +323,7 @@
       "responseStatus": "Stato della risposta",
       "timerStartsAfterAccept": "Il tempo dell'autista inizia dopo l'accettazione.",
       "driverRequestIn": "Richiesta autista tra",
-      "driverReady": "Pronto per richiedere un autista",
+      "driverReady": "È il momento di cercare un corriere",
       "receivedSecondsAgo": "{count}s fa",
       "receivedMinutesAgo": "{count}m fa",
       "receivedHoursAgo": "{count}h fa",
@@ -464,6 +464,20 @@
       "aiScanComplete": "Scansione AI completata",
       "fieldsExtracted": "Compilato automaticamente",
       "fieldsToFill": "Compila"
+    },
+    "preparation": {
+      "title": "Tempo di preparazione",
+      "description": "Indica quando il cibo dovrebbe essere pronto. La ricerca di un corriere inizia {count} minuti prima, o subito per preparazioni più brevi. Il cibo non viene contrassegnato come pronto automaticamente.",
+      "zeroMinutes": "0 minuti",
+      "custom": "Tempo personalizzato",
+      "searchImmediately": "La ricerca del corriere inizia subito",
+      "searchIn": "La ricerca del corriere inizia tra {count} min",
+      "readyIn": "Pronto tra circa",
+      "estimateElapsed": "Tempo di preparazione stimato trascorso",
+      "estimateExplanation": "Questa è una stima, non una conferma che il cibo sia pronto.",
+      "saved": "Tempo di preparazione salvato",
+      "timingSection": "Preparazione e corriere",
+      "refreshRequired": "Le opzioni temporali sono cambiate. Controlla l’ordine aggiornato prima di riprovare."
     }
   },
   "address": {

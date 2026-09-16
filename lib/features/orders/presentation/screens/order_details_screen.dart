@@ -160,6 +160,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       delayMinutes = await showDriverDispatchDelaySelector(
         context,
         order: order,
+        preparationTiming: order.canSetPreparationTime,
+        preparationMaximum: order.preparationMaxMinutes,
+        leadMinutes: order.driverDispatchLeadMinutes ?? 5,
       );
       if (!mounted || delayMinutes == null) return;
     }
@@ -168,13 +171,18 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     HapticFeedback.mediumImpact();
     final success = await notifier.acceptOrder(
       order.id,
-      driverDispatchDelayMinutes: delayMinutes,
+      driverDispatchDelayMinutes: order.canSetPreparationTime
+          ? null
+          : delayMinutes,
+      preparationTimeMinutes: order.canSetPreparationTime ? delayMinutes : null,
     );
     if (!mounted) return;
 
     if (success) {
       _showSuccessSnackBar(
-        delayMinutes != null && delayMinutes > 0
+        order.canSetPreparationTime && delayMinutes != null
+            ? 'orders.preparation.saved'.tr
+            : delayMinutes != null && delayMinutes > 0
             ? 'orders.driverRequestScheduled'.tr
             : 'orders.orderAcceptedSuccess'.tr,
       );
@@ -195,9 +203,14 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       delayMinutes = await showDriverDispatchDelaySelector(
         context,
         order: order,
+        preparationTiming: order.canSetPreparationTime,
+        preparationMaximum: order.preparationMaxMinutes,
+        leadMinutes: order.driverDispatchLeadMinutes ?? 5,
       );
       if (!mounted || delayMinutes == null) return;
-      if (delayMinutes == 0) action = DriverDispatchAction.requestNow;
+      if (delayMinutes == 0 && !order.canSetPreparationTime) {
+        action = DriverDispatchAction.requestNow;
+      }
     }
 
     setState(() => _isProcessing = true);
@@ -210,10 +223,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       DriverDispatchAction.schedule => await notifier.scheduleDriver(
         order.id,
         delayMinutes!,
+        preparationTiming: order.canSetPreparationTime,
       ),
       DriverDispatchAction.reschedule => await notifier.rescheduleDriver(
         order.id,
         delayMinutes!,
+        preparationTiming: order.canSetPreparationTime,
       ),
     };
     if (!mounted) return;
@@ -222,6 +237,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       _showSuccessSnackBar(
         action == DriverDispatchAction.requestNow
             ? 'orders.driverRequestStarted'.tr
+            : order.canSetPreparationTime
+            ? 'orders.preparation.saved'.tr
             : 'orders.driverRequestScheduled'.tr,
       );
     } else {
@@ -676,10 +693,15 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                   SizedBox(height: 20.h),
 
                   // Backend-owned driver dispatch state and countdown
-                  if (order.driverDispatchStatus != null ||
-                      order.hasDriverDispatchTimer) ...[
+                  if (!order.isCompleted &&
+                      order.status != OrderStatusEnum.onTheWay &&
+                      (order.driverDispatchStatus != null ||
+                          order.hasDriverDispatchTimer ||
+                          order.showPreparationEstimate)) ...[
                     _SectionTitle(
-                      title: 'orders.driverDispatch'.tr,
+                      title: order.hasPreparationEstimate
+                          ? 'orders.preparation.timingSection'.tr
+                          : 'orders.driverDispatch'.tr,
                       isDark: isDark,
                     ),
                     SizedBox(height: 12.h),
@@ -833,7 +855,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
           primaryAction.normalizedValue == 'CANCELLED';
       actionButtons.add(
         AppButton(
-          label: _getActionLabel(primaryAction),
+          label: _getActionLabel(primaryAction, order),
           icon: _getActionIcon(primaryAction),
           variant: isDanger
               ? AppButtonVariant.danger
@@ -851,7 +873,9 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         primaryAction?.normalizedValue == 'REQUEST_DRIVER_NOW') {
       actionButtons.add(
         AppButton(
-          label: 'orders.changeDriverRequestTime'.tr,
+          label: (order.canSetPreparationTime
+              ? 'orders.preparation.title'.tr
+              : 'orders.changeDriverRequestTime'.tr),
           icon: Icons.schedule_rounded,
           variant: AppButtonVariant.secondary,
           isLoading: _isProcessing,
@@ -895,16 +919,20 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     return _ActionButtonStack(children: actionButtons);
   }
 
-  String _getActionLabel(OrderAllowedAction action) {
+  String _getActionLabel(OrderAllowedAction action, OrderModel order) {
     switch (action.normalizedValue) {
       case 'ACCEPTED':
         return 'orders.acceptOrder'.tr;
       case 'REQUEST_DRIVER_NOW':
         return 'orders.requestDriverNow'.tr;
       case 'SCHEDULE_DRIVER':
-        return 'orders.scheduleDriver'.tr;
+        return order.canSetPreparationTime
+            ? 'orders.preparation.title'.tr
+            : 'orders.scheduleDriver'.tr;
       case 'RESCHEDULE_DRIVER':
-        return 'orders.changeDriverRequestTime'.tr;
+        return (order.canSetPreparationTime
+            ? 'orders.preparation.title'.tr
+            : 'orders.changeDriverRequestTime'.tr);
       case 'REJECTED':
         return 'orders.rejectOrder'.tr;
       case 'CANCELLED':

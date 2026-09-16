@@ -123,12 +123,16 @@ class OrdersApi {
   Future<OrderModel> acceptOrder(
     String id, {
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
+    _validateTimingFields(driverDispatchDelayMinutes, preparationTimeMinutes);
     final response = await _dio.post(
       ApiEndpoints.sellerOrderAccept(id),
       data: {
         if (driverDispatchDelayMinutes != null)
           'driver_dispatch_delay_minutes': driverDispatchDelayMinutes,
+        if (preparationTimeMinutes != null)
+          'preparation_time_minutes': preparationTimeMinutes,
       },
     );
     return _refreshOrderFromActionResponse(id, response);
@@ -140,15 +144,24 @@ class OrdersApi {
     String id, {
     required DriverDispatchAction action,
     int? driverDispatchDelayMinutes,
+    int? preparationTimeMinutes,
   }) async {
+    _validateTimingFields(driverDispatchDelayMinutes, preparationTimeMinutes);
     if ((action == DriverDispatchAction.schedule ||
             action == DriverDispatchAction.reschedule) &&
-        driverDispatchDelayMinutes == null) {
+        driverDispatchDelayMinutes == null &&
+        preparationTimeMinutes == null) {
       throw ArgumentError.value(
         driverDispatchDelayMinutes,
         'driverDispatchDelayMinutes',
         'A delay is required when scheduling driver dispatch.',
       );
+    }
+
+    if (action == DriverDispatchAction.requestNow &&
+        (preparationTimeMinutes != null ||
+            driverDispatchDelayMinutes != null)) {
+      throw ArgumentError('Request now must not change preparation timing.');
     }
 
     final response = await _dio.post(
@@ -158,12 +171,26 @@ class OrdersApi {
         if (action != DriverDispatchAction.requestNow &&
             driverDispatchDelayMinutes != null)
           'driver_dispatch_delay_minutes': driverDispatchDelayMinutes,
+        if (preparationTimeMinutes != null)
+          'preparation_time_minutes': preparationTimeMinutes,
       },
       options: action == DriverDispatchAction.reschedule
           ? Options(extra: {'disableRetry': true})
           : null,
     );
     return _refreshOrderFromActionResponse(id, response);
+  }
+
+  void _validateTimingFields(int? driverDelay, int? preparationTime) {
+    if (driverDelay != null && preparationTime != null) {
+      throw ArgumentError(
+        'Specify preparation time or driver delay, not both.',
+      );
+    }
+    if ((driverDelay != null && driverDelay < 0) ||
+        (preparationTime != null && preparationTime < 0)) {
+      throw ArgumentError('Timing must be non-negative whole minutes.');
+    }
   }
 
   Future<OrderModel> _refreshOrderFromActionResponse(

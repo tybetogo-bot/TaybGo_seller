@@ -323,7 +323,7 @@
       "responseStatus": "Vastauksen tila",
       "timerStartsAfterAccept": "Kuljettajan ajastus alkaa hyväksymisen jälkeen.",
       "driverRequestIn": "Kuljettapyyntö",
-      "driverReady": "Valmis pyytämään kuljettajaa",
+      "driverReady": "Kuljettajan haun on aika alkaa",
       "receivedSecondsAgo": "{count} s sitten",
       "receivedMinutesAgo": "{count} min sitten",
       "receivedHoursAgo": "{count} t sitten",
@@ -464,6 +464,20 @@
       "aiScanComplete": "Tekoäluskannaus valmis",
       "fieldsExtracted": "Täytetty automaattisesti",
       "fieldsToFill": "Täytä"
+    },
+    "preparation": {
+      "title": "Valmistusaika",
+      "description": "Valitse, milloin ruoan arvioidaan olevan valmis. Kuljettajan haku alkaa {count} minuuttia aiemmin tai heti, jos valmistusaika on lyhyempi. Ruokaa ei merkitä automaattisesti valmiiksi.",
+      "zeroMinutes": "0 minuuttia",
+      "custom": "Oma valmistusaika",
+      "searchImmediately": "Kuljettajan haku alkaa heti",
+      "searchIn": "Kuljettajan haku alkaa {count} min kuluttua",
+      "readyIn": "Arviolta valmis",
+      "estimateElapsed": "Arvioitu valmistusaika päättynyt",
+      "estimateExplanation": "Tämä on arvio, ei vahvistus ruoan valmistumisesta.",
+      "saved": "Valmistusaika tallennettu",
+      "timingSection": "Valmistus ja kuljettaja",
+      "refreshRequired": "Aikavalinnat ovat muuttuneet. Tarkista päivitetty tilaus ennen uutta yritystä."
     }
   },
   "address": {

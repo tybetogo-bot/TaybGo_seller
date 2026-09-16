@@ -319,7 +319,7 @@
       "responseStatus": "Antwortstatus",
       "timerStartsAfterAccept": "Die Fahrerzeit beginnt nach der Annahme.",
       "driverRequestIn": "Fahreranfrage in",
-      "driverReady": "Bereit, Fahrer anzufordern",
+      "driverReady": "Fahrersuche ist fällig",
       "receivedSecondsAgo": "vor {count} Sek.",
       "receivedMinutesAgo": "vor {count} Min.",
       "receivedHoursAgo": "vor {count} Std.",
@@ -465,7 +465,21 @@
     },
     "cancelOrder": "Bestellung stornieren",
     "confirmCancel": "Möchten Sie diese Bestellung wirklich stornieren?",
-    "cancel": "Stornieren"
+    "cancel": "Stornieren",
+    "preparation": {
+      "title": "Zubereitungszeit",
+      "description": "Wählen Sie, wann das Essen voraussichtlich fertig ist. Die Fahrersuche beginnt {count} Minuten vorher, bei kürzerer Zubereitung sofort. Das Essen wird dadurch nicht als fertig markiert.",
+      "zeroMinutes": "0 Minuten",
+      "custom": "Eigene Zubereitungszeit",
+      "searchImmediately": "Fahrersuche beginnt sofort",
+      "searchIn": "Fahrersuche beginnt in {count} Min.",
+      "readyIn": "Voraussichtlich fertig in",
+      "estimateElapsed": "Geschätzte Zubereitungszeit abgelaufen",
+      "estimateExplanation": "Dies ist eine Schätzung, keine Bestätigung, dass das Essen fertig ist.",
+      "saved": "Zubereitungszeit gespeichert",
+      "timingSection": "Zubereitung und Fahrer",
+      "refreshRequired": "Die Zeitoptionen haben sich geändert. Prüfen Sie die aktualisierte Bestellung vor einem erneuten Versuch."
+    }
   },
   "address": {
     "search": "Adresse suchen...",

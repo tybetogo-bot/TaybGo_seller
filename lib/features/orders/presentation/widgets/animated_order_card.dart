@@ -254,12 +254,16 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   }
 
   Future<void> _handleAcceptAction() async {
+    final order = widget.order;
     int? delayMinutes;
     final notifier = ref.read(ordersProvider.notifier);
-    if (notifier.isDriverDispatchAvailableForOrder(widget.order)) {
+    if (notifier.isDriverDispatchAvailableForOrder(order)) {
       delayMinutes = await showDriverDispatchDelaySelector(
         context,
-        order: widget.order,
+        order: order,
+        preparationTiming: order.canSetPreparationTime,
+        preparationMaximum: order.preparationMaxMinutes,
+        leadMinutes: order.driverDispatchLeadMinutes ?? 5,
       );
       if (!mounted || delayMinutes == null) return;
     }
@@ -269,14 +273,19 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     await _scaleController.forward();
 
     final success = await notifier.acceptOrder(
-      widget.order.id,
-      driverDispatchDelayMinutes: delayMinutes,
+      order.id,
+      driverDispatchDelayMinutes: order.canSetPreparationTime
+          ? null
+          : delayMinutes,
+      preparationTimeMinutes: order.canSetPreparationTime ? delayMinutes : null,
     );
     if (!mounted) return;
 
     if (success) {
       _showSimpleSnackBar(
-        delayMinutes != null && delayMinutes > 0
+        order.canSetPreparationTime && delayMinutes != null
+            ? 'orders.preparation.saved'.tr
+            : delayMinutes != null && delayMinutes > 0
             ? 'orders.driverRequestScheduled'.tr
             : 'orders.orderAcceptedSuccess'.tr,
         AppColors.success,
@@ -291,16 +300,22 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
   }
 
   Future<void> _handleDriverDispatchAction(DriverDispatchAction action) async {
+    final order = widget.order;
     int? delayMinutes;
     if (action != DriverDispatchAction.requestNow) {
       delayMinutes = await showDriverDispatchDelaySelector(
         context,
-        order: widget.order,
+        order: order,
+        preparationTiming: order.canSetPreparationTime,
+        preparationMaximum: order.preparationMaxMinutes,
+        leadMinutes: order.driverDispatchLeadMinutes ?? 5,
       );
       if (!mounted || delayMinutes == null) return;
       // Choosing "Immediately" is semantically a request-now operation and
       // avoids sending a zero-delay RESCHEDULE to the backend.
-      if (delayMinutes == 0) action = DriverDispatchAction.requestNow;
+      if (delayMinutes == 0 && !order.canSetPreparationTime) {
+        action = DriverDispatchAction.requestNow;
+      }
     }
 
     setState(() => _isProcessing = true);
@@ -308,15 +323,17 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
     final notifier = ref.read(ordersProvider.notifier);
     final success = switch (action) {
       DriverDispatchAction.requestNow => await notifier.requestDriverNow(
-        widget.order.id,
+        order.id,
       ),
       DriverDispatchAction.schedule => await notifier.scheduleDriver(
-        widget.order.id,
+        order.id,
         delayMinutes!,
+        preparationTiming: order.canSetPreparationTime,
       ),
       DriverDispatchAction.reschedule => await notifier.rescheduleDriver(
-        widget.order.id,
+        order.id,
         delayMinutes!,
+        preparationTiming: order.canSetPreparationTime,
       ),
     };
 
@@ -325,6 +342,8 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       _showSimpleSnackBar(
         action == DriverDispatchAction.requestNow
             ? 'orders.driverRequestStarted'.tr
+            : order.canSetPreparationTime
+            ? 'orders.preparation.saved'.tr
             : 'orders.driverRequestScheduled'.tr,
         AppColors.success,
       );
@@ -573,9 +592,13 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
       case 'REQUEST_DRIVER_NOW':
         return 'orders.requestDriverNow'.tr;
       case 'SCHEDULE_DRIVER':
-        return 'orders.scheduleDriver'.tr;
+        return widget.order.canSetPreparationTime
+            ? 'orders.preparation.title'.tr
+            : 'orders.scheduleDriver'.tr;
       case 'RESCHEDULE_DRIVER':
-        return 'orders.changeDriverRequestTime'.tr;
+        return (widget.order.canSetPreparationTime
+            ? 'orders.preparation.title'.tr
+            : 'orders.changeDriverRequestTime'.tr);
       case 'REJECTED':
         return 'orders.rejectOrder'.tr;
       case 'CANCELLED':
@@ -1045,8 +1068,11 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                     ],
                                   ),
 
-                                  if (order.driverDispatchStatus != null &&
-                                      status != OrderStatusEnum.pending) ...[
+                                  if ((order.driverDispatchStatus != null ||
+                                          order.showPreparationEstimate) &&
+                                      status != OrderStatusEnum.pending &&
+                                      !order.isCompleted &&
+                                      status != OrderStatusEnum.onTheWay) ...[
                                     SizedBox(height: 12.h),
                                     IncomingOrderTimer(
                                       order: order,
@@ -1093,8 +1119,10 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                     SizedBox(height: 8.h),
                                     _SecondaryActionButton(
                                       onTap: _handlePrimaryActionForReschedule,
-                                      label:
-                                          'orders.changeDriverRequestTime'.tr,
+                                      label: (widget.order.canSetPreparationTime
+                                          ? 'orders.preparation.title'.tr
+                                          : 'orders.changeDriverRequestTime'
+                                                .tr),
                                       icon: Icons.schedule_rounded,
                                       isLoading: _isProcessing,
                                     ),
