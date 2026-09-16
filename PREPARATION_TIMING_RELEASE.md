@@ -32,7 +32,8 @@ Requesting a driver immediately must preserve the preparation estimate.
   services have auto-deploy disabled.
 - [x] Agree on seller/customer API fields, compatibility, and allowed actions.
 - [ ] Independently review backend, seller, and customer diffs.
-- [ ] Verify backend boundary, reschedule, cancellation, and stale-task tests.
+- [x] Verify backend boundary, reschedule, cancellation, and stale-task tests.
+  Independent in-memory SQLite run: all 42 seller-order API tests passed.
 - [x] Verify preparation remains visible while driver search/assignment proceeds
   in seller widget tests; authenticated development proof is still pending.
 - [x] Verify countdown does not restart on remount or app resume in widget tests.
@@ -64,3 +65,15 @@ wording does not imply that one exists.
   the backend development deployment.
 - Menu photo removal is included as a separate commit (`03d181a`): an explicit
   null image is sent when saving removal, matching the backend's nullable field.
+
+## Operational limits for production review
+
+The existing backend permits seller cancellation only while status is ACCEPTED
+and no driver is assigned. Starting driver search changes that status, so both
+seller cancellation and preparation rescheduling become unavailable when the
+search starts, even if no driver has accepted yet. This change preserves that
+policy; it does not add a way to extend preparation after searching begins.
+
+Starting a search does not guarantee driver availability or arrival. Live
+development validation must check the actual worker transition independently
+of the countdown reaching zero.
