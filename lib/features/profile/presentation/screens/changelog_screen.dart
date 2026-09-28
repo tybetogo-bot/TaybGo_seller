@@ -11,9 +11,14 @@ class ChangelogScreen extends ConsumerWidget {
 
   static const _releases = [
     _ReleaseNotes(
+      version: '1.0.20+22',
+      dateKey: 'changelog.v1020.date',
+      isCurrent: true,
+      changeKeys: ['changelog.v1020.change1', 'changelog.v1020.change2'],
+    ),
+    _ReleaseNotes(
       version: '1.0.19+21',
       dateKey: 'changelog.v1019.date',
-      isCurrent: true,
       changeKeys: [
         'changelog.v1019.change1',
         'changelog.v1019.change2',
