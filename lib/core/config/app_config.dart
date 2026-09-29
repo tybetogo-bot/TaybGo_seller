@@ -10,9 +10,9 @@ class AppConfig {
   // App Info (environment-aware)
   static String get appName => EnvConfig.appName;
   static String get appNameAr => EnvConfig.appNameAr;
-  static const String appVersion = '1.0.20+22';
-  static const String releaseDate = '28 September, 2026';
-  static const String releaseDateCompact = '28 Sep 2026';
+  static const String appVersion = '1.0.21+23';
+  static const String releaseDate = '30 September, 2026';
+  static const String releaseDateCompact = '30 Sep 2026';
   static String get compactReleaseLabel => 'v$appVersion | $releaseDateCompact';
 
   // API Configuration (environment-aware)
