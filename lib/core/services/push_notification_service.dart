@@ -22,7 +22,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 const _iosNotificationSound = 'notif_sound.caf';
 const _androidNotificationChannelPrefix = 'seller_order_alerts_v3';
-const _androidBackgroundNotificationChannelId = 'seller_background_alerts_v1';
+const _androidBackgroundNotificationChannelId = 'seller_background_alerts_v2';
 const _androidBackgroundNotificationSoundResource = 'notif_background';
 
 String _androidNotificationChannelId(int repeatCount) {

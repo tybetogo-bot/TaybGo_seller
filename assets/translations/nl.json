@@ -843,6 +843,12 @@
       "change1": "Verkopersprofiel vernieuwd met compacte restaurantkop en gegroepeerde instellingen.",
       "change2": "Bediening voor bezorgbeschikbaarheid toegevoegd en restaurantstatus gesynchroniseerd.",
       "change3": "Bestelacties bijgewerkt volgens de door de server toegestane statussen."
+    },
+    "v1022": {
+      "date": "2 oktober 2026",
+      "change1": "Nieuwe bestellingen tonen alle artikelen, aantallen, aanpassingen en opmerkingen; klantgegevens zijn ingeklapt.",
+      "change2": "De bereidingstijd van nul minuten is verwijderd.",
+      "change3": "Het Android-meldingsgeluid op de achtergrond is bijgewerkt."
     }
   },
   "earnings": {

@@ -859,6 +859,12 @@
       "change1": "Redesigned the seller profile with a compact restaurant header and grouped settings.",
       "change2": "Added delivery availability controls and kept restaurant state synchronized.",
       "change3": "Updated order actions to follow the statuses allowed by the server."
+    },
+    "v1022": {
+      "date": "2 October, 2026",
+      "change1": "Incoming orders now prioritize all items, quantities, customizations and notes, with customer details collapsed.",
+      "change2": "Removed the zero-minute preparation preset.",
+      "change3": "Updated the Android background notification sound."
     }
   },
   "earnings": {

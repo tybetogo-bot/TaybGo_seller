@@ -844,6 +844,12 @@
       "change1": "Refonte du profil vendeur avec un en-tête de restaurant compact et des réglages regroupés.",
       "change2": "Ajout des contrôles de disponibilité de livraison et synchronisation de l’état du restaurant.",
       "change3": "Mise à jour des actions de commande selon les statuts autorisés par le serveur."
+    },
+    "v1022": {
+      "date": "2 octobre 2026",
+      "change1": "Les commandes entrantes mettent en avant tous les articles, quantités, personnalisations et notes, avec les détails client repliés.",
+      "change2": "Suppression du choix de préparation de zéro minute.",
+      "change3": "Mise à jour du son des notifications Android en arrière-plan."
     }
   },
   "earnings": {
