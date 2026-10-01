@@ -1127,14 +1127,19 @@ class _AnimatedOrderCardState extends ConsumerState<AnimatedOrderCard>
                                       isLoading: _isProcessing,
                                     ),
                                   ],
-                                  if (canReject) ...[
+                                  if (canReject &&
+                                      primaryAction?.normalizedValue !=
+                                          'REJECTED') ...[
                                     SizedBox(height: 8.h),
                                     _RejectOrderButton(
                                       onTap: _handleReject,
                                       isLoading: _isProcessing,
                                     ),
                                   ],
-                                  if (canCancel && !canReject) ...[
+                                  if (canCancel &&
+                                      !canReject &&
+                                      primaryAction?.normalizedValue !=
+                                          'CANCELLED') ...[
                                     SizedBox(height: 8.h),
                                     _SecondaryActionButton(
                                       onTap: _handleCancel,

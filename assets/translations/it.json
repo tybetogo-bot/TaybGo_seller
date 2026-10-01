@@ -843,6 +843,12 @@
       "change1": "Profilo venditore ridisegnato con intestazione compatta e impostazioni raggruppate.",
       "change2": "Aggiunti i controlli di disponibilità della consegna e sincronizzato lo stato del ristorante.",
       "change3": "Azioni degli ordini aggiornate in base agli stati consentiti dal server."
+    },
+    "v1022": {
+      "date": "2 ottobre 2026",
+      "change1": "Gli ordini in arrivo mostrano tutti gli articoli, quantità, personalizzazioni e note, con i dettagli cliente compressi.",
+      "change2": "Rimossa la preparazione di zero minuti.",
+      "change3": "Aggiornato il suono delle notifiche Android in background."
     }
   },
   "earnings": {
