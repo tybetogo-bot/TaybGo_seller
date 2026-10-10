@@ -22,6 +22,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 const _iosNotificationSound = 'notif_sound.caf';
 const _androidNotificationChannelPrefix = 'seller_order_alerts_v3';
+const _androidBackgroundNotificationChannelId = 'seller_background_alerts_v2';
+const _androidBackgroundNotificationSoundResource = 'notif_background';
 
 String _androidNotificationChannelId(int repeatCount) {
   return '${_androidNotificationChannelPrefix}_$repeatCount';
@@ -220,6 +222,22 @@ class PushNotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
     if (androidNotifications == null) return;
+
+    // FCM uses this channel when Android displays a notification while the app
+    // is backgrounded or closed. Keep it separate from the configurable
+    // foreground order-alert channels so foreground preferences remain intact.
+    await androidNotifications.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _androidBackgroundNotificationChannelId,
+        'Background Notifications',
+        description: 'Notifications received while the app is not open.',
+        importance: Importance.high,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound(
+          _androidBackgroundNotificationSoundResource,
+        ),
+      ),
+    );
 
     for (final repeatCount
         in AppNotificationSettings.supportedOrderAlertRepeatCounts) {

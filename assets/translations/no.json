@@ -843,6 +843,12 @@
       "change1": "Selgerprofilen er redesignet med kompakt restauranthode og grupperte innstillinger.",
       "change2": "Kontroller for leveringstilgjengelighet lagt til og restaurantstatus synkronisert.",
       "change3": "Bestillingshandlinger følger nå statusene serveren tillater."
+    },
+    "v1022": {
+      "date": "2. oktober 2026",
+      "change1": "Nye bestillinger viser alle varer, antall, tilpasninger og merknader med sammenfoldede kundedetaljer.",
+      "change2": "Forberedelsesvalget på null minutter er fjernet.",
+      "change3": "Android-varslingslyden i bakgrunnen er oppdatert."
     }
   },
   "earnings": {

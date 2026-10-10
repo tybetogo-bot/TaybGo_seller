@@ -45,7 +45,8 @@ void main() {
       await _open(tester, onSelected: (value) => chosen = value);
       expect(find.text('Preparation time'), findsOneWidget);
       expect(find.text('Driver search starts in 10 min'), findsOneWidget);
-      expect(find.text('Driver search starts immediately'), findsNWidgets(2));
+      expect(find.text('Driver search starts immediately'), findsOneWidget);
+      expect(find.text('0 minutes'), findsNothing);
       await tester.tap(find.text('15 minutes'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Continue'));

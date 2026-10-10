@@ -770,6 +770,23 @@
     "menuSubtitle": "See what changed in the latest TaybGo Seller versions.",
     "current": "Current",
     "version": "Version {version}",
+    "v1021": {
+      "date": "30 September 2026",
+      "change1": "Added a dedicated Android background notification channel with a custom alert sound.",
+      "change2": "Background notifications now use the new 20-second sound while foreground notifications keep the selected repeat setting."
+    },
+    "v1020": {
+      "date": "28 September 2026",
+      "change1": "Fixed duplicate cancel or reject buttons on order cards.",
+      "change2": "Improved order cards to prioritize the next available status action."
+    },
+    "v1019": {
+      "date": "16 September 2026",
+      "change1": "Added preparation estimates for food orders and schedules driver search five minutes before estimated readiness.",
+      "change2": "Kept preparation progress visible while driver search or assignment continues.",
+      "change3": "Fixed menu-item photo removal so saving an item without a photo clears the previous image.",
+      "change4": "Published dated dev and prod split APKs for ARM 64-bit, ARM 32-bit, and x86 64-bit devices."
+    },
     "v1018": {
       "date": "12 September 2026",
       "change1": "Added a full-screen incoming-order experience with smooth animations, compact order essentials, accept/reject actions, and support for multiple new orders.",
@@ -842,6 +859,12 @@
       "change1": "Redesigned the seller profile with a compact restaurant header and grouped settings.",
       "change2": "Added delivery availability controls and kept restaurant state synchronized.",
       "change3": "Updated order actions to follow the statuses allowed by the server."
+    },
+    "v1022": {
+      "date": "2 October, 2026",
+      "change1": "Incoming orders now prioritize all items, quantities, customizations and notes, with customer details collapsed.",
+      "change2": "Removed the zero-minute preparation preset.",
+      "change3": "Updated the Android background notification sound."
     }
   },
   "earnings": {

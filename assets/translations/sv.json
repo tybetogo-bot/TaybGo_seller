@@ -843,6 +843,12 @@
       "change1": "Säljarprofilen har gjorts om med kompakt restauranghuvud och grupperade inställningar.",
       "change2": "Kontroller för leveranstillgänglighet tillagda och restaurangstatus synkroniserad.",
       "change3": "Beställningsåtgärder följer nu statusarna som servern tillåter."
+    },
+    "v1022": {
+      "date": "2 oktober 2026",
+      "change1": "Nya beställningar visar alla artiklar, antal, anpassningar och anteckningar med hopfällda kunduppgifter.",
+      "change2": "Förberedelsetiden på noll minuter har tagits bort.",
+      "change3": "Android-aviseringsljudet i bakgrunden har uppdaterats."
     }
   },
   "earnings": {

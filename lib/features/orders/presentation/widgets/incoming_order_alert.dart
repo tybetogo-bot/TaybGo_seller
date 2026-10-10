@@ -707,8 +707,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
               children: [
                 _buildTopBar(textSecondary),
                 SizedBox(height: 10.h),
-                _buildHero(),
-                SizedBox(height: 8.h),
+
                 Text(
                   'orders.incoming.title'.tr,
                   textAlign: TextAlign.center,
@@ -853,51 +852,6 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     );
   }
 
-  Widget _buildHero() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final heroScale = CurvedAnimation(
-      parent: _entryController,
-      curve: const Interval(0.08, 0.82, curve: Curves.easeOutBack),
-    );
-    return ScaleTransition(
-      scale: Tween<double>(begin: 0.86, end: 1).animate(heroScale),
-      child: Container(
-        width: 68.w,
-        height: 68.w,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: isDark ? 0.11 : 0.08),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.18),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: isDark ? 0.14 : 0.1),
-              blurRadius: 22,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Container(
-          width: 50.w,
-          height: 50.w,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.receipt_long_rounded,
-            color: Colors.white,
-            size: 25.w,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildOrderCard(
     OrderModel order,
     Color textPrimary,
@@ -940,8 +894,8 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
                 '#${order.id}',
                 style: TextStyle(
                   color: textPrimary,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               SizedBox(width: 8.w),
@@ -954,33 +908,39 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
               ),
             ],
           ),
-          SizedBox(height: 11.h),
-          Divider(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : const Color(0xFFE2ECE6),
-            height: 1,
-          ),
-          SizedBox(height: 12.h),
-          _InfoRow(
-            icon: Icons.person_outline_rounded,
-            label: 'orders.customerName'.tr,
-            value: order.customerName,
-            textPrimary: textPrimary,
-            textSecondary: textSecondary,
-          ),
-          if (!_isPickupOrder(order)) ...[
-            SizedBox(height: 10.h),
-            _InfoRow(
-              icon: Icons.location_on_outlined,
-              label: 'orders.deliveryAddress'.tr,
-              value: _addressLabel(order),
-              textPrimary: textPrimary,
-              textSecondary: textSecondary,
-            ),
-          ],
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           _buildItemSummary(order, textPrimary, textSecondary),
+          SizedBox(height: 8.h),
+          Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.only(bottom: 12.h),
+              title: Text(
+                'orders.orderDetails'.tr,
+                style: TextStyle(color: textSecondary, fontSize: 12.sp),
+              ),
+              children: [
+                _InfoRow(
+                  icon: Icons.person_outline_rounded,
+                  label: 'orders.customerName'.tr,
+                  value: order.customerName,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                ),
+                if (!_isPickupOrder(order)) ...[
+                  SizedBox(height: 8.h),
+                  _InfoRow(
+                    icon: Icons.location_on_outlined,
+                    label: 'orders.deliveryAddress'.tr,
+                    value: _addressLabel(order),
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
+                  ),
+                ],
+              ],
+            ),
+          ),
           SizedBox(height: 12.h),
           Container(
             padding: EdgeInsets.only(top: 12.h),
@@ -1076,33 +1036,83 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
             ],
           ),
           SizedBox(height: 8.h),
-          Text(
-            _itemSummary(order),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: textSecondary,
-              fontSize: 11.sp,
-              height: 1.4,
+          if (items.isEmpty)
+            Text('orders.noItems'.tr)
+          else
+            ...items.map((item) {
+              final details = <String>[
+                ...item.customizations.map((option) => option.name),
+                if (item.customizationsText?.trim().isNotEmpty == true)
+                  item.customizationsText!.trim(),
+                if (item.notes?.trim().isNotEmpty == true) item.notes!.trim(),
+              ];
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44.w,
+                      padding: EdgeInsets.symmetric(vertical: 7.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Text(
+                        '${item.quantity}×',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: textPrimary,
+                          fontSize: 19.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              color: textPrimary,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (details.isNotEmpty) ...[
+                            SizedBox(height: 4.h),
+                            Text(
+                              details.join(' · '),
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 13.sp,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          if (order.notes?.trim().isNotEmpty == true) ...[
+            SizedBox(height: 8.h),
+            Text(
+              '${'orders.notes'.tr}: ${order.notes!.trim()}',
+              style: TextStyle(
+                color: textPrimary,
+                fontSize: 13.sp,
+                height: 1.4,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
-  }
-
-  String _itemSummary(OrderModel order) {
-    if (order.items.isEmpty) return 'orders.noItems'.tr;
-
-    final visibleItems = order.items.take(3).map((item) {
-      return '${item.quantity}× ${item.name}';
-    }).toList();
-    final summary = visibleItems.join('  ·  ');
-    final remaining = order.items.length - visibleItems.length;
-    if (remaining > 0) {
-      return '$summary  ·  ${'orders.incoming.moreItems'.trParams({'count': '$remaining'})}';
-    }
-    return summary;
   }
 
   Widget _buildErrorMessage(String message) {

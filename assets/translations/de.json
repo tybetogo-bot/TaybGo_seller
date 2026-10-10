@@ -844,6 +844,12 @@
       "change1": "Verkäuferprofil mit kompakter Restaurant-Kopfzeile und gruppierten Einstellungen neu gestaltet.",
       "change2": "Steuerung der Lieferverfügbarkeit hinzugefügt und Restaurantstatus synchron gehalten.",
       "change3": "Bestellaktionen an die vom Server erlaubten Status angepasst."
+    },
+    "v1022": {
+      "date": "2. Oktober 2026",
+      "change1": "Eingehende Bestellungen zeigen alle Artikel, Mengen, Anpassungen und Hinweise; Kundendetails sind eingeklappt.",
+      "change2": "Die Vorbereitungsoption mit null Minuten wurde entfernt.",
+      "change3": "Der Android-Benachrichtigungston im Hintergrund wurde aktualisiert."
     }
   },
   "earnings": {

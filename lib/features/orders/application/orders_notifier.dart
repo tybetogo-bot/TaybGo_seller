@@ -755,8 +755,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
       'REQUEST_DRIVER_NOW',
       'SCHEDULE_DRIVER',
       'RESCHEDULE_DRIVER',
-      'REJECTED',
-      'CANCELLED',
+      'RESTAURANT_DELIVERED',
+      'DELIVERED',
+      'COMPLETED',
+      'SEARCHING_FOR_DRIVER',
     ];
     for (final value in priority) {
       final action = order.allowedAction(value);
@@ -764,7 +766,21 @@ class OrdersNotifier extends Notifier<OrdersState> {
     }
 
     if (order.allowedActions.isNotEmpty) {
-      return order.allowedActions.first;
+      // Prefer an available forward/domain action even if the backend's list
+      // happens to put a destructive action such as CANCELLED first.
+      const destructiveActions = {'REJECTED', 'CANCELLED'};
+      for (final action in order.allowedActions) {
+        if (!destructiveActions.contains(action.normalizedValue)) {
+          return action;
+        }
+      }
+      // If only destructive actions were returned, use a forward status from
+      // the legacy status options when available. Otherwise the card renders
+      // rejection/cancellation in its secondary area.
+      final nextStatus = getNextStatusForOrder(order);
+      return nextStatus == null
+          ? null
+          : OrderAllowedAction(value: _statusToApiString(nextStatus));
     }
 
     // Acceptance is a dedicated seller action even for legacy responses that

@@ -21,7 +21,7 @@ Future<int?> showDriverDispatchDelaySelector(
       ? preparationMaximum
       : order.driverDispatchMaxDelayMinutes;
   final presets = [
-    0,
+    if (!preparationTiming) 0,
     5,
     10,
     15,

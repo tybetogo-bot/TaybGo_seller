@@ -843,6 +843,12 @@
       "change1": "Verkeeferprofil mat kompakter Restaurant-Kappzeil a gruppéierten Astellungen nei gestalt.",
       "change2": "Steierung vun der Liwwerverfügbarkeet dobäigesat an de Restaurantstatus synchron gehalen.",
       "change3": "Bestellaktiounen un déi vum Server erlaabte Statussen ugepasst."
+    },
+    "v1022": {
+      "date": "2. Oktober 2026",
+      "change1": "Nei Bestellunge weisen all Artikelen, Quantitéiten, Upassungen an Notizen mat zougeklappte Clientdetailer.",
+      "change2": "Déi null Minutte Virbereedungszäit gouf ewechgeholl.",
+      "change3": "Den Android-Notifikatiounstoun am Hannergrond gouf aktualiséiert."
     }
   },
   "earnings": {

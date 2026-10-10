@@ -843,6 +843,12 @@
       "change1": "Myyjäprofiili uudistettiin kompaktilla ravintolaotsikolla ja ryhmitellyillä asetuksilla.",
       "change2": "Toimituksen saatavuuden hallinta lisättiin ja ravintolan tila pidetään synkronoituna.",
       "change3": "Tilaustoiminnot päivitettiin palvelimen sallimien tilojen mukaisiksi."
+    },
+    "v1022": {
+      "date": "2. lokakuuta 2026",
+      "change1": "Saapuvat tilaukset näyttävät kaikki tuotteet, määrät, muokkaukset ja huomautukset; asiakkaan tiedot on tiivistetty.",
+      "change2": "Nollan minuutin valmistusaika poistettiin.",
+      "change3": "Androidin taustailmoitusääni päivitettiin."
     }
   },
   "earnings": {
