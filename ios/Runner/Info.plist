@@ -28,6 +28,27 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -50,11 +71,11 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to detect your country and show relevant address suggestions.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We need your location to detect your country and show relevant address suggestions.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Use the camera to photograph menu items and verification documents, scan QR codes, and read orders.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Select photos for menu items and restaurant verification documents.</string>
 </dict>
 </plist>

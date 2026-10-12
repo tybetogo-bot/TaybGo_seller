@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyB-hytdKnDrSplmnjAL_AOUAP9YhtIi8Zs</string>
+	<string>AIzaSyBDnatqPi8ummbGMH6fb9jxgoATnnmJfiU</string>
 	<key>GCM_SENDER_ID</key>
-	<string>861868751268</string>
+	<string>188938523542</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.tybetogo.seller</string>
+	<string>com.taybgo.seller</string>
 	<key>PROJECT_ID</key>
-	<string>tybetogoseller</string>
+	<string>sellertaybgo</string>
 	<key>STORAGE_BUCKET</key>
-	<string>tybetogoseller.firebasestorage.app</string>
+	<string>sellertaybgo.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:861868751268:ios:72e72cf8cc316904352931</string>
+	<string>1:188938523542:ios:1e5c62e1094e84646343b7</string>
 </dict>
 </plist>

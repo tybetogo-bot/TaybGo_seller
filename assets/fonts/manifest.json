@@ -1,0 +1,104 @@
+[
+  {
+    "file": "Poppins-Thin.ttf",
+    "sha256": "62fbc976e89f481e5cfbdd8c5ba3fb2d54d34f321d26e09d0aee1e92322f4c03",
+    "size": 157916,
+    "source": "https://fonts.gstatic.com/s/a/62fbc976e89f481e5cfbdd8c5ba3fb2d54d34f321d26e09d0aee1e92322f4c03.ttf"
+  },
+  {
+    "file": "Poppins-ExtraLight.ttf",
+    "sha256": "5e69d1e6141575a4e9376c58d0c7df89225d9d824b31f2190da9737b6dfb004c",
+    "size": 157716,
+    "source": "https://fonts.gstatic.com/s/a/5e69d1e6141575a4e9376c58d0c7df89225d9d824b31f2190da9737b6dfb004c.ttf"
+  },
+  {
+    "file": "Poppins-Light.ttf",
+    "sha256": "c2cc8d8186b7df39bad617387a8c35ac03820abc2646973434ead86fe89041a7",
+    "size": 156188,
+    "source": "https://fonts.gstatic.com/s/a/c2cc8d8186b7df39bad617387a8c35ac03820abc2646973434ead86fe89041a7.ttf"
+  },
+  {
+    "file": "Poppins-Regular.ttf",
+    "sha256": "2dd6eb23c4972b346197d272c4e2479b89ed240ece4d2b0e0cd89f0c1caa2710",
+    "size": 154628,
+    "source": "https://fonts.gstatic.com/s/a/2dd6eb23c4972b346197d272c4e2479b89ed240ece4d2b0e0cd89f0c1caa2710.ttf"
+  },
+  {
+    "file": "Poppins-Medium.ttf",
+    "sha256": "c0ba5609d6562c76ab7db73fa9c9b283d210598cb318a45d4085f540e4753d60",
+    "size": 152860,
+    "source": "https://fonts.gstatic.com/s/a/c0ba5609d6562c76ab7db73fa9c9b283d210598cb318a45d4085f540e4753d60.ttf"
+  },
+  {
+    "file": "Poppins-SemiBold.ttf",
+    "sha256": "ec23e010878cf0841f910ef94f62294e40c7d77ce99be250dba2911d0a1a61cd",
+    "size": 151516,
+    "source": "https://fonts.gstatic.com/s/a/ec23e010878cf0841f910ef94f62294e40c7d77ce99be250dba2911d0a1a61cd.ttf"
+  },
+  {
+    "file": "Poppins-Bold.ttf",
+    "sha256": "ed709f2ba2be295030614990104cb4c9c62bc2a2445c25ccb19a1500158a5a8b",
+    "size": 150292,
+    "source": "https://fonts.gstatic.com/s/a/ed709f2ba2be295030614990104cb4c9c62bc2a2445c25ccb19a1500158a5a8b.ttf"
+  },
+  {
+    "file": "Poppins-ExtraBold.ttf",
+    "sha256": "959b003f035e38fa3f274632c1f7b54983688f9e8860c1bd0335fd1b309dec74",
+    "size": 149072,
+    "source": "https://fonts.gstatic.com/s/a/959b003f035e38fa3f274632c1f7b54983688f9e8860c1bd0335fd1b309dec74.ttf"
+  },
+  {
+    "file": "Poppins-Black.ttf",
+    "sha256": "3b2ce657fc4350b5a66ba61a748986d01abfe385401cb581ed35c44a7a1d5d88",
+    "size": 147708,
+    "source": "https://fonts.gstatic.com/s/a/3b2ce657fc4350b5a66ba61a748986d01abfe385401cb581ed35c44a7a1d5d88.ttf"
+  },
+  {
+    "file": "Cairo-ExtraLight.ttf",
+    "sha256": "2a2c41dbf645ddb945efc81d1422f800b865926524094332e1ba30472f0a9d87",
+    "size": 89756,
+    "source": "https://fonts.gstatic.com/s/a/2a2c41dbf645ddb945efc81d1422f800b865926524094332e1ba30472f0a9d87.ttf"
+  },
+  {
+    "file": "Cairo-Light.ttf",
+    "sha256": "977a79d9ee48b798e07e87163a0ee7ffd2afa8489bacb86e731398521b2316ed",
+    "size": 89808,
+    "source": "https://fonts.gstatic.com/s/a/977a79d9ee48b798e07e87163a0ee7ffd2afa8489bacb86e731398521b2316ed.ttf"
+  },
+  {
+    "file": "Cairo-Regular.ttf",
+    "sha256": "d33c4f55184435de6dd2689c7de5c584345f30f0c3e71aac1ba192a947539b00",
+    "size": 91476,
+    "source": "https://fonts.gstatic.com/s/a/d33c4f55184435de6dd2689c7de5c584345f30f0c3e71aac1ba192a947539b00.ttf"
+  },
+  {
+    "file": "Cairo-Medium.ttf",
+    "sha256": "2cb077d8adfe4d736f82d28ca819566b679a65d48130b88ea3598571ee0df5b9",
+    "size": 91652,
+    "source": "https://fonts.gstatic.com/s/a/2cb077d8adfe4d736f82d28ca819566b679a65d48130b88ea3598571ee0df5b9.ttf"
+  },
+  {
+    "file": "Cairo-SemiBold.ttf",
+    "sha256": "4e6073ae527edd74dbc806ae3574c81b7e62019849bdf941d370ec74e0a1b936",
+    "size": 91700,
+    "source": "https://fonts.gstatic.com/s/a/4e6073ae527edd74dbc806ae3574c81b7e62019849bdf941d370ec74e0a1b936.ttf"
+  },
+  {
+    "file": "Cairo-Bold.ttf",
+    "sha256": "cab28147a27dac0ed15216e54ee741dba1d8d416e276bfc117ccdfbfe8eeeef5",
+    "size": 91640,
+    "source": "https://fonts.gstatic.com/s/a/cab28147a27dac0ed15216e54ee741dba1d8d416e276bfc117ccdfbfe8eeeef5.ttf"
+  },
+  {
+    "file": "Cairo-ExtraBold.ttf",
+    "sha256": "7e841003cb7ece5a9331e8ed44099b7c8617d19b28bd0b9942039c6f02e88a10",
+    "size": 91724,
+    "source": "https://fonts.gstatic.com/s/a/7e841003cb7ece5a9331e8ed44099b7c8617d19b28bd0b9942039c6f02e88a10.ttf"
+  },
+  {
+    "file": "Cairo-Black.ttf",
+    "sha256": "80a528494266452a76da3083f282f066a5d1e283ac387a1935b100808e028073",
+    "size": 91724,
+    "source": "https://fonts.gstatic.com/s/a/80a528494266452a76da3083f282f066a5d1e283ac387a1935b100808e028073.ttf"
+  }
+]

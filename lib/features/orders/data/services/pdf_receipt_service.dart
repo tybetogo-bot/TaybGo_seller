@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -22,19 +23,13 @@ class PdfReceiptService {
   static Future<void> _loadFonts() async {
     if (_regularFont != null && _boldFont != null) return;
 
-    try {
-      // Try to load Noto Sans Arabic which supports both Latin and Arabic
-      _regularFont = await PdfGoogleFonts.notoSansArabicRegular();
-      _boldFont = await PdfGoogleFonts.notoSansArabicBold();
-    } catch (e) {
-      // Fallback to Roboto which at least supports Latin characters well
-      try {
-        _regularFont = await PdfGoogleFonts.robotoRegular();
-        _boldFont = await PdfGoogleFonts.robotoBold();
-      } catch (_) {
-        // If all else fails, fonts will remain null and use default
-      }
-    }
+    // Use bundled fonts so Arabic receipts work without downloading fonts.
+    _regularFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Cairo-Regular.ttf'),
+    );
+    _boldFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Cairo-Bold.ttf'),
+    );
   }
 
   /// Get text style with loaded font

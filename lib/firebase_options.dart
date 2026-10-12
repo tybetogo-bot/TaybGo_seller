@@ -65,11 +65,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB-hytdKnDrSplmnjAL_AOUAP9YhtIi8Zs',
-    appId: '1:861868751268:ios:72e72cf8cc316904352931',
-    messagingSenderId: '861868751268',
-    projectId: 'tybetogoseller',
-    storageBucket: 'tybetogoseller.firebasestorage.app',
-    iosBundleId: 'com.tybetogo.seller',
+    apiKey: 'AIzaSyBDnatqPi8ummbGMH6fb9jxgoATnnmJfiU',
+    appId: '1:188938523542:ios:1e5c62e1094e84646343b7',
+    messagingSenderId: '188938523542',
+    projectId: 'sellertaybgo',
+    storageBucket: 'sellertaybgo.firebasestorage.app',
+    iosBundleId: 'com.taybgo.seller',
   );
 }
