@@ -20,7 +20,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('🔔 [FCM] Background message: ${message.messageId}');
 }
 
-const _iosNotificationSound = 'notif_sound.caf';
+// Remote APNs alerts use notif_sound.caf (29 seconds). Keep the short tone
+// separate for foreground alerts and their user-selected repeat settings.
+const _iosNotificationSound = 'notif_sound_1.caf';
 const _androidNotificationChannelPrefix = 'seller_order_alerts_v3';
 const _androidBackgroundNotificationChannelId = 'seller_background_alerts_v2';
 const _androidBackgroundNotificationSoundResource = 'notif_background';
@@ -131,6 +133,16 @@ class PushNotificationService {
         onDidReceiveNotificationResponse: _onLocalNotificationTap,
       );
 
+      final localLaunch = await _localNotifications
+          .getNotificationAppLaunchDetails();
+      if (localLaunch?.didNotificationLaunchApp ?? false) {
+        _dispatchNotificationTap(
+          decodeLocalNotificationPayload(
+            localLaunch?.notificationResponse?.payload,
+          ),
+        );
+      }
+
       // Create one channel per supported sound profile. Android channel sound
       // settings are immutable after first creation, so each repeat count needs
       // its own versioned channel. The v3 IDs also avoid stale silent channels
@@ -154,9 +166,11 @@ class PushNotificationService {
 
       // iOS foreground presentation options.
       await _messaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
+        // The local notification below presents the foreground alert and
+        // configured sound; also presenting the remote alert duplicates it.
+        alert: false,
+        badge: false,
+        sound: false,
       );
 
       print('🔔 [FCM] Push notification service initialized');
@@ -193,6 +207,20 @@ class PushNotificationService {
   /// Retrieve the current FCM token and persist it locally.
   Future<String?> getToken() async {
     try {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        // APNs registration can finish after permission and app startup.
+        // Token refresh remains subscribed while this bounded wait runs.
+        String? apnsToken;
+        for (var attempt = 0; attempt < 10; attempt++) {
+          apnsToken = await _messaging.getAPNSToken();
+          if (apnsToken != null) break;
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+        }
+        if (apnsToken == null) {
+          print('🟡 [FCM] APNs token is not ready; waiting for token refresh');
+          return null;
+        }
+      }
       final token = await _messaging.getToken();
       final preview = token == null
           ? 'null'
