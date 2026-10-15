@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../features/auth/data/models/auth_model.dart';
+import '../config/constants.dart';
 
 /// Auth API service for authentication endpoints
 class AuthApi {
@@ -62,6 +63,22 @@ class AuthApi {
   /// POST /api/auth/token/verify/
   Future<void> verifyToken(TokenVerifyRequest request) async {
     await _dio.post('/api/auth/token/verify/', data: request.toJson());
+  }
+
+  /// Revoke the current login family, using credentials captured before cleanup.
+  Future<void> logout(String refresh, String? access) async {
+    await _dio.post(
+      ApiEndpoints.logout,
+      data: {'refresh': refresh},
+      options: Options(
+        headers: {'Authorization': 'Bearer $access'},
+        extra: {
+          'sessionCleanup': true,
+          'skipAuthRefresh': true,
+          'disableRetry': true,
+        },
+      ),
+    );
   }
 
   /// Blacklist token (logout)

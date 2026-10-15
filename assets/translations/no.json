@@ -706,6 +706,8 @@
     "error": "Kunne ikke slette konto. Vennligst prøv igjen."
   },
   "notifications": {
+    "unreadCount": "Varsler, {count} uleste",
+    "noUnread": "Varsler, alle lest",
     "title": "Varsler",
     "settings": "Varslingsinnstillinger",
     "notificationTypes": "Varslingstyper",
@@ -843,6 +845,17 @@
       "change1": "Selgerprofilen er redesignet med kompakt restauranthode og grupperte innstillinger.",
       "change2": "Kontroller for leveringstilgjengelighet lagt til og restaurantstatus synkronisert.",
       "change3": "Bestillingshandlinger følger nå statusene serveren tillater."
+    },
+    "v1023": {
+      "date": "15. oktober 2026",
+      "change1": "Opprett restaurantkampanjer med bilder, godkjenningsstatus og tydelige knapper for publisering eller pause.",
+      "change2": "Uleste varsler viser nå en animert teller med forbedret tilgjengelighet.",
+      "change3": "Utlogging fjerner varsler og kontodata; forsinkede forespørsler kan ikke påvirke en ny økt."
+    },
+    "v1022ios": {
+      "date": "12. oktober 2026",
+      "change1": "Forbedret initialisering av iOS-varsler og lagt til full lyd for bakgrunnsvarsler.",
+      "change2": "Oppdatert iOS-utgivelsesoppsett, Places og medfølgende skrifttyper."
     },
     "v1022": {
       "date": "2. oktober 2026",

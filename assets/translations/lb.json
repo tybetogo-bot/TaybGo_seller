@@ -706,6 +706,8 @@
     "error": "Kont konnt net geläscht ginn. Probéiert et w.e.g. nach eng Kéier."
   },
   "notifications": {
+    "unreadCount": "Notifikatiounen, {count} ongelies",
+    "noUnread": "Notifikatiounen, alles gelies",
     "title": "Notifikatiounen",
     "settings": "Notifikatiounsastellungen",
     "notificationTypes": "Notifikatiounsaarten",
@@ -843,6 +845,17 @@
       "change1": "Verkeeferprofil mat kompakter Restaurant-Kappzeil a gruppéierten Astellungen nei gestalt.",
       "change2": "Steierung vun der Liwwerverfügbarkeet dobäigesat an de Restaurantstatus synchron gehalen.",
       "change3": "Bestellaktiounen un déi vum Server erlaabte Statussen ugepasst."
+    },
+    "v1023": {
+      "date": "15. Oktober 2026",
+      "change1": "Erstellt Restaurantpromotioune mat Biller, Iwwerpréiwungsstatus a kloere Knäppercher fir ze publizéieren oder ze pauséieren.",
+      "change2": "Ongelies Notifikatioune weisen elo en animéierte Compteur mat verbesserter Accessibilitéit.",
+      "change3": "Beim Ausloggen ginn Notifikatiounen a Kontodate geläscht; spéit Ufroe kënnen eng nei Sessioun net beaflossen."
+    },
+    "v1022ios": {
+      "date": "12. Oktober 2026",
+      "change1": "D’Initialiséierung vun iOS-Notifikatioune verbessert an de kompletten Hannergrondtoun dobäigesat.",
+      "change2": "D’iOS-Releasekonfiguratioun, Places-Astellungen a matgeliwwert Schrëften aktualiséiert."
     },
     "v1022": {
       "date": "2. Oktober 2026",

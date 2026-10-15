@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/user_api.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/datasources/user_remote_data_source.dart';
 import '../data/repositories/user_repository.dart';
 
@@ -33,10 +34,14 @@ class UserProfileState {
 
 /// User profile notifier (Riverpod 3.x)
 class UserProfileNotifier extends Notifier<UserProfileState> {
-  late final UserRepository _repository;
+  late UserRepository _repository;
 
   @override
   UserProfileState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return const UserProfileState();
+    }
     _repository = ref.watch(userRepositoryProvider);
     Future.microtask(() => loadProfile());
     return const UserProfileState(isLoading: true);
@@ -44,10 +49,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Load user profile from API
   Future<void> loadProfile() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getProfile();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -59,6 +73,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
       state = state.copyWith(profile: result.data, isLoading: false);
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load profile: $e',
@@ -68,6 +86,11 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Update user profile
   Future<bool> updateProfile({String? name, int? age}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -76,6 +99,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       if (age != null) data['age'] = age;
 
       final result = await _repository.updateProfile(data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -89,6 +116,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update profile: $e',
@@ -99,10 +130,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Update seller profile
   Future<bool> updateSellerProfile(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.updateSellerProfile(data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -133,6 +173,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update seller profile: $e',
@@ -143,10 +187,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Delete user account and all related data
   Future<bool> deleteAccount() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.deleteAccount();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -159,6 +212,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to delete account: $e',
@@ -169,14 +226,32 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Refresh profile
   Future<void> refresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await loadProfile();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Silent refresh - only updates UI if data has changed
   /// Used by polling to avoid unnecessary rebuilds
   Future<bool> silentRefresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     try {
       final result = await _repository.getProfile();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null || result.data == null) {
         return false;
@@ -192,6 +267,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
       return false;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       return false;
     }
   }
@@ -214,10 +293,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Update address (PATCH /api/addresses/{id}/)
   Future<bool> updateAddress(int addressId, Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.updateAddress(addressId, data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -230,6 +318,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update address: $e',
@@ -240,10 +332,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
 
   /// Create address (POST /api/addresses/)
   Future<Map<String, dynamic>?> createAddress(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.createAddress(data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -256,6 +357,10 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
       state = state.copyWith(isLoading: false);
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to create address: $e',
@@ -290,8 +395,16 @@ final userProfileProvider =
 
 /// Provider for seller profile basics (including registration document URL)
 final sellerProfileProvider = FutureProvider<BasicProfile?>((ref) async {
+  ref.watch(sessionGenerationProvider);
+  if (!SessionLifecycle.instance.authenticated) {
+    return null;
+  }
+  final generation = SessionLifecycle.instance.generation;
   final repository = ref.watch(userRepositoryProvider);
   final result = await repository.getSellerProfile();
+  if (!ref.mounted || !SessionLifecycle.instance.isAuthenticated(generation)) {
+    return null;
+  }
   if (result.failure != null) {
     throw Exception(result.failure!.message);
   }

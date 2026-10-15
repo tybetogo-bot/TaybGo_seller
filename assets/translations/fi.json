@@ -706,6 +706,8 @@
     "error": "Tilin poistaminen epäonnistui. Yritä uudelleen."
   },
   "notifications": {
+    "unreadCount": "Ilmoitukset, {count} lukematta",
+    "noUnread": "Ilmoitukset, kaikki luettu",
     "title": "Ilmoitukset",
     "settings": "Ilmoitusasetukset",
     "notificationTypes": "Ilmoitustyypit",
@@ -843,6 +845,17 @@
       "change1": "Myyjäprofiili uudistettiin kompaktilla ravintolaotsikolla ja ryhmitellyillä asetuksilla.",
       "change2": "Toimituksen saatavuuden hallinta lisättiin ja ravintolan tila pidetään synkronoituna.",
       "change3": "Tilaustoiminnot päivitettiin palvelimen sallimien tilojen mukaisiksi."
+    },
+    "v1023": {
+      "date": "15. lokakuuta 2026",
+      "change1": "Luo ravintolan kampanjoita kuvilla, tarkistustilalla ja selkeillä julkaisu- ja keskeytyspainikkeilla.",
+      "change2": "Lukemattomat ilmoitukset näyttävät nyt animoidun laskurin, jonka saavutettavuutta on parannettu.",
+      "change3": "Uloskirjautuminen tyhjentää ilmoitukset ja tilitiedot; myöhäiset pyynnöt eivät voi vaikuttaa uuteen istuntoon."
+    },
+    "v1022ios": {
+      "date": "12. lokakuuta 2026",
+      "change1": "Parannettu iOS-ilmoitusten alustusta ja lisätty täysi taustailmoitusääni.",
+      "change2": "Päivitetty iOS-julkaisun asetukset, Places-määritykset ja mukana tulevat fontit."
     },
     "v1022": {
       "date": "2. lokakuuta 2026",

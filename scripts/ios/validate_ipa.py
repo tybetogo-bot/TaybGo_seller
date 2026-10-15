@@ -12,8 +12,8 @@ def command(*args):
 parser = argparse.ArgumentParser()
 parser.add_argument('ipa', type=Path)
 parser.add_argument('--report', type=Path, required=True)
-parser.add_argument('--version', default='1.0.22')
-parser.add_argument('--build', default='27')
+parser.add_argument('--version', required=True)
+parser.add_argument('--build', required=True)
 args = parser.parse_args()
 ipa = args.ipa.resolve()
 with zipfile.ZipFile(ipa) as archive:
@@ -48,6 +48,7 @@ with tempfile.TemporaryDirectory(prefix='seller-ipa-', dir='/private/tmp') as fo
     assert scene['UISceneDelegateClassName'] == 'FlutterSceneDelegate'
     for key in ['NSCameraUsageDescription', 'NSPhotoLibraryUsageDescription', 'NSLocationWhenInUseUsageDescription']:
         assert metadata.get(key), key
+    assert 'remote-notification' in metadata.get('UIBackgroundModes', [])
     assert (app/'Base.lproj/Main.storyboardc').exists()
     assert (app/'Base.lproj/LaunchScreen.storyboardc').exists()
     font_root = app/'Frameworks/App.framework/flutter_assets/assets/fonts'

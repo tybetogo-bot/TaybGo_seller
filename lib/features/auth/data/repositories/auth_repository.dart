@@ -4,10 +4,11 @@ library;
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/config/constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/config/constants.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/services/session_lifecycle.dart';
 import '../datasources/auth_data_source.dart';
 import '../models/auth_model.dart';
 
@@ -73,17 +74,25 @@ class AuthRepositoryImpl implements AuthRepository {
 
   final AuthDataSource _remoteDataSource;
   final SharedPreferences _prefs;
+  final _session = SessionLifecycle.instance;
 
   @override
   Future<AuthResult<PasswordLoginResponse>> loginWithPassword({
     required String phone,
     required String password,
   }) async {
+    final generation = await _session.beginLogin();
     try {
       final response = await _remoteDataSource.loginWithPassword(
         phone: phone,
         password: password,
       );
+      if (!_session.isCurrent(generation)) {
+        return (
+          failure: const AuthFailure(message: 'Login was cancelled'),
+          data: null,
+        );
+      }
       await saveAuthData(
         accessToken: response.access,
         refreshToken: response.refresh,
@@ -151,6 +160,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String code,
     required String targetRole,
   }) async {
+    final generation = await _session.beginLogin();
     try {
       final response = await _remoteDataSource.verifyOtp(
         phone: phone,
@@ -159,6 +169,12 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       // Save auth data after successful verification
+      if (!_session.isCurrent(generation)) {
+        return (
+          failure: const AuthFailure(message: 'Login was cancelled'),
+          data: null,
+        );
+      }
       await saveAuthData(
         accessToken: response.access,
         refreshToken: response.refresh,
@@ -190,6 +206,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthResult<TokenRefreshResponse>> refreshToken() async {
+    final generation = _session.generation;
     try {
       final refreshToken = _prefs.getString(StorageKeys.refreshToken);
       if (refreshToken == null) {
@@ -199,19 +216,47 @@ class AuthRepositoryImpl implements AuthRepository {
         );
       }
 
-      final response = await _remoteDataSource.refreshToken(refreshToken);
+      final tokens = await _session.rotate(generation, () async {
+        final response = await _remoteDataSource.refreshToken(refreshToken);
+        return (response.access, response.refresh);
+      });
+      if (!_session.isCurrent(generation) || tokens == null) {
+        return (
+          failure: const AuthFailure(message: 'Session ended'),
+          data: null,
+        );
+      }
+      final response = TokenRefreshResponse(
+        access: tokens.$1,
+        refresh: tokens.$2,
+      );
 
-      // Update stored tokens
-      await _prefs.setString(StorageKeys.authToken, response.access);
-      await _prefs.setString(StorageKeys.refreshToken, response.refresh);
+      await _session.serializeWrite(() async {
+        if (!_session.isCurrent(generation)) return;
+        await _prefs.setString(StorageKeys.authToken, response.access);
+        await _prefs.setString(StorageKeys.refreshToken, response.refresh);
+      });
+      if (!_session.isCurrent(generation)) {
+        return (
+          failure: const AuthFailure(message: 'Session ended'),
+          data: null,
+        );
+      }
 
       return (failure: null, data: response);
+    } on DioException catch (e) {
+      return (
+        failure: ServerFailure(
+          message: 'Could not refresh session',
+          statusCode: e.response?.statusCode,
+        ),
+        data: null,
+      );
     } on ApiException catch (e) {
-      // If refresh fails with 401, clear auth data
-      if (e is UnauthorizedException) {
-        await clearAuthData();
-      }
-      return (failure: ServerFailure(message: e.message), data: null);
+      return (
+        failure: ServerFailure(message: e.message, statusCode: e.statusCode),
+        data: null,
+      );
     } on NetworkException catch (e) {
       return (failure: NetworkFailure(message: e.message), data: null);
     } catch (e) {
@@ -226,7 +271,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> validateStoredSession() async {
     final accessToken = _prefs.getString(StorageKeys.authToken);
     if (accessToken == null || accessToken.isEmpty) {
-      await clearAuthData();
       return false;
     }
 
@@ -242,14 +286,12 @@ class AuthRepositoryImpl implements AuthRepository {
               (apiError.statusCode == 401 || apiError.statusCode == 403));
 
       if (isUnauthorized) {
-        await clearAuthData();
         return false;
       }
 
       return true;
     } on ApiException catch (e) {
       if (e.statusCode == 401 || e.statusCode == 403) {
-        await clearAuthData();
         return false;
       }
       return true;
@@ -267,15 +309,12 @@ class AuthRepositoryImpl implements AuthRepository {
       if (refreshToken != null) {
         await _remoteDataSource.logout(refreshToken);
       }
-      await clearAuthData();
       return (failure: null, data: null);
     } on ApiException catch (e) {
-      // Even if API call fails, clear local data
-      await clearAuthData();
+      // AuthNotifier always runs local cleanup after this attempt.
       return (failure: ServerFailure(message: e.message), data: null);
     } catch (e) {
-      // Even if API call fails, clear local data
-      await clearAuthData();
+      // AuthNotifier always runs local cleanup after this attempt.
       return (
         failure: ServerFailure(message: 'An unexpected error occurred'),
         data: null,
@@ -305,19 +344,26 @@ class AuthRepositoryImpl implements AuthRepository {
     required String refreshToken,
     required String phone,
   }) async {
-    await _prefs.setString(StorageKeys.authToken, accessToken);
-    await _prefs.setString(StorageKeys.refreshToken, refreshToken);
-    await _prefs.setString('user_phone', phone);
+    final generation = _session.generation;
+    await _session.serializeWrite(() async {
+      if (!_session.isCurrent(generation)) return;
+      await _prefs.setString(StorageKeys.authToken, accessToken);
+      await _prefs.setString(StorageKeys.refreshToken, refreshToken);
+      await _prefs.setString('user_phone', phone);
+    });
   }
 
   @override
   Future<void> clearAuthData() async {
-    await _prefs.remove(StorageKeys.authToken);
-    await _prefs.remove(StorageKeys.refreshToken);
-    await _prefs.remove('user_phone');
-    await _prefs.remove(StorageKeys.userId);
-    await _prefs.remove(StorageKeys.userRole);
-    await _prefs.remove(StorageKeys.restaurantId);
+    await _session.serializeWrite(() async {
+      await _prefs.remove(StorageKeys.authToken);
+      await _prefs.remove(StorageKeys.refreshToken);
+      await _prefs.remove('user_phone');
+      await _prefs.remove(StorageKeys.userId);
+      await _prefs.remove(StorageKeys.userRole);
+      await _prefs.remove(StorageKeys.restaurantId);
+      await _prefs.remove(StorageKeys.fcmToken);
+    });
   }
 
   /// Maps API errors to user-friendly failure messages

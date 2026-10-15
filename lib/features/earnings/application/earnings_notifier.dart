@@ -4,17 +4,13 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/datasources/earnings_remote_data_source.dart';
 import '../data/models/earning_model.dart';
 import '../data/repositories/earnings_repository.dart';
 
 /// Date range filter presets
-enum EarningsDateFilter {
-  today,
-  thisWeek,
-  thisMonth,
-  custom,
-}
+enum EarningsDateFilter { today, thisWeek, thisMonth, custom }
 
 /// Earnings state
 class EarningsState {
@@ -76,8 +72,9 @@ class EarningsState {
       dateFilter: dateFilter ?? this.dateFilter,
       customFrom: clearCustomDates ? null : (customFrom ?? this.customFrom),
       customTo: clearCustomDates ? null : (customTo ?? this.customTo),
-      isPaidFilter:
-          clearIsPaidFilter ? null : (isPaidFilter ?? this.isPaidFilter),
+      isPaidFilter: clearIsPaidFilter
+          ? null
+          : (isPaidFilter ?? this.isPaidFilter),
       paymentTypeFilter: clearPaymentTypeFilter
           ? null
           : (paymentTypeFilter ?? this.paymentTypeFilter),
@@ -87,10 +84,14 @@ class EarningsState {
 
 /// Earnings notifier for managing earnings state
 class EarningsNotifier extends Notifier<EarningsState> {
-  late final EarningsRepository _repository;
+  late EarningsRepository _repository;
 
   @override
   EarningsState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return EarningsState();
+    }
     _repository = ref.watch(earningsRepositoryProvider);
 
     // Load initial earnings
@@ -104,23 +105,14 @@ class EarningsNotifier extends Notifier<EarningsState> {
     switch (state.dateFilter) {
       case EarningsDateFilter.today:
         final today = DateTime(now.year, now.month, now.day);
-        return (
-          from: today.toIso8601String(),
-          to: now.toIso8601String(),
-        );
+        return (from: today.toIso8601String(), to: now.toIso8601String());
       case EarningsDateFilter.thisWeek:
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
         final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
-        return (
-          from: start.toIso8601String(),
-          to: now.toIso8601String(),
-        );
+        return (from: start.toIso8601String(), to: now.toIso8601String());
       case EarningsDateFilter.thisMonth:
         final monthStart = DateTime(now.year, now.month, 1);
-        return (
-          from: monthStart.toIso8601String(),
-          to: now.toIso8601String(),
-        );
+        return (from: monthStart.toIso8601String(), to: now.toIso8601String());
       case EarningsDateFilter.custom:
         return (
           from: state.customFrom?.toIso8601String(),
@@ -131,6 +123,11 @@ class EarningsNotifier extends Notifier<EarningsState> {
 
   /// Load earnings from API
   Future<void> _loadEarnings({int page = 1}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -143,6 +140,10 @@ class EarningsNotifier extends Notifier<EarningsState> {
         paymentType: state.paymentTypeFilter,
         ordering: '-earned_at',
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -165,6 +166,10 @@ class EarningsNotifier extends Notifier<EarningsState> {
         hasMorePages: response.hasMore,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load earnings: $e',
@@ -174,13 +179,31 @@ class EarningsNotifier extends Notifier<EarningsState> {
 
   /// Refresh earnings (reloads from page 1)
   Future<void> refreshEarnings() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadEarnings(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Load next page
   Future<void> loadMore() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (state.isLoading || !state.hasMorePages) return;
     await _loadEarnings(page: state.currentPage + 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Set date filter and reload

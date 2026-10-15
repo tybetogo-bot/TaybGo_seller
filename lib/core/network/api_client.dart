@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/app_config.dart';
 import '../config/env_config.dart';
+import '../services/session_lifecycle.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
 import 'interceptors/retry_interceptor.dart';
@@ -17,6 +18,7 @@ class ApiClient {
   ApiClient._();
 
   static Dio? _dio;
+  static void Function()? _sessionListener;
   static Future<void> Function()? _onUnauthorized;
 
   /// Get the configured Dio instance
@@ -44,6 +46,17 @@ class ApiClient {
       ),
     );
 
+    // BaseOptions are copied when each request is created, before asynchronous
+    // interceptor dispatch. A queued request must retain its original login.
+    void updateGeneration() {
+      _dio?.options.extra['loginGeneration'] =
+          SessionLifecycle.instance.generation;
+    }
+
+    _sessionListener = updateGeneration;
+    updateGeneration();
+    SessionLifecycle.instance.addListener(updateGeneration);
+
     // Add interceptors
     _dio!.interceptors.addAll([
       AuthInterceptor(prefs, onUnauthorized: _onUnauthorized),
@@ -66,6 +79,10 @@ class ApiClient {
 
   /// Clear the Dio instance (useful for testing or re-initialization)
   static void reset() {
+    if (_sessionListener != null) {
+      SessionLifecycle.instance.removeListener(_sessionListener!);
+      _sessionListener = null;
+    }
     _dio?.close();
     _dio = null;
     _onUnauthorized = null;

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/addresses_api.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/datasources/addresses_remote_data_source.dart';
 import '../data/models/address_model.dart';
 import '../data/repositories/addresses_repository.dart';
@@ -43,14 +44,16 @@ class AddressesState {
       error: clearError ? null : (error ?? this.error),
       currentPage: currentPage ?? this.currentPage,
       hasMorePages: hasMorePages ?? this.hasMorePages,
-      selectedAddress: clearSelectedAddress ? null : (selectedAddress ?? this.selectedAddress),
+      selectedAddress: clearSelectedAddress
+          ? null
+          : (selectedAddress ?? this.selectedAddress),
     );
   }
 }
 
 /// Addresses notifier for managing address state (Riverpod 3.x)
 class AddressesNotifier extends Notifier<AddressesState> {
-  late final AddressesRepository _repository;
+  late AddressesRepository _repository;
 
   void _log(String message, {Object? error, StackTrace? stackTrace}) {
     if (kDebugMode) {
@@ -71,6 +74,10 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   @override
   AddressesState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return AddressesState();
+    }
     _repository = ref.watch(addressesRepositoryProvider);
 
     // Load initial addresses
@@ -80,11 +87,20 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Load addresses from API
   Future<void> _loadAddresses({int page = 1}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     _log('Loading addresses, page: $page');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getAddresses(page: page);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         _log('Failed to load addresses: ${result.failure!.message}');
@@ -102,6 +118,10 @@ class AddressesNotifier extends Notifier<AddressesState> {
         currentPage: page,
       );
     } catch (e, stackTrace) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       _log('Exception loading addresses', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
@@ -112,11 +132,27 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Refresh addresses
   Future<void> refreshAddresses() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadAddresses(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Create a new address
-  Future<CustomerAddressModel?> createAddress(AddressCreateRequest request) async {
+  Future<CustomerAddressModel?> createAddress(
+    AddressCreateRequest request,
+  ) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     _log('=== CREATE ADDRESS START ===');
     _log('Request: ${request.toJson()}');
     state = state.copyWith(clearError: true);
@@ -124,6 +160,10 @@ class AddressesNotifier extends Notifier<AddressesState> {
     try {
       _log('Calling repository.createAddress...');
       final result = await _repository.createAddress(request);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         _log('=== CREATE ADDRESS FAILED ===');
@@ -141,18 +181,38 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
       return result.data;
     } catch (e, stackTrace) {
-      _log('=== CREATE ADDRESS EXCEPTION ===', error: e, stackTrace: stackTrace);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
+      _log(
+        '=== CREATE ADDRESS EXCEPTION ===',
+        error: e,
+        stackTrace: stackTrace,
+      );
       state = state.copyWith(error: 'Failed to create address: $e');
       return null;
     }
   }
 
   /// Update an existing address
-  Future<CustomerAddressModel?> updateAddress(int id, AddressCreateRequest request) async {
+  Future<CustomerAddressModel?> updateAddress(
+    int id,
+    AddressCreateRequest request,
+  ) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.updateAddress(id, request);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -162,13 +222,19 @@ class AddressesNotifier extends Notifier<AddressesState> {
       // Update local state
       final index = state.addresses.indexWhere((a) => a.id == id);
       if (index != -1) {
-        final updatedAddresses = List<CustomerAddressModel>.from(state.addresses);
+        final updatedAddresses = List<CustomerAddressModel>.from(
+          state.addresses,
+        );
         updatedAddresses[index] = result.data!;
         state = state.copyWith(addresses: updatedAddresses);
       }
 
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to update address: $e');
       return null;
     }
@@ -176,10 +242,19 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Delete an address
   Future<bool> deleteAddress(int id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.deleteAddress(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -187,7 +262,9 @@ class AddressesNotifier extends Notifier<AddressesState> {
       }
 
       // Remove from local state
-      final updatedAddresses = state.addresses.where((a) => a.id != id).toList();
+      final updatedAddresses = state.addresses
+          .where((a) => a.id != id)
+          .toList();
       state = state.copyWith(
         addresses: updatedAddresses,
         clearSelectedAddress: state.selectedAddress?.id == id,
@@ -195,6 +272,10 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(error: 'Failed to delete address: $e');
       return false;
     }
@@ -221,10 +302,19 @@ class AddressesNotifier extends Notifier<AddressesState> {
 
   /// Fetch address by ID from API
   Future<CustomerAddressModel?> fetchAddressById(int id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.getAddressById(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -234,13 +324,19 @@ class AddressesNotifier extends Notifier<AddressesState> {
       // Update local state if address exists in list
       final index = state.addresses.indexWhere((a) => a.id == id);
       if (index != -1) {
-        final updatedAddresses = List<CustomerAddressModel>.from(state.addresses);
+        final updatedAddresses = List<CustomerAddressModel>.from(
+          state.addresses,
+        );
         updatedAddresses[index] = result.data!;
         state = state.copyWith(addresses: updatedAddresses);
       }
 
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to fetch address: $e');
       return null;
     }
@@ -276,7 +372,10 @@ final selectedAddressProvider = Provider<CustomerAddressModel?>((ref) {
 });
 
 /// Provider for a specific address by ID
-final addressByIdProvider = Provider.family<CustomerAddressModel?, int>((ref, id) {
+final addressByIdProvider = Provider.family<CustomerAddressModel?, int>((
+  ref,
+  id,
+) {
   final addressesState = ref.watch(addressesProvider);
   try {
     return addressesState.addresses.firstWhere((a) => a.id == id);

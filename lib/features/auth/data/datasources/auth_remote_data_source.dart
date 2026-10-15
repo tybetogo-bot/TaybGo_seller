@@ -1,6 +1,9 @@
 /// Remote auth data source implementation using API
 library;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../core/config/constants.dart';
 import '../../../../core/network/auth_api.dart';
 import '../models/auth_model.dart';
 import 'auth_data_source.dart';
@@ -58,7 +61,7 @@ class AuthRemoteDataSource implements AuthDataSource {
 
   @override
   Future<void> logout(String refreshToken) async {
-    final request = TokenBlacklistRequest(refresh: refreshToken);
-    await _authApi.blacklistToken(request);
+    final prefs = await SharedPreferences.getInstance();
+    await _authApi.logout(refreshToken, prefs.getString(StorageKeys.authToken));
   }
 }

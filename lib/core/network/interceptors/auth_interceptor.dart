@@ -1,36 +1,105 @@
-/// Auth interceptor for adding authentication token to requests
-/// and refreshing expired tokens automatically.
+/// Auth and refresh work are bound to the login that started the request.
 library;
 
+import 'dart:async';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../config/app_config.dart';
 import '../../config/constants.dart';
+import '../../services/session_lifecycle.dart';
 
-/// Interceptor that adds the auth token to all requests and handles
-/// automatic token refresh on 401 responses.
-class AuthInterceptor extends QueuedInterceptor {
-  AuthInterceptor(this._prefs, {this.onUnauthorized});
+class AuthInterceptor extends Interceptor {
+  AuthInterceptor(this._prefs, {this.onUnauthorized, Dio? refreshDio})
+    : _refreshDio =
+          refreshDio ??
+          Dio(
+            BaseOptions(
+              baseUrl: AppConfig.apiBaseUrl,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+            ),
+          );
 
   final SharedPreferences _prefs;
   final Future<void> Function()? onUnauthorized;
+  final Dio _refreshDio;
+  final _session = SessionLifecycle.instance;
+  Future<String?>? _refresh;
+  int? _refreshGeneration;
 
-  /// Whether a token refresh is currently in progress.
-  bool _isRefreshing = false;
+  bool _authEndpoint(String path) =>
+      path.contains('/auth/otp/') ||
+      path.endsWith('/auth/token/') ||
+      path.contains('/auth/token/refresh') ||
+      path.contains('/auth/token/blacklist');
+
+  bool _stale(RequestOptions options) =>
+      options.extra['anonymous'] != true &&
+      options.extra['sessionCleanup'] != true &&
+      !_session.isCurrent(options.extra['loginGeneration'] as int);
+
+  DioException _cancel(RequestOptions options) => DioException(
+    requestOptions: options,
+    type: DioExceptionType.cancel,
+    message: 'The login that started this request has ended.',
+  );
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Get the auth token from storage
-    final token = _prefs.getString(StorageKeys.authToken);
-
-    // Add token to headers if available
-    if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer $token';
+    options.extra.putIfAbsent('loginGeneration', () => _session.generation);
+    if (_stale(options)) return handler.reject(_cancel(options));
+    if (options.extra['sessionCleanup'] != true &&
+        options.extra['anonymous'] != true) {
+      final token = _prefs.getString(StorageKeys.authToken);
+      if (token != null && token.isNotEmpty && !_authEndpoint(options.path)) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
+    handler.next(options);
+  }
 
-    super.onRequest(options, handler);
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (_stale(response.requestOptions)) {
+      return handler.reject(_cancel(response.requestOptions));
+    }
+    handler.next(response);
+  }
+
+  Future<String?> _rotate(int generation) async {
+    final refresh = _prefs.getString(StorageKeys.refreshToken);
+    if (refresh == null || refresh.isEmpty) return null;
+    final tokens = await _session.rotate(generation, () async {
+      final response = await _refreshDio.post(
+        ApiEndpoints.tokenRefresh,
+        data: {'refresh': refresh},
+      );
+      return (
+        response.data['access'] as String,
+        response.data['refresh'] as String? ?? refresh,
+      );
+    });
+    if (!_session.isCurrent(generation) || tokens == null) return null;
+    final (access, rotated) = tokens;
+    return _session.serializeWrite(() async {
+      if (!_session.isCurrent(generation)) return null;
+      await _prefs.setString(StorageKeys.authToken, access);
+      await _prefs.setString(StorageKeys.refreshToken, rotated);
+      return access;
+    });
+  }
+
+  void _forceLogout() {
+    // Invalidation is synchronous. Do not await the cleanup barrier here:
+    // it drains push registrations, which may include this very request.
+    final cleanup = onUnauthorized?.call();
+    if (cleanup != null) unawaited(cleanup.catchError((Object _) {}));
   }
 
   @override
@@ -38,106 +107,77 @@ class AuthInterceptor extends QueuedInterceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // Only handle 401 Unauthorized
-    if (err.response?.statusCode != 401) {
-      return super.onError(err, handler);
+    final options = err.requestOptions;
+    if (_stale(options)) return handler.next(_cancel(options));
+    if (err.response?.statusCode != 401 ||
+        _authEndpoint(options.path) ||
+        options.extra['skipAuthRefresh'] == true ||
+        options.extra['anonymous'] == true) {
+      return handler.next(err);
+    }
+    final generation = options.extra['loginGeneration'] as int;
+    if (options.extra['authRetried'] == true) {
+      _forceLogout();
+      return handler.next(err);
     }
 
-    // Don't try to refresh if the failing request was itself a refresh or auth request
-    final requestPath = err.requestOptions.path;
-    if (requestPath.contains('/auth/token/refresh') ||
-        requestPath.contains('/auth/otp/') ||
-        requestPath.endsWith('/auth/token/') ||
-        requestPath.contains('/auth/token/blacklist')) {
-      // Auth endpoint itself failed — clear credentials and log out
-      await _clearAuthAndLogout();
-      return super.onError(err, handler);
-    }
-
-    // Don't try to refresh if already refreshing (queued interceptor serializes,
-    // but guard against re-entrant edge cases).
-    if (_isRefreshing) {
-      return super.onError(err, handler);
-    }
-
-    // Attempt to refresh the token
-    final refreshToken = _prefs.getString(StorageKeys.refreshToken);
-    if (refreshToken == null || refreshToken.isEmpty) {
-      await _clearAuthAndLogout();
-      return super.onError(err, handler);
-    }
-
-    _isRefreshing = true;
+    String? access;
     try {
-      debugPrint('🔄 [AuthInterceptor] Access token expired, refreshing...');
-
-      // Use a fresh Dio instance to avoid interceptor loops
-      final refreshDio = Dio(
-        BaseOptions(
-          baseUrl: AppConfig.apiBaseUrl,
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
-      );
-
-      final response = await refreshDio.post(
-        '/api/auth/token/refresh/',
-        data: {'refresh': refreshToken},
-      );
-
-      final newAccess = response.data['access'] as String;
-      final newRefresh = response.data['refresh'] as String;
-
-      // Save the new tokens
-      await _prefs.setString(StorageKeys.authToken, newAccess);
-      await _prefs.setString(StorageKeys.refreshToken, newRefresh);
-
-      debugPrint('✅ [AuthInterceptor] Token refreshed successfully');
-
-      _isRefreshing = false;
-
-      // Retry the original request with the new token
-      final opts = err.requestOptions;
-      opts.headers['Authorization'] = 'Bearer $newAccess';
-
-      final retryDio = Dio(
-        BaseOptions(
-          baseUrl: opts.baseUrl,
-          connectTimeout: opts.connectTimeout,
-          receiveTimeout: opts.receiveTimeout,
-          sendTimeout: opts.sendTimeout,
-        ),
-      );
-
-      final retryResponse = await retryDio.fetch(opts);
-      return handler.resolve(retryResponse);
-    } on DioException catch (refreshError) {
-      _isRefreshing = false;
-      debugPrint(
-        '❌ [AuthInterceptor] Token refresh failed: ${refreshError.message}',
-      );
-      await _clearAuthAndLogout();
-      return super.onError(err, handler);
-    } catch (e) {
-      _isRefreshing = false;
-      debugPrint('❌ [AuthInterceptor] Token refresh error: $e');
-      await _clearAuthAndLogout();
-      return super.onError(err, handler);
+      // Concurrent 401s share rotation. Requests sent before a completed
+      // rotation can use its access token without rotating the old refresh twice.
+      final saved = _prefs.getString(StorageKeys.authToken);
+      if (saved != null &&
+          options.headers['Authorization'] != 'Bearer $saved') {
+        access = saved;
+      } else {
+        if (_refresh == null || _refreshGeneration != generation) {
+          _refreshGeneration = generation;
+          final work = _rotate(generation);
+          _refresh = work;
+          work.then<void>(
+            (_) {
+              if (identical(_refresh, work)) _refresh = null;
+            },
+            onError: (Object _, StackTrace _) {
+              if (identical(_refresh, work)) _refresh = null;
+            },
+          );
+        }
+        access = await _refresh;
+      }
+    } on DioException catch (error) {
+      // A transport/server failure is not evidence of a rejected login.
+      if (_session.isCurrent(generation) &&
+          [400, 401, 403].contains(error.response?.statusCode)) {
+        _forceLogout();
+      }
+      return handler.next(error);
+    } catch (_) {
+      return handler.next(err);
     }
-  }
-
-  /// Clear all auth data and notify the app to log out.
-  Future<void> _clearAuthAndLogout() async {
-    await _prefs.remove(StorageKeys.authToken);
-    await _prefs.remove(StorageKeys.refreshToken);
-    await _prefs.remove('user_phone');
-    await _prefs.remove(StorageKeys.userId);
-    await _prefs.remove(StorageKeys.userRole);
-    await _prefs.remove(StorageKeys.restaurantId);
-    onUnauthorized?.call();
+    if (!_session.isCurrent(generation)) return handler.next(_cancel(options));
+    if (access == null) {
+      _forceLogout();
+      return handler.next(err);
+    }
+    options.extra['authRetried'] = true;
+    options.headers['Authorization'] = 'Bearer $access';
+    if (options.path == ApiEndpoints.tokenVerify) {
+      options.data = {'token': access};
+    }
+    // Retry once without recursively rotating. Keep generation checks on the
+    // response, and distinguish a retry failure from a refresh rejection.
+    try {
+      final response = await _refreshDio.fetch(options);
+      if (!_session.isCurrent(generation)) {
+        return handler.next(_cancel(options));
+      }
+      return handler.resolve(response);
+    } on DioException catch (error) {
+      if (_session.isCurrent(generation) && error.response?.statusCode == 401) {
+        _forceLogout();
+      }
+      return handler.next(error);
+    }
   }
 }

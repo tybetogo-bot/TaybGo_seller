@@ -22,6 +22,8 @@ import '../../features/profile/presentation/screens/changelog_screen.dart';
 import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
+import '../../features/promotions/presentation/screens/promotions_screen.dart';
+import '../../features/promotions/presentation/screens/promotion_editor_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/knowledge_base/presentation/screens/knowledge_base_screen.dart';
@@ -116,6 +118,15 @@ class AppRouter {
       return null;
     },
     routes: [
+      GoRoute(
+        path: Routes.addPromotion,
+        builder: (context, state) => const PromotionEditorScreen(),
+      ),
+      GoRoute(
+        path: Routes.editPromotion,
+        builder: (context, state) =>
+            PromotionEditorScreen(promoId: state.pathParameters['promoId']),
+      ),
       // Splash screen
       GoRoute(
         path: Routes.splash,
@@ -328,6 +339,11 @@ class AppRouter {
                 path: 'restaurant',
                 name: Routes.restaurantSettingsName,
                 builder: (context, state) => const EditProfileScreen(),
+              ),
+              GoRoute(
+                path: 'promotions',
+                name: Routes.promotionsName,
+                builder: (context, state) => const PromotionsScreen(),
               ),
               GoRoute(
                 path: 'coupons',

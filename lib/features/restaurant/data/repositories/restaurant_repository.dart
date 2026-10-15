@@ -4,10 +4,11 @@ library;
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/config/constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/config/constants.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/services/session_lifecycle.dart';
 import '../datasources/restaurant_remote_data_source.dart';
 import '../models/restaurant_model.dart';
 
@@ -244,7 +245,13 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   @override
   Future<void> saveSelectedRestaurantId(String id) async {
-    await _prefs.setString(StorageKeys.restaurantId, id);
+    final session = SessionLifecycle.instance;
+    final generation = session.generation;
+    await session.serializeWrite(() async {
+      if (session.isAuthenticated(generation)) {
+        await _prefs.setString(StorageKeys.restaurantId, id);
+      }
+    });
   }
 
   @override
@@ -254,6 +261,12 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   @override
   Future<void> clearSelectedRestaurant() async {
-    await _prefs.remove(StorageKeys.restaurantId);
+    final session = SessionLifecycle.instance;
+    final generation = session.generation;
+    await session.serializeWrite(() async {
+      if (session.isAuthenticated(generation)) {
+        await _prefs.remove(StorageKeys.restaurantId);
+      }
+    });
   }
 }

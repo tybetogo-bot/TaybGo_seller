@@ -706,6 +706,8 @@
     "error": "Kunde inte radera kontot. Försök igen."
   },
   "notifications": {
+    "unreadCount": "Aviseringar, {count} olästa",
+    "noUnread": "Aviseringar, alla lästa",
     "title": "Aviseringar",
     "settings": "Aviseringsinställningar",
     "notificationTypes": "Aviseringstyper",
@@ -843,6 +845,17 @@
       "change1": "Säljarprofilen har gjorts om med kompakt restauranghuvud och grupperade inställningar.",
       "change2": "Kontroller för leveranstillgänglighet tillagda och restaurangstatus synkroniserad.",
       "change3": "Beställningsåtgärder följer nu statusarna som servern tillåter."
+    },
+    "v1023": {
+      "date": "15 oktober 2026",
+      "change1": "Skapa restaurangkampanjer med bilder, granskningsstatus och tydliga knappar för publicering eller paus.",
+      "change2": "Olästa aviseringar visar nu en animerad räknare med förbättrad tillgänglighet.",
+      "change3": "Utloggning rensar aviseringar och kontodata; sena förfrågningar kan inte påverka en ny session."
+    },
+    "v1022ios": {
+      "date": "12 oktober 2026",
+      "change1": "Förbättrad initiering av iOS-aviseringar och komplett ljud för bakgrundsaviseringar.",
+      "change2": "Uppdaterad iOS-releasekonfiguration, Places-inställningar och medföljande typsnitt."
     },
     "v1022": {
       "date": "2 oktober 2026",

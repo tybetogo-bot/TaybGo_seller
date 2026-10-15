@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/datasources/coupons_remote_data_source.dart';
 import '../data/models/coupon_model.dart';
@@ -96,10 +97,14 @@ class CouponsState {
 
 /// Coupons state notifier for managing coupons (Riverpod 3.x)
 class CouponsNotifier extends Notifier<CouponsState> {
-  late final CouponsRepository _repository;
+  late CouponsRepository _repository;
 
   @override
   CouponsState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return CouponsState();
+    }
     _repository = ref.watch(couponsRepositoryProvider);
 
     // Watch for restaurant state changes (loading -> loaded)
@@ -125,6 +130,11 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Load coupons from API
   Future<void> _loadCoupons({int page = 1, bool? active, String? code}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final restaurantState = ref.read(restaurantProvider);
 
     // If restaurant state is still loading, keep coupons in loading state
@@ -149,6 +159,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         active: active,
         code: code,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (_restaurantId != restaurantId) {
         return;
@@ -168,6 +182,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         currentPage: page,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load coupons: $e',
@@ -177,7 +195,16 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Refresh coupons data
   Future<void> refresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadCoupons(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Set filter
@@ -192,6 +219,11 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Add a new coupon
   Future<void> addCoupon(CouponModel coupon) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final restaurantId = _restaurantId;
     if (restaurantId == null) {
       state = state.copyWith(isLoading: false, error: 'No restaurant selected');
@@ -222,6 +254,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         restaurantId: restaurantId,
         data: data,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -236,6 +272,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to add coupon: $e',
@@ -245,6 +285,11 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Update an existing coupon
   Future<void> updateCoupon(CouponModel coupon) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -265,6 +310,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
       };
 
       final result = await _repository.patchCoupon(coupon.id, data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -280,6 +329,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
       state = state.copyWith(coupons: updatedCoupons, isLoading: false);
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update coupon: $e',
@@ -289,10 +342,19 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Delete a coupon
   Future<void> deleteCoupon(String couponId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.deleteCoupon(couponId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -308,6 +370,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
       state = state.copyWith(coupons: updatedCoupons, isLoading: false);
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to delete coupon: $e',
@@ -317,6 +383,11 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
   /// Toggle coupon active status
   Future<void> toggleCouponStatus(String couponId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(clearError: true);
 
     try {
@@ -326,6 +397,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
       final result = await _repository.patchCoupon(couponId, {
         'is_active': !coupon.isActive,
       });
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -338,6 +413,10 @@ class CouponsNotifier extends Notifier<CouponsState> {
 
       state = state.copyWith(coupons: updatedCoupons);
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(error: 'Failed to toggle coupon status: $e');
     }
   }

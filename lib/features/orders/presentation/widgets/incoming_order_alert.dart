@@ -9,12 +9,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/routes.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/services/push_notification_service.dart';
+import '../../../../core/services/session_lifecycle.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../menu/application/menu_notifier.dart';
+import '../../../menu/data/models/menu_item_model.dart';
 import '../../../notifications/application/notifications_notifier.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/application/tour_notifier.dart';
-import '../../../menu/application/menu_notifier.dart';
-import '../../../menu/data/models/menu_item_model.dart';
 import '../../application/orders_notifier.dart';
 import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
@@ -140,6 +141,10 @@ class _IncomingOrderAlertHostState
   }
 
   Future<void> _handleNotificationTap(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final rawOrderId = data['order_id'] ?? data['orderId'];
     final orderId = rawOrderId?.toString().trim();
     final notificationType = data['type']?.toString().trim().toLowerCase();
@@ -173,7 +178,9 @@ class _IncomingOrderAlertHostState
         .fetchOrderById(orderId);
     final order = fetchedOrder ?? cachedOrder;
 
-    if (!mounted) return;
+    if (!mounted || !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (order?.status == OrderStatusEnum.pending) {
       _dismissedOrderIds.remove(order!.id);
       _knownPendingOrderIds.add(order.id);
@@ -187,6 +194,10 @@ class _IncomingOrderAlertHostState
   }
 
   Future<void> _handleSupportNotificationTap(Map<String, dynamic> data) async {
+    if (!SessionLifecycle.instance.authenticated ||
+        SessionLifecycle.instance.closing) {
+      return;
+    }
     final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
     final messageId = _asInt(data['message_id'] ?? data['messageId']);
 

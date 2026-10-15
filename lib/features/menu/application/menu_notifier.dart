@@ -2,9 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../../restaurant/application/restaurant_state.dart';
-import '../data/models/menu_item_model.dart';
 import '../data/datasources/menu_remote_data_source.dart';
+import '../data/models/menu_item_model.dart';
 import '../data/repositories/menu_repository.dart';
 
 /// Menu state containing items, categories, and filters with cached filtering
@@ -95,10 +96,14 @@ class MenuState {
 
 /// Menu state notifier for managing menu items and categories (Riverpod 3.x)
 class MenuNotifier extends Notifier<MenuState> {
-  late final MenuRepository _repository;
+  late MenuRepository _repository;
 
   @override
   MenuState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return MenuState();
+    }
     _repository = ref.watch(menuRepositoryProvider);
 
     // Watch for restaurant state changes (loading -> loaded)
@@ -122,6 +127,11 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Load initial data from API
   Future<void> _loadInitialData() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final restaurantState = ref.read(restaurantProvider);
 
     // If restaurant state is still loading, keep menu in loading state
@@ -142,7 +152,15 @@ class MenuNotifier extends Notifier<MenuState> {
     try {
       // Load categories and items in parallel
       final categoriesResult = await _repository.getCategories(restaurantId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       final itemsResult = await _repository.getMenuItems(restaurantId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (ref.read(selectedRestaurantIdProvider) != restaurantId) {
         return;
@@ -170,6 +188,10 @@ class MenuNotifier extends Notifier<MenuState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load menu: $e',
@@ -179,7 +201,16 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Refresh menu data
   Future<void> refresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadInitialData();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Select a category
@@ -203,6 +234,11 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Add a new menu item
   Future<void> addItem(MenuItemModel item) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final restaurantId = ref.read(selectedRestaurantIdProvider);
     if (restaurantId == null) {
       state = state.copyWith(error: 'No restaurant selected');
@@ -242,6 +278,10 @@ class MenuNotifier extends Notifier<MenuState> {
         restaurantId: restaurantId,
         data: data,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -256,12 +296,21 @@ class MenuNotifier extends Notifier<MenuState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(isLoading: false, error: 'Failed to add item: $e');
     }
   }
 
   /// Update an existing menu item
   Future<void> updateItem(MenuItemModel item) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -294,6 +343,10 @@ class MenuNotifier extends Notifier<MenuState> {
       };
 
       final result = await _repository.updateMenuItem(item.id, data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -309,6 +362,10 @@ class MenuNotifier extends Notifier<MenuState> {
 
       state = state.copyWith(items: updatedItems, isLoading: false);
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update item: $e',
@@ -318,10 +375,19 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Delete a menu item and return the failure when the server rejects it.
   Future<Failure?> deleteItem(String itemId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.deleteMenuItem(itemId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -336,6 +402,10 @@ class MenuNotifier extends Notifier<MenuState> {
       state = state.copyWith(items: updatedItems, isLoading: false);
       return null;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to delete item: $e',
@@ -346,9 +416,18 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Toggle item availability
   Future<void> toggleItemAvailability(String itemId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final item = state.items.firstWhere((i) => i.id == itemId);
     final updatedItem = item.copyWith(isAvailable: !item.isAvailable);
     await updateItem(updatedItem);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Get item by ID
@@ -378,6 +457,11 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Add a new category
   Future<bool> addCategory(String name) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     final restaurantId = ref.read(selectedRestaurantIdProvider);
     if (restaurantId == null) {
       state = state.copyWith(error: 'No restaurant selected');
@@ -393,6 +477,10 @@ class MenuNotifier extends Notifier<MenuState> {
         restaurantId: restaurantId,
         data: data,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -408,6 +496,10 @@ class MenuNotifier extends Notifier<MenuState> {
       );
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to add category: $e',
@@ -418,12 +510,21 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Update an existing category
   Future<bool> updateCategory(String categoryId, String name) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final data = {'name': name};
 
       final result = await _repository.updateCategory(categoryId, data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -440,6 +541,10 @@ class MenuNotifier extends Notifier<MenuState> {
       state = state.copyWith(categories: updatedCategories, isLoading: false);
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to update category: $e',
@@ -450,10 +555,19 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Delete a category
   Future<bool> deleteCategory(String categoryId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.deleteCategory(categoryId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -479,6 +593,10 @@ class MenuNotifier extends Notifier<MenuState> {
       );
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to delete category: $e',
@@ -489,6 +607,11 @@ class MenuNotifier extends Notifier<MenuState> {
 
   /// Reorder categories
   Future<void> reorderCategories(int oldIndex, int newIndex) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     // Update local state immediately for smooth UX
     final categories = List<CategoryModel>.from(state.categories);
     if (newIndex > oldIndex) newIndex--;

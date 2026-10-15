@@ -11,8 +11,12 @@ class PublicConfigApi {
   Future<PublicAppConfig> fetch({required String currentVersion}) async {
     final response = await _dio.get<Map<String, dynamic>>(
       ApiEndpoints.configPublic,
-      queryParameters: {'current_version': currentVersion},
-      options: Options(headers: const {'Cache-Control': 'no-cache'}),
+      // Cache-bust without a non-safelisted Cache-Control request header.
+      queryParameters: {
+        'current_version': currentVersion,
+        '_': DateTime.now().millisecondsSinceEpoch,
+      },
+      options: Options(extra: {'anonymous': true}),
     );
 
     final data = response.data;

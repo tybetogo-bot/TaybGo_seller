@@ -13,6 +13,7 @@ import '../../../../features/tour/application/tour_notifier.dart';
 import '../../../../features/tour/presentation/widgets/tour_section_widget.dart';
 import '../../../../features/tour/utils/tour_keys.dart';
 import '../../../notifications/application/notifications_notifier.dart';
+import '../../../notifications/presentation/widgets/unread_notification_button.dart';
 import '../../../orders/application/orders_notifier.dart';
 import '../../../orders/data/models/order_model.dart';
 import '../../../orders/presentation/widgets/animated_order_card.dart';
@@ -207,7 +208,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _RefreshButton(isDark: isDark),
-                              _NotificationIconButton(isDark: isDark),
+                              const _NotificationIconButton(),
                             ],
                           ),
                         ],
@@ -784,25 +785,17 @@ class _RefreshButtonState extends ConsumerState<_RefreshButton> {
 }
 
 class _NotificationIconButton extends ConsumerWidget {
-  const _NotificationIconButton({required this.isDark});
-
-  final bool isDark;
+  const _NotificationIconButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
-    final hasUnread = unreadCount > 0;
-
-    return IconButton(
+    return UnreadNotificationButton(
+      unreadCount: unreadCount,
+      label: unreadCount > 0
+          ? 'notifications.unreadCount'.trParams({'count': '$unreadCount'})
+          : 'notifications.noUnread'.tr,
       onPressed: () => context.push(Routes.notifications),
-      icon: Badge(
-        smallSize: 8.w,
-        isLabelVisible: hasUnread,
-        child: Icon(
-          Icons.notifications_none,
-          color: isDark ? DarkColors.textPrimary : LightColors.textPrimary,
-        ),
-      ),
     );
   }
 }

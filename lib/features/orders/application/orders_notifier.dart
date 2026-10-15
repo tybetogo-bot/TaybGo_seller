@@ -7,13 +7,14 @@ import '../../../core/errors/failures.dart';
 import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../../restaurant/application/restaurant_state.dart';
-import 'customer_orders_notifier.dart';
 import '../data/datasources/orders_remote_data_source.dart';
 import '../data/models/food_checkout_model.dart';
 import '../data/models/order_model.dart';
 import '../data/repositories/customer_orders_repository.dart';
 import '../data/repositories/orders_repository.dart';
+import 'customer_orders_notifier.dart';
 
 /// Orders state with cached filtered lists for performance
 class OrdersState {
@@ -127,11 +128,15 @@ class OrdersState {
 
 /// Orders notifier for managing order state (Riverpod 3.x)
 class OrdersNotifier extends Notifier<OrdersState> {
-  late final OrdersRepository _repository;
-  late final CustomerOrdersRepository _customerOrdersRepository;
+  late OrdersRepository _repository;
+  late CustomerOrdersRepository _customerOrdersRepository;
 
   @override
   OrdersState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return OrdersState();
+    }
     _repository = ref.watch(ordersRepositoryProvider);
     _customerOrdersRepository = ref.watch(customerOrdersRepositoryProvider);
 
@@ -150,10 +155,19 @@ class OrdersNotifier extends Notifier<OrdersState> {
   /// Load orders from API
   /// Note: API auto-scopes to seller's restaurants
   Future<void> _loadOrders({int page = 1, String? status}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getOrders(page: page, status: status);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -173,6 +187,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
         currentPage: page,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load orders: $e',
@@ -182,7 +200,16 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Refresh orders (shows loading state)
   Future<void> refreshOrders() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadOrders(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Set search query for filtering orders
@@ -198,8 +225,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
   /// Silent refresh - only updates UI if data has changed
   /// Used by polling to avoid unnecessary rebuilds
   Future<bool> silentRefresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     try {
       final result = await _repository.getOrders(page: 1);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null || result.data == null) {
         return false;
@@ -219,6 +255,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
       return false;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       return false;
     }
   }
@@ -298,6 +338,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Cancel an order (sellers can only cancel, not accept - acceptance is done by drivers)
   Future<bool> cancelOrder(String orderId, {String? reason}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.updateOrderStatus(orderId, 'CANCELLED'),
@@ -307,6 +352,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Update order status
   Future<bool> _updateStatus(String orderId, String status) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.updateOrderStatus(orderId, status),
@@ -316,11 +366,21 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Mark order as on the way
   Future<bool> markOnTheWay(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _updateStatus(orderId, 'ON_THE_WAY');
   }
 
   /// Mark order as delivered
   Future<bool> markDelivered(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _updateStatus(orderId, 'DELIVERED');
   }
 
@@ -330,6 +390,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     int? driverDispatchDelayMinutes,
     int? preparationTimeMinutes,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.acceptOrder(
@@ -344,6 +409,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Reject a new order before preparation begins.
   Future<bool> rejectOrder(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.rejectOrder(orderId),
@@ -360,6 +430,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     String orderId,
     List<CartItem> items,
   ) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     if (items.isEmpty) {
       state = state.copyWith(error: 'orders.emptyItemsWarning'.tr);
       return false;
@@ -385,6 +460,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Request driver matching immediately.
   Future<bool> requestDriverNow(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.driverDispatch(
@@ -401,6 +481,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     int delayMinutes, {
     bool preparationTiming = false,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.driverDispatch(
@@ -420,6 +505,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     int delayMinutes, {
     bool preparationTiming = false,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.driverDispatch(
@@ -441,16 +531,29 @@ class OrdersNotifier extends Notifier<OrdersState> {
     bool reconcileOnAmbiguousFailure = false,
     String? failureFallbackErrorKey,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await operation();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       final failure = result.failure;
       if (failure != null) {
         if (failure.statusCode == 409 ||
             refreshOnUnknownOutcome ||
             (reconcileOnAmbiguousFailure && _isAmbiguousFailure(failure))) {
           await _refreshOrderForActionRace(orderId);
+          if (!ref.mounted ||
+              !SessionLifecycle.instance.isAuthenticated(generation)) {
+            return false;
+          }
         }
         state = state.copyWith(
           error: _actionErrorMessage(
@@ -469,6 +572,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
       _replaceOrder(updatedOrder);
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(error: '$fallbackError: $e');
       return false;
     }
@@ -483,12 +590,25 @@ class OrdersNotifier extends Notifier<OrdersState> {
   }
 
   Future<void> _refreshOrderForActionRace(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     try {
       final result = await _repository.getOrderById(orderId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       if (result.failure == null && result.data != null) {
         _replaceOrder(result.data!);
       }
     } catch (_) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       // Preserve the original action error when the reconciliation request
       // cannot reach the server as well.
     }
@@ -558,10 +678,19 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Fetch order by ID from API
   Future<OrderModel?> fetchOrderById(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.getOrderById(orderId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -587,6 +716,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
       return fetchedOrder;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to fetch order: $e');
       return null;
     }
@@ -597,6 +730,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
     String orderId,
     OrderUpdateRequest request,
   ) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
@@ -604,6 +742,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
         orderId,
         request,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -612,6 +754,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
       var updatedOrder = result.data!;
       final verifiedResult = await _repository.getOrderById(orderId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       if (verifiedResult.failure == null && verifiedResult.data != null) {
         updatedOrder = verifiedResult.data!;
       }
@@ -623,10 +769,18 @@ class OrdersNotifier extends Notifier<OrdersState> {
         state = state.copyWith(orders: updatedOrders);
       } else {
         await refreshOrders();
+        if (!ref.mounted ||
+            !SessionLifecycle.instance.isAuthenticated(generation)) {
+          return null;
+        }
       }
 
       return updatedOrder;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to update order: $e');
       return null;
     }
@@ -634,12 +788,21 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Recreate an expired order using the regular create-order API.
   Future<OrderModel?> reorderExpiredOrder(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       OrderModel? sourceOrder = getOrder(orderId);
 
       final detailResult = await _repository.getOrderById(orderId);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       if (detailResult.failure == null && detailResult.data != null) {
         sourceOrder = detailResult.data;
 
@@ -669,6 +832,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
       final createResult = await _customerOrdersRepository.createFoodOrder(
         reorderRequest,
       );
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (createResult.failure != null) {
         state = state.copyWith(error: createResult.failure!.message);
@@ -676,8 +843,16 @@ class OrdersNotifier extends Notifier<OrdersState> {
       }
 
       await refreshOrders();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       return createResult.data;
     } on FormatException catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(
         error: e.message.isNotEmpty
             ? e.message
@@ -685,6 +860,10 @@ class OrdersNotifier extends Notifier<OrdersState> {
       );
       return null;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to reorder order: $e');
       return null;
     }
@@ -694,6 +873,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
   /// Prefer backend-provided allowed status options when available.
   /// Fall back to the legacy local flow only when the API contract is absent.
   Future<bool> moveToNextStatus(String orderId) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     final order = getOrder(orderId);
     if (order == null) return false;
 
@@ -707,6 +891,11 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Update order to a specific status (used for undo functionality)
   Future<bool> updateToStatus(String orderId, OrderStatusEnum status) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     final statusString = _statusToApiString(status);
     return _updateStatus(orderId, statusString);
   }
@@ -872,10 +1061,19 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
   /// Log manual order from scanned form
   Future<bool> logManualOrder(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.logManualOrder(data: data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -884,9 +1082,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
 
       // Refresh orders list to include the newly logged order
       await refreshOrders();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(error: 'Failed to log manual order: $e');
       return false;
     }

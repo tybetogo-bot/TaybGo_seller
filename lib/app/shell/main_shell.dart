@@ -10,11 +10,12 @@ import '../../core/i18n/i18n.dart';
 import '../../core/responsive/responsive.dart';
 import '../../core/services/location_permission_service.dart';
 import '../../core/services/push_notification_service.dart';
+import '../../core/services/session_lifecycle.dart';
 import '../../core/theme/theme.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
 import '../../features/orders/application/orders_notifier.dart';
-import '../../features/tour/utils/tour_keys.dart';
 import '../../features/orders/presentation/widgets/incoming_order_alert.dart';
+import '../../features/tour/utils/tour_keys.dart';
 import '../../shared/widgets/location_warning_banner.dart';
 import '../router/routes.dart';
 
@@ -36,11 +37,15 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell>
     with WidgetsBindingObserver {
   bool _locationRequestScheduled = false;
+  late final int _generation;
+  bool get _current =>
+      mounted && SessionLifecycle.instance.isAuthenticated(_generation);
   late final void Function(RemoteMessage message) _foregroundMessageHandler;
 
   @override
   void initState() {
     super.initState();
+    _generation = SessionLifecycle.instance.generation;
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,6 +55,7 @@ class _MainShellState extends ConsumerState<MainShell>
 
     // Refresh in-app notifications when a push arrives in the foreground.
     _foregroundMessageHandler = (message) {
+      if (!_current) return;
       ref.read(notificationsProvider.notifier).refresh();
 
       final notificationType = message.data['type']
@@ -75,6 +81,7 @@ class _MainShellState extends ConsumerState<MainShell>
   }
 
   void _startNotificationsPolling() {
+    if (!_current) return;
     ref.read(notificationsPollingProvider.notifier).start();
     unawaited(ref.read(notificationsProvider.notifier).refresh());
   }
@@ -131,6 +138,7 @@ class _MainShellState extends ConsumerState<MainShell>
   }
 
   void _openNotificationTarget(Map<String, dynamic> data) {
+    if (!_current) return;
     final notificationType = data['type']?.toString().trim().toLowerCase();
     final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
     final messageId = _asInt(data['message_id'] ?? data['messageId']);
@@ -171,7 +179,7 @@ class _MainShellState extends ConsumerState<MainShell>
           .read(locationPermissionProvider.notifier)
           .requestPermissionIfNeeded();
     } finally {
-      autoRequestNotifier.clear();
+      if (_current) autoRequestNotifier.clear();
       _locationRequestScheduled = false;
     }
   }
@@ -194,10 +202,7 @@ class _MainShellState extends ConsumerState<MainShell>
     final fcmState = ref.watch(fcmTokenProvider);
     final autoRequestState = ref.watch(locationPermissionAutoRequestProvider);
 
-    debugPrint(
-      '[MainShell] fcmToken state: '
-      '${fcmState.when(data: (t) => t == null ? "token=null" : "token=${t.substring(0, t.length < 10 ? t.length : 10)}...", loading: () => "loading", error: (e, _) => "ERROR: $e")}',
-    );
+    debugPrint('[MainShell] FCM ready: ${fcmState.hasValue}');
 
     if (autoRequestState == LocationPermissionAutoRequestState.pending &&
         !_locationRequestScheduled) {

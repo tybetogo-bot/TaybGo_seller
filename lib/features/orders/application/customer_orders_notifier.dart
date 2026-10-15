@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/customer_orders_api.dart';
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/datasources/customer_orders_remote_data_source.dart';
 import '../data/models/food_checkout_model.dart';
 import '../data/models/order_model.dart';
@@ -112,7 +113,7 @@ class CustomerOrdersState {
 
 /// Customer orders notifier for managing order state (Riverpod 3.x)
 class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
-  late final CustomerOrdersRepository _repository;
+  late CustomerOrdersRepository _repository;
   int _latestPreviewRequestId = 0;
 
   void _log(String message, {Object? error, StackTrace? stackTrace}) {
@@ -134,6 +135,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   @override
   CustomerOrdersState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return CustomerOrdersState();
+    }
     _repository = ref.watch(customerOrdersRepositoryProvider);
 
     // Load initial orders
@@ -143,11 +148,20 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Load orders from API
   Future<void> _loadOrders({int page = 1}) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     _log('Loading orders, page: $page');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final result = await _repository.getCustomerOrders(page: page);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         _log('Failed to load orders: ${result.failure!.message}');
@@ -165,6 +179,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
         currentPage: page,
       );
     } catch (e, stackTrace) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       _log('Exception loading orders', error: e, stackTrace: stackTrace);
       state = state.copyWith(
         isLoading: false,
@@ -175,7 +193,16 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Refresh orders
   Future<void> refreshOrders() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadOrders(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Preview live pricing for a food order.
@@ -183,11 +210,20 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
     FoodPricePreviewRequest request, {
     required String fingerprint,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     final requestId = ++_latestPreviewRequestId;
     state = state.copyWith(isPreviewLoading: true, clearPreviewError: true);
 
     try {
       final result = await _repository.previewFoodOrder(request);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (requestId != _latestPreviewRequestId) {
         return result.data;
@@ -210,6 +246,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return result.data;
     } catch (e, stackTrace) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       _log(
         'Exception previewing order pricing',
         error: e,
@@ -230,6 +270,11 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Create a new food order
   Future<OrderModel?> createFoodOrder(FoodCheckoutRequest request) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     _log('=== CREATE FOOD ORDER START ===');
     _log('Request: ${request.toJson()}');
     state = state.copyWith(isCreating: true, clearError: true);
@@ -237,6 +282,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
     try {
       _log('Calling repository.createFoodOrder...');
       final result = await _repository.createFoodOrder(request);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         _log('=== CREATE FOOD ORDER FAILED ===');
@@ -257,6 +306,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return result.data;
     } catch (e, stackTrace) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       _log(
         '=== CREATE FOOD ORDER EXCEPTION ===',
         error: e,
@@ -272,10 +325,19 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Update an existing order
   Future<OrderModel?> updateOrder(String id, OrderUpdateRequest request) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(isUpdating: true, clearError: true);
 
     try {
       final result = await _repository.updateOrder(id, request);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -297,6 +359,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(
         isUpdating: false,
         error: 'Failed to update order: $e',
@@ -307,10 +373,19 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Partial update an order
   Future<OrderModel?> patchOrder(String id, Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(isUpdating: true, clearError: true);
 
     try {
       final result = await _repository.patchOrder(id, data);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -332,6 +407,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(
         isUpdating: false,
         error: 'Failed to update order: $e',
@@ -342,10 +421,19 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Delete an order
   Future<bool> deleteOrder(String id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isDeleting: true, clearError: true);
 
     try {
       final result = await _repository.deleteOrder(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -361,6 +449,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return true;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       state = state.copyWith(
         isDeleting: false,
         error: 'Failed to delete order: $e',
@@ -380,10 +472,19 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
   /// Fetch order by ID from API
   Future<OrderModel?> fetchOrderById(String id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return null;
+    }
     state = state.copyWith(clearError: true);
 
     try {
       final result = await _repository.getOrderById(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(error: result.failure!.message);
@@ -400,6 +501,10 @@ class CustomerOrdersNotifier extends Notifier<CustomerOrdersState> {
 
       return result.data;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return null;
+      }
       state = state.copyWith(error: 'Failed to fetch order: $e');
       return null;
     }

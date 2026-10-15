@@ -69,6 +69,12 @@ class Routes {
   static const String restaurantSettings = '/profile/restaurant';
   static const String restaurantSettingsName = 'restaurantSettings';
 
+  static const String promotions = '/profile/promotions';
+  static const String promotionsName = 'promotions';
+  static const String addPromotion = '/promotions/new';
+  static const String editPromotion = '/promotions/:promoId/edit';
+  static String editPromotionPath(String id) => '/promotions/$id/edit';
+
   static const String coupons = '/profile/coupons';
   static const String couponsName = 'coupons';
 
