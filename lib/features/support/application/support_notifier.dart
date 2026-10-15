@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/models/support_ticket_model.dart';
 import '../data/repositories/support_repository.dart';
 
@@ -98,16 +99,31 @@ class SupportNotifier extends Notifier<SupportState> {
 
   @override
   SupportState build() {
-    _repository = ref.watch(supportRepositoryProvider);
+    ref.watch(sessionGenerationProvider);
+    stopTicketMessagePolling();
+    _ticketDetailRequestInFlight = false;
     ref.onDispose(stopTicketMessagePolling);
+    if (!SessionLifecycle.instance.authenticated) {
+      return SupportState();
+    }
+    _repository = ref.watch(supportRepositoryProvider);
     return SupportState();
   }
 
   /// Load tickets (first page)
   Future<void> loadTickets() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = state.copyWith(isLoading: true, clearError: true);
 
     final result = await _repository.getTickets(page: 1);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       state = state.copyWith(isLoading: false, error: result.failure!.message);
@@ -124,12 +140,21 @@ class SupportNotifier extends Notifier<SupportState> {
 
   /// Load more tickets (next page)
   Future<void> loadMore() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (state.isLoadingMore || !state.hasMorePages) return;
 
     state = state.copyWith(isLoadingMore: true);
     final nextPage = state.currentPage + 1;
 
     final result = await _repository.getTickets(page: nextPage);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       state = state.copyWith(isLoadingMore: false);
@@ -156,12 +181,21 @@ class SupportNotifier extends Notifier<SupportState> {
 
   /// Load ticket detail with messages
   Future<void> loadTicketDetail(int id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _loadTicketDetail(
       id,
       showInitialLoading: true,
       showRefreshIndicator: false,
       suppressErrors: false,
     );
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Refresh the open ticket without replacing the conversation with a
@@ -212,6 +246,11 @@ class SupportNotifier extends Notifier<SupportState> {
     required bool showRefreshIndicator,
     required bool suppressErrors,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     if (_ticketDetailRequestInFlight) return true;
 
     _ticketDetailRequestInFlight = true;
@@ -225,6 +264,10 @@ class SupportNotifier extends Notifier<SupportState> {
 
     try {
       final result = await _repository.getTicketById(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null || result.data == null) {
         final failureMessage =
@@ -256,7 +299,9 @@ class SupportNotifier extends Notifier<SupportState> {
       );
       return true;
     } finally {
-      _ticketDetailRequestInFlight = false;
+      if (SessionLifecycle.instance.isAuthenticated(generation)) {
+        _ticketDetailRequestInFlight = false;
+      }
     }
   }
 
@@ -269,6 +314,11 @@ class SupportNotifier extends Notifier<SupportState> {
     int? restaurantId,
     int? driverId,
   }) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     state = state.copyWith(isCreating: true, clearError: true);
 
     final result = await _repository.createTicket(
@@ -279,6 +329,10 @@ class SupportNotifier extends Notifier<SupportState> {
       restaurantId: restaurantId,
       driverId: driverId,
     );
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
 
     if (result.failure != null) {
       state = state.copyWith(isCreating: false, error: result.failure!.message);
@@ -295,11 +349,20 @@ class SupportNotifier extends Notifier<SupportState> {
 
   /// Send a message to the selected ticket
   Future<bool> sendMessage(int ticketId, String body) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     if (body.trim().isEmpty) return false;
 
     state = state.copyWith(isSending: true);
 
     final result = await _repository.sendMessage(ticketId, body: body.trim());
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
 
     if (result.failure != null) {
       state = state.copyWith(isSending: false);

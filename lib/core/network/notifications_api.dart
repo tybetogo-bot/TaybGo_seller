@@ -4,6 +4,7 @@ library;
 import 'package:dio/dio.dart';
 
 import '../../features/notifications/data/models/notification_model.dart';
+import '../config/constants.dart';
 
 /// Notifications API service
 class NotificationsApi {
@@ -57,6 +58,24 @@ class NotificationsApi {
     return NotificationModel.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<void> unregisterDeviceToken({
+    required String token,
+    required String? access,
+  }) async {
+    await _dio.delete(
+      ApiEndpoints.notificationDevice,
+      data: {'token': token},
+      options: Options(
+        headers: {'Authorization': 'Bearer $access'},
+        extra: {
+          'sessionCleanup': true,
+          'skipAuthRefresh': true,
+          'disableRetry': true,
+        },
+      ),
+    );
+  }
+
   /// Register device token for push notifications
   /// POST /api/notifications/device
   Future<void> registerDeviceToken({
@@ -64,7 +83,7 @@ class NotificationsApi {
     String? deviceType,
   }) async {
     await _dio.post(
-      '/api/notifications/device',
+      ApiEndpoints.notificationDevice,
       data: {'token': token, if (deviceType != null) 'device_type': deviceType},
     );
   }

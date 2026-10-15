@@ -706,6 +706,8 @@
     "error": "Kunne ikke slette konto. Prøv venligst igen."
   },
   "notifications": {
+    "unreadCount": "Notifikationer, {count} ulæste",
+    "noUnread": "Notifikationer, alle læst",
     "title": "Notifikationer",
     "settings": "Notifikationsindstillinger",
     "notificationTypes": "Notifikationstyper",
@@ -843,6 +845,17 @@
       "change1": "Sælgerprofilen er redesignet med kompakt restauranthoved og grupperede indstillinger.",
       "change2": "Kontroller for leveringsmulighed tilføjet, og restaurantstatus holdes synkroniseret.",
       "change3": "Ordrehandlinger følger nu de statusser, som serveren tillader."
+    },
+    "v1023": {
+      "date": "15. oktober 2026",
+      "change1": "Opret restaurantkampagner med billeder, godkendelsesstatus og tydelige knapper til udgivelse eller pause.",
+      "change2": "Ulæste notifikationer viser nu en animeret tæller med forbedret tilgængelighed.",
+      "change3": "Når du logger ud, ryddes notifikationer og kontodata; forsinkede forespørgsler kan ikke påvirke en ny session."
+    },
+    "v1022ios": {
+      "date": "12. oktober 2026",
+      "change1": "Forbedret initialisering af iOS-notifikationer og tilføjet den fulde lyd til baggrundsnotifikationer.",
+      "change2": "Opdateret iOS-udgivelsesopsætning, Places og medfølgende skrifttyper."
     },
     "v1022": {
       "date": "2. oktober 2026",

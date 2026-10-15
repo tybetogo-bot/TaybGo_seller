@@ -11,6 +11,8 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/providers/providers.dart';
 import '../../../../core/theme/theme.dart';
 
+final imagePickerProvider = Provider<ImagePicker>((ref) => ImagePicker());
+
 /// Widget for picking and uploading images to Cloudinary
 class ImagePickerWidget extends ConsumerStatefulWidget {
   const ImagePickerWidget({
@@ -19,6 +21,8 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
     this.titleText,
     this.icon = Icons.image,
     this.isRequired = false,
+    this.previewAspectRatio,
+    this.enabled = true,
     this.onImageUploaded,
     this.onImageRemoved,
     this.onUploadStateChanged,
@@ -28,6 +32,8 @@ class ImagePickerWidget extends ConsumerStatefulWidget {
   final String? titleText;
   final IconData icon;
   final bool isRequired;
+  final double? previewAspectRatio;
+  final bool enabled;
   final void Function(String url)? onImageUploaded;
   final void Function()? onImageRemoved;
   final void Function(bool isUploading)? onUploadStateChanged;
@@ -61,6 +67,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
   }
 
   Future<void> _showImageSourceDialog() async {
+    if (!widget.enabled || _isUploading) return;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isWeb = kIsWeb;
 
@@ -119,7 +126,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final picker = ImagePicker();
+      final picker = ref.read(imagePickerProvider);
       final pickedFile = await picker.pickImage(
         source: source,
         maxWidth: 1200,
@@ -239,86 +246,106 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: isDark ? DarkColors.surface : LightColors.surface,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: _error != null
-              ? AppColors.error
-              : (isDark ? DarkColors.border : LightColors.border),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(
-                widget.icon,
-                size: 20.w,
-                color: isDark
-                    ? DarkColors.textSecondary
-                    : LightColors.textSecondary,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                widget.titleText ?? 'menu.itemImage'.tr,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? DarkColors.textPrimary
-                      : LightColors.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                widget.isRequired ? 'common.required'.tr : 'common.optional'.tr,
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: isDark
-                      ? DarkColors.textTertiary
-                      : LightColors.textTertiary,
-                ),
-              ),
-            ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final previewHeight = widget.previewAspectRatio == null
+            ? 200.h
+            : (constraints.maxWidth - 32.w) / widget.previewAspectRatio!;
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: isDark ? DarkColors.surface : LightColors.surface,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: _error != null
+                  ? AppColors.error
+                  : (isDark ? DarkColors.border : LightColors.border),
+            ),
           ),
-          SizedBox(height: 16.h),
-
-          // Image preview or placeholder
-          if (_imageUrl != null && !_isUploading)
-            _buildImagePreview(isDark)
-          else if (_isUploading)
-            _buildUploadingState(isDark)
-          else
-            _buildPlaceholder(isDark),
-
-          // Error message
-          if (_error != null && !_isUploading) ...[
-            SizedBox(height: 8.h),
-            Row(
-              children: [
-                Icon(Icons.error_outline, color: AppColors.error, size: 16.w),
-                SizedBox(width: 4.w),
-                Expanded(
-                  child: Text(
-                    _error!,
-                    style: TextStyle(fontSize: 12.sp, color: AppColors.error),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: 20.w,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
                   ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      widget.titleText ?? 'menu.itemImage'.tr,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? DarkColors.textPrimary
+                            : LightColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    widget.isRequired
+                        ? 'common.required'.tr
+                        : 'common.optional'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: isDark
+                          ? DarkColors.textTertiary
+                          : LightColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+
+              // Image preview or placeholder
+              if (_imageUrl != null && !_isUploading)
+                _buildImagePreview(isDark, previewHeight)
+              else if (_isUploading)
+                _buildUploadingState(isDark, previewHeight)
+              else
+                _buildPlaceholder(isDark, previewHeight),
+
+              // Error message
+              if (_error != null && !_isUploading) ...[
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: AppColors.error,
+                      size: 16.w,
+                    ),
+                    SizedBox(width: 4.w),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildImagePreview(bool isDark) {
+  Widget _buildImagePreview(bool isDark, double previewHeight) {
     return Column(
       children: [
         ClipRRect(
@@ -326,17 +353,17 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
           child: _selectedBytes != null
               ? Image.memory(
                   _selectedBytes!,
-                  height: 200.h,
+                  height: previewHeight,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 )
               : CachedNetworkImage(
                   imageUrl: _imageUrl!,
-                  height: 200.h,
+                  height: previewHeight,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    height: 200.h,
+                    height: previewHeight,
                     width: double.infinity,
                     color: isDark
                         ? DarkColors.background
@@ -344,7 +371,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
                     child: const Center(child: CircularProgressIndicator()),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    height: 200.h,
+                    height: previewHeight,
                     width: double.infinity,
                     color: isDark
                         ? DarkColors.background
@@ -360,7 +387,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _showImageSourceDialog,
+                  onPressed: widget.enabled ? _showImageSourceDialog : null,
                   icon: const Icon(Icons.edit, size: 18),
                   label: Text('menu.changeImage'.tr),
                   style: OutlinedButton.styleFrom(
@@ -374,7 +401,7 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
               SizedBox(width: 12.w),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _removeImage,
+                  onPressed: widget.enabled ? _removeImage : null,
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: Text('menu.removeImage'.tr),
                   style: OutlinedButton.styleFrom(
@@ -390,10 +417,10 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
     );
   }
 
-  Widget _buildUploadingState(bool isDark) {
+  Widget _buildUploadingState(bool isDark, double previewHeight) {
     return Container(
       width: double.infinity,
-      height: 200.h,
+      height: previewHeight,
       decoration: BoxDecoration(
         color: isDark ? DarkColors.background : LightColors.background,
         borderRadius: BorderRadius.circular(8.r),
@@ -435,13 +462,13 @@ class _ImagePickerWidgetState extends ConsumerState<ImagePickerWidget> {
     );
   }
 
-  Widget _buildPlaceholder(bool isDark) {
+  Widget _buildPlaceholder(bool isDark, double previewHeight) {
     return InkWell(
-      onTap: _showImageSourceDialog,
+      onTap: widget.enabled ? _showImageSourceDialog : null,
       borderRadius: BorderRadius.circular(8.r),
       child: Container(
         width: double.infinity,
-        height: 200.h,
+        height: previewHeight,
         decoration: BoxDecoration(
           color: isDark ? DarkColors.background : LightColors.background,
           borderRadius: BorderRadius.circular(8.r),

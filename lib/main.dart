@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -18,6 +19,7 @@ import 'core/i18n/i18n.dart';
 import 'core/providers/providers.dart';
 import 'core/responsive/responsive.dart';
 import 'core/services/push_notification_service.dart';
+import 'core/services/session_lifecycle.dart';
 import 'core/theme/theme.dart';
 import 'features/auth/application/auth_state.dart';
 import 'features/tour/application/tour_notifier.dart';
@@ -46,7 +48,6 @@ void main() async {
   }
 
   // Initialize push notification service (non-blocking so it doesn't stall the app)
-  PushNotificationService.instance.initialize();
 
   // Orientation lock: portrait-only on phones (the rotation policy is then
   // enforced per-frame in [TaybGoApp.build] based on the current screen
@@ -59,6 +60,16 @@ void main() async {
 
   // Initialize SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
+  SessionLifecycle.instance.restore(
+    sharedPreferences.getString(StorageKeys.authToken)?.isNotEmpty ?? false,
+  );
+  if (SessionLifecycle.instance.authenticated) {
+    PushNotificationService.instance.initialize();
+  } else {
+    unawaited(
+      SessionLifecycle.instance.end(PushNotificationService.instance.cleanup),
+    );
+  }
 
   // Load initial translations before app starts
   final savedLocaleCode = sharedPreferences.getString(StorageKeys.locale);
@@ -94,7 +105,10 @@ class TaybGoApp extends ConsumerWidget {
     // Set up global unauthorized callback to handle 401 errors
     // This callback will be called by the AuthInterceptor when a 401 error occurs
     globalUnauthorizedCallback = () async {
-      await ref.read(authProvider.notifier).handleUnauthorized();
+      final cleanup = ref.read(authProvider.notifier).handleUnauthorized();
+      final generation = SessionLifecycle.instance.generation;
+      await cleanup;
+      if (SessionLifecycle.instance.generation != generation) return;
 
       // Check if we're on a public route - don't redirect if so
       final currentLocation =

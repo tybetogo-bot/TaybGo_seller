@@ -1,7 +1,41 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dio/dio.dart';
+import 'package:teybatseller/core/network/public_config_api.dart';
 import 'package:teybatseller/core/config/public_app_config.dart';
 
 void main() {
+  test(
+    'public config works with production CORS while logout is pending',
+    () async {
+      final dio = Dio();
+      RequestOptions? captured;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            captured = options;
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.cancel,
+              ),
+            );
+          },
+        ),
+      );
+      await expectLater(
+        PublicConfigApi(dio).fetch(currentVersion: '1.0.22'),
+        throwsA(isA<DioException>()),
+      );
+      expect(
+        captured!.headers.keys.map((key) => key.toLowerCase()),
+        isNot(contains('cache-control')),
+      );
+      expect(captured!.extra['anonymous'], isTrue);
+      expect(captured!.queryParameters['current_version'], '1.0.22');
+      expect(captured!.queryParameters['_'], isA<int>());
+    },
+  );
+
   group('PublicAppConfig', () {
     test(
       'parses the flat dotted-key response and selects password for seller',

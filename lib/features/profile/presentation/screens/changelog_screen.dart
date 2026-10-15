@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
@@ -11,9 +12,26 @@ class ChangelogScreen extends ConsumerWidget {
 
   static const _releases = [
     _ReleaseNotes(
+      version: AppConfig.appVersion,
+      dateKey: 'changelog.v1023.date',
+      isCurrent: true,
+      changeKeys: [
+        'changelog.v1023.change1',
+        'changelog.v1023.change2',
+        'changelog.v1023.change3',
+      ],
+    ),
+    _ReleaseNotes(
+      version: '1.0.22+27',
+      dateKey: 'changelog.v1022ios.date',
+      changeKeys: [
+        'changelog.v1022ios.change1',
+        'changelog.v1022ios.change2',
+      ],
+    ),
+    _ReleaseNotes(
       version: '1.0.22+24',
       dateKey: 'changelog.v1022.date',
-      isCurrent: true,
       changeKeys: [
         'changelog.v1022.change1',
         'changelog.v1022.change2',

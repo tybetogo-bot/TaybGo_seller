@@ -6,6 +6,11 @@ import '../../../core/errors/failures.dart';
 import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/location_permission_service.dart';
+import '../../../core/services/push_notification_service.dart';
+import '../../../core/services/session_lifecycle.dart';
+import '../../notifications/application/notifications_notifier.dart';
+import '../../orders/application/orders_notifier.dart';
+import '../../profile/application/user_profile_notifier.dart';
 import '../../restaurant/application/restaurant_state.dart';
 import '../data/repositories/auth_repository.dart';
 
@@ -71,6 +76,8 @@ enum SellerAccessStatus { seller, needsOnboarding, forbidden }
 class AuthNotifier extends Notifier<AuthState> {
   late final AuthRepository _repository;
   bool _isValidatingSession = false;
+  int _authAttempt = 0;
+  final _session = SessionLifecycle.instance;
 
   @override
   AuthState build() {
@@ -107,12 +114,17 @@ class AuthNotifier extends Notifier<AuthState> {
     required String phone,
     required String password,
   }) async {
+    if (_session.authenticated) await _endSession(manual: true);
+    final attempt = ++_authAttempt;
+    await _session.settled;
+    if (attempt != _authAttempt) return;
     state = const AuthLoading();
     final result = await _repository.loginWithPassword(
       phone: phone,
       password: password,
     );
 
+    if (attempt != _authAttempt || _session.closing) return;
     if (result.failure != null) {
       state = AuthError(
         message: result.failure!.message,
@@ -135,12 +147,14 @@ class AuthNotifier extends Notifier<AuthState> {
     required String phone,
     String targetRole = UserRoles.seller,
   }) async {
+    final attempt = ++_authAttempt;
     state = const AuthLoading();
 
     final result = await _repository.requestOtp(
       phone: phone,
       targetRole: targetRole,
     );
+    if (attempt != _authAttempt) return;
 
     if (result.failure != null) {
       state = AuthError(
@@ -162,6 +176,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Verify OTP code
   Future<void> verifyOtp(String code) async {
+    final attempt = ++_authAttempt;
     final currentState = state;
 
     // Get the OTP state - either from current state or from error's previous state
@@ -186,6 +201,7 @@ class AuthNotifier extends Notifier<AuthState> {
       code: code,
       targetRole: otpState.targetRole,
     );
+    if (attempt != _authAttempt || _session.closing) return;
 
     if (result.failure != null) {
       state = AuthError(
@@ -213,6 +229,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Go back to phone input (from OTP screen)
   void goBackToPhoneInput() {
+    _authAttempt++;
     state = const AuthUnauthenticated();
   }
 
@@ -221,12 +238,46 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Logout
-  Future<void> logout() async {
-    state = const AuthLoading();
+  Future<void> logout() => _endSession(manual: true);
 
-    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
-    await _repository.logout();
+  Future<void> _endSession({bool manual = false}) {
+    _authAttempt++;
+    final prefs = ref.read(sharedPreferencesProvider);
+    final access = prefs.getString(StorageKeys.authToken);
+    final token = prefs.getString(StorageKeys.fcmToken);
+    final push = ref.read(pushNotificationServiceProvider);
+    // Stop registration and navigation before any await or HTTP request.
+    push.pause();
     state = const AuthUnauthenticated();
+    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
+    ref.read(notificationsPollingProvider.notifier).stop();
+    ref.read(ordersPollingProvider.notifier).stop();
+    ref.read(userProfilePollingProvider.notifier).stop();
+    return _session.end(() async {
+      try {
+        await _session.drainPush();
+        if (manual) {
+          // A token may have finished creation while logout was starting.
+          final device = token ?? prefs.getString(StorageKeys.fcmToken);
+          if (device != null) {
+            try {
+              await ref
+                  .read(notificationsApiProvider)
+                  .unregisterDeviceToken(token: device, access: access);
+            } catch (_) {}
+          }
+          try {
+            await _repository.logout();
+          } catch (_) {}
+        }
+      } finally {
+        try {
+          await push.cleanup();
+        } finally {
+          await _repository.clearAuthData();
+        }
+      }
+    });
   }
 
   /// Proactively validate the stored session before using protected routes.
@@ -239,16 +290,17 @@ class AuthNotifier extends Notifier<AuthState> {
       return false;
     }
 
+    final generation = _session.generation;
     _isValidatingSession = true;
     try {
       final isValid = await _repository.validateStoredSession();
+      if (!_session.isCurrent(generation)) return false;
       final accessStatus = isValid
           ? await _getSellerAccessStatus()
           : SellerAccessStatus.forbidden;
+      if (!_session.isCurrent(generation)) return false;
       if (!isValid || accessStatus == SellerAccessStatus.forbidden) {
-        ref.read(locationPermissionAutoRequestProvider.notifier).clear();
-        await _repository.clearAuthData();
-        state = const AuthUnauthenticated();
+        await _endSession();
         return false;
       }
 
@@ -263,15 +315,16 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Clear local auth state after an unauthorized response elsewhere in the app.
-  Future<void> handleUnauthorized() async {
-    ref.read(locationPermissionAutoRequestProvider.notifier).clear();
-    await _repository.clearAuthData();
-    state = const AuthUnauthenticated();
-  }
+  Future<void> handleUnauthorized() => _endSession();
 
   /// Refresh token
   Future<bool> refreshToken() async {
+    final generation = _session.generation;
     final result = await _repository.refreshToken();
+    if (!_session.isCurrent(generation)) return false;
+    if ([400, 401, 403].contains(result.failure?.statusCode)) {
+      await _endSession();
+    }
     return result.failure == null;
   }
 
@@ -282,9 +335,11 @@ class AuthNotifier extends Notifier<AuthState> {
     required String phone,
     required AuthState previousState,
   }) async {
+    final generation = _session.generation;
     final accessStatus = await _getSellerAccessStatus();
+    if (!_session.isCurrent(generation)) return;
     if (accessStatus == SellerAccessStatus.forbidden) {
-      await _repository.clearAuthData();
+      await _endSession();
       state = AuthError(
         message: 'errors.auth.forbidden'.tr,
         previousState: previousState,
@@ -292,6 +347,7 @@ class AuthNotifier extends Notifier<AuthState> {
       return;
     }
 
+    _session.accept(generation);
     state = AuthAuthenticated(phone: phone);
     ref.read(locationPermissionAutoRequestProvider.notifier).queueAfterLogin();
 

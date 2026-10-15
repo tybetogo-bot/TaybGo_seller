@@ -706,6 +706,8 @@
     "error": "Kan account niet verwijderen. Probeer het opnieuw."
   },
   "notifications": {
+    "unreadCount": "Meldingen, {count} ongelezen",
+    "noUnread": "Meldingen, alles gelezen",
     "title": "Meldingen",
     "settings": "Meldingsinstellingen",
     "notificationTypes": "Meldingstypen",
@@ -843,6 +845,17 @@
       "change1": "Verkopersprofiel vernieuwd met compacte restaurantkop en gegroepeerde instellingen.",
       "change2": "Bediening voor bezorgbeschikbaarheid toegevoegd en restaurantstatus gesynchroniseerd.",
       "change3": "Bestelacties bijgewerkt volgens de door de server toegestane statussen."
+    },
+    "v1023": {
+      "date": "15 oktober 2026",
+      "change1": "Maak restaurantpromoties met afbeeldingen, beoordelingsstatus en duidelijke knoppen om te publiceren of te pauzeren.",
+      "change2": "Ongelezen meldingen tonen nu een geanimeerde teller met verbeterde toegankelijkheid.",
+      "change3": "Afmelden wist pushmeldingen en accountgegevens; late verzoeken kunnen een nieuwe sessie niet beïnvloeden."
+    },
+    "v1022ios": {
+      "date": "12 oktober 2026",
+      "change1": "iOS-pushinitialisatie verbeterd en het volledige geluid voor achtergrondmeldingen toegevoegd.",
+      "change2": "iOS-releaseconfiguratie, Places-instellingen en meegeleverde lettertypen bijgewerkt."
     },
     "v1022": {
       "date": "2 oktober 2026",

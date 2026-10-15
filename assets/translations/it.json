@@ -706,6 +706,8 @@
     "error": "Impossibile eliminare l'account. Riprova."
   },
   "notifications": {
+    "unreadCount": "Notifiche, {count} non lette",
+    "noUnread": "Notifiche, tutte lette",
     "title": "Notifiche",
     "settings": "Impostazioni notifiche",
     "notificationTypes": "Tipi di notifica",
@@ -843,6 +845,17 @@
       "change1": "Profilo venditore ridisegnato con intestazione compatta e impostazioni raggruppate.",
       "change2": "Aggiunti i controlli di disponibilità della consegna e sincronizzato lo stato del ristorante.",
       "change3": "Azioni degli ordini aggiornate in base agli stati consentiti dal server."
+    },
+    "v1023": {
+      "date": "15 ottobre 2026",
+      "change1": "Crea promozioni con immagini, stato della revisione e comandi chiari per pubblicare o mettere in pausa.",
+      "change2": "Le notifiche non lette mostrano un contatore animato con accessibilità migliorata.",
+      "change3": "La disconnessione elimina notifiche e dati dell’account; le richieste tardive non possono influire su una nuova sessione."
+    },
+    "v1022ios": {
+      "date": "12 ottobre 2026",
+      "change1": "Migliorata l’inizializzazione delle notifiche iOS e incluso il suono completo delle notifiche in background.",
+      "change2": "Aggiornate la configurazione di rilascio iOS, Places e i caratteri inclusi."
     },
     "v1022": {
       "date": "2 ottobre 2026",

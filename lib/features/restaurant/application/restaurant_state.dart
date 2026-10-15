@@ -1,13 +1,14 @@
 /// Restaurant state management with Riverpod 3.x
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
+import '../../../core/services/session_lifecycle.dart';
+import '../data/datasources/restaurant_remote_data_source.dart';
 import '../data/models/restaurant_model.dart';
 import '../data/repositories/restaurant_repository.dart';
-import '../data/datasources/restaurant_remote_data_source.dart';
 
 /// Restaurant state sealed class hierarchy
 sealed class RestaurantState {
@@ -52,12 +53,16 @@ class RestaurantError extends RestaurantState {
 
 /// Restaurant notifier (Riverpod 3.x)
 class RestaurantNotifier extends Notifier<RestaurantState> {
-  late final RestaurantRepository _repository;
+  late RestaurantRepository _repository;
 
   bool _initialized = false;
 
   @override
   RestaurantState build() {
+    ref.watch(sessionGenerationProvider);
+    if (!SessionLifecycle.instance.authenticated) {
+      return const RestaurantInitial();
+    }
     debugPrint('🟡 [RestaurantNotifier] build() called');
     _repository = ref.watch(restaurantRepositoryProvider);
     _initialized = false;
@@ -70,10 +75,19 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
   /// Must be called after build() completes to kick off restaurant loading.
   /// The splash screen calls this explicitly to avoid circular state access.
   Future<void> initialize() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (_initialized) return;
     _initialized = true;
 
     await fetchRestaurants();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     // Refresh selected restaurant details (stats, etc.) while preserving
     // the full restaurants list for switching in profile.
@@ -81,6 +95,10 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     if (currentState is RestaurantLoaded &&
         currentState.selectedRestaurant != null) {
       await fetchRestaurantById(currentState.selectedRestaurant!.id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
     }
   }
 
@@ -93,6 +111,11 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Fetch all restaurants for the seller
   Future<void> fetchRestaurants() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     debugPrint('🟡 [RestaurantNotifier] fetchRestaurants() called');
     final previousState = state;
     final storedRestaurantId = _repository.getSelectedRestaurantId();
@@ -102,6 +125,10 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     state = const RestaurantLoading();
 
     final result = await _repository.getRestaurants();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       debugPrint(
@@ -136,6 +163,10 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
       if (selectedRestaurant != null) {
         await _repository.saveSelectedRestaurantId(selectedRestaurant.id);
+        if (!ref.mounted ||
+            !SessionLifecycle.instance.isAuthenticated(generation)) {
+          return;
+        }
       }
 
       state = RestaurantLoaded(
@@ -155,9 +186,18 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
   /// Does NOT transition through RestaurantLoading to avoid losing
   /// the restaurant list while refreshing details.
   Future<void> fetchRestaurantById(String id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final previousState = state;
 
     final result = await _repository.getRestaurantById(id);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       // On error, keep the previous state instead of losing it
@@ -183,10 +223,19 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Select a restaurant
   Future<void> selectRestaurant(RestaurantModel restaurant) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     debugPrint(
       '🟢 [RestaurantNotifier] selectRestaurant: ${restaurant.id} - ${restaurant.name}',
     );
     await _repository.saveSelectedRestaurantId(restaurant.id);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     final currentState = state;
     if (currentState is RestaurantLoaded) {
@@ -202,7 +251,16 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Clear selected restaurant
   Future<void> clearSelection() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await _repository.clearSelectedRestaurant();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     final currentState = state;
     if (currentState is RestaurantLoaded) {
@@ -215,9 +273,18 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Create new restaurant
   Future<void> createRestaurant(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     state = const RestaurantLoading();
 
     final result = await _repository.createRestaurant(data);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       state = RestaurantError(
@@ -227,12 +294,25 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
     } else if (result.data != null) {
       // Auto-select the newly created restaurant
       await selectRestaurant(result.data!);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
     }
   }
 
   /// Update restaurant
   Future<void> updateRestaurant(String id, Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final result = await _repository.updateRestaurant(id, data);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       state = RestaurantError(
@@ -281,7 +361,16 @@ class RestaurantNotifier extends Notifier<RestaurantState> {
 
   /// Patch restaurant (partial update)
   Future<void> patchRestaurant(String id, Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final result = await _repository.patchRestaurant(id, data);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
 
     if (result.failure != null) {
       state = RestaurantError(

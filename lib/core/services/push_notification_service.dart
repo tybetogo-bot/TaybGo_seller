@@ -9,6 +9,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/constants.dart';
+import 'session_lifecycle.dart';
+import 'clear_web_notifications_stub.dart'
+    if (dart.library.js_interop) 'clear_web_notifications_web.dart';
+import '../../features/auth/application/auth_state.dart';
 import '../providers/providers.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
 import '../../features/notifications/application/notification_settings_notifier.dart';
@@ -62,15 +66,80 @@ Map<String, dynamic> decodeLocalNotificationPayload(String? payload) {
 
 /// Service that manages Firebase Cloud Messaging and local notifications.
 class PushNotificationService {
-  PushNotificationService._();
+  PushNotificationService({
+    FirebaseMessaging? messaging,
+    FlutterLocalNotificationsPlugin? localNotifications,
+  }) : _messagingOverride = messaging,
+       _localNotifications =
+           localNotifications ?? FlutterLocalNotificationsPlugin();
 
-  static final PushNotificationService instance = PushNotificationService._();
+  static final PushNotificationService instance = PushNotificationService();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  final FirebaseMessaging? _messagingOverride;
+  FirebaseMessaging get _messaging =>
+      _messagingOverride ?? FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications;
 
   bool _initialized = false;
+  final _session = SessionLifecycle.instance;
+  final List<StreamSubscription<RemoteMessage>> _messageSubscriptions = [];
+  StreamSubscription<String>? _tokenSubscription;
+  Future<void>? _initialization;
+  Future<void>? _tokenCancellation;
+
+  void pause() {
+    _pendingNotificationTapData = null;
+    _onNotificationTap = null;
+    onForegroundMessage = null;
+    if (_tokenSubscription != null) {
+      _tokenCancellation = _tokenSubscription!.cancel();
+    }
+    _tokenSubscription = null;
+  }
+
+  Future<void> cleanup() async {
+    pause();
+    // Keep the barrier until actual SDK completion, even if it takes a while.
+    await _tokenCancellation;
+    await _initialization;
+    for (final subscription in _messageSubscriptions) {
+      await subscription.cancel();
+    }
+    _messageSubscriptions.clear();
+    _initialized = false;
+    _initialization = null;
+    try {
+      await _messaging.setAutoInitEnabled(false);
+    } catch (_) {}
+    try {
+      await _messaging.deleteToken();
+    } catch (_) {}
+    if (kIsWeb) {
+      try {
+        await clearWebNotifications();
+      } catch (_) {}
+    } else {
+      try {
+        await _localNotifications.cancelAll();
+      } catch (_) {}
+    }
+  }
+
+  Future<bool> prepare(int generation) async {
+    await _session.settled;
+    if (!_session.isAuthenticated(generation)) return false;
+    await initialize();
+    if (!_session.isAuthenticated(generation)) return false;
+    // Web permission must remain a user gesture; never prompt from token work.
+    final allowed = kIsWeb
+        ? (await _messaging.getNotificationSettings()).authorizationStatus ==
+              AuthorizationStatus.authorized
+        : await requestPermission();
+    if (!_session.isAuthenticated(generation) || !allowed) return false;
+    await _messaging.setAutoInitEnabled(true);
+    return _session.isAuthenticated(generation);
+  }
+
   Map<String, dynamic>? _pendingNotificationTapData;
   void Function(Map<String, dynamic> data)? _onNotificationTap;
 
@@ -89,7 +158,10 @@ class PushNotificationService {
     if (handler == null || pendingData == null) return;
 
     _pendingNotificationTapData = null;
-    Future<void>.microtask(() => handler(pendingData));
+    final generation = _session.generation;
+    Future<void>.microtask(() {
+      if (_session.isAuthenticated(generation)) handler(pendingData);
+    });
   }
 
   /// Callback invoked when a foreground message is received.
@@ -101,15 +173,22 @@ class PushNotificationService {
   // ---------------------------------------------------------------------------
 
   /// Call once after [Firebase.initializeApp] and after the widget tree is up.
-  Future<void> initialize() async {
+  Future<void> initialize() => _initialization ??= _initialize();
+
+  Future<void> _initialize() async {
     if (_initialized) return;
+    final generation = _session.generation;
     _initialized = true;
 
     try {
       // On web, only set up message listeners — skip native-only APIs.
       if (kIsWeb) {
-        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+        _messageSubscriptions.add(
+          FirebaseMessaging.onMessage.listen(_handleForegroundMessage),
+        );
+        _messageSubscriptions.add(
+          FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap),
+        );
         // Don't request permission at startup on web — browsers block the
         // dialog unless triggered by a user gesture. Permission will be
         // requested later when the user interacts with notification settings.
@@ -135,7 +214,8 @@ class PushNotificationService {
 
       final localLaunch = await _localNotifications
           .getNotificationAppLaunchDetails();
-      if (localLaunch?.didNotificationLaunchApp ?? false) {
+      if (_session.isAuthenticated(generation) &&
+          (localLaunch?.didNotificationLaunchApp ?? false)) {
         _dispatchNotificationTap(
           decodeLocalNotificationPayload(
             localLaunch?.notificationResponse?.payload,
@@ -149,18 +229,21 @@ class PushNotificationService {
       // created by earlier app versions.
       await _createAndroidNotificationChannels();
 
-      // Request permission (shows the OS dialog on iOS / Android 13+).
-      await requestPermission();
+      if (!_session.isAuthenticated(generation)) return;
 
       // Listen for foreground messages.
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      _messageSubscriptions.add(
+        FirebaseMessaging.onMessage.listen(_handleForegroundMessage),
+      );
 
       // Listen for notification taps that open the app from background.
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      _messageSubscriptions.add(
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap),
+      );
 
       // Check if the app was opened from a terminated-state notification.
       final initialMessage = await _messaging.getInitialMessage();
-      if (initialMessage != null) {
+      if (_session.isAuthenticated(generation) && initialMessage != null) {
         _handleNotificationTap(initialMessage);
       }
 
@@ -206,12 +289,14 @@ class PushNotificationService {
 
   /// Retrieve the current FCM token and persist it locally.
   Future<String?> getToken() async {
+    final generation = _session.generation;
     try {
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // APNs registration can finish after permission and app startup.
         // Token refresh remains subscribed while this bounded wait runs.
         String? apnsToken;
         for (var attempt = 0; attempt < 10; attempt++) {
+          if (!_session.isAuthenticated(generation)) return null;
           apnsToken = await _messaging.getAPNSToken();
           if (apnsToken != null) break;
           await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -221,11 +306,10 @@ class PushNotificationService {
           return null;
         }
       }
+      if (!_session.isAuthenticated(generation)) return null;
       final token = await _messaging.getToken();
-      final preview = token == null
-          ? 'null'
-          : '${token.substring(0, token.length < 20 ? token.length : 20)}...';
-      print('🔔 [FCM] Token: $preview');
+      if (!_session.isAuthenticated(generation)) return null;
+      print('🔔 [FCM] Token available: ${token != null}');
       return token;
     } catch (e) {
       print('🔴 [FCM] Failed to get token: $e');
@@ -237,7 +321,8 @@ class PushNotificationService {
   StreamSubscription<String> onTokenRefresh(
     void Function(String token) onRefresh,
   ) {
-    return _messaging.onTokenRefresh.listen(onRefresh);
+    _tokenSubscription = _messaging.onTokenRefresh.listen(onRefresh);
+    return _tokenSubscription!;
   }
 
   // ---------------------------------------------------------------------------
@@ -287,6 +372,7 @@ class PushNotificationService {
   /// Show a local notification when a message arrives while the app is in
   /// the foreground.
   void _handleForegroundMessage(RemoteMessage message) {
+    if (!_session.authenticated || _session.closing) return;
     print('🔔 [FCM] Foreground message: ${message.notification?.title}');
 
     // Notify listeners (e.g. to refresh notification list).
@@ -302,6 +388,8 @@ class PushNotificationService {
     RemoteMessage message,
     RemoteNotification notification,
   ) async {
+    final generation = _session.generation;
+    if (!_session.isAuthenticated(generation)) return;
     var repeatCount = 1;
     if (message.data['type']?.toString() == 'new_order') {
       try {
@@ -345,12 +433,15 @@ class PushNotificationService {
     // The selected platform sound contains the requested number of alert
     // plays. Posting one notification prevents Android from rate-limiting or
     // coalescing repeated notification entries in the tray.
-    await _localNotifications.show(
-      _notificationId(message),
-      notification.title,
-      notification.body,
-      details,
-      payload: jsonEncode(message.data),
+    if (!_session.isAuthenticated(generation)) return;
+    await _session.trackPush(
+      () => _localNotifications.show(
+        _notificationId(message),
+        notification.title,
+        notification.body,
+        details,
+        payload: jsonEncode(message.data),
+      ),
     );
   }
 
@@ -373,6 +464,7 @@ class PushNotificationService {
   }
 
   void _dispatchNotificationTap(Map<String, dynamic> data) {
+    if (!_session.authenticated || _session.closing) return;
     final handler = _onNotificationTap;
     if (handler == null) {
       _pendingNotificationTapData = Map<String, dynamic>.from(data);
@@ -398,41 +490,38 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((_) {
 /// This should be watched from a widget that is alive while the user is
 /// authenticated (e.g. the main shell or splash screen).
 final fcmTokenProvider = FutureProvider.autoDispose<String?>((ref) async {
+  ref.watch(sessionGenerationProvider);
+  if (!ref.watch(isAuthenticatedProvider)) return null;
+  final session = SessionLifecycle.instance;
+  final generation = session.generation;
   final service = ref.watch(pushNotificationServiceProvider);
   final prefs = ref.watch(sharedPreferencesProvider);
   final api = ref.watch(notificationsApiProvider);
+  bool current() => ref.mounted && session.isAuthenticated(generation);
 
-  Future<void> registerToken(String token, {required String logPrefix}) async {
-    await prefs.setString(StorageKeys.fcmToken, token);
+  Future<void> registerToken(String token) => session.trackPush(() async {
+    if (!current()) return;
+    await session.serializeWrite(() async {
+      if (current()) await prefs.setString(StorageKeys.fcmToken, token);
+    });
+    if (!current()) return;
     await api.registerDeviceToken(token: token, deviceType: _deviceType);
-    print('🔔 [FCM] $logPrefix token registered with backend');
-  }
-
-  // Register refresh handling before reading the current token so a token
-  // that becomes available asynchronously is not missed.
-  final tokenRefreshSubscription = service.onTokenRefresh((newToken) async {
-    try {
-      await registerToken(newToken, logPrefix: 'Refreshed');
-    } catch (e) {
-      print('🔴 [FCM] Failed to register refreshed token: $e');
-    }
   });
-  ref.onDispose(tokenRefreshSubscription.cancel);
 
-  // Get current token.
-  final token = await service.getToken();
-  if (token == null) return null;
-
-  // Register on every authenticated shell activation. The same device token
-  // can belong to a different seller after logout/login, so a local token
-  // cache alone is not enough to decide whether the backend needs it.
-  try {
-    await registerToken(token, logPrefix: 'Current');
-  } catch (e) {
-    print('🔴 [FCM] Failed to register token with backend: $e');
-  }
-
-  return token;
+  // Initialization, APNs waits and actual token creation are drained by logout.
+  String? token;
+  await session.trackPush(() async {
+    if (!await service.prepare(generation) || !current()) return;
+    final subscription = service.onTokenRefresh((newToken) async {
+      try {
+        await registerToken(newToken);
+      } catch (_) {}
+    });
+    ref.onDispose(subscription.cancel);
+    token = await service.getToken();
+    if (token != null && current()) await registerToken(token!);
+  });
+  return current() ? token : null;
 });
 
 String get _deviceType {

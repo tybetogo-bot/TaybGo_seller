@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/notifications_api.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
+import '../../../core/services/session_lifecycle.dart';
 import '../data/datasources/notifications_remote_data_source.dart';
 import '../data/models/notification_model.dart';
 import '../data/repositories/notifications_repository.dart';
@@ -45,11 +46,16 @@ class NotificationsState {
 
 /// Notifications state notifier for managing notifications (Riverpod 3.x)
 class NotificationsNotifier extends Notifier<NotificationsState> {
-  late final NotificationsRepository _repository;
+  late NotificationsRepository _repository;
   bool _requestInFlight = false;
 
   @override
   NotificationsState build() {
+    ref.watch(sessionGenerationProvider);
+    _requestInFlight = false;
+    if (!SessionLifecycle.instance.authenticated) {
+      return const NotificationsState();
+    }
     _repository = ref.watch(notificationsRepositoryProvider);
 
     // Load notifications on build
@@ -59,6 +65,11 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
   /// Load notifications from API
   Future<void> loadNotifications() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (_requestInFlight) return;
 
     _requestInFlight = true;
@@ -66,6 +77,10 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
     try {
       final result = await _repository.getNotifications();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
 
       if (result.failure != null) {
         state = state.copyWith(
@@ -80,28 +95,52 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load notifications: $e',
       );
     } finally {
-      _requestInFlight = false;
+      if (SessionLifecycle.instance.isAuthenticated(generation)) {
+        _requestInFlight = false;
+      }
     }
   }
 
   /// Refresh notifications
   Future<void> refresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     await loadNotifications();
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
   }
 
   /// Silent refresh - only updates UI if data has changed
   /// Used by polling to avoid unnecessary rebuilds
   Future<bool> silentRefresh() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
     if (_requestInFlight) return false;
 
     _requestInFlight = true;
     try {
       final result = await _repository.getNotifications();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
 
       if (result.failure != null || result.data == null) {
         return false;
@@ -120,9 +159,15 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
       return false;
     } catch (e) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return false;
+      }
       return false;
     } finally {
-      _requestInFlight = false;
+      if (SessionLifecycle.instance.isAuthenticated(generation)) {
+        _requestInFlight = false;
+      }
     }
   }
 
@@ -148,6 +193,11 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
   /// Mark a single notification as read
   Future<void> markAsRead(int id) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     // Optimistically update the UI
     final updatedNotifications = state.notifications.map((n) {
       if (n.id == id) {
@@ -169,13 +219,29 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     // Call API in background
     try {
       final result = await _repository.markAsRead(id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       if (result.failure != null) {
         // Revert on failure - reload from server
         await loadNotifications();
+        if (!ref.mounted ||
+            !SessionLifecycle.instance.isAuthenticated(generation)) {
+          return;
+        }
       }
     } catch (_) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       // Revert on failure
       await loadNotifications();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
     }
   }
 
@@ -184,6 +250,11 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
   /// not contain the database notification ID, so the stable support target
   /// fields are used for matching instead.
   Future<void> markPushTargetAsRead(Map<String, dynamic> data) async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     final type = data['type']?.toString().trim().toLowerCase();
     final ticketId = _asInt(data['ticket_id'] ?? data['ticketId']);
     final messageId = _asInt(data['message_id'] ?? data['messageId']);
@@ -196,6 +267,10 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
 
     try {
       final result = await _repository.getNotifications();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       if (result.failure != null || result.data == null) return;
 
       final notifications = result.data!;
@@ -221,13 +296,26 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
       matches.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       final matching = matches.first;
       if (!matching.isRead) await markAsRead(matching.id);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
     } catch (_) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       // Push navigation must remain usable even when reconciliation fails.
     }
   }
 
   /// Mark all notifications as read
   Future<void> markAllAsRead() async {
+    final generation = SessionLifecycle.instance.generation;
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return;
+    }
     if (state.isMarkingAllRead) return;
 
     // Get IDs of unread notifications
@@ -261,13 +349,29 @@ class NotificationsNotifier extends Notifier<NotificationsState> {
     // Call API in background
     try {
       final result = await _repository.markAllAsRead(unreadIds);
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       if (result.failure != null) {
         // Revert on failure - reload from server
         await loadNotifications();
+        if (!ref.mounted ||
+            !SessionLifecycle.instance.isAuthenticated(generation)) {
+          return;
+        }
       }
     } catch (_) {
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
       // Revert on failure
       await loadNotifications();
+      if (!ref.mounted ||
+          !SessionLifecycle.instance.isAuthenticated(generation)) {
+        return;
+      }
     }
   }
 

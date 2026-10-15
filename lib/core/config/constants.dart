@@ -37,6 +37,8 @@ abstract class ApiEndpoints {
   // Auth - Token
   static const String passwordLogin = '/api/auth/token/';
   static const String tokenRefresh = '/api/auth/token/refresh/';
+  static const String logout = '/api/auth/logout/';
+  static const String notificationDevice = '/api/notifications/device';
   static const String tokenBlacklist = '/api/auth/token/blacklist/';
   static const String tokenVerify = '/api/auth/token/verify/';
 
@@ -84,6 +86,11 @@ abstract class ApiEndpoints {
   static const String ordersExtractDraft = '/api/orders/extract-draft/';
 
   // Seller Coupons
+  static const String sellerPromos = '/api/seller/promos/';
+  static String sellerPromo(String id) => '/api/seller/promos/$id/';
+  static String sellerPromoAction(String id, String action) =>
+      '/api/seller/promos/$id/$action/';
+
   static const String sellerCoupons = '/api/seller/coupons/';
   static String sellerCoupon(String id) => '/api/seller/coupons/$id/';
 

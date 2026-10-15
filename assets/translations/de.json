@@ -707,6 +707,8 @@
     "error": "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
   },
   "notifications": {
+    "unreadCount": "Benachrichtigungen, {count} ungelesen",
+    "noUnread": "Benachrichtigungen, alle gelesen",
     "title": "Benachrichtigungen",
     "settings": "Einstellungen",
     "notificationTypes": "Arten",
@@ -844,6 +846,17 @@
       "change1": "Verkäuferprofil mit kompakter Restaurant-Kopfzeile und gruppierten Einstellungen neu gestaltet.",
       "change2": "Steuerung der Lieferverfügbarkeit hinzugefügt und Restaurantstatus synchron gehalten.",
       "change3": "Bestellaktionen an die vom Server erlaubten Status angepasst."
+    },
+    "v1023": {
+      "date": "15. Oktober 2026",
+      "change1": "Restaurantaktionen mit Bilduploads, Prüfstatus und klaren Steuerelementen zum Veröffentlichen oder Pausieren erstellen.",
+      "change2": "Ungelesene Benachrichtigungen zeigen jetzt einen animierten Zähler mit verbesserter Barrierefreiheit.",
+      "change3": "Beim Abmelden werden Push-Benachrichtigungen und Kontodaten gelöscht; verspätete Anfragen beeinflussen keine neue Sitzung."
+    },
+    "v1022ios": {
+      "date": "12. Oktober 2026",
+      "change1": "iOS-Push-Initialisierung verbessert und den vollständigen Ton für Hintergrundbenachrichtigungen eingebunden.",
+      "change2": "iOS-Release-Konfiguration, Places-Einrichtung und eingebundene Schriften aktualisiert."
     },
     "v1022": {
       "date": "2. Oktober 2026",
