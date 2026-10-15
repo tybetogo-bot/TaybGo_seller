@@ -23,6 +23,10 @@ import '../../features/profile/presentation/screens/delete_account_screen.dart';
 import '../../features/coupons/presentation/screens/add_edit_coupon_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/promotions/presentation/screens/promotions_screen.dart';
+import '../../features/rescue_deals/presentation/screens/rescue_deals_screen.dart';
+import '../../features/rescue_deals/presentation/widgets/rescue_widgets.dart';
+import '../../features/rescue_deals/presentation/screens/rescue_deal_editor_screen.dart';
+import '../../features/rescue_deals/presentation/screens/rescue_deal_details_screen.dart';
 import '../../features/promotions/presentation/screens/promotion_editor_screen.dart';
 import '../../features/profile/presentation/screens/currency_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
@@ -147,6 +151,28 @@ class AppRouter {
           final couponId = state.pathParameters['couponId']!;
           return AddEditCouponScreen(couponId: couponId);
         },
+      ),
+
+      GoRoute(
+        path: Routes.addRescueDeal,
+        builder: (context, state) =>
+            const RescueTheme(child: RescueDealEditorScreen()),
+      ),
+      GoRoute(
+        path: Routes.editRescueDeal,
+        builder: (context, state) => RescueTheme(
+          child: RescueDealEditorScreen(
+            dealId: state.pathParameters['dealId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: Routes.rescueDealDetails,
+        builder: (context, state) => RescueTheme(
+          child: RescueDealDetailsScreen(
+            dealId: state.pathParameters['dealId']!,
+          ),
+        ),
       ),
 
       // Auth routes (outside shell)
@@ -344,6 +370,11 @@ class AppRouter {
                 path: 'promotions',
                 name: Routes.promotionsName,
                 builder: (context, state) => const PromotionsScreen(),
+              ),
+              GoRoute(
+                path: 'rescue-deals',
+                builder: (context, state) =>
+                    const RescueTheme(child: RescueDealsScreen()),
               ),
               GoRoute(
                 path: 'coupons',

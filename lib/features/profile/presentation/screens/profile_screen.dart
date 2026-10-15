@@ -409,6 +409,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           _SettingRow(
+            label: 'rescue.title'.tr,
+            isDark: isDark,
+            onTap: () => _navigateFromSheet(
+              sheetContext,
+              parentContext,
+              Routes.rescueDeals,
+            ),
+          ),
+          _SettingRow(
             label: 'coupons.title'.tr,
             isDark: isDark,
             onTap: () =>

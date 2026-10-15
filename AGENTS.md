@@ -72,3 +72,12 @@ flutter build apk --flavor prod -t lib/main_prod.dart --dart-define=ENV=prod --s
 - **Change environment URLs**: Edit `lib/core/config/env_config.dart`
 - **Regenerate code**: `dart run build_runner build --delete-conflicting-outputs`
 - **Deploy web**: `flutter build web --release --no-wasm-dry-run -t lib/main_prod.dart --dart-define=ENV=prod && firebase deploy --only hosting`
+
+## Rescue Deals
+
+- Feature: `lib/features/rescue_deals/`, entered from Profile settings; routes and endpoints are centralized as usual.
+- Backend contract and screenshots: `docs/rescue-deals.md`. Backend PR #91 and its migrations must be deployed before frontend release.
+- Prices use integer cents in the rescue flow; sends decimal strings and UTC dates. Do not send original-price snapshots or directly overwrite remaining inventory.
+- Stock adjustments retain an account/restaurant/deal-scoped idempotency key in SharedPreferences until their outcome is known. Never replace an unresolved adjustment with a new key.
+- Gate late responses and form/sheet actions on both the session generation and selected restaurant. Archive only when the backend provides the archival contract; old DELETE behavior removed records.
+- Preserve rescue IDs and saved prices through order details and edits. Keep ordinary and rescue lines for the same menu item distinct.

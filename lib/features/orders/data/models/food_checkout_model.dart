@@ -210,17 +210,24 @@ class CartItem {
   final int itemId;
   final int quantity;
   final String? customizations;
+  final int? rescueDealId;
+  final String? expectedDealPrice;
 
   const CartItem({
     required this.itemId,
     required this.quantity,
     this.customizations,
+    this.rescueDealId,
+    this.expectedDealPrice,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'item_id': itemId,
       'quantity': quantity,
+      if (rescueDealId != null) 'rescue_deal_id': rescueDealId,
+      if (rescueDealId != null && expectedDealPrice != null)
+        'expected_deal_price': expectedDealPrice,
       if (customizations != null && customizations!.isNotEmpty)
         'customizations': customizations,
     };
@@ -231,6 +238,8 @@ class CartItem {
       itemId: (json['item_id'] ?? json['item']) as int,
       quantity: json['quantity'] as int,
       customizations: json['customizations'] as String?,
+      rescueDealId: int.tryParse(json['rescue_deal_id']?.toString() ?? ''),
+      expectedDealPrice: json['expected_deal_price']?.toString(),
     );
   }
 }
