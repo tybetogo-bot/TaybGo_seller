@@ -862,6 +862,12 @@
       "change1": "Nya beställningar visar alla artiklar, antal, anpassningar och anteckningar med hopfällda kunduppgifter.",
       "change2": "Förberedelsetiden på noll minuter har tagits bort.",
       "change3": "Android-aviseringsljudet i bakgrunden har uppdaterats."
+    },
+    "v1024": {
+      "date": "16 oktober 2026",
+      "change1": "Skapa och hantera Rescue Deals med rabatterade rätter, antal, scheman och valfria kundgränser.",
+      "change2": "Se tillgängliga, reserverade och sålda antal, justera lagret, pausa eller återuppta erbjudanden och arkivera avslutade erbjudanden.",
+      "change3": "Behåll korrekta Rescue Deal-priser och artikelmärkningar i orderdetaljer och när beställningar redigeras."
     }
   },
   "earnings": {

@@ -862,6 +862,12 @@
       "change1": "Nei Bestellunge weisen all Artikelen, Quantitéiten, Upassungen an Notizen mat zougeklappte Clientdetailer.",
       "change2": "Déi null Minutte Virbereedungszäit gouf ewechgeholl.",
       "change3": "Den Android-Notifikatiounstoun am Hannergrond gouf aktualiséiert."
+    },
+    "v1024": {
+      "date": "16. Oktober 2026",
+      "change1": "Erstellt a geréiert Rescue Deals mat reduzéierte Platen, Quantitéiten, Zäitpläng an optionale Limitte pro Client.",
+      "change2": "Kuckt verfügbar, reservéiert a verkaafte Quantitéiten, passt de Stock un, pauséiert oder reaktivéiert Offeren an archivéiert ofgeschloss Offeren.",
+      "change3": "Präisser a Markéierunge vu Rescue Deals bleiwen an de Bestellungsdetailer a beim Ännere vu Bestellunge korrekt."
     }
   },
   "earnings": {

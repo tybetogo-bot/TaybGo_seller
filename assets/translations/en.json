@@ -944,6 +944,12 @@
       "change1": "Incoming orders now prioritize all items, quantities, customizations and notes, with customer details collapsed.",
       "change2": "Removed the zero-minute preparation preset.",
       "change3": "Updated the Android background notification sound."
+    },
+    "v1024": {
+      "date": "16 October 2026",
+      "change1": "Create and manage Rescue Deals with discounted menu items, quantities, schedules, and optional customer limits.",
+      "change2": "View live availability and reserved or sold quantities, adjust stock, pause or resume deals, and archive finished offers.",
+      "change3": "Keep Rescue Deal prices and item labels accurate in order details and when editing orders."
     }
   },
   "earnings": {

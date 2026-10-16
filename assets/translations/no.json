@@ -862,6 +862,12 @@
       "change1": "Nye bestillinger viser alle varer, antall, tilpasninger og merknader med sammenfoldede kundedetaljer.",
       "change2": "Forberedelsesvalget på null minutter er fjernet.",
       "change3": "Android-varslingslyden i bakgrunnen er oppdatert."
+    },
+    "v1024": {
+      "date": "16. oktober 2026",
+      "change1": "Opprett og administrer Rescue Deals med rabatterte retter, antall, tidsplaner og valgfrie kundegrenser.",
+      "change2": "Se tilgjengelige, reserverte og solgte antall, juster lageret, sett tilbud på pause eller gjenoppta dem, og arkiver avsluttede tilbud.",
+      "change3": "Behold riktige Rescue Deal-priser og varemerking i ordredetaljer og ved redigering av bestillinger."
     }
   },
   "earnings": {

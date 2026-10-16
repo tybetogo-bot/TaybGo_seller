@@ -862,6 +862,12 @@
       "change1": "Saapuvat tilaukset näyttävät kaikki tuotteet, määrät, muokkaukset ja huomautukset; asiakkaan tiedot on tiivistetty.",
       "change2": "Nollan minuutin valmistusaika poistettiin.",
       "change3": "Androidin taustailmoitusääni päivitettiin."
+    },
+    "v1024": {
+      "date": "16. lokakuuta 2026",
+      "change1": "Luo ja hallitse Rescue Deals -tarjouksia: alennetut annokset, määrät, aikataulut ja valinnaiset asiakaskohtaiset rajat.",
+      "change2": "Tarkista saatavilla olevat, varatut ja myydyt määrät, säädä varastoa, keskeytä tai jatka tarjouksia ja arkistoi päättyneet tarjoukset.",
+      "change3": "Rescue Deals -hinnat ja tuotemerkinnät säilyvät oikeina tilaustiedoissa ja tilauksia muokattaessa."
     }
   },
   "earnings": {

@@ -862,6 +862,12 @@
       "change1": "Nieuwe bestellingen tonen alle artikelen, aantallen, aanpassingen en opmerkingen; klantgegevens zijn ingeklapt.",
       "change2": "De bereidingstijd van nul minuten is verwijderd.",
       "change3": "Het Android-meldingsgeluid op de achtergrond is bijgewerkt."
+    },
+    "v1024": {
+      "date": "16 oktober 2026",
+      "change1": "Maak en beheer Rescue Deals met afgeprijsde gerechten, aantallen, tijdschema’s en optionele limieten per klant.",
+      "change2": "Bekijk beschikbare, gereserveerde en verkochte aantallen, pas de voorraad aan, pauzeer of hervat deals en archiveer afgelopen aanbiedingen.",
+      "change3": "Behoud correcte Rescue Deal-prijzen en artikellabels in bestelgegevens en bij het bewerken van bestellingen."
     }
   },
   "earnings": {
