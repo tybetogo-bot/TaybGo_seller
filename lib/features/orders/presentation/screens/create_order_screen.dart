@@ -614,6 +614,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen>
           return CartItem(
             itemId: itemId,
             quantity: item.quantity,
+            rescueDealId: int.tryParse(item.rescueDealId ?? ""),
+            expectedDealPrice: item.isRescueDeal
+                ? item.unitPrice.toStringAsFixed(2)
+                : null,
             customizations: _buildItemCustomizationText(item),
           );
         })

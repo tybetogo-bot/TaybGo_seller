@@ -863,6 +863,12 @@
       "change1": "Les commandes entrantes mettent en avant tous les articles, quantités, personnalisations et notes, avec les détails client repliés.",
       "change2": "Suppression du choix de préparation de zéro minute.",
       "change3": "Mise à jour du son des notifications Android en arrière-plan."
+    },
+    "v1024": {
+      "date": "16 octobre 2026",
+      "change1": "Créez et gérez des Rescue Deals avec des plats à prix réduit, des quantités, des horaires et des limites facultatives par client.",
+      "change2": "Consultez les quantités disponibles, réservées et vendues, ajustez le stock, suspendez ou reprenez les offres et archivez les offres terminées.",
+      "change3": "Les prix et les mentions Rescue Deals restent exacts dans les détails et lors de la modification des commandes."
     }
   },
   "earnings": {

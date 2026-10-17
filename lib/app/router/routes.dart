@@ -75,6 +75,13 @@ class Routes {
   static const String editPromotion = '/promotions/:promoId/edit';
   static String editPromotionPath(String id) => '/promotions/$id/edit';
 
+  static const String rescueDeals = '/profile/rescue-deals';
+  static const String addRescueDeal = '/rescue-deals/new';
+  static const String rescueDealDetails = '/rescue-deals/:dealId';
+  static const String editRescueDeal = '/rescue-deals/:dealId/edit';
+  static String rescueDealPath(String id) => '/rescue-deals/$id';
+  static String editRescueDealPath(String id) => '/rescue-deals/$id/edit';
+
   static const String coupons = '/profile/coupons';
   static const String couponsName = 'coupons';
 

@@ -62,7 +62,11 @@ class _IncomingOrderItemEditorState extends State<_IncomingOrderItemEditor> {
       final orderItemId = _normalizedId(orderItem.menuItemId);
       final menuItem = menuById[orderItemId];
       final itemId = int.tryParse(orderItemId);
-      final key = orderItemId.isNotEmpty ? orderItemId : 'legacy-$index';
+      final key = orderItem.isRescueDeal
+          ? '$orderItemId:rescue:${orderItem.rescueDealId}:$index'
+          : orderItemId.isNotEmpty
+          ? orderItemId
+          : 'legacy-$index';
       final existing = _lines.where((line) => line.key == key).firstOrNull;
 
       if (existing != null) {
@@ -75,7 +79,10 @@ class _IncomingOrderItemEditorState extends State<_IncomingOrderItemEditor> {
           key: key,
           itemId: itemId,
           name: menuItem?.getLocalizedName(_languageCode) ?? orderItem.name,
-          price: menuItem?.price ?? orderItem.unitPrice,
+          price: orderItem.isRescueDeal
+              ? orderItem.unitPrice
+              : menuItem?.price ?? orderItem.unitPrice,
+          rescueDealId: int.tryParse(orderItem.rescueDealId ?? ""),
           quantity: orderItem.quantity,
           customizations: _customizationsFor(orderItem),
           isAvailable: menuItem?.isAvailable ?? false,
@@ -92,7 +99,7 @@ class _IncomingOrderItemEditorState extends State<_IncomingOrderItemEditor> {
       for (final item in widget.menuItems) _normalizedId(item.id): item,
     };
     for (final line in _lines) {
-      final menuItem = menuById[line.key];
+      final menuItem = menuById[line.itemId.toString()];
       if (menuItem != null) {
         line.name = menuItem.getLocalizedName(_languageCode);
       }
@@ -202,6 +209,10 @@ class _IncomingOrderItemEditorState extends State<_IncomingOrderItemEditor> {
           (line) => CartItem(
             itemId: line.itemId!,
             quantity: line.quantity,
+            rescueDealId: line.rescueDealId,
+            expectedDealPrice: line.rescueDealId == null
+                ? null
+                : line.price.toStringAsFixed(2),
             customizations: line.customizations,
           ),
         )
@@ -801,6 +812,7 @@ class _EditableIncomingItem {
     required this.price,
     required this.quantity,
     this.customizations,
+    this.rescueDealId,
     required this.isAvailable,
   });
 
@@ -810,5 +822,6 @@ class _EditableIncomingItem {
   final double price;
   int quantity;
   final String? customizations;
+  final int? rescueDealId;
   final bool isAvailable;
 }

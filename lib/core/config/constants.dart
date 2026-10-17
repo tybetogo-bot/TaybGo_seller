@@ -26,6 +26,7 @@ abstract class StorageKeys {
   static const String lastSyncTime = 'last_sync_time';
   static const String restaurantId = 'restaurant_id';
   static const String selectedCity = 'selected_city';
+  static const String rescueStockPending = 'rescue_stock_pending';
 }
 
 /// API endpoints
@@ -84,6 +85,12 @@ abstract class ApiEndpoints {
 
   // Order extraction
   static const String ordersExtractDraft = '/api/orders/extract-draft/';
+
+  // Seller Rescue Deals
+  static const String sellerRescueDeals = '/api/seller/rescue-deals/';
+  static String sellerRescueDeal(String id) => '/api/seller/rescue-deals/$id/';
+  static String sellerRescueDealStock(String id) =>
+      '/api/seller/rescue-deals/$id/stock/';
 
   // Seller Coupons
   static const String sellerPromos = '/api/seller/promos/';

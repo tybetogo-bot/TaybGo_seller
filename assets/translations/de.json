@@ -863,6 +863,12 @@
       "change1": "Eingehende Bestellungen zeigen alle Artikel, Mengen, Anpassungen und Hinweise; Kundendetails sind eingeklappt.",
       "change2": "Die Vorbereitungsoption mit null Minuten wurde entfernt.",
       "change3": "Der Android-Benachrichtigungston im Hintergrund wurde aktualisiert."
+    },
+    "v1024": {
+      "date": "16. Oktober 2026",
+      "change1": "Rescue Deals mit reduzierten Gerichten, Mengen, Zeitplänen und optionalen Kundenlimits erstellen und verwalten.",
+      "change2": "Verfügbare, reservierte und verkaufte Mengen ansehen, Bestände anpassen, Angebote pausieren oder fortsetzen und abgeschlossene Angebote archivieren.",
+      "change3": "Preise und Kennzeichnungen von Rescue Deals bleiben in Bestelldetails und bei Änderungen korrekt."
     }
   },
   "earnings": {

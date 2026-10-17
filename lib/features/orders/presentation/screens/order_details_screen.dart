@@ -1626,6 +1626,41 @@ class _OrderItemsCard extends ConsumerWidget {
                                 : LightColors.textPrimary,
                           ),
                         ),
+                        if (item.isRescueDeal)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  'rescue.orderLabel'.tr,
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                if (item.originalUnitPrice != null &&
+                                    item.originalUnitPrice! > item.unitPrice)
+                                  Text(
+                                    'rescue.orderOriginal'.trParams({
+                                      'price':
+                                          '€${item.originalUnitPrice!.toStringAsFixed(2)}',
+                                    }),
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         // Show customizations text (e.g., "no sauce")
                         if (item.customizationsText != null &&
                             item.customizationsText!.isNotEmpty)

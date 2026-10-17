@@ -862,6 +862,12 @@
       "change1": "Gli ordini in arrivo mostrano tutti gli articoli, quantità, personalizzazioni e note, con i dettagli cliente compressi.",
       "change2": "Rimossa la preparazione di zero minuti.",
       "change3": "Aggiornato il suono delle notifiche Android in background."
+    },
+    "v1024": {
+      "date": "16 ottobre 2026",
+      "change1": "Crea e gestisci Rescue Deals con piatti scontati, quantità, orari e limiti facoltativi per cliente.",
+      "change2": "Visualizza le quantità disponibili, prenotate e vendute, modifica le scorte, sospendi o riprendi le offerte e archivia quelle terminate.",
+      "change3": "Mantieni corretti i prezzi e le etichette Rescue Deals nei dettagli e durante la modifica degli ordini."
     }
   },
   "earnings": {

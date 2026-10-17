@@ -619,12 +619,18 @@ sealed class OrderItemModel with _$OrderItemModel {
     required String name,
     required int quantity,
     required double unitPrice,
+    String? rescueDealId,
+    double? originalUnitPrice,
+    @Default('REGULAR') String pricingSource,
     String? notes,
     @Default([]) List<CustomizationSelection> customizations,
 
     /// Raw customizations text from API (e.g., "no sauce")
     String? customizationsText,
   }) = _OrderItemModel;
+
+  bool get isRescueDeal =>
+      pricingSource == 'RESCUE_DEAL' || rescueDealId != null;
 
   /// Convert to JSON for API requests
   Map<String, dynamic> toJson() {
@@ -633,6 +639,7 @@ sealed class OrderItemModel with _$OrderItemModel {
       'item_name': name,
       'quantity': quantity,
       'price': unitPrice,
+      if (rescueDealId != null) 'rescue_deal_id': int.parse(rescueDealId!),
       if (notes != null) 'notes': notes,
       if (customizations.isNotEmpty)
         'customizations': customizations.map((c) => c.toJson()).toList(),
@@ -644,6 +651,7 @@ sealed class OrderItemModel with _$OrderItemModel {
     // Handle API response format: {id: 1, item: 1, item_name: Classic Burger, quantity: 1, price: 10.99, customizations: null}
     // Try multiple field names for price: price, unit_price, unitPrice, item_price
     final priceValue =
+        json['unit_price_snapshot'] ??
         json['price'] ??
         json['unit_price'] ??
         json['unitPrice'] ??
@@ -680,6 +688,11 @@ sealed class OrderItemModel with _$OrderItemModel {
       unitPrice: (priceValue is num)
           ? priceValue.toDouble()
           : (double.tryParse(priceValue.toString()) ?? 0.0),
+      rescueDealId: json['rescue_deal_id']?.toString(),
+      originalUnitPrice: double.tryParse(
+        json['original_unit_price_snapshot']?.toString() ?? '',
+      ),
+      pricingSource: json['pricing_source']?.toString() ?? 'REGULAR',
       notes:
           json['delivery_instructions'] as String? ?? json['notes'] as String?,
       customizations: customizationsList,
