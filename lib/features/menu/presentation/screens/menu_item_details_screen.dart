@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 import '../../application/menu_notifier.dart';
 import '../widgets/customization_editor.dart';
 import '../widgets/ingredient_chips.dart';
@@ -117,6 +119,27 @@ class MenuItemDetailsScreen extends ConsumerWidget {
                         ),
                       ),
                       _AvailabilityBadge(isAvailable: item.isAvailable),
+                      if (item.isOutOfStock) ...[
+                        SizedBox(width: 6.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            'menu.outOfStock'.tr,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   SizedBox(height: 8.h),
@@ -159,6 +182,78 @@ class MenuItemDetailsScreen extends ConsumerWidget {
                         ),
                     ],
                   ),
+                  if (ref.watch(selectedRestaurantProvider)?.isGeneralMarket ==
+                          true ||
+                      item.stockQuantity != null) ...[
+                    SizedBox(height: 16.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark ? DarkColors.surface : LightColors.surface,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: isDark ? DarkColors.border : LightColors.border,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 20.w,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: Text(
+                              'menu.stockQuantity'.tr,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? DarkColors.textPrimary
+                                    : LightColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: (item.stockQuantity ?? 0) <= 0
+                                ? null
+                                : () => ref
+                                      .read(menuProvider.notifier)
+                                      .adjustItemStock(
+                                        item.id,
+                                        (item.stockQuantity ?? 0) - 1,
+                                      ),
+                            icon: const Icon(Icons.remove_circle_outline),
+                          ),
+                          Text(
+                            '${item.stockQuantity ?? 0}',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w700,
+                              color: item.isOutOfStock
+                                  ? AppColors.error
+                                  : (isDark
+                                        ? DarkColors.textPrimary
+                                        : LightColors.textPrimary),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => ref
+                                .read(menuProvider.notifier)
+                                .adjustItemStock(
+                                  item.id,
+                                  (item.stockQuantity ?? 0) + 1,
+                                ),
+                            icon: const Icon(Icons.add_circle_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 20.h),
 
                   // Description

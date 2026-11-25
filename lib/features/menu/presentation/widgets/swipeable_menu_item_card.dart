@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
 import '../utils/menu_delete_error.dart';
@@ -557,6 +559,31 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                           ),
                                         ),
                                       ),
+                                    if (item.isOutOfStock) ...[
+                                      SizedBox(width: 4.w),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.w,
+                                          vertical: 2.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.error.withValues(
+                                            alpha: 0.14,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4.r,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'menu.outOfStock'.tr,
+                                          style: TextStyle(
+                                            fontSize: 10.sp,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.error,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                                 SizedBox(height: 4.h),
@@ -591,6 +618,62 @@ class _SwipeableMenuItemCardState extends ConsumerState<SwipeableMenuItemCard>
                                           color: isDark
                                               ? DarkColors.textTertiary
                                               : LightColors.textTertiary,
+                                        ),
+                                      ),
+                                    ],
+                                    if (ref
+                                                .watch(selectedRestaurantProvider)
+                                                ?.isGeneralMarket ==
+                                            true ||
+                                        item.stockQuantity != null) ...[
+                                      const Spacer(),
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 28,
+                                          minHeight: 28,
+                                        ),
+                                        onPressed: (item.stockQuantity ?? 0) <= 0
+                                            ? null
+                                            : () => ref
+                                                  .read(menuProvider.notifier)
+                                                  .adjustItemStock(
+                                                    item.id,
+                                                    (item.stockQuantity ?? 0) -
+                                                        1,
+                                                  ),
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                          size: 18,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${item.stockQuantity ?? 0}',
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: item.isOutOfStock
+                                              ? AppColors.error
+                                              : primaryColor,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 28,
+                                          minHeight: 28,
+                                        ),
+                                        onPressed: () => ref
+                                            .read(menuProvider.notifier)
+                                            .adjustItemStock(
+                                              item.id,
+                                              (item.stockQuantity ?? 0) + 1,
+                                            ),
+                                        icon: const Icon(
+                                          Icons.add_circle_outline,
+                                          size: 18,
                                         ),
                                       ),
                                     ],

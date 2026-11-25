@@ -4,6 +4,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/constants.dart';
 import '../../../core/errors/exceptions.dart';
 import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
@@ -54,6 +55,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     // Restaurant fields
     required String restaurantName,
     required String restaurantPhone,
+    String storeType = 'RESTAURANT',
+    String? minOrderAmount,
     // Address fields
     required String streetName,
     required String houseNumber,
@@ -73,11 +76,15 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       }
 
       state = const OnboardingLoading();
+      final normalizedEmail = ValidationPatterns.normalizeEmail(email);
+      final parsedMinOrder =
+          double.tryParse((minOrderAmount ?? '').trim().replaceAll(',', '.')) ??
+          0.0;
 
       await _userApi.submitOnboarding({
         'seller_profile': {
           'name': name,
-          'email': email,
+          'email': normalizedEmail,
           'phone': phone,
           if (birthdate != null) 'birthdate': _formatDate(birthdate),
           'restaurant_registration_license_document': registrationDocumentUrl
@@ -95,7 +102,13 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
           if (lat != null) 'lat': lat.toStringAsFixed(6),
           if (lng != null) 'lng': lng.toStringAsFixed(6),
         },
-        'restaurant': {'name': restaurantName, 'phone': restaurantPhone},
+        'restaurant': {
+          'name': restaurantName,
+          'phone': restaurantPhone,
+          'store_type': storeType.trim().toUpperCase(),
+          'min_order_amount': (parsedMinOrder < 0 ? 0.0 : parsedMinOrder)
+              .toStringAsFixed(2),
+        },
       });
 
       state = const OnboardingSuccess();

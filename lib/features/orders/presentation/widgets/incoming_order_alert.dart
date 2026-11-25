@@ -872,7 +872,7 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     final isDark = theme.brightness == Brightness.dark;
     final isPaid = order.isPaid;
     final typeLabel = _isPickupOrder(order)
-        ? 'orders.incoming.pickup'.tr
+        ? 'orders.inStorePickup'.tr
         : 'orders.incoming.delivery'.tr;
 
     return Container(
@@ -1192,12 +1192,48 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
     final rejectColor = isDark
         ? const Color(0xFFFF8A8A)
         : const Color(0xFFD54A4A);
-    final canAccept = widget.canAccept?.call(order) ?? true;
+    final canAccept =
+        (widget.canAccept?.call(order) ?? true) &&
+        !order.hasActiveChangeRequest;
     final canReject =
         order.allowedActions.isEmpty || order.allowsAction('REJECTED');
     final canEditItems = _canEditItems(order);
     return Column(
       children: [
+        if (order.hasActiveChangeRequest) ...[
+          Container(
+            width: double.infinity,
+            margin: EdgeInsets.only(bottom: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: AppColors.warning.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.hourglass_top_rounded,
+                  size: 18.w,
+                  color: AppColors.warning,
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    'orders.awaitingCustomerApproval'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.warning,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         if (canEditItems)
           SizedBox(
             width: double.infinity,
@@ -1303,9 +1339,12 @@ class _IncomingOrderAlertState extends State<IncomingOrderAlert>
 
   bool _canEditItems(OrderModel order) {
     return !widget.previewOnly &&
-        order.status == OrderStatusEnum.pending &&
-        !order.isPaid &&
-        order.allowsAction('EDIT') &&
+        !order.isCompleted &&
+        !order.hasActiveChangeRequest &&
+        (order.allowsAction('CHANGE_REQUEST') ||
+            (order.status == OrderStatusEnum.pending &&
+                !order.isPaid &&
+                order.allowsAction('EDIT'))) &&
         widget.onEditItems != null;
   }
 

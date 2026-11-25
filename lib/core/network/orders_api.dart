@@ -118,6 +118,31 @@ class OrdersApi {
     return _refreshOrderFromActionResponse(id, response);
   }
 
+  /// Propose an authenticated customer-approved live change request.
+  /// POST /api/seller/orders/{id}/change-requests/
+  Future<OrderModel> proposeOrderChangeRequest(
+    String id, {
+    required List<CartItem> items,
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+    required String idempotencyKey,
+  }) async {
+    final response = await _dio.post(
+      ApiEndpoints.sellerOrderChangeRequests(id),
+      data: {
+        'idempotency_key': idempotencyKey,
+        'items': items.map((item) => item.toJson()).toList(),
+        if (deliveryInstructions != null)
+          'delivery_instructions': deliveryInstructions,
+        if (reasonCode != null && reasonCode.trim().isNotEmpty)
+          'reason_code': reasonCode.trim(),
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      },
+    );
+    return _refreshOrderFromActionResponse(id, response);
+  }
+
   /// Accept a seller order, optionally scheduling driver dispatch.
   /// POST /api/seller/orders/{id}/accept/
   Future<OrderModel> acceptOrder(

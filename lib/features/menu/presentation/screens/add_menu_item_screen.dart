@@ -8,6 +8,8 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/dialogs/unsaved_changes_dialog.dart';
+import '../../../restaurant/application/restaurant_state.dart';
+import '../../../restaurant/data/models/restaurant_model.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/menu_notifier.dart';
 import '../../data/models/menu_item_model.dart';
@@ -32,6 +34,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _prepTimeController = TextEditingController();
+  final _stockController = TextEditingController();
 
   String? _selectedCategoryId;
   bool _isAvailable = true;
@@ -64,6 +67,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
     _descriptionController.addListener(onChange);
     _priceController.addListener(onChange);
     _prepTimeController.addListener(onChange);
+    _stockController.addListener(onChange);
   }
 
   void _loadExistingItem() {
@@ -75,6 +79,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
           _descriptionController.text = item.description ?? '';
           _priceController.text = item.price.toStringAsFixed(2);
           _prepTimeController.text = item.preparationTime.toString();
+          _stockController.text = item.stockQuantity?.toString() ?? '';
           _selectedCategoryId = item.categoryId;
           _isAvailable = item.isAvailable;
           _ingredients = List.from(item.ingredients);
@@ -94,6 +99,7 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
     _descriptionController.dispose();
     _priceController.dispose();
     _prepTimeController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
@@ -261,6 +267,28 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
                       }
                     },
                   ),
+                  if (ref.watch(selectedRestaurantProvider)?.isGeneralMarket ==
+                          true ||
+                      _stockController.text.trim().isNotEmpty) ...[
+                    SizedBox(height: 16.h),
+                    TextFormField(
+                      controller: _stockController,
+                      keyboardType: TextInputType.number,
+                      decoration: _inputDecoration(
+                        'menu.stockQuantity'.tr,
+                        isDark,
+                      ),
+                      validator: (value) {
+                        final text = (value ?? '').trim();
+                        if (text.isEmpty) return null;
+                        final parsed = int.tryParse(text);
+                        if (parsed == null || parsed < 0) {
+                          return 'validation.invalidQuantity'.tr;
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                   SizedBox(height: 24.h),
 
                   // Availability toggle
@@ -455,6 +483,9 @@ class _AddMenuItemScreenState extends ConsumerState<AddMenuItemScreen>
       ingredients: _ingredients,
       customizations: _customizations,
       isAvailable: _isAvailable,
+      stockQuantity: _stockController.text.trim().isEmpty
+          ? null
+          : int.tryParse(_stockController.text.trim()),
       preparationTime: int.tryParse(_prepTimeController.text) ?? 0,
       imageUrl: _imageUrl,
     );

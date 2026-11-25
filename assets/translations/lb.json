@@ -39,7 +39,9 @@
     "undo": "Réckgängeg maachen",
     "optional": "Optional",
     "required": "Erfuerderlech",
-    "missing": "Feelt"
+    "missing": "Feelt",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Telefonsnummer",
@@ -74,7 +76,9 @@
     "forgotPassword": "Passwuert vergiess",
     "sendResetLink": "Reset-Link schécken",
     "backToLogin": "Zréck zum Login",
-    "changePhone": "Telefonsnummer änneren"
+    "changePhone": "Telefonsnummer änneren",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Aktualiséierung erfuerderlech",
@@ -478,7 +482,16 @@
       "saved": "Virbereedungszäit gespäichert",
       "timingSection": "Virbereedung a Chauffer",
       "refreshRequired": "D’Zäitoptiounen hu geännert. Kuckt déi aktualiséiert Bestellung un, éier Dir et nach eng Kéier probéiert."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Adress sichen...",
@@ -571,7 +584,9 @@
     "markAvailable": "Als verfügbar markéieren",
     "markUnavailable": "Als net verfügbar markéieren",
     "viewItem": "Artikel gesinn",
-    "swipeToDelete": "Fir ze läschen wëschen"
+    "swipeToDelete": "Fir ze läschen wëschen",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Couponen",
@@ -924,7 +939,8 @@
     "codeTooShort": "Code muss op mannst 4 Zeeche laang sinn",
     "imageTooLarge": "Bild muss ënner 5MB sinn",
     "invalidImageFormat": "Nëmmen JPG, PNG a WEBP Formate sinn erlaabt",
-    "imageRequired": "Wielt w.e.g. e Bild"
+    "imageRequired": "Wielt w.e.g. e Bild",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Grad elo",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Hëllef & Support",
     "helpSupportDesc": "Kritt Hëllef oder kontaktéiert de Support",
     "logout": "Ofmellen"
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }

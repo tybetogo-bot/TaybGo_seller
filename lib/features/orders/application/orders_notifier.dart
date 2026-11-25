@@ -313,6 +313,15 @@ class OrdersNotifier extends Notifier<OrdersState> {
               newOrder.driverDispatchLeadMinutes ||
           oldOrder.readyAt != newOrder.readyAt ||
           oldOrder.fulfillmentType != newOrder.fulfillmentType ||
+          oldOrder.hasPendingChangeRequest != newOrder.hasPendingChangeRequest ||
+          oldOrder.pendingChangeRequest?.id !=
+              newOrder.pendingChangeRequest?.id ||
+          oldOrder.pendingChangeRequest?.status !=
+              newOrder.pendingChangeRequest?.status ||
+          oldOrder.attachments.length != newOrder.attachments.length ||
+          oldOrder.giftCardAmountApplied != newOrder.giftCardAmountApplied ||
+          oldOrder.cardAmountDue != newOrder.cardAmountDue ||
+          oldOrder.cashAmountDue != newOrder.cashAmountDue ||
           !_listEquals(oldOrder.allowedActions, newOrder.allowedActions) ||
           !_listEquals(
             oldOrder.allowedStatusOptions,
@@ -395,6 +404,13 @@ class OrdersNotifier extends Notifier<OrdersState> {
         !SessionLifecycle.instance.isAuthenticated(generation)) {
       return false;
     }
+    final existing = state.orders.where((o) => o.id == orderId).firstOrNull;
+    if (existing != null && existing.hasActiveChangeRequest) {
+      state = state.copyWith(
+        error: 'orders.changeRequestPendingAcceptBlocked'.tr,
+      );
+      return false;
+    }
     return _performOrderAction(
       orderId,
       () => _repository.acceptOrder(
@@ -421,15 +437,17 @@ class OrdersNotifier extends Notifier<OrdersState> {
     );
   }
 
-  /// Apply item-only changes before a pending order is accepted.
-  ///
-  /// The server owns validation, pricing, inventory reconciliation, and the
-  /// payment/status boundary. The request deliberately contains no customer,
-  /// address, payment, delivery-fee, or seller-total fields.
+  /// Submit live order item changes:
+  /// - Customer orders (or orders advertising `CHANGE_REQUEST`) route via
+  ///   `POST /api/seller/orders/{id}/change-requests/` requiring customer Accept/Cancel.
+  /// - Internal/manual orders without `CHANGE_REQUEST` fall back to direct `editOrderItems`.
   Future<bool> editPendingOrderItems(
     String orderId,
-    List<CartItem> items,
-  ) async {
+    List<CartItem> items, {
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+  }) async {
     final generation = SessionLifecycle.instance.generation;
     if (!ref.mounted ||
         !SessionLifecycle.instance.isAuthenticated(generation)) {
@@ -440,18 +458,29 @@ class OrdersNotifier extends Notifier<OrdersState> {
       return false;
     }
 
-    // Keep one key for the whole user action. The Dio retry interceptor
-    // replays timeout/connection failures with the same request body, and the
-    // reconciliation below prevents a second key from being generated when
-    // the final response is ambiguous.
+    final existing = state.orders.where((o) => o.id == orderId).firstOrNull;
+    final useChangeRequest =
+        existing == null ||
+        existing.allowsAction('CHANGE_REQUEST') ||
+        !existing.isManual;
+
     final idempotencyKey = const Uuid().v4();
     return _performOrderAction(
       orderId,
-      () => _repository.editOrderItems(
-        orderId,
-        items: items,
-        idempotencyKey: idempotencyKey,
-      ),
+      () => useChangeRequest
+          ? _repository.proposeOrderChangeRequest(
+              orderId,
+              items: items,
+              deliveryInstructions: deliveryInstructions,
+              reasonCode: reasonCode,
+              reason: reason,
+              idempotencyKey: idempotencyKey,
+            )
+          : _repository.editOrderItems(
+              orderId,
+              items: items,
+              idempotencyKey: idempotencyKey,
+            ),
       fallbackError: 'orders.incoming.editItemsFailed'.tr,
       failureFallbackErrorKey: 'orders.incoming.editItemsFailed',
       reconcileOnAmbiguousFailure: true,
@@ -984,6 +1013,14 @@ class OrdersNotifier extends Notifier<OrdersState> {
       return OrderAllowedAction(value: _statusToApiString(nextStatus));
     }
     return null;
+  }
+
+  bool canAcceptOrder(OrderModel order) {
+    if (order.hasActiveChangeRequest) return false;
+    if (order.allowedActions.isNotEmpty) {
+      return order.allowsAction('ACCEPTED');
+    }
+    return order.status == OrderStatusEnum.pending;
   }
 
   bool canRejectOrder(OrderModel order) {

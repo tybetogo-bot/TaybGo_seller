@@ -11,11 +11,14 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../menu/application/menu_notifier.dart';
+import '../../../menu/data/models/menu_item_model.dart';
 import '../../../restaurant/application/restaurant_state.dart';
 import '../../../tour/utils/tour_keys.dart';
 import '../../application/orders_notifier.dart';
+import '../../data/models/food_checkout_model.dart';
 import '../../data/models/order_model.dart';
 import '../widgets/driver_dispatch_selector.dart';
+import '../widgets/incoming_order_item_editor.dart';
 import '../widgets/incoming_order_timer.dart';
 import '../widgets/order_api_debug_inspector.dart';
 
@@ -192,6 +195,49 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       );
     }
     setState(() => _isProcessing = false);
+  }
+
+  Future<void> _handleProposeItemChanges(OrderModel order) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      var menuItems = ref.read(menuProvider).items;
+      if (menuItems.isEmpty) {
+        final restaurantId =
+            order.restaurantId ??
+            order.restaurant?.id.toString() ??
+            ref.read(selectedRestaurantIdProvider);
+        if (restaurantId != null && restaurantId.isNotEmpty) {
+          final res = await ref
+              .read(menuRepositoryProvider)
+              .getMenuItems(restaurantId);
+          menuItems = res.data ?? const <MenuItemModel>[];
+        }
+      }
+      if (!mounted) return;
+      final List<CartItem>? edited = await showIncomingOrderItemEditor(
+        context,
+        order: order,
+        menuItems: menuItems,
+      );
+      if (!mounted || edited == null) {
+        setState(() => _isProcessing = false);
+        return;
+      }
+      final ok = await ref
+          .read(ordersProvider.notifier)
+          .editPendingOrderItems(order.id, edited);
+      if (!mounted) return;
+      if (ok) {
+        _showSuccessSnackBar('orders.incoming.itemsUpdated'.tr);
+      } else {
+        _showErrorSnackBar(
+          ref.read(ordersProvider).error ?? 'orders.incoming.editItemsFailed'.tr,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   Future<void> _handleDriverDispatch(
@@ -692,8 +738,17 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                   _OrderInfoCard(order: order, isDark: isDark),
                   SizedBox(height: 20.h),
 
+                  if (order.hasActiveChangeRequest) ...[
+                    _PendingChangeRequestBanner(
+                      summary: order.pendingChangeRequest,
+                      isDark: isDark,
+                    ),
+                    SizedBox(height: 20.h),
+                  ],
+
                   // Backend-owned driver dispatch state and countdown
-                  if (!order.isCompleted &&
+                  if (!order.isPickup &&
+                      !order.isCompleted &&
                       order.status != OrderStatusEnum.onTheWay &&
                       (order.driverDispatchStatus != null ||
                           order.hasDriverDispatchTimer ||
@@ -740,14 +795,29 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
                   ],
 
                   // Delivery options (vehicle type)
-                  if (order.requestedVehicleType != null ||
-                      order.requestedDeliveryType != null) ...[
+                  if (!order.isPickup &&
+                      (order.requestedVehicleType != null ||
+                          order.requestedDeliveryType != null)) ...[
                     _SectionTitle(
                       title: 'orders.deliveryOptions'.tr,
                       isDark: isDark,
                     ),
                     SizedBox(height: 12.h),
                     _DeliveryOptionsCard(order: order, isDark: isDark),
+                    SizedBox(height: 20.h),
+                  ],
+
+                  // Customer attachments (General Market prescriptions, notes, lists)
+                  if (order.hasAttachments) ...[
+                    _SectionTitle(
+                      title: 'orders.attachments'.tr,
+                      isDark: isDark,
+                    ),
+                    SizedBox(height: 12.h),
+                    _OrderAttachmentsCard(
+                      attachments: order.attachments,
+                      isDark: isDark,
+                    ),
                     SizedBox(height: 20.h),
                   ],
 
@@ -849,19 +919,46 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
     }
 
     final primaryAction = notifier.getPrimaryAllowedAction(order);
+    final canChangeItems =
+        !order.isCompleted &&
+        !order.hasActiveChangeRequest &&
+        (order.allowsAction('CHANGE_REQUEST') ||
+            (order.status == OrderStatusEnum.pending &&
+                !order.isPaid &&
+                order.allowsAction('EDIT')));
+    if (canChangeItems) {
+      actionButtons.add(
+        AppButton(
+          label: 'orders.incoming.editItems'.tr,
+          icon: Icons.edit_note_rounded,
+          variant: AppButtonVariant.secondary,
+          isLoading: _isProcessing,
+          onPressed: () => _handleProposeItemChanges(order),
+          isFullWidth: true,
+        ),
+      );
+    }
+
     if (primaryAction != null) {
       final isDanger =
           primaryAction.normalizedValue == 'REJECTED' ||
           primaryAction.normalizedValue == 'CANCELLED';
+      final isAcceptBlocked =
+          primaryAction.normalizedValue == 'ACCEPTED' &&
+          !notifier.canAcceptOrder(order);
       actionButtons.add(
         AppButton(
-          label: _getActionLabel(primaryAction, order),
-          icon: _getActionIcon(primaryAction),
+          label: isAcceptBlocked
+              ? 'orders.awaitingCustomerApproval'.tr
+              : _getActionLabel(primaryAction, order),
+          icon: isAcceptBlocked
+              ? Icons.hourglass_top_rounded
+              : _getActionIcon(primaryAction),
           variant: isDanger
               ? AppButtonVariant.danger
               : AppButtonVariant.primary,
           isLoading: _isProcessing,
-          onPressed: () => _handleStatusAction(order),
+          onPressed: isAcceptBlocked ? null : () => _handleStatusAction(order),
           isFullWidth: true,
         ),
       );
@@ -937,14 +1034,25 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
         return 'orders.rejectOrder'.tr;
       case 'CANCELLED':
         return 'orders.cancelOrder'.tr;
+      case 'COMPLETED':
+        return order.isPickup
+            ? 'orders.completePickup'.tr
+            : (action.label ?? action.value);
+      case 'RESTAURANT_DELIVERED':
+        return order.isPickup
+            ? 'orders.markReadyForPickup'.tr
+            : _getActionLabelForStatus(action.status!);
       default:
         return action.status == null
             ? (action.label ?? action.value)
-            : _getActionLabelForStatus(action.status!);
+            : _getActionLabelForStatus(action.status!, isPickup: order.isPickup);
     }
   }
 
-  String _getActionLabelForStatus(OrderStatusEnum status) {
+  String _getActionLabelForStatus(
+    OrderStatusEnum status, {
+    bool isPickup = false,
+  }) {
     switch (status) {
       case OrderStatusEnum.accepted:
         return 'orders.acceptOrder'.tr;
@@ -953,9 +1061,11 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen>
       case OrderStatusEnum.onTheWay:
         return 'orders.markOnTheWay'.tr;
       case OrderStatusEnum.delivered:
-        return 'orders.markDelivered'.tr;
+        return isPickup ? 'orders.completePickup'.tr : 'orders.markDelivered'.tr;
       case OrderStatusEnum.restaurantDelivered:
-        return 'orders.markRestaurantDelivered'.tr;
+        return isPickup
+            ? 'orders.markReadyForPickup'.tr
+            : 'orders.markRestaurantDelivered'.tr;
       default:
         return _getStatusDisplayName(status);
     }
@@ -1751,7 +1861,8 @@ class _PaymentSummaryCard extends ConsumerWidget {
         sellerTotal != null ||
         subtotal > 0 ||
         discountAmount > 0 ||
-        order.isPaid;
+        order.isPaid ||
+        order.hasSplitAmounts;
 
     if (!hasPaymentData) {
       return AppCard(
@@ -1806,6 +1917,31 @@ class _PaymentSummaryCard extends ConsumerWidget {
               value: '€${sellerTotal.toStringAsFixed(2)}',
               isDark: isDark,
               isTotal: true,
+            ),
+          ],
+          if ((order.giftCardAmountApplied ?? 0) > 0) ...[
+            SizedBox(height: 8.h),
+            _SummaryRow(
+              label: 'orders.paidViaGiftCard'.tr,
+              value: '-€${order.giftCardAmountApplied!.toStringAsFixed(2)}',
+              isDark: isDark,
+              isDiscount: true,
+            ),
+          ],
+          if ((order.cardAmountDue ?? 0) > 0) ...[
+            SizedBox(height: 8.h),
+            _SummaryRow(
+              label: 'orders.cardDue'.tr,
+              value: '€${order.cardAmountDue!.toStringAsFixed(2)}',
+              isDark: isDark,
+            ),
+          ],
+          if ((order.cashAmountDue ?? 0) > 0) ...[
+            SizedBox(height: 8.h),
+            _SummaryRow(
+              label: 'orders.cashDue'.tr,
+              value: '€${order.cashAmountDue!.toStringAsFixed(2)}',
+              isDark: isDark,
             ),
           ],
           if (order.isPaid) ...[
@@ -1863,16 +1999,19 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 16.sp : 14.sp,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w400,
-            color: isDiscount
-                ? AppColors.success
-                : (isDark ? DarkColors.textPrimary : LightColors.textPrimary),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 16.sp : 14.sp,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w400,
+              color: isDiscount
+                  ? AppColors.success
+                  : (isDark ? DarkColors.textPrimary : LightColors.textPrimary),
+            ),
           ),
         ),
+        SizedBox(width: 12.w),
         Text(
           value,
           style: TextStyle(
@@ -2002,6 +2141,42 @@ class _OrderInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
+              // In-store pickup indicator
+              if (order.isPickup) ...[
+                SizedBox(height: 6.h),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6.r),
+                    border: Border.all(
+                      color: AppColors.info.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.storefront_rounded,
+                        color: AppColors.info,
+                        size: 16.w,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        'orders.inStorePickup'.tr,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.info,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               // Manual order indicator
               if (order.isManual) ...[
                 SizedBox(height: 6.h),
@@ -2074,44 +2249,46 @@ class _AddressesCard extends StatelessWidget {
             sublabel: order.pickupAddress?.label ?? order.restaurant?.name,
             isDark: isDark,
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Row(
-              children: [
-                SizedBox(width: 12.w),
-                Container(
-                  width: 2.w,
-                  height: 24.h,
-                  decoration: BoxDecoration(
-                    color: isDark ? DarkColors.border : LightColors.border,
-                    borderRadius: BorderRadius.circular(1.r),
+          if (!order.isPickup) ...[
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.h),
+              child: Row(
+                children: [
+                  SizedBox(width: 12.w),
+                  Container(
+                    width: 2.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      color: isDark ? DarkColors.border : LightColors.border,
+                      borderRadius: BorderRadius.circular(1.r),
+                    ),
                   ),
-                ),
-                SizedBox(width: 12.w),
-                Icon(
-                  Icons.arrow_downward,
-                  size: 16.w,
-                  color: isDark
-                      ? DarkColors.textTertiary
-                      : LightColors.textTertiary,
-                ),
-              ],
+                  SizedBox(width: 12.w),
+                  Icon(
+                    Icons.arrow_downward,
+                    size: 16.w,
+                    color: isDark
+                        ? DarkColors.textTertiary
+                        : LightColors.textTertiary,
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Dropoff address
-          _AddressRow(
-            icon: Icons.location_on,
-            iconColor: AppColors.error,
-            label: 'orders.deliverTo'.tr,
-            address:
-                order.dropoffAddress?.displayAddress ?? order.address.street,
-            sublabel: order.customerName != 'Customer'
-                ? order.customerName
-                : null,
-            isDark: isDark,
-            latitude: dropoffLat,
-            longitude: dropoffLng,
-          ),
+            // Dropoff address
+            _AddressRow(
+              icon: Icons.location_on,
+              iconColor: AppColors.error,
+              label: 'orders.deliverTo'.tr,
+              address:
+                  order.dropoffAddress?.displayAddress ?? order.address.street,
+              sublabel: order.customerName != 'Customer'
+                  ? order.customerName
+                  : null,
+              isDark: isDark,
+              latitude: dropoffLat,
+              longitude: dropoffLng,
+            ),
+          ],
         ],
       ),
     );
@@ -2366,6 +2543,204 @@ class _DriverCard extends StatelessWidget {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Delivery options card showing vehicle and delivery type
+class _PendingChangeRequestBanner extends StatelessWidget {
+  const _PendingChangeRequestBanner({
+    required this.summary,
+    required this.isDark,
+  });
+
+  final OrderChangeRequestSummary? summary;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final expiresAt = summary?.expiresAt;
+    String? remainingLabel;
+    if (expiresAt != null) {
+      final diff = expiresAt.toUtc().difference(DateTime.now().toUtc());
+      if (!diff.isNegative) {
+        final mins = diff.inMinutes;
+        final secs = diff.inSeconds % 60;
+        remainingLabel =
+            '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return AppCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.hourglass_top_rounded,
+            color: AppColors.warning,
+            size: 22.w,
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'orders.awaitingCustomerApproval'.tr,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                    if (remainingLabel != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          remainingLabel,
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.warning,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (summary?.proposedTotal != null) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    '€${summary!.proposedTotal!.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: isDark
+                          ? DarkColors.textSecondary
+                          : LightColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderAttachmentsCard extends StatelessWidget {
+  const _OrderAttachmentsCard({
+    required this.attachments,
+    required this.isDark,
+  });
+
+  final List<OrderAttachment> attachments;
+  final bool isDark;
+
+  Future<void> _openAttachment(
+    BuildContext context,
+    OrderAttachment attachment,
+  ) async {
+    final url = attachment.downloadUrl?.trim();
+    if (url == null || url.isEmpty) return;
+
+    if (attachment.isImage) {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              InteractiveViewer(
+                child: Image.network(url, fit: BoxFit.contain),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton.filled(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  icon: const Icon(Icons.close),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        children: [
+          for (var i = 0; i < attachments.length; i++) ...[
+            if (i > 0)
+              Divider(color: isDark ? DarkColors.border : LightColors.border),
+            Material(
+              color: Colors.transparent,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  attachments[i].isPdf
+                      ? Icons.picture_as_pdf_rounded
+                      : Icons.image_outlined,
+                  color:
+                      attachments[i].isPdf ? AppColors.error : AppColors.info,
+                ),
+                title: Text(
+                  attachments[i].originalFilename,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? DarkColors.textPrimary
+                        : LightColors.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  attachments[i].mimeType,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: isDark
+                        ? DarkColors.textSecondary
+                        : LightColors.textSecondary,
+                  ),
+                ),
+                trailing: attachments[i].downloadUrl != null
+                    ? IconButton(
+                        icon: const Icon(Icons.open_in_new_rounded),
+                        onPressed: () =>
+                            _openAttachment(context, attachments[i]),
+                      )
+                    : null,
+                onTap: attachments[i].downloadUrl != null
+                    ? () => _openAttachment(context, attachments[i])
+                    : null,
+              ),
+            ),
+          ],
         ],
       ),
     );

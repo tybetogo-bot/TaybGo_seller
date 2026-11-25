@@ -39,7 +39,9 @@
     "undo": "Ångra",
     "optional": "Valfritt",
     "required": "Obligatorisk",
-    "missing": "Saknas"
+    "missing": "Saknas",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -74,7 +76,9 @@
     "forgotPassword": "Glömt lösenord",
     "sendResetLink": "Skicka återställningslänk",
     "backToLogin": "Tillbaka till inloggning",
-    "changePhone": "Ändra telefonnummer"
+    "changePhone": "Ändra telefonnummer",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Uppdatering krävs",
@@ -478,7 +482,16 @@
       "saved": "Tillagningstid sparad",
       "timingSection": "Tillagning och förare",
       "refreshRequired": "Tidsalternativen har ändrats. Granska den uppdaterade beställningen innan du försöker igen."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Sök adress...",
@@ -571,7 +584,9 @@
     "markAvailable": "Markera som tillgänglig",
     "markUnavailable": "Markera som ej tillgänglig",
     "viewItem": "Visa artikel",
-    "swipeToDelete": "Svep för att radera"
+    "swipeToDelete": "Svep för att radera",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Kuponger",
@@ -924,7 +939,8 @@
     "codeTooShort": "Koden måste vara minst 4 tecken",
     "imageTooLarge": "Bilden måste vara under 5 MB",
     "invalidImageFormat": "Endast JPG, PNG och WEBP-format är tillåtna",
-    "imageRequired": "Välj en bild"
+    "imageRequired": "Välj en bild",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Just nu",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Hjälp och support",
     "helpSupportDesc": "Få hjälp eller kontakta support",
     "logout": "Logga ut"
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }

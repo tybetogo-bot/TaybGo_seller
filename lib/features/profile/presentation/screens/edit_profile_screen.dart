@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/config/constants.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/network/user_api.dart';
 import '../../../../core/responsive/responsive.dart';
@@ -31,6 +32,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _birthdateController = TextEditingController();
   final _restaurantNameController = TextEditingController();
   final _restaurantPhoneController = TextEditingController();
+  final _minOrderController = TextEditingController(text: '0.00');
   final Map<String, List<_WorkHourDraft>> _workHourDrafts = {};
 
   bool _isInitialized = false;
@@ -42,6 +44,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   String? _workHoursError;
   DateTime? _selectedBirthdate;
   bool _deliveryEnabled = false;
+  String _storeType = 'RESTAURANT';
 
   static const List<String> _weekdayKeys = [
     'monday',
@@ -63,6 +66,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _birthdateController.dispose();
     _restaurantNameController.dispose();
     _restaurantPhoneController.dispose();
+    _minOrderController.dispose();
     _disposeWorkHourDrafts();
     super.dispose();
   }
@@ -190,8 +194,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             controller: _emailController,
                             isDark: isDark,
                             keyboardType: TextInputType.emailAddress,
-                            readOnly: true,
-                            suffixIcon: Icons.lock_outline,
+                            readOnly: false,
+                            suffixIcon: userProfile?.needsEmail == true
+                                ? Icons.edit_outlined
+                                : Icons.email_outlined,
                           ),
                           SizedBox(height: 12.h),
                           _EditableField(
@@ -238,6 +244,46 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 RegExp(r'[0-9+\-\s]'),
                               ),
                             ],
+                          ),
+                          SizedBox(height: 14.h),
+                          DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            initialValue: _storeType,
+                            decoration: InputDecoration(
+                              labelText: 'store.storeType'.tr,
+                              filled: true,
+                              fillColor: isDark
+                                  ? DarkColors.background
+                                  : LightColors.background,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                            items: [
+                              DropdownMenuItem(
+                                value: 'RESTAURANT',
+                                child: Text('store.typeRestaurant'.tr),
+                              ),
+                              DropdownMenuItem(
+                                value: 'GENERAL_MARKET',
+                                child: Text('store.typeGeneralMarket'.tr),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _storeType = value);
+                              }
+                            },
+                          ),
+                          SizedBox(height: 12.h),
+                          _EditableField(
+                            label: 'store.minOrderAmount'.tr,
+                            controller: _minOrderController,
+                            isDark: isDark,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            hintText: '0.00',
                           ),
                           SizedBox(height: 14.h),
                           _ToggleRow(
@@ -372,6 +418,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _restaurantPhoneController.text = restaurant.phone ?? '';
     _logoUrl = restaurant.logoUrl;
     _deliveryEnabled = restaurant.deliveryEnabled ?? false;
+    _storeType = restaurant.storeType.trim().toUpperCase() == 'GENERAL_MARKET'
+        ? 'GENERAL_MARKET'
+        : 'RESTAURANT';
+    _minOrderController.text = restaurant.minimumOrder.toStringAsFixed(2);
     _initializeWorkHours(restaurant);
     _initializedRestaurantId = restaurant.id;
     _isInitialized = true;
@@ -412,6 +462,44 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       return;
     }
 
+    final rawEmail = _emailController.text;
+    final normalizedEmail = rawEmail.trim().isEmpty
+        ? null
+        : ValidationPatterns.normalizeEmail(rawEmail);
+    if (userProfile.needsEmail && normalizedEmail == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('validation.required'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    if (normalizedEmail != null &&
+        !ValidationPatterns.email.hasMatch(normalizedEmail)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('validation.invalidEmail'.tr),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final minOrderText = _minOrderController.text.trim().replaceAll(',', '.');
+    if (minOrderText.isNotEmpty) {
+      final parsedMin = double.tryParse(minOrderText);
+      if (parsedMin == null || parsedMin < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('validation.invalidPrice'.tr),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+    }
+
     FocusScope.of(context).unfocus();
     setState(() => _isSaving = true);
 
@@ -421,6 +509,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         .read(userProfileProvider.notifier)
         .updateProfile(
           name: _sellerNameController.text.trim(),
+          email: normalizedEmail,
         );
     if (!updatedUser) {
       errorMessage =
@@ -481,12 +570,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Map<String, dynamic> _buildRestaurantUpdatePayload(
     RestaurantModel restaurant,
   ) {
+    final parsedMinOrder =
+        double.tryParse(_minOrderController.text.trim().replaceAll(',', '.')) ??
+        0.0;
     return {
       'name': _restaurantNameController.text.trim(),
       if (_restaurantPhoneController.text.trim().isNotEmpty)
         'phone': _restaurantPhoneController.text.trim(),
       if (_logoUrl != null && _logoUrl!.trim().isNotEmpty) 'logo': _logoUrl,
       'delivery_enabled': _deliveryEnabled,
+      'store_type': _storeType,
+      'min_order_amount': (parsedMinOrder < 0 ? 0.0 : parsedMinOrder)
+          .toStringAsFixed(2),
       'work_hours': _buildWorkHoursPayload(),
       if (restaurant.addressData?.id != null)
         'address_id': restaurant.addressData!.id,

@@ -39,7 +39,9 @@
     "undo": "Ongedaan maken",
     "optional": "Optioneel",
     "required": "Vereist",
-    "missing": "Ontbreekt"
+    "missing": "Ontbreekt",
+    "all": "Alle",
+    "refresh": "Vernieuwen"
   },
   "auth": {
     "phoneNumber": "Telefoonnummer",
@@ -74,7 +76,9 @@
     "forgotPassword": "Wachtwoord vergeten",
     "sendResetLink": "Resetlink verzenden",
     "backToLogin": "Terug naar inloggen",
-    "changePhone": "Telefoonnummer wijzigen"
+    "changePhone": "Telefoonnummer wijzigen",
+    "emailGateTitle": "E-mailadres toevoegen",
+    "emailGateSubtitle": "Een geldig e-mailadres is vereist voor maandoverzichten en meldingen."
   },
   "update": {
     "requiredTitle": "Update vereist",
@@ -478,7 +482,16 @@
       "saved": "Bereidingstijd opgeslagen",
       "timingSection": "Bereiding en bezorger",
       "refreshRequired": "De tijdopties zijn gewijzigd. Bekijk de vernieuwde bestelling voordat je het opnieuw probeert."
-    }
+    },
+    "inStorePickup": "AFHALEN IN WINKEL",
+    "awaitingCustomerApproval": "Wacht op goedkeuring van klant",
+    "changeRequestPendingAcceptBlocked": "Kan bestelling niet accepteren zolang een wijzigingsverzoek openstaat.",
+    "markReadyForPickup": "Klaar voor afhalen",
+    "completePickup": "Afhalen voltooien",
+    "attachments": "Bijlagen van klant",
+    "paidViaGiftCard": "Betaald met cadeaukaart",
+    "cardDue": "Te betalen met kaart",
+    "cashDue": "Contant te betalen"
   },
   "address": {
     "search": "Adres zoeken...",
@@ -571,7 +584,9 @@
     "markAvailable": "Markeer als beschikbaar",
     "markUnavailable": "Markeer als niet beschikbaar",
     "viewItem": "Item bekijken",
-    "swipeToDelete": "Veeg om te verwijderen"
+    "swipeToDelete": "Veeg om te verwijderen",
+    "stockQuantity": "Voorraad",
+    "outOfStock": "Uitverkocht (0)"
   },
   "coupons": {
     "title": "Kortingsbonnen",
@@ -924,7 +939,8 @@
     "codeTooShort": "Code moet minimaal 4 tekens bevatten",
     "imageTooLarge": "Afbeelding moet kleiner zijn dan 5 MB",
     "invalidImageFormat": "Alleen JPG-, PNG- en WEBP-formaten zijn toegestaan",
-    "imageRequired": "Selecteer een afbeelding"
+    "imageRequired": "Selecteer een afbeelding",
+    "invalidQuantity": "Voer een geldig niet-negatief geheel getal in."
   },
   "time": {
     "justNow": "Zojuist",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Hulp & ondersteuning",
     "helpSupportDesc": "Krijg hulp of neem contact op met support",
     "logout": "Uitloggen"
+  },
+  "store": {
+    "storeType": "Winkeltype",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "Supermarkt / General Market",
+    "minOrderAmount": "Minimum bestelbedrag (alleen artikelen)"
+  },
+  "monthlyExports": {
+    "title": "Maandrapporten (PDF)",
+    "subtitle": "Maandelijkse PDF-overzichten per winkel.",
+    "year": "Jaar",
+    "month": "Maand",
+    "orders": "bestellingen",
+    "empty": "Geen maandrapporten beschikbaar voor deze filters.",
+    "downloadPdf": "PDF downloaden",
+    "downloadFailed": "Kan het maandelijkse PDF-rapport niet openen."
   }
 }

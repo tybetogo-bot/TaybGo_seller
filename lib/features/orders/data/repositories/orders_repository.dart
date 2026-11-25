@@ -39,6 +39,16 @@ abstract class OrdersRepository {
     required String idempotencyKey,
   });
 
+  /// Propose a live order change request requiring customer approval.
+  Future<OrdersResult<OrderModel>> proposeOrderChangeRequest(
+    String id, {
+    required List<CartItem> items,
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+    required String idempotencyKey,
+  });
+
   /// Accept a seller order, optionally delaying driver dispatch.
   Future<OrdersResult<OrderModel>> acceptOrder(
     String id, {
@@ -192,6 +202,35 @@ class OrdersRepositoryImpl implements OrdersRepository {
       final order = await _remoteDataSource.editOrderItems(
         id,
         items: items,
+        idempotencyKey: idempotencyKey,
+      );
+      return (failure: null, data: order);
+    } on DioException catch (e) {
+      return (failure: _actionFailure(e), data: null);
+    } catch (e) {
+      return (
+        failure: ServerFailure(message: 'An unexpected error occurred: $e'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<OrdersResult<OrderModel>> proposeOrderChangeRequest(
+    String id, {
+    required List<CartItem> items,
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+    required String idempotencyKey,
+  }) async {
+    try {
+      final order = await _remoteDataSource.proposeOrderChangeRequest(
+        id,
+        items: items,
+        deliveryInstructions: deliveryInstructions,
+        reasonCode: reasonCode,
+        reason: reason,
         idempotencyKey: idempotencyKey,
       );
       return (failure: null, data: order);

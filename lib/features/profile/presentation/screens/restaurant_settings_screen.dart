@@ -23,11 +23,13 @@ class _RestaurantSettingsScreenState
     extends ConsumerState<RestaurantSettingsScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _minOrderController = TextEditingController(text: '0.00');
   final Map<String, List<_WorkHourDraft>> _workHourDrafts = {};
   bool _isInitialized = false;
   bool _isSaving = false;
   String? _logoUrl;
   bool _deliveryEnabled = false;
+  String _storeType = 'RESTAURANT';
   bool _isUploadingLogo = false;
   String? _workHoursError;
 
@@ -47,6 +49,7 @@ class _RestaurantSettingsScreenState
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _minOrderController.dispose();
     _disposeWorkHourDrafts();
     super.dispose();
   }
@@ -63,6 +66,12 @@ class _RestaurantSettingsScreenState
       _phoneController.text = selectedRestaurant.phone ?? '';
       _logoUrl = selectedRestaurant.logoUrl;
       _deliveryEnabled = selectedRestaurant.deliveryEnabled ?? false;
+      _storeType =
+          selectedRestaurant.storeType.trim().toUpperCase() == 'GENERAL_MARKET'
+          ? 'GENERAL_MARKET'
+          : 'RESTAURANT';
+      _minOrderController.text = selectedRestaurant.minimumOrder
+          .toStringAsFixed(2);
       _initializeWorkHours(selectedRestaurant);
       _isInitialized = true;
     }
@@ -130,6 +139,41 @@ class _RestaurantSettingsScreenState
                   _phoneController,
                   isDark,
                   keyboardType: TextInputType.phone,
+                ),
+                SizedBox(height: 12.h),
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: _storeType,
+                  decoration: InputDecoration(
+                    labelText: 'store.storeType'.tr,
+                    filled: true,
+                    fillColor: isDark ? DarkColors.surface : LightColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'RESTAURANT',
+                      child: Text('store.typeRestaurant'.tr),
+                    ),
+                    DropdownMenuItem(
+                      value: 'GENERAL_MARKET',
+                      child: Text('store.typeGeneralMarket'.tr),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) setState(() => _storeType = value);
+                  },
+                ),
+                SizedBox(height: 12.h),
+                _buildTextField(
+                  'store.minOrderAmount'.tr,
+                  _minOrderController,
+                  isDark,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                 ),
                 SizedBox(height: 12.h),
                 _buildDeliveryEnabledField(isDark),
@@ -679,12 +723,18 @@ class _RestaurantSettingsScreenState
     // Prepare update data
     // Note: Address is a foreign key reference - include the existing ID if present
     final addressId = selectedRestaurant.addressData?.id;
+    final parsedMinOrder =
+        double.tryParse(_minOrderController.text.trim().replaceAll(',', '.')) ??
+        0.0;
     final data = {
       'name': _nameController.text.trim(),
       if (_phoneController.text.trim().isNotEmpty)
         'phone': _phoneController.text.trim(),
       if (_logoUrl != null && _logoUrl!.isNotEmpty) 'logo': _logoUrl,
       'delivery_enabled': _deliveryEnabled,
+      'store_type': _storeType,
+      'min_order_amount': (parsedMinOrder < 0 ? 0.0 : parsedMinOrder)
+          .toStringAsFixed(2),
       'work_hours': _buildWorkHoursPayload(),
       // PUT expects the writable address foreign key as address_id.
       if (addressId != null) 'address_id': addressId,

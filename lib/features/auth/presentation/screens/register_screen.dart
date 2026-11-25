@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/constants.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/theme.dart';
@@ -90,10 +91,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailController,
                       label: 'auth.email'.tr,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'validation.required'.tr;
                         }
-                        if (!value.contains('@')) {
+                        final normalized = ValidationPatterns.normalizeEmail(
+                          value,
+                        );
+                        if (!ValidationPatterns.email.hasMatch(normalized)) {
                           return 'validation.invalidEmail'.tr;
                         }
                         return null;

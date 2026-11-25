@@ -549,7 +549,7 @@ as bool,
 /// @nodoc
 mixin _$MenuItemModel {
 
- String get id; String get name; double get price; String? get imageUrl; String? get description; String get categoryId; List<String> get ingredients; List<CustomizationOption> get customizations; bool get isAvailable; int get preparationTime; String? get nameAr; String? get nameDe; String? get nameFr; String? get descriptionAr; String? get descriptionDe; String? get descriptionFr; DateTime? get createdAt; DateTime? get updatedAt;
+ String get id; String get name; double get price; String? get imageUrl; String? get description; String get categoryId; List<String> get ingredients; List<CustomizationOption> get customizations; bool get isAvailable; int? get stockQuantity; bool get isOutOfStock; bool get effectiveIsAvailable; int get preparationTime; String? get nameAr; String? get nameDe; String? get nameFr; String? get descriptionAr; String? get descriptionDe; String? get descriptionFr; DateTime? get createdAt; DateTime? get updatedAt;
 /// Create a copy of MenuItemModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -560,16 +560,16 @@ $MenuItemModelCopyWith<MenuItemModel> get copyWith => _$MenuItemModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&const DeepCollectionEquality().equals(other.ingredients, ingredients)&&const DeepCollectionEquality().equals(other.customizations, customizations)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.preparationTime, preparationTime) || other.preparationTime == preparationTime)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&(identical(other.nameDe, nameDe) || other.nameDe == nameDe)&&(identical(other.nameFr, nameFr) || other.nameFr == nameFr)&&(identical(other.descriptionAr, descriptionAr) || other.descriptionAr == descriptionAr)&&(identical(other.descriptionDe, descriptionDe) || other.descriptionDe == descriptionDe)&&(identical(other.descriptionFr, descriptionFr) || other.descriptionFr == descriptionFr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&const DeepCollectionEquality().equals(other.ingredients, ingredients)&&const DeepCollectionEquality().equals(other.customizations, customizations)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.stockQuantity, stockQuantity) || other.stockQuantity == stockQuantity)&&(identical(other.isOutOfStock, isOutOfStock) || other.isOutOfStock == isOutOfStock)&&(identical(other.effectiveIsAvailable, effectiveIsAvailable) || other.effectiveIsAvailable == effectiveIsAvailable)&&(identical(other.preparationTime, preparationTime) || other.preparationTime == preparationTime)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&(identical(other.nameDe, nameDe) || other.nameDe == nameDe)&&(identical(other.nameFr, nameFr) || other.nameFr == nameFr)&&(identical(other.descriptionAr, descriptionAr) || other.descriptionAr == descriptionAr)&&(identical(other.descriptionDe, descriptionDe) || other.descriptionDe == descriptionDe)&&(identical(other.descriptionFr, descriptionFr) || other.descriptionFr == descriptionFr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price,imageUrl,description,categoryId,const DeepCollectionEquality().hash(ingredients),const DeepCollectionEquality().hash(customizations),isAvailable,preparationTime,nameAr,nameDe,nameFr,descriptionAr,descriptionDe,descriptionFr,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,price,imageUrl,description,categoryId,const DeepCollectionEquality().hash(ingredients),const DeepCollectionEquality().hash(customizations),isAvailable,stockQuantity,isOutOfStock,effectiveIsAvailable,preparationTime,nameAr,nameDe,nameFr,descriptionAr,descriptionDe,descriptionFr,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'MenuItemModel(id: $id, name: $name, price: $price, imageUrl: $imageUrl, description: $description, categoryId: $categoryId, ingredients: $ingredients, customizations: $customizations, isAvailable: $isAvailable, preparationTime: $preparationTime, nameAr: $nameAr, nameDe: $nameDe, nameFr: $nameFr, descriptionAr: $descriptionAr, descriptionDe: $descriptionDe, descriptionFr: $descriptionFr, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'MenuItemModel(id: $id, name: $name, price: $price, imageUrl: $imageUrl, description: $description, categoryId: $categoryId, ingredients: $ingredients, customizations: $customizations, isAvailable: $isAvailable, stockQuantity: $stockQuantity, isOutOfStock: $isOutOfStock, effectiveIsAvailable: $effectiveIsAvailable, preparationTime: $preparationTime, nameAr: $nameAr, nameDe: $nameDe, nameFr: $nameFr, descriptionAr: $descriptionAr, descriptionDe: $descriptionDe, descriptionFr: $descriptionFr, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -580,7 +580,7 @@ abstract mixin class $MenuItemModelCopyWith<$Res>  {
   factory $MenuItemModelCopyWith(MenuItemModel value, $Res Function(MenuItemModel) _then) = _$MenuItemModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, double price, String? imageUrl, String? description, String categoryId, List<String> ingredients, List<CustomizationOption> customizations, bool isAvailable, int preparationTime, String? nameAr, String? nameDe, String? nameFr, String? descriptionAr, String? descriptionDe, String? descriptionFr, DateTime? createdAt, DateTime? updatedAt
+ String id, String name, double price, String? imageUrl, String? description, String categoryId, List<String> ingredients, List<CustomizationOption> customizations, bool isAvailable, int? stockQuantity, bool isOutOfStock, bool effectiveIsAvailable, int preparationTime, String? nameAr, String? nameDe, String? nameFr, String? descriptionAr, String? descriptionDe, String? descriptionFr, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -597,7 +597,7 @@ class _$MenuItemModelCopyWithImpl<$Res>
 
 /// Create a copy of MenuItemModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,Object? imageUrl = freezed,Object? description = freezed,Object? categoryId = null,Object? ingredients = null,Object? customizations = null,Object? isAvailable = null,Object? preparationTime = null,Object? nameAr = freezed,Object? nameDe = freezed,Object? nameFr = freezed,Object? descriptionAr = freezed,Object? descriptionDe = freezed,Object? descriptionFr = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? price = null,Object? imageUrl = freezed,Object? description = freezed,Object? categoryId = null,Object? ingredients = null,Object? customizations = null,Object? isAvailable = null,Object? stockQuantity = freezed,Object? isOutOfStock = null,Object? effectiveIsAvailable = null,Object? preparationTime = null,Object? nameAr = freezed,Object? nameDe = freezed,Object? nameFr = freezed,Object? descriptionAr = freezed,Object? descriptionDe = freezed,Object? descriptionFr = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -608,6 +608,9 @@ as String?,categoryId: null == categoryId ? _self.categoryId : categoryId // ign
 as String,ingredients: null == ingredients ? _self.ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as List<String>,customizations: null == customizations ? _self.customizations : customizations // ignore: cast_nullable_to_non_nullable
 as List<CustomizationOption>,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
+as bool,stockQuantity: freezed == stockQuantity ? _self.stockQuantity : stockQuantity // ignore: cast_nullable_to_non_nullable
+as int?,isOutOfStock: null == isOutOfStock ? _self.isOutOfStock : isOutOfStock // ignore: cast_nullable_to_non_nullable
+as bool,effectiveIsAvailable: null == effectiveIsAvailable ? _self.effectiveIsAvailable : effectiveIsAvailable // ignore: cast_nullable_to_non_nullable
 as bool,preparationTime: null == preparationTime ? _self.preparationTime : preparationTime // ignore: cast_nullable_to_non_nullable
 as int,nameAr: freezed == nameAr ? _self.nameAr : nameAr // ignore: cast_nullable_to_non_nullable
 as String?,nameDe: freezed == nameDe ? _self.nameDe : nameDe // ignore: cast_nullable_to_non_nullable
@@ -699,10 +702,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int? stockQuantity,  bool isOutOfStock,  bool effectiveIsAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MenuItemModel() when $default != null:
-return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.stockQuantity,_that.isOutOfStock,_that.effectiveIsAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -720,10 +723,10 @@ return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int? stockQuantity,  bool isOutOfStock,  bool effectiveIsAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _MenuItemModel():
-return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);}
+return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.stockQuantity,_that.isOutOfStock,_that.effectiveIsAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -737,10 +740,10 @@ return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double price,  String? imageUrl,  String? description,  String categoryId,  List<String> ingredients,  List<CustomizationOption> customizations,  bool isAvailable,  int? stockQuantity,  bool isOutOfStock,  bool effectiveIsAvailable,  int preparationTime,  String? nameAr,  String? nameDe,  String? nameFr,  String? descriptionAr,  String? descriptionDe,  String? descriptionFr,  DateTime? createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _MenuItemModel() when $default != null:
-return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description,_that.categoryId,_that.ingredients,_that.customizations,_that.isAvailable,_that.stockQuantity,_that.isOutOfStock,_that.effectiveIsAvailable,_that.preparationTime,_that.nameAr,_that.nameDe,_that.nameFr,_that.descriptionAr,_that.descriptionDe,_that.descriptionFr,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -752,7 +755,7 @@ return $default(_that.id,_that.name,_that.price,_that.imageUrl,_that.description
 
 
 class _MenuItemModel implements MenuItemModel {
-  const _MenuItemModel({required this.id, required this.name, required this.price, this.imageUrl, this.description, required this.categoryId, final  List<String> ingredients = const [], final  List<CustomizationOption> customizations = const [], this.isAvailable = true, this.preparationTime = 0, this.nameAr, this.nameDe, this.nameFr, this.descriptionAr, this.descriptionDe, this.descriptionFr, this.createdAt, this.updatedAt}): _ingredients = ingredients,_customizations = customizations;
+  const _MenuItemModel({required this.id, required this.name, required this.price, this.imageUrl, this.description, required this.categoryId, final  List<String> ingredients = const [], final  List<CustomizationOption> customizations = const [], this.isAvailable = true, this.stockQuantity, this.isOutOfStock = false, this.effectiveIsAvailable = true, this.preparationTime = 0, this.nameAr, this.nameDe, this.nameFr, this.descriptionAr, this.descriptionDe, this.descriptionFr, this.createdAt, this.updatedAt}): _ingredients = ingredients,_customizations = customizations;
   
 
 @override final  String id;
@@ -776,6 +779,9 @@ class _MenuItemModel implements MenuItemModel {
 }
 
 @override@JsonKey() final  bool isAvailable;
+@override final  int? stockQuantity;
+@override@JsonKey() final  bool isOutOfStock;
+@override@JsonKey() final  bool effectiveIsAvailable;
 @override@JsonKey() final  int preparationTime;
 @override final  String? nameAr;
 @override final  String? nameDe;
@@ -796,16 +802,16 @@ _$MenuItemModelCopyWith<_MenuItemModel> get copyWith => __$MenuItemModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&const DeepCollectionEquality().equals(other._ingredients, _ingredients)&&const DeepCollectionEquality().equals(other._customizations, _customizations)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.preparationTime, preparationTime) || other.preparationTime == preparationTime)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&(identical(other.nameDe, nameDe) || other.nameDe == nameDe)&&(identical(other.nameFr, nameFr) || other.nameFr == nameFr)&&(identical(other.descriptionAr, descriptionAr) || other.descriptionAr == descriptionAr)&&(identical(other.descriptionDe, descriptionDe) || other.descriptionDe == descriptionDe)&&(identical(other.descriptionFr, descriptionFr) || other.descriptionFr == descriptionFr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuItemModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&const DeepCollectionEquality().equals(other._ingredients, _ingredients)&&const DeepCollectionEquality().equals(other._customizations, _customizations)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.stockQuantity, stockQuantity) || other.stockQuantity == stockQuantity)&&(identical(other.isOutOfStock, isOutOfStock) || other.isOutOfStock == isOutOfStock)&&(identical(other.effectiveIsAvailable, effectiveIsAvailable) || other.effectiveIsAvailable == effectiveIsAvailable)&&(identical(other.preparationTime, preparationTime) || other.preparationTime == preparationTime)&&(identical(other.nameAr, nameAr) || other.nameAr == nameAr)&&(identical(other.nameDe, nameDe) || other.nameDe == nameDe)&&(identical(other.nameFr, nameFr) || other.nameFr == nameFr)&&(identical(other.descriptionAr, descriptionAr) || other.descriptionAr == descriptionAr)&&(identical(other.descriptionDe, descriptionDe) || other.descriptionDe == descriptionDe)&&(identical(other.descriptionFr, descriptionFr) || other.descriptionFr == descriptionFr)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,price,imageUrl,description,categoryId,const DeepCollectionEquality().hash(_ingredients),const DeepCollectionEquality().hash(_customizations),isAvailable,preparationTime,nameAr,nameDe,nameFr,descriptionAr,descriptionDe,descriptionFr,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,price,imageUrl,description,categoryId,const DeepCollectionEquality().hash(_ingredients),const DeepCollectionEquality().hash(_customizations),isAvailable,stockQuantity,isOutOfStock,effectiveIsAvailable,preparationTime,nameAr,nameDe,nameFr,descriptionAr,descriptionDe,descriptionFr,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'MenuItemModel(id: $id, name: $name, price: $price, imageUrl: $imageUrl, description: $description, categoryId: $categoryId, ingredients: $ingredients, customizations: $customizations, isAvailable: $isAvailable, preparationTime: $preparationTime, nameAr: $nameAr, nameDe: $nameDe, nameFr: $nameFr, descriptionAr: $descriptionAr, descriptionDe: $descriptionDe, descriptionFr: $descriptionFr, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'MenuItemModel(id: $id, name: $name, price: $price, imageUrl: $imageUrl, description: $description, categoryId: $categoryId, ingredients: $ingredients, customizations: $customizations, isAvailable: $isAvailable, stockQuantity: $stockQuantity, isOutOfStock: $isOutOfStock, effectiveIsAvailable: $effectiveIsAvailable, preparationTime: $preparationTime, nameAr: $nameAr, nameDe: $nameDe, nameFr: $nameFr, descriptionAr: $descriptionAr, descriptionDe: $descriptionDe, descriptionFr: $descriptionFr, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -816,7 +822,7 @@ abstract mixin class _$MenuItemModelCopyWith<$Res> implements $MenuItemModelCopy
   factory _$MenuItemModelCopyWith(_MenuItemModel value, $Res Function(_MenuItemModel) _then) = __$MenuItemModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, double price, String? imageUrl, String? description, String categoryId, List<String> ingredients, List<CustomizationOption> customizations, bool isAvailable, int preparationTime, String? nameAr, String? nameDe, String? nameFr, String? descriptionAr, String? descriptionDe, String? descriptionFr, DateTime? createdAt, DateTime? updatedAt
+ String id, String name, double price, String? imageUrl, String? description, String categoryId, List<String> ingredients, List<CustomizationOption> customizations, bool isAvailable, int? stockQuantity, bool isOutOfStock, bool effectiveIsAvailable, int preparationTime, String? nameAr, String? nameDe, String? nameFr, String? descriptionAr, String? descriptionDe, String? descriptionFr, DateTime? createdAt, DateTime? updatedAt
 });
 
 
@@ -833,7 +839,7 @@ class __$MenuItemModelCopyWithImpl<$Res>
 
 /// Create a copy of MenuItemModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,Object? imageUrl = freezed,Object? description = freezed,Object? categoryId = null,Object? ingredients = null,Object? customizations = null,Object? isAvailable = null,Object? preparationTime = null,Object? nameAr = freezed,Object? nameDe = freezed,Object? nameFr = freezed,Object? descriptionAr = freezed,Object? descriptionDe = freezed,Object? descriptionFr = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? price = null,Object? imageUrl = freezed,Object? description = freezed,Object? categoryId = null,Object? ingredients = null,Object? customizations = null,Object? isAvailable = null,Object? stockQuantity = freezed,Object? isOutOfStock = null,Object? effectiveIsAvailable = null,Object? preparationTime = null,Object? nameAr = freezed,Object? nameDe = freezed,Object? nameFr = freezed,Object? descriptionAr = freezed,Object? descriptionDe = freezed,Object? descriptionFr = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_MenuItemModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -844,6 +850,9 @@ as String?,categoryId: null == categoryId ? _self.categoryId : categoryId // ign
 as String,ingredients: null == ingredients ? _self._ingredients : ingredients // ignore: cast_nullable_to_non_nullable
 as List<String>,customizations: null == customizations ? _self._customizations : customizations // ignore: cast_nullable_to_non_nullable
 as List<CustomizationOption>,isAvailable: null == isAvailable ? _self.isAvailable : isAvailable // ignore: cast_nullable_to_non_nullable
+as bool,stockQuantity: freezed == stockQuantity ? _self.stockQuantity : stockQuantity // ignore: cast_nullable_to_non_nullable
+as int?,isOutOfStock: null == isOutOfStock ? _self.isOutOfStock : isOutOfStock // ignore: cast_nullable_to_non_nullable
+as bool,effectiveIsAvailable: null == effectiveIsAvailable ? _self.effectiveIsAvailable : effectiveIsAvailable // ignore: cast_nullable_to_non_nullable
 as bool,preparationTime: null == preparationTime ? _self.preparationTime : preparationTime // ignore: cast_nullable_to_non_nullable
 as int,nameAr: freezed == nameAr ? _self.nameAr : nameAr // ignore: cast_nullable_to_non_nullable
 as String?,nameDe: freezed == nameDe ? _self.nameDe : nameDe // ignore: cast_nullable_to_non_nullable

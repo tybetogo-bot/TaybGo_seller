@@ -39,7 +39,9 @@
     "undo": "Rückgängig",
     "optional": "Optional",
     "required": "Erforderlich",
-    "missing": "Fehlt"
+    "missing": "Fehlt",
+    "all": "Alle",
+    "refresh": "Aktualisieren"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -73,7 +75,9 @@
     "createAccount": "Konto erstellen",
     "forgotPassword": "Passwort vergessen",
     "sendResetLink": "Reset-Link senden",
-    "backToLogin": "Zurück zur Anmeldung"
+    "backToLogin": "Zurück zur Anmeldung",
+    "emailGateTitle": "E-Mail-Adresse hinzufügen",
+    "emailGateSubtitle": "Eine gültige E-Mail-Adresse ist für Monatsberichte und Kontohinweise erforderlich."
   },
   "update": {
     "requiredTitle": "Update erforderlich",
@@ -479,7 +483,16 @@
       "saved": "Zubereitungszeit gespeichert",
       "timingSection": "Zubereitung und Fahrer",
       "refreshRequired": "Die Zeitoptionen haben sich geändert. Prüfen Sie die aktualisierte Bestellung vor einem erneuten Versuch."
-    }
+    },
+    "inStorePickup": "ABHOLUNG VOR ORT",
+    "awaitingCustomerApproval": "Wartet auf Kundenbestätigung",
+    "changeRequestPendingAcceptBlocked": "Bestellung kann während einer offenen Änderungsanfrage nicht angenommen werden.",
+    "markReadyForPickup": "Zur Abholung bereit",
+    "completePickup": "Abholung abschließen",
+    "attachments": "Kundenanhänge",
+    "paidViaGiftCard": "Per Gutschein bezahlt",
+    "cardDue": "Kartenzahlung fällig",
+    "cashDue": "Barzahlung fällig"
   },
   "address": {
     "search": "Adresse suchen...",
@@ -572,7 +585,9 @@
     "markAvailable": "Verfügbar machen",
     "markUnavailable": "Nicht verfügbar machen",
     "viewItem": "Artikel anzeigen",
-    "swipeToDelete": "Zum Löschen wischen"
+    "swipeToDelete": "Zum Löschen wischen",
+    "stockQuantity": "Lagerbestand",
+    "outOfStock": "Nicht vorrätig (0)"
   },
   "coupons": {
     "title": "Gutscheine",
@@ -925,7 +940,8 @@
     "codeTooShort": "Mind. 4 Zeichen",
     "imageTooLarge": "Bild muss unter 5 MB sein",
     "invalidImageFormat": "Nur JPG, PNG und WEBP erlaubt",
-    "imageRequired": "Bitte wählen Sie ein Bild"
+    "imageRequired": "Bitte wählen Sie ein Bild",
+    "invalidQuantity": "Bitte eine gültige nicht-negative Zahl eingeben."
   },
   "time": {
     "justNow": "Gerade eben",
@@ -1540,5 +1556,21 @@
     "helpSupport": "Hilfe & Support",
     "helpSupportDesc": "Hilfe erhalten oder Support kontaktieren",
     "logout": "Abmelden"
+  },
+  "store": {
+    "storeType": "Geschäftstyp",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "Supermarkt / General Market",
+    "minOrderAmount": "Mindestbestellwert (nur Artikelzwischensumme)"
+  },
+  "monthlyExports": {
+    "title": "Monatsberichte (PDF)",
+    "subtitle": "Monatliche Umsatzbericht-PDFs pro Standort.",
+    "year": "Jahr",
+    "month": "Monat",
+    "orders": "Bestellungen",
+    "empty": "Keine Monatsberichte für die gewählten Filter vorhanden.",
+    "downloadPdf": "PDF herunterladen",
+    "downloadFailed": "Monatsbericht-PDF konnte nicht geöffnet werden."
   }
 }

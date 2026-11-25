@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../core/i18n/i18n.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/session_lifecycle.dart';
 import '../../restaurant/application/restaurant_state.dart';
@@ -258,6 +259,7 @@ class MenuNotifier extends Notifier<MenuState> {
         if (item.imageUrl != null) 'image': item.imageUrl,
         'ingredients': item.ingredients.join(', '),
         'is_available': item.isAvailable,
+        if (item.stockQuantity != null) 'stock_quantity': item.stockQuantity,
         'preparation_time': item.preparationTime,
         if (item.customizations.isNotEmpty)
           'customizations': item.customizations
@@ -325,6 +327,7 @@ class MenuNotifier extends Notifier<MenuState> {
         'image': item.imageUrl,
         'ingredients': item.ingredients.join(', '),
         'is_available': item.isAvailable,
+        if (item.stockQuantity != null) 'stock_quantity': item.stockQuantity,
         'preparation_time': item.preparationTime,
         if (item.customizations.isNotEmpty)
           'customizations': item.customizations
@@ -428,6 +431,36 @@ class MenuNotifier extends Notifier<MenuState> {
         !SessionLifecycle.instance.isAuthenticated(generation)) {
       return;
     }
+  }
+
+  /// Adjust General Market item `stock_quantity` via PATCH without modifying manual `is_available`.
+  Future<bool> adjustItemStock(String itemId, int nextQuantity) async {
+    final generation = SessionLifecycle.instance.generation;
+    final restaurantId = ref.read(selectedRestaurantIdProvider);
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation)) {
+      return false;
+    }
+    final clamped = nextQuantity < 0 ? 0 : nextQuantity;
+    final result = await _repository.patchMenuItem(itemId, {
+      'stock_quantity': clamped,
+    });
+    if (!ref.mounted ||
+        !SessionLifecycle.instance.isAuthenticated(generation) ||
+        ref.read(selectedRestaurantIdProvider) != restaurantId) {
+      return false;
+    }
+    if (result.failure != null || result.data == null) {
+      state = state.copyWith(
+        error: result.failure?.message ?? 'errors.serverError'.tr,
+      );
+      return false;
+    }
+    final updatedItems = state.items
+        .map((i) => i.id == itemId ? result.data! : i)
+        .toList();
+    state = state.copyWith(items: updatedItems, clearError: true);
+    return true;
   }
 
   /// Get item by ID

@@ -39,7 +39,9 @@
     "undo": "Angre",
     "optional": "Valgfritt",
     "required": "Påkrevd",
-    "missing": "Mangler"
+    "missing": "Mangler",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Telefonnummer",
@@ -74,7 +76,9 @@
     "forgotPassword": "Glemt passord",
     "sendResetLink": "Send tilbakestillingslenke",
     "backToLogin": "Tilbake til innlogging",
-    "changePhone": "Endre telefonnummer"
+    "changePhone": "Endre telefonnummer",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Oppdatering kreves",
@@ -478,7 +482,16 @@
       "saved": "Tilberedningstid lagret",
       "timingSection": "Tilberedning og sjåfør",
       "refreshRequired": "Tidsvalgene er endret. Se den oppdaterte bestillingen før du prøver igjen."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Søk adresse...",
@@ -571,7 +584,9 @@
     "markAvailable": "Marker som tilgjengelig",
     "markUnavailable": "Marker som utilgjengelig",
     "viewItem": "Vis element",
-    "swipeToDelete": "Sveip for å slette"
+    "swipeToDelete": "Sveip for å slette",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Kuponer",
@@ -924,7 +939,8 @@
     "codeTooShort": "Koden må ha minst 4 tegn",
     "imageTooLarge": "Bildet må være under 5 MB",
     "invalidImageFormat": "Bare JPG-, PNG- og WEBP-formater er tillatt",
-    "imageRequired": "Velg et bilde"
+    "imageRequired": "Velg et bilde",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Akkurat nå",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Hjelp og støtte",
     "helpSupportDesc": "Få hjelp eller kontakt support",
     "logout": "Logg ut"
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }
