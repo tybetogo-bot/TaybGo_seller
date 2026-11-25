@@ -31,6 +31,7 @@ class UserProfile {
   final String id;
   final String? name;
   final String? email;
+  final bool needsEmail;
   final String phone;
   final DateTime? birthdate;
   final int? age;
@@ -42,13 +43,15 @@ class UserProfile {
     required this.id,
     this.name,
     this.email,
+    bool? needsEmail,
     required this.phone,
     this.birthdate,
     this.age,
     this.roles = const [UserRoles.seller],
     this.createdAt,
     this.updatedAt,
-  });
+  }) : needsEmail =
+           needsEmail ?? (email == null || email.trim().isEmpty);
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     // Handle roles as either a list or a single string
@@ -64,11 +67,20 @@ class UserProfile {
     final parsedBirthdate = json['birthdate'] != null
         ? DateTime.tryParse(json['birthdate'].toString())
         : null;
+    final rawEmail = json['email'] as String?;
+    final normalizedEmail = rawEmail != null && rawEmail.trim().isNotEmpty
+        ? ValidationPatterns.normalizeEmail(rawEmail)
+        : null;
+    final explicitNeedsEmail = json['needs_email'] ?? json['needsEmail'];
+    final needsEmail = explicitNeedsEmail is bool
+        ? explicitNeedsEmail
+        : normalizedEmail == null;
 
     return UserProfile(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String?,
-      email: json['email'] as String?,
+      email: normalizedEmail,
+      needsEmail: needsEmail,
       phone: json['phone']?.toString() ?? '',
       birthdate: parsedBirthdate,
       age:
@@ -90,11 +102,42 @@ class UserProfile {
   /// Check if user has a specific role
   bool hasRole(String role) => roles.contains(role);
 
+  UserProfile copyWith({
+    String? id,
+    String? name,
+    String? email,
+    bool? needsEmail,
+    String? phone,
+    DateTime? birthdate,
+    int? age,
+    List<String>? roles,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    final nextEmail = email != null
+        ? ValidationPatterns.normalizeEmail(email)
+        : this.email;
+    return UserProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: nextEmail,
+      needsEmail:
+          needsEmail ?? (nextEmail == null || nextEmail.trim().isEmpty),
+      phone: phone ?? this.phone,
+      birthdate: birthdate ?? this.birthdate,
+      age: age ?? this.age,
+      roles: roles ?? this.roles,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       if (name != null) 'name': name,
       if (email != null) 'email': email,
+      'needs_email': needsEmail,
       'phone': phone,
       if (birthdate != null) 'birthdate': _formatDate(birthdate!),
       if (age != null) 'age': age,
@@ -168,7 +211,13 @@ class UserApi {
   /// Update user profile
   /// PATCH /api/me/
   Future<UserProfile> updateProfile(Map<String, dynamic> data) async {
-    final response = await _dio.patch('/api/me/', data: data);
+    final payload = Map<String, dynamic>.from(data);
+    if (payload['email'] is String) {
+      payload['email'] = ValidationPatterns.normalizeEmail(
+        payload['email'] as String,
+      );
+    }
+    final response = await _dio.patch('/api/me/', data: payload);
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }
 
@@ -182,14 +231,26 @@ class UserApi {
   /// Create seller profile
   /// POST /api/seller/profile/
   Future<BasicProfile> createSellerProfile(Map<String, dynamic> data) async {
-    final response = await _dio.post('/api/seller/profile/', data: data);
+    final payload = Map<String, dynamic>.from(data);
+    if (payload['email'] is String) {
+      payload['email'] = ValidationPatterns.normalizeEmail(
+        payload['email'] as String,
+      );
+    }
+    final response = await _dio.post('/api/seller/profile/', data: payload);
     return BasicProfile.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// Update seller profile
   /// PATCH /api/seller/profile/
   Future<BasicProfile> updateSellerProfile(Map<String, dynamic> data) async {
-    final response = await _dio.patch('/api/seller/profile/', data: data);
+    final payload = Map<String, dynamic>.from(data);
+    if (payload['email'] is String) {
+      payload['email'] = ValidationPatterns.normalizeEmail(
+        payload['email'] as String,
+      );
+    }
+    final response = await _dio.patch('/api/seller/profile/', data: payload);
     return BasicProfile.fromJson(response.data as Map<String, dynamic>);
   }
 

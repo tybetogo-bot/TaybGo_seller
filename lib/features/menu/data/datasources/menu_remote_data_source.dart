@@ -22,6 +22,7 @@ abstract class MenuDataSource {
     required Map<String, dynamic> data,
   });
   Future<MenuItemModel> updateMenuItem(String id, Map<String, dynamic> data);
+  Future<MenuItemModel> patchMenuItem(String id, Map<String, dynamic> data);
   Future<void> deleteMenuItem(String id);
   Future<ItemStats> getItemStats(String id);
 }
@@ -95,6 +96,14 @@ class MenuRemoteDataSource implements MenuDataSource {
     Map<String, dynamic> data,
   ) async {
     return await _api.updateItem(id, data);
+  }
+
+  @override
+  Future<MenuItemModel> patchMenuItem(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return await _api.patchItem(id, data);
   }
 
   @override

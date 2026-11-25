@@ -121,6 +121,7 @@ sealed class RestaurantModel with _$RestaurantModel {
     String? closingHours,
     @Default({}) Map<String, List<WorkHourPeriod>> workHours,
     bool? deliveryEnabled,
+    @Default('RESTAURANT') String storeType,
     @Default(0.0) double deliveryFee,
     @Default(0.0) double minimumOrder,
     @Default(30) int estimatedDeliveryTime,
@@ -191,13 +192,31 @@ sealed class RestaurantModel with _$RestaurantModel {
       deliveryEnabled: _parseOptionalBool(
         json['delivery_enabled'] ?? json['deliveryEnabled'],
       ),
-      deliveryFee: (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0) is num
-          ? (json['delivery_fee'] ?? json['deliveryFee'] ?? 0.0).toDouble()
-          : 0.0,
+      storeType:
+          (json['store_type'] ?? json['storeType'] ?? 'RESTAURANT')
+              .toString()
+              .trim()
+              .isEmpty
+          ? 'RESTAURANT'
+          : (json['store_type'] ?? json['storeType'] ?? 'RESTAURANT')
+                .toString()
+                .trim()
+                .toUpperCase(),
+      deliveryFee:
+          double.tryParse(
+            (json['delivery_fee'] ?? json['deliveryFee'] ?? '0').toString(),
+          ) ??
+          0.0,
       minimumOrder:
-          (json['minimum_order'] ?? json['minimumOrder'] ?? 0.0) is num
-          ? (json['minimum_order'] ?? json['minimumOrder'] ?? 0.0).toDouble()
-          : 0.0,
+          double.tryParse(
+            (json['min_order_amount'] ??
+                    json['minOrderAmount'] ??
+                    json['minimum_order'] ??
+                    json['minimumOrder'] ??
+                    '0')
+                .toString(),
+          ) ??
+          0.0,
       estimatedDeliveryTime:
           (json['estimated_delivery_time'] ??
                   json['estimatedDeliveryTime'] ??
@@ -294,6 +313,9 @@ sealed class RestaurantModel with _$RestaurantModel {
 extension RestaurantModelExtension on RestaurantModel {
   /// Check if restaurant is active
   bool get isActive => status == RestaurantStatus.active;
+
+  /// Whether this seller outlet operates as a General Market / Supermarket.
+  bool get isGeneralMarket => storeType.trim().toUpperCase() == 'GENERAL_MARKET';
 
   /// Get full address string (prefers addressData if available)
   String get fullAddress {

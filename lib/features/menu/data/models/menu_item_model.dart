@@ -108,6 +108,9 @@ sealed class MenuItemModel with _$MenuItemModel {
     @Default([]) List<String> ingredients,
     @Default([]) List<CustomizationOption> customizations,
     @Default(true) bool isAvailable,
+    int? stockQuantity,
+    @Default(false) bool isOutOfStock,
+    @Default(true) bool effectiveIsAvailable,
     @Default(0) int preparationTime,
     String? nameAr,
     String? nameDe,
@@ -141,6 +144,15 @@ sealed class MenuItemModel with _$MenuItemModel {
                 .toList()
           : [],
       isAvailable: json['is_available'] ?? json['isAvailable'] ?? true,
+      stockQuantity: _parseOptionalInt(
+        json['stock_quantity'] ?? json['stockQuantity'],
+      ),
+      isOutOfStock: json['is_out_of_stock'] ?? json['isOutOfStock'] ?? false,
+      effectiveIsAvailable:
+          json['effective_is_available'] ??
+          json['effectiveIsAvailable'] ??
+          ((json['is_available'] ?? json['isAvailable'] ?? true) == true &&
+              !((json['is_out_of_stock'] ?? json['isOutOfStock']) == true)),
       preparationTime:
           int.tryParse(
             json['preparation_time']?.toString() ??
@@ -164,8 +176,18 @@ sealed class MenuItemModel with _$MenuItemModel {
   }
 }
 
+int? _parseOptionalInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString().trim());
+}
+
 /// Extension for MenuItemModel with utility methods
 extension MenuItemModelExtension on MenuItemModel {
+  /// Derived sellable state combining manual toggle and tracked inventory.
+  bool get effectiveAvailability =>
+      isAvailable && !isOutOfStock && effectiveIsAvailable;
   /// Get localized name
   String getLocalizedName(String languageCode) {
     switch (languageCode) {

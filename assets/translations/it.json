@@ -39,7 +39,9 @@
     "undo": "Annulla",
     "optional": "Opzionale",
     "required": "Obbligatorio",
-    "missing": "Mancante"
+    "missing": "Mancante",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Numero di telefono",
@@ -74,7 +76,9 @@
     "forgotPassword": "Password dimenticata",
     "sendResetLink": "Invia link di ripristino",
     "backToLogin": "Torna al login",
-    "changePhone": "Cambia numero di telefono"
+    "changePhone": "Cambia numero di telefono",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Aggiornamento richiesto",
@@ -478,7 +482,16 @@
       "saved": "Tempo di preparazione salvato",
       "timingSection": "Preparazione e corriere",
       "refreshRequired": "Le opzioni temporali sono cambiate. Controlla l’ordine aggiornato prima di riprovare."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Cerca indirizzo...",
@@ -571,7 +584,9 @@
     "markAvailable": "Segna disponibile",
     "markUnavailable": "Segna non disponibile",
     "viewItem": "Vedi articolo",
-    "swipeToDelete": "Scorri per eliminare"
+    "swipeToDelete": "Scorri per eliminare",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Coupon",
@@ -924,7 +939,8 @@
     "codeTooShort": "Il codice deve avere almeno 4 caratteri",
     "imageTooLarge": "L'immagine deve essere inferiore a 5 MB",
     "invalidImageFormat": "Sono consentiti solo i formati JPG, PNG e WEBP",
-    "imageRequired": "Seleziona un'immagine"
+    "imageRequired": "Seleziona un'immagine",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Proprio ora",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Aiuto e supporto",
     "helpSupportDesc": "Ottieni aiuto o contatta il supporto",
     "logout": "Esci"
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/constants.dart';
 import '../../core/i18n/i18n.dart';
 import '../../core/responsive/responsive.dart';
 import '../../core/services/location_permission_service.dart';
@@ -15,6 +16,7 @@ import '../../core/theme/theme.dart';
 import '../../features/notifications/application/notifications_notifier.dart';
 import '../../features/orders/application/orders_notifier.dart';
 import '../../features/orders/presentation/widgets/incoming_order_alert.dart';
+import '../../features/profile/application/user_profile_notifier.dart';
 import '../../features/tour/utils/tour_keys.dart';
 import '../../shared/widgets/location_warning_banner.dart';
 import '../router/routes.dart';
@@ -252,7 +254,173 @@ class _MainShellState extends ConsumerState<MainShell>
             bottomNavigationBar: const AppBottomNavBar(),
           );
 
-    return IncomingOrderAlertHost(child: shell);
+    final userProfileState = ref.watch(userProfileProvider);
+    final needsEmail = userProfileState.profile?.needsEmail == true;
+
+    return IncomingOrderAlertHost(
+      child: Stack(
+        children: [
+          shell,
+          if (needsEmail) const _MandatoryEmailGateOverlay(),
+        ],
+      ),
+    );
+  }
+}
+
+class _MandatoryEmailGateOverlay extends ConsumerStatefulWidget {
+  const _MandatoryEmailGateOverlay();
+
+  @override
+  ConsumerState<_MandatoryEmailGateOverlay> createState() =>
+      _MandatoryEmailGateOverlayState();
+}
+
+class _MandatoryEmailGateOverlayState
+    extends ConsumerState<_MandatoryEmailGateOverlay> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  bool _submitting = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    if (!_formKey.currentState!.validate()) return;
+    final normalized = ValidationPatterns.normalizeEmail(_emailController.text);
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+    final ok = await ref
+        .read(userProfileProvider.notifier)
+        .updateProfile(email: normalized);
+    if (!mounted) return;
+    if (!ok) {
+      setState(() {
+        _submitting = false;
+        _errorText =
+            ref.read(userProfileProvider).error ?? 'validation.invalidEmail'.tr;
+      });
+      return;
+    }
+    setState(() => _submitting = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return PopScope(
+      canPop: false,
+      child: Material(
+        color: Colors.black.withValues(alpha: 0.6),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 420.w),
+            child: Card(
+              margin: EdgeInsets.symmetric(horizontal: 20.w),
+              color: isDark ? DarkColors.surface : LightColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.r),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(20.w),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Icon(
+                        Icons.mark_email_unread_outlined,
+                        size: 36.w,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(
+                        'auth.emailGateTitle'.tr,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? DarkColors.textPrimary
+                              : LightColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        'auth.emailGateSubtitle'.tr,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: isDark
+                              ? DarkColors.textSecondary
+                              : LightColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      TextFormField(
+                        key: const Key('seller-email-gate-input'),
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        decoration: InputDecoration(
+                          labelText: 'auth.email'.tr,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'validation.required'.tr;
+                          }
+                          final normalized = ValidationPatterns.normalizeEmail(
+                            value,
+                          );
+                          if (!ValidationPatterns.email.hasMatch(normalized)) {
+                            return 'validation.invalidEmail'.tr;
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_errorText != null) ...[
+                        SizedBox(height: 8.h),
+                        Text(
+                          _errorText!,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: 16.h),
+                      FilledButton(
+                        key: const Key('seller-email-gate-submit'),
+                        onPressed: _submitting ? null : _submit,
+                        child: _submitting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text('common.save'.tr),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

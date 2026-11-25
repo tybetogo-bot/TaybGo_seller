@@ -39,7 +39,9 @@
     "undo": "Kumoa",
     "optional": "Valinnainen",
     "required": "Pakollinen",
-    "missing": "Puuttuu"
+    "missing": "Puuttuu",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Puhelinnumero",
@@ -74,7 +76,9 @@
     "forgotPassword": "Unohditko salasanan",
     "sendResetLink": "Lähetä palautuslinkki",
     "backToLogin": "Takaisin kirjautumiseen",
-    "changePhone": "Vaihda puhelinnumero"
+    "changePhone": "Vaihda puhelinnumero",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Päivitys vaaditaan",
@@ -478,7 +482,16 @@
       "saved": "Valmistusaika tallennettu",
       "timingSection": "Valmistus ja kuljettaja",
       "refreshRequired": "Aikavalinnat ovat muuttuneet. Tarkista päivitetty tilaus ennen uutta yritystä."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Hae osoitetta...",
@@ -571,7 +584,9 @@
     "markAvailable": "Merkitse saatavilla",
     "markUnavailable": "Merkitse ei saatavilla",
     "viewItem": "Näytä tuote",
-    "swipeToDelete": "Pyyhkäise poistaaksesi"
+    "swipeToDelete": "Pyyhkäise poistaaksesi",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Kupongit",
@@ -924,7 +939,8 @@
     "codeTooShort": "Koodin on oltava vähintään 4 merkkiä",
     "imageTooLarge": "Kuvan on oltava alle 5 Mt",
     "invalidImageFormat": "Sallitut muodot ovat vain JPG, PNG ja WEBP",
-    "imageRequired": "Valitse kuva"
+    "imageRequired": "Valitse kuva",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Juuri nyt",
@@ -1539,5 +1555,21 @@
     "helpSupport": "Ohje ja tuki",
     "helpSupportDesc": "Saa apua tai ota yhteyttä tukeen",
     "logout": "Kirjaudu ulos"
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }

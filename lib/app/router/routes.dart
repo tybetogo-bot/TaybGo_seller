@@ -85,6 +85,9 @@ class Routes {
   static const String coupons = '/profile/coupons';
   static const String couponsName = 'coupons';
 
+  static const String monthlyExports = '/profile/monthly-exports';
+  static const String monthlyExportsName = 'monthlyExports';
+
   // ============ Coupons ============
   static const String addCoupon = '/coupons/add';
   static const String addCouponName = 'addCoupon';

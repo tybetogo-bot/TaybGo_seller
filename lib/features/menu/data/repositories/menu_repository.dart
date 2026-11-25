@@ -35,6 +35,10 @@ abstract class MenuRepository {
     String id,
     Map<String, dynamic> data,
   );
+  Future<MenuResult<MenuItemModel>> patchMenuItem(
+    String id,
+    Map<String, dynamic> data,
+  );
   Future<MenuResult<void>> deleteMenuItem(String id);
   Future<MenuResult<ItemStats>> getItemStats(String id);
 }
@@ -252,6 +256,34 @@ class MenuRepositoryImpl implements MenuRepository {
   ) async {
     try {
       final item = await _remoteDataSource.updateMenuItem(id, data);
+      return (failure: null, data: item);
+    } on DioException catch (e) {
+      final apiError = e.error;
+      if (apiError is ApiException) {
+        return (
+          failure: ValidationFailure(message: apiError.message),
+          data: null,
+        );
+      }
+      return (
+        failure: const NetworkFailure(message: 'Network error occurred'),
+        data: null,
+      );
+    } catch (e) {
+      return (
+        failure: const ServerFailure(message: 'An unexpected error occurred'),
+        data: null,
+      );
+    }
+  }
+
+  @override
+  Future<MenuResult<MenuItemModel>> patchMenuItem(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final item = await _remoteDataSource.patchMenuItem(id, data);
       return (failure: null, data: item);
     } on DioException catch (e) {
       final apiError = e.error;

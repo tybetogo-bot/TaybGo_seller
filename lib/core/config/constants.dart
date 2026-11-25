@@ -72,6 +72,11 @@ abstract class ApiEndpoints {
   static String sellerOrderReject(String id) =>
       '/api/seller/orders/$id/reject/';
   static String sellerOrderEdit(String id) => '/api/seller/orders/$id/edit/';
+  static String sellerOrderChangeRequests(String id) =>
+      '/api/seller/orders/$id/change-requests/';
+  static const String sellerMonthlyExports = '/api/seller/exports/monthly/';
+  static String sellerMonthlyExportDetail(int id) =>
+      '/api/seller/exports/monthly/$id/';
   static String sellerOrderDriverDispatch(String id) =>
       '/api/seller/orders/$id/driver-dispatch/';
   static String sellerOrderStatus(String id) =>
@@ -158,7 +163,8 @@ abstract class AssetPaths {
 
 /// Regex patterns for validation
 abstract class ValidationPatterns {
-  static final RegExp email = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  static final RegExp email = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
+  static String normalizeEmail(String value) => value.trim().toLowerCase();
   static final RegExp phone = RegExp(r'^\+?[0-9]{10,15}$');
   static final RegExp password = RegExp(
     r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$',

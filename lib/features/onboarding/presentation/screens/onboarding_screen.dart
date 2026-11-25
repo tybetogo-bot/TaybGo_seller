@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/routes.dart';
+import '../../../../core/config/constants.dart';
 import '../../../../core/data/countries.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/responsive/responsive.dart';
@@ -43,6 +44,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Restaurant fields
   final _restaurantNameController = TextEditingController();
   final _restaurantPhoneController = TextEditingController();
+  final _minOrderController = TextEditingController(text: '0.00');
+  String _storeType = 'RESTAURANT';
   Country _restaurantPhoneCountry = Countries.austria;
 
   // Address data from AddressSearchWidget
@@ -71,6 +74,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _birthdateController.dispose();
     _restaurantNameController.dispose();
     _restaurantPhoneController.dispose();
+    _minOrderController.dispose();
     super.dispose();
   }
 
@@ -161,12 +165,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         .read(onboardingProvider.notifier)
         .submitOnboarding(
           name: _nameController.text.trim(),
-          email: _emailController.text.trim(),
+          email: ValidationPatterns.normalizeEmail(_emailController.text),
           phone: _phoneController.text.trim(),
           birthdate: _selectedBirthdate,
           registrationDocumentUrl: _registrationDocumentUrl!,
           restaurantName: _restaurantNameController.text.trim(),
           restaurantPhone: restaurantPhone,
+          storeType: _storeType,
+          minOrderAmount: _minOrderController.text.trim(),
           streetName: address.street,
           houseNumber: address.building,
           city: address.city!,
@@ -474,7 +480,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 if (value == null || value.trim().isEmpty) {
                   return 'validation.required'.tr;
                 }
-                if (!value.contains('@')) {
+                final normalized = ValidationPatterns.normalizeEmail(value);
+                if (!ValidationPatterns.email.hasMatch(normalized)) {
                   return 'validation.invalidEmail'.tr;
                 }
                 return null;
@@ -649,6 +656,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               selectedCountry: _restaurantPhoneCountry,
               onCountrySelected: (country) {
                 setState(() => _restaurantPhoneCountry = country);
+              },
+            ),
+            SizedBox(height: 16.h),
+
+            // Store Type selector
+            DropdownButtonFormField<String>(
+              isExpanded: true,
+              initialValue: _storeType,
+              decoration: InputDecoration(
+                labelText: 'store.storeType'.tr,
+                prefixIcon: const Icon(Icons.store_mall_directory_outlined),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: 'RESTAURANT',
+                  child: Text('store.typeRestaurant'.tr),
+                ),
+                DropdownMenuItem(
+                  value: 'GENERAL_MARKET',
+                  child: Text('store.typeGeneralMarket'.tr),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _storeType = value);
+              },
+            ),
+            SizedBox(height: 16.h),
+
+            // Minimum Order Amount (items subtotal only)
+            AppTextField(
+              controller: _minOrderController,
+              label: 'store.minOrderAmount'.tr,
+              hint: '0.00',
+              prefixIcon: Icons.euro_outlined,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                final text = (value ?? '').trim().replaceAll(',', '.');
+                if (text.isEmpty) return null;
+                final parsed = double.tryParse(text);
+                if (parsed == null || parsed < 0) {
+                  return 'validation.invalidPrice'.tr;
+                }
+                return null;
               },
             ),
             SizedBox(height: 24.h),

@@ -39,7 +39,9 @@
     "undo": "تراجع",
     "optional": "اختياري",
     "required": "مطلوب",
-    "missing": "مفقود"
+    "missing": "مفقود",
+    "all": "الكل",
+    "refresh": "تحديث"
   },
   "auth": {
     "phoneNumber": "رقم الهاتف",
@@ -73,7 +75,9 @@
     "createAccount": "إنشاء حساب",
     "forgotPassword": "نسيت كلمة المرور",
     "sendResetLink": "إرسال رابط الاستعادة",
-    "backToLogin": "العودة لتسجيل الدخول"
+    "backToLogin": "العودة لتسجيل الدخول",
+    "emailGateTitle": "أضف بريدك الإلكتروني",
+    "emailGateSubtitle": "مطلوب بريد إلكتروني صالح لإرسال الكشوفات الشهرية وإشعارات الحساب."
   },
   "update": {
     "requiredTitle": "التحديث مطلوب",
@@ -477,7 +481,16 @@
       "saved": "تم حفظ وقت التحضير المتوقع",
       "timingSection": "التحضير والسائق",
       "refreshRequired": "تغيّرت خيارات توقيت الطلب. راجع الطلب بعد تحديثه قبل المحاولة مجددًا."
-    }
+    },
+    "inStorePickup": "استلام من المتجر",
+    "awaitingCustomerApproval": "بانتظار موافقة العميل",
+    "changeRequestPendingAcceptBlocked": "لا يمكن قبول الطلب أثناء انتظار موافقة العميل على التعديل.",
+    "markReadyForPickup": "تحديد كجاهز للاستلام",
+    "completePickup": "إتمام الاستلام",
+    "attachments": "مرفقات العميل",
+    "paidViaGiftCard": "مدفوع ببطاقة هدية",
+    "cardDue": "المتبقي بالبطاقة",
+    "cashDue": "المتبقي نقداً"
   },
   "address": {
     "search": "بحث...",
@@ -570,7 +583,9 @@
     "markAvailable": "جعله متاحاً",
     "markUnavailable": "جعله غير متاح",
     "viewItem": "عرض العنصر",
-    "swipeToDelete": "اسحب للحذف"
+    "swipeToDelete": "اسحب للحذف",
+    "stockQuantity": "كمية المخزون",
+    "outOfStock": "نفد المخزون (0)"
   },
   "coupons": {
     "title": "الكوبونات",
@@ -1006,7 +1021,8 @@
     "codeTooShort": "4 أحرف على الأقل",
     "imageTooLarge": "يجب أن تكون الصورة أقل من 5 ميجابايت",
     "invalidImageFormat": "الصيغ المسموحة: JPG, PNG, WEBP فقط",
-    "imageRequired": "الرجاء اختيار صورة"
+    "imageRequired": "الرجاء اختيار صورة",
+    "invalidQuantity": "يرجى إدخال رقم صحيح غير سالب."
   },
   "time": {
     "justNow": "الآن",
@@ -1717,5 +1733,21 @@
     "orderLabel": "عرض إنقاذ الطعام",
     "orderOriginal": "السعر الأصلي للحصة {price}",
     "managementUpdating": "جارٍ تحديث إدارة العروض. ستتوفر الأرشفة قريباً."
+  },
+  "store": {
+    "storeType": "نوع المتجر",
+    "typeRestaurant": "مطعم",
+    "typeGeneralMarket": "سوبرماركت / بقالة عامة",
+    "minOrderAmount": "الحد الأدنى للطلب (مجموع الأصناف فقط)"
+  },
+  "monthlyExports": {
+    "title": "التقارير الشهرية (PDF)",
+    "subtitle": "كشوفات المبيعات الشهرية الصادرة بصيغة PDF لكل متجر.",
+    "year": "السنة",
+    "month": "الشهر",
+    "orders": "طلبات",
+    "empty": "لا توجد تقارير شهرية مطابقة للخيارات المحددة.",
+    "downloadPdf": "تنزيل PDF",
+    "downloadFailed": "تعذر فتح التقرير الشهري."
   }
 }

@@ -713,6 +713,82 @@ extension OrderItemModelExtension on OrderItemModel {
   }
 }
 
+class OrderAttachment {
+  final String id;
+  final String originalFilename;
+  final String mimeType;
+  final int sizeBytes;
+  final String? downloadUrl;
+
+  const OrderAttachment({
+    required this.id,
+    required this.originalFilename,
+    required this.mimeType,
+    this.sizeBytes = 0,
+    this.downloadUrl,
+  });
+
+  bool get isPdf => mimeType.toLowerCase().contains('pdf') ||
+      originalFilename.toLowerCase().endsWith('.pdf');
+
+  bool get isImage => mimeType.toLowerCase().startsWith('image/');
+
+  factory OrderAttachment.fromJson(Map<String, dynamic> json) {
+    return OrderAttachment(
+      id: (json['id'] ?? '').toString(),
+      originalFilename:
+          (json['original_filename'] ?? json['filename'] ?? 'attachment')
+              .toString(),
+      mimeType: (json['mime_type'] ?? '').toString(),
+      sizeBytes: (json['size_bytes'] as num?)?.toInt() ?? 0,
+      downloadUrl: (json['download_url'] ?? json['url'])?.toString(),
+    );
+  }
+}
+
+class OrderChangeRequestSummary {
+  final String id;
+  final String status;
+  final DateTime? expiresAt;
+  final double? previousTotal;
+  final double? proposedTotal;
+  final double? deltaAmount;
+  final String? reason;
+
+  const OrderChangeRequestSummary({
+    required this.id,
+    required this.status,
+    this.expiresAt,
+    this.previousTotal,
+    this.proposedTotal,
+    this.deltaAmount,
+    this.reason,
+  });
+
+  String get normalizedStatus => status.trim().toUpperCase();
+
+  bool get isPending =>
+      normalizedStatus == 'PENDING' || normalizedStatus == 'PAYMENT_REQUIRED';
+
+  factory OrderChangeRequestSummary.fromJson(Map<String, dynamic> json) {
+    return OrderChangeRequestSummary(
+      id: (json['id'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      expiresAt: json['expires_at'] is String
+          ? DateTime.tryParse(json['expires_at'] as String)
+          : null,
+      previousTotal: _parseDouble(
+        json['previous_total'] ?? json['previousTotal'],
+      ),
+      proposedTotal: _parseDouble(
+        json['proposed_total'] ?? json['proposedTotal'],
+      ),
+      deltaAmount: _parseDouble(json['delta_amount'] ?? json['deltaAmount']),
+      reason: json['reason']?.toString(),
+    );
+  }
+}
+
 /// Main order model
 @freezed
 sealed class OrderModel with _$OrderModel {
@@ -777,6 +853,14 @@ sealed class OrderModel with _$OrderModel {
 
     /// Local receipt time for the server clock sample; survives widget remounts.
     DateTime? timingReceivedAt,
+
+    /// Phase 3 addendum fields: attachments, live order change requests, & wallet splits.
+    @Default([]) List<OrderAttachment> attachments,
+    OrderChangeRequestSummary? pendingChangeRequest,
+    @Default(false) bool hasPendingChangeRequest,
+    double? giftCardAmountApplied,
+    double? cardAmountDue,
+    double? cashAmountDue,
   }) = _OrderModel;
 
   /// Custom fromJson to handle API response format
@@ -1093,12 +1177,60 @@ sealed class OrderModel with _$OrderModel {
       preparationServerTime: parseDateTime(json['preparation_server_time']),
       preparationMaxMinutes: parseInt(json['preparation_max_minutes']),
       driverDispatchLeadMinutes: parseInt(json['driver_dispatch_lead_minutes']),
+      attachments: (json['attachments'] is List)
+          ? (json['attachments'] as List)
+                .whereType<Map>()
+                .map(
+                  (entry) => OrderAttachment.fromJson(
+                    Map<String, dynamic>.from(entry),
+                  ),
+                )
+                .toList(growable: false)
+          : const <OrderAttachment>[],
+      pendingChangeRequest: json['pending_change_request'] is Map
+          ? OrderChangeRequestSummary.fromJson(
+              Map<String, dynamic>.from(json['pending_change_request'] as Map),
+            )
+          : null,
+      hasPendingChangeRequest:
+          json['has_pending_change_request'] == true ||
+          json['hasPendingChangeRequest'] == true ||
+          (json['pending_change_request'] is Map &&
+              OrderChangeRequestSummary.fromJson(
+                Map<String, dynamic>.from(
+                  json['pending_change_request'] as Map,
+                ),
+              ).isPending),
+      giftCardAmountApplied: _parseDouble(
+        json['gift_card_amount_applied'] ?? json['giftCardAmountApplied'],
+      ),
+      cardAmountDue: _parseDouble(
+        json['card_amount_due'] ?? json['cardAmountDue'],
+      ),
+      cashAmountDue: _parseDouble(
+        json['cash_amount_due'] ?? json['cashAmountDue'],
+      ),
     );
   }
 }
 
 /// Extension for OrderModel calculations and utilities
 extension OrderModelExtension on OrderModel {
+  bool get isPickup =>
+      (fulfillmentType ?? requestedDeliveryType ?? '')
+          .trim()
+          .toUpperCase() ==
+      'PICKUP';
+
+  bool get hasActiveChangeRequest =>
+      hasPendingChangeRequest || (pendingChangeRequest?.isPending ?? false);
+
+  bool get hasAttachments => attachments.isNotEmpty;
+
+  bool get hasSplitAmounts =>
+      (giftCardAmountApplied ?? 0) > 0 ||
+      (cashAmountDue ?? 0) > 0 ||
+      (cardAmountDue ?? 0) > 0;
   /// New requests are only enabled by a complete, explicit server capability.
   bool get canSetPreparationTime =>
       supportsPreparationTiming &&

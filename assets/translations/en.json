@@ -39,7 +39,9 @@
     "undo": "Undo",
     "optional": "Optional",
     "required": "Required",
-    "missing": "Missing"
+    "missing": "Missing",
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "phoneNumber": "Phone Number",
@@ -73,7 +75,9 @@
     "createAccount": "Create Account",
     "forgotPassword": "Forgot Password",
     "sendResetLink": "Send Reset Link",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "emailGateTitle": "Add Your Email Address",
+    "emailGateSubtitle": "A valid email address is required for store statements and account notifications."
   },
   "update": {
     "requiredTitle": "Update required",
@@ -477,7 +481,16 @@
       "saved": "Preparation estimate saved",
       "timingSection": "Preparation and driver",
       "refreshRequired": "Order timing options have changed. Review the refreshed order before trying again."
-    }
+    },
+    "inStorePickup": "IN-STORE PICKUP",
+    "awaitingCustomerApproval": "Awaiting customer approval",
+    "changeRequestPendingAcceptBlocked": "Cannot accept order while a customer change request is pending.",
+    "markReadyForPickup": "Mark Ready for Pickup",
+    "completePickup": "Complete Pickup",
+    "attachments": "Customer Attachments",
+    "paidViaGiftCard": "Paid via Gift Card",
+    "cardDue": "Card Due",
+    "cashDue": "Cash Due"
   },
   "address": {
     "search": "Search address...",
@@ -570,7 +583,9 @@
     "markAvailable": "Mark Available",
     "markUnavailable": "Mark Unavailable",
     "viewItem": "View Item",
-    "swipeToDelete": "Swipe to Delete"
+    "swipeToDelete": "Swipe to Delete",
+    "stockQuantity": "Stock Quantity",
+    "outOfStock": "Out of Stock (0)"
   },
   "coupons": {
     "title": "Coupons",
@@ -1006,7 +1021,8 @@
     "codeTooShort": "Code must be at least 4 characters",
     "imageTooLarge": "Image must be under 5MB",
     "invalidImageFormat": "Only JPG, PNG, and WEBP formats allowed",
-    "imageRequired": "Please select an image"
+    "imageRequired": "Please select an image",
+    "invalidQuantity": "Please enter a valid non-negative integer."
   },
   "time": {
     "justNow": "Just now",
@@ -1717,5 +1733,21 @@
     "orderLabel": "Rescue deal",
     "orderOriginal": "Originally {price} each",
     "managementUpdating": "Deal management is being updated. Archiving will be available shortly."
+  },
+  "store": {
+    "storeType": "Store Type",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "General Market / Supermarket",
+    "minOrderAmount": "Minimum Order Amount (items subtotal)"
+  },
+  "monthlyExports": {
+    "title": "Monthly Reports (PDF)",
+    "subtitle": "Monthly Umsatzbericht PDF statements generated per store.",
+    "year": "Year",
+    "month": "Month",
+    "orders": "orders",
+    "empty": "No monthly reports available for the selected filters.",
+    "downloadPdf": "Download PDF",
+    "downloadFailed": "Could not open the monthly PDF report."
   }
 }

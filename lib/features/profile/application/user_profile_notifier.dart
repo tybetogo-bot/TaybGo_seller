@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/constants.dart';
 import '../../../core/network/user_api.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/services/polling_service.dart';
@@ -85,7 +86,11 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   }
 
   /// Update user profile
-  Future<bool> updateProfile({String? name, int? age}) async {
+  Future<bool> updateProfile({
+    String? name,
+    String? email,
+    int? age,
+  }) async {
     final generation = SessionLifecycle.instance.generation;
     if (!ref.mounted ||
         !SessionLifecycle.instance.isAuthenticated(generation)) {
@@ -96,6 +101,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     try {
       final data = <String, dynamic>{};
       if (name != null) data['name'] = name;
+      if (email != null) {
+        data['email'] = ValidationPatterns.normalizeEmail(email);
+      }
       if (age != null) data['age'] = age;
 
       final result = await _repository.updateProfile(data);

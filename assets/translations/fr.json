@@ -39,7 +39,9 @@
     "undo": "Annuler",
     "optional": "Optionnel",
     "required": "Obligatoire",
-    "missing": "Manquant"
+    "missing": "Manquant",
+    "all": "Tous",
+    "refresh": "Actualiser"
   },
   "auth": {
     "phoneNumber": "Téléphone",
@@ -73,7 +75,9 @@
     "createAccount": "Créer un compte",
     "forgotPassword": "Mot de passe oublié",
     "sendResetLink": "Envoyer le lien de réinitialisation",
-    "backToLogin": "Retour à la connexion"
+    "backToLogin": "Retour à la connexion",
+    "emailGateTitle": "Ajoutez votre adresse e-mail",
+    "emailGateSubtitle": "Une adresse e-mail valide est requise pour les relevés mensuels et les notifications."
   },
   "update": {
     "requiredTitle": "Mise à jour requise",
@@ -479,7 +483,16 @@
       "saved": "Temps de préparation enregistré",
       "timingSection": "Préparation et livreur",
       "refreshRequired": "Les options de délai ont changé. Vérifiez la commande actualisée avant de réessayer."
-    }
+    },
+    "inStorePickup": "RETRAIT EN MAGASIN",
+    "awaitingCustomerApproval": "En attente de validation client",
+    "changeRequestPendingAcceptBlocked": "Impossible d'accepter tant qu'une demande de modification est en attente.",
+    "markReadyForPickup": "Prêt pour retrait",
+    "completePickup": "Terminer le retrait",
+    "attachments": "Pièces jointes client",
+    "paidViaGiftCard": "Payé par carte cadeau",
+    "cardDue": "Reste par carte",
+    "cashDue": "Reste en espèces"
   },
   "address": {
     "search": "Rechercher...",
@@ -572,7 +585,9 @@
     "markAvailable": "Rendre disponible",
     "markUnavailable": "Rendre indisponible",
     "viewItem": "Voir article",
-    "swipeToDelete": "Glisser pour supprimer"
+    "swipeToDelete": "Glisser pour supprimer",
+    "stockQuantity": "Quantité en stock",
+    "outOfStock": "Rupture de stock (0)"
   },
   "coupons": {
     "title": "Coupons",
@@ -925,7 +940,8 @@
     "codeTooShort": "Min. 4 caractères",
     "imageTooLarge": "L'image doit faire moins de 5 Mo",
     "invalidImageFormat": "Formats autorisés : JPG, PNG, WEBP",
-    "imageRequired": "Veuillez sélectionner une image"
+    "imageRequired": "Veuillez sélectionner une image",
+    "invalidQuantity": "Veuillez saisir un entier positif ou nul."
   },
   "time": {
     "justNow": "À l'instant",
@@ -1540,5 +1556,21 @@
     "helpSupport": "Aide et support",
     "helpSupportDesc": "Obtenez de l'aide ou contactez le support",
     "logout": "Se déconnecter"
+  },
+  "store": {
+    "storeType": "Type de commerce",
+    "typeRestaurant": "Restaurant",
+    "typeGeneralMarket": "Supermarché / Épicerie",
+    "minOrderAmount": "Commande minimum (sous-total des articles)"
+  },
+  "monthlyExports": {
+    "title": "Rapports mensuels (PDF)",
+    "subtitle": "Relevés mensuels Umsatzbericht en PDF générés par point de vente.",
+    "year": "Année",
+    "month": "Mois",
+    "orders": "commandes",
+    "empty": "Aucun rapport mensuel pour ces filtres.",
+    "downloadPdf": "Télécharger le PDF",
+    "downloadFailed": "Impossible d'ouvrir le rapport PDF mensuel."
   }
 }

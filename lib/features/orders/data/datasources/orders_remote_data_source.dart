@@ -27,6 +27,16 @@ abstract class OrdersDataSource {
     required String idempotencyKey,
   });
 
+  /// Propose a customer-approved change request for an active order.
+  Future<OrderModel> proposeOrderChangeRequest(
+    String id, {
+    required List<CartItem> items,
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+    required String idempotencyKey,
+  });
+
   /// Accept a seller order, optionally delaying driver dispatch.
   Future<OrderModel> acceptOrder(
     String id, {
@@ -90,6 +100,25 @@ class OrdersRemoteDataSource implements OrdersDataSource {
     return await _api.editOrderItems(
       id,
       items: items,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  @override
+  Future<OrderModel> proposeOrderChangeRequest(
+    String id, {
+    required List<CartItem> items,
+    String? deliveryInstructions,
+    String? reasonCode,
+    String? reason,
+    required String idempotencyKey,
+  }) async {
+    return await _api.proposeOrderChangeRequest(
+      id,
+      items: items,
+      deliveryInstructions: deliveryInstructions,
+      reasonCode: reasonCode,
+      reason: reason,
       idempotencyKey: idempotencyKey,
     );
   }
